@@ -31,6 +31,18 @@ namespace RestEaseUnitTests
             Task BazAsync(CancellationToken cancellationToken);
         }
 
+        public interface ITwoCancellationTokens
+        {
+            [Get("yay")]
+            Task YayAsync(CancellationToken cancellationToken1, CancellationToken cancellationToken2);
+        }
+
+        public interface ISingleParameterWithQueryParamAttributeNoReturn
+        {
+            [Get("boo")]
+            Task BooAsync([QueryParam("bar")] string foo);
+        }
+
         private readonly Mock<IRequester> requester;
         private readonly ImplementationBuilder builder;
 
@@ -108,6 +120,36 @@ namespace RestEaseUnitTests
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Equal(0, requestInfo.Parameters.Count);
             Assert.Equal("baz", requestInfo.Path);
+        }
+
+        [Fact]
+        public void TwoCancellationTokensThrows()
+        {
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<ITwoCancellationTokens>(this.requester.Object));
+        }
+
+        [Fact]
+        public void SingleParameterWithQueryParamAttributeNoReturnCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<ISingleParameterWithQueryParamAttributeNoReturn>(this.requester.Object);
+
+            var expectedResponse = Task.FromResult(false);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(expectedResponse)
+                .Verifiable();
+
+            var response = implementation.BooAsync("the value");
+
+            Assert.Equal(expectedResponse, response);
+            this.requester.Verify();
+            Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal(1, requestInfo.Parameters.Count);
+            Assert.Equal("the value", requestInfo.Parameters["bar"]);
+            Assert.Equal("boo", requestInfo.Path);
         }
     }
 }
