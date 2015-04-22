@@ -25,6 +25,12 @@ namespace RestEaseUnitTests
             Task<string> BarAsync();
         }
 
+        public interface ICancellationTokenOnlyNoReturn
+        {
+            [Get("baz")]
+            Task BazAsync(CancellationToken cancellationToken);
+        }
+
         private readonly Mock<IRequester> requester;
         private readonly ImplementationBuilder builder;
 
@@ -78,6 +84,30 @@ namespace RestEaseUnitTests
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Equal(0, requestInfo.Parameters.Count);
             Assert.Equal("bar", requestInfo.Path);
+        }
+
+        [Fact]
+        public void CancellationTokenOnlyNoReturnCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<ICancellationTokenOnlyNoReturn>(this.requester.Object);
+            
+            var expectedResponse = Task.FromResult(false);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(expectedResponse)
+                .Verifiable();
+
+            var cts = new CancellationTokenSource();
+            var response = implementation.BazAsync(cts.Token);
+
+            Assert.Equal(expectedResponse, response);
+            this.requester.Verify();
+            Assert.Equal(cts.Token, requestInfo.CancellationToken);
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal(0, requestInfo.Parameters.Count);
+            Assert.Equal("baz", requestInfo.Path);
         }
     }
 }

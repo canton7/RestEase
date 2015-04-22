@@ -97,7 +97,8 @@ namespace RestEase
                     throw new RestEaseImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
 
                 var parameters = methodInfo.GetParameters();
-                var indexedParameters = parameters.Select((x, i) => new { Index = i, Parameter = x }).ToArray();
+                // Index 0 is 'this'
+                var indexedParameters = parameters.Select((x, i) => new { Index = i + 1, Parameter = x }).ToArray();
 
                 var cancellationTokenParameters = indexedParameters.Where(x => x.Parameter.ParameterType == typeof(CancellationToken)).ToArray();
                 if (cancellationTokenParameters.Length > 1)
