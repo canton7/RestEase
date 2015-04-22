@@ -45,8 +45,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AliasAsAttribute.cs" />
+    <Compile Include="QueryParamAttribute.cs" />
     <Compile Include="ApiException.cs" />
+    <Compile Include="ImplementationBuilder.cs" />
+    <Compile Include="IRequester.cs" />
     <Compile Include="IResponseDeserializer.cs" />
     <Compile Include="JsonResponseDeserializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -54,6 +56,7 @@
     <Compile Include="Requester.cs" />
     <Compile Include="RequestInfo.cs" />
     <Compile Include="ResponseDeserializerBase.cs" />
+    <Compile Include="RestEaseImplementationCreationException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

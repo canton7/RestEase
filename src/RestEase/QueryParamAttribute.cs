@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace RestEase
 {
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class AliasAsAttribute : Attribute
+    public class QueryParamAttribute : Attribute
     {
         public string Name { get; set; }
 
-        public AliasAsAttribute()
+        public QueryParamAttribute()
         { }
 
-        public AliasAsAttribute(string name)
+        public QueryParamAttribute(string name)
         {
             this.Name = name;
         }
