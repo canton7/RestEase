@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PathParamAttribute.cs" />
     <Compile Include="QueryParamAttribute.cs" />
     <Compile Include="ApiException.cs" />
     <Compile Include="ImplementationBuilder.cs" />

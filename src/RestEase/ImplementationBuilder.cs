@@ -21,7 +21,8 @@ namespace RestEase
         private static readonly MethodInfo requestAsyncMethod = typeof(IRequester).GetMethod("RequestAsync");
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(CancellationToken) });
         private static readonly MethodInfo cancellationTokenNoneGetter = typeof(CancellationToken).GetProperty("None").GetMethod;
-        private static readonly MethodInfo addParameterMethod = typeof(RequestInfo).GetMethod("AddParameter");
+        private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
+        private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo toStringMethod = typeof(Object).GetMethod("ToString");
 
         private static readonly Dictionary<HttpMethod, PropertyInfo> httpMethodProperties = new Dictionary<HttpMethod, PropertyInfo>()
@@ -141,26 +142,7 @@ namespace RestEase
                     // For the moment, only look at those with a QueryParamAttribute
                     var queryParamAttribute = parameter.Parameter.GetCustomAttribute<QueryParamAttribute>();
                     if (queryParamAttribute != null)
-                    {
-                        // Equivalent C#:
-                        // requestInfo.AddParameter("name", value.ToString());
-
-                        // Duplicate the requestInfo. This is because calling AddParameter on it will pop it
-                        // Stack: [..., requestInfo, requestInfo]
-                        methodIlGenerator.Emit(OpCodes.Dup);
-                        // Load the name onto the stack
-                        // Stack: [..., requestInfo, requestInfo, name]
-                        methodIlGenerator.Emit(OpCodes.Ldstr, queryParamAttribute.Name);
-                        // Load the param onto the stack
-                        // Stack: [..., requestInfo, requestInfo, name, value]
-                        methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameter.Index);
-                        // Call ToString on the value
-                        // Stack: [..., requestInfo, requestInfo, name, valueAsString]
-                        methodIlGenerator.Emit(OpCodes.Callvirt, toStringMethod);
-                        // Call AddParameter
-                        // Stack: [..., requestInfo]
-                        methodIlGenerator.Emit(OpCodes.Callvirt, addParameterMethod);
-                    }
+                        this.AddQueryParam(methodIlGenerator, queryParamAttribute, (short)parameter.Index);
                 }
 
                 // Call the appropriate RequestAsync method, depending on whether or not we have a return type
@@ -199,6 +181,50 @@ namespace RestEase
             }
 
             return constructedType;
+        }
+
+        private void AddQueryParam(ILGenerator methodIlGenerator, QueryParamAttribute queryParamAttribute, short parameterIndex)
+        {
+            // Equivalent C#:
+            // requestInfo.AddQueryParameter("name", value.ToString());
+
+            // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the name onto the stack
+            // Stack: [..., requestInfo, requestInfo, name]
+            methodIlGenerator.Emit(OpCodes.Ldstr, queryParamAttribute.Name);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, name, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Call ToString on the value
+            // Stack: [..., requestInfo, requestInfo, name, valueAsString]
+            methodIlGenerator.Emit(OpCodes.Callvirt, toStringMethod);
+            // Call AddQueryParameter
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, addQueryParameterMethod);
+        }
+
+        private void AddPathParam(ILGenerator methodIlGenerator, PathParamAttribute pathParamAttribute, short parameterIndex)
+        {
+            // Equivalent C#:
+            // requestInfo.AddPathParameter("name", value.ToString());
+
+            // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the name onto the stack
+            // Stack: [..., requestInfo, requestInfo, name]
+            methodIlGenerator.Emit(OpCodes.Ldstr, pathParamAttribute.Name);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, name, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Call ToString on the value
+            // Stack: [..., requestInfo, requestInfo, name, valueAsString]
+            methodIlGenerator.Emit(OpCodes.Callvirt, toStringMethod);
+            // Call AddPathParameter
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, addPathParameterMethod);
         }
     }
 }

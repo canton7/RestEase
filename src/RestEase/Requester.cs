@@ -19,18 +19,23 @@ namespace RestEase
             this.ResponseDeserializer = new JsonResponseDeserializer();
         }
 
-        protected virtual async Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
+        protected virtual Uri ConstructUri(RequestInfo requestInfo)
         {
             var uriBuilder = new UriBuilder(requestInfo.Path);
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            query.Add(requestInfo.Parameters);
+            query.Add(requestInfo.QueryParams);
             uriBuilder.Query = query.ToString();
 
+            return uriBuilder.Uri;
+        }
+
+        protected virtual async Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
+        {
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
-                RequestUri = uriBuilder.Uri,
+                RequestUri = this.ConstructUri(requestInfo),
             };
 
             var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestInfo.CancellationToken).ConfigureAwait(false);
