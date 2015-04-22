@@ -33,23 +33,23 @@ namespace RestEase
                 RequestUri = uriBuilder.Uri,
             };
 
-            var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestInfo.CancellationToken);
+            var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestInfo.CancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
-                throw await ApiException.CreateAsync(response);
+                throw await ApiException.CreateAsync(response).ConfigureAwait(false);
 
             return response;
         }
 
         public virtual async Task RequestVoidAsync(RequestInfo requestInfo)
         {
-            await this.SendRequestAsync(requestInfo);
+            await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
         }
 
         public virtual async Task<T> RequestAsync<T>(RequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo);
-            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken);
+            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return deserializedResponse;
         }
     }

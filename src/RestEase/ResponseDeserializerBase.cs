@@ -24,8 +24,8 @@ namespace RestEase
             string responseString;
             using (var ms = new MemoryStream(responseLength))
             {
-                var fromStream = await response.Content.ReadAsStreamAsync();
-                await fromStream.CopyToAsync(ms, 4096, cancellationToken);
+                var fromStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                await fromStream.CopyToAsync(ms, 4096, cancellationToken).ConfigureAwait(false);
 
                 responseString = this.ResponseEncoding.GetString(ms.GetBuffer(), 0, (int)ms.Length);
             }
@@ -37,7 +37,7 @@ namespace RestEase
 
         public virtual async Task<T> ReadAndDeserialize<T>(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            var responseString = await this.ReadStringFromResponseAsync(response, cancellationToken);
+            var responseString = await this.ReadStringFromResponseAsync(response, cancellationToken).ConfigureAwait(false);
             T deserializedResponse = this.DeserializeString<T>(responseString);
             return deserializedResponse;
         }

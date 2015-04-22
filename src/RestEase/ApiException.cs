@@ -51,7 +51,7 @@ namespace RestEase
                 contentHeaders = response.Content.Headers;
                 using (var content = response.Content)
                 {
-                    contentString = await content.ReadAsStringAsync();
+                    contentString = await content.ReadAsStringAsync().ConfigureAwait(false);
                 }
             }
             catch
