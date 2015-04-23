@@ -24,7 +24,10 @@ namespace RestEase
             var uriBuilder = new UriBuilder(requestInfo.Path);
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            query.Add(requestInfo.QueryParams);
+            foreach (var queryParam in requestInfo.QueryParams)
+            {
+                query.Add(queryParam.Key, queryParam.Value);
+            }
             uriBuilder.Query = query.ToString();
 
             return uriBuilder.Uri;

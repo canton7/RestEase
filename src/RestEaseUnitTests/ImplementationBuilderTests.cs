@@ -71,7 +71,7 @@ namespace RestEaseUnitTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.Parameters.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count);
             Assert.Equal("foo", requestInfo.Path);
         }
 
@@ -94,7 +94,7 @@ namespace RestEaseUnitTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.Parameters.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count);
             Assert.Equal("bar", requestInfo.Path);
         }
 
@@ -118,7 +118,7 @@ namespace RestEaseUnitTests
             this.requester.Verify();
             Assert.Equal(cts.Token, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.Parameters.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count);
             Assert.Equal("baz", requestInfo.Path);
         }
 
@@ -147,8 +147,9 @@ namespace RestEaseUnitTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(1, requestInfo.Parameters.Count);
-            Assert.Equal("the value", requestInfo.Parameters["bar"]);
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal("bar", requestInfo.QueryParams[0].Key);
+            Assert.Equal("the value", requestInfo.QueryParams[0].Value);
             Assert.Equal("boo", requestInfo.Path);
         }
     }

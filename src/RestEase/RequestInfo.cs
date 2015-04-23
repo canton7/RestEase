@@ -26,25 +26,26 @@ namespace RestEase
         public HttpMethod Method { get; private set; }
         public string Path { get; private set; }
         public CancellationToken CancellationToken { get; private set; }
-        public NameValueCollection QueryParams { get; private set; }
-        public NameValueCollection PathParams { get; private set; }
+        public List<KeyValuePair<string, string>> QueryParams { get; private set; }
+        public List<KeyValuePair<string, string>> PathParams { get; private set; }
 
         public RequestInfo(HttpMethod method, string path, CancellationToken cancellationToken)
         {
             this.Method = method;
             this.Path = path;
             this.CancellationToken = cancellationToken;
-            this.QueryParams = new NameValueCollection();
+            this.QueryParams = new List<KeyValuePair<string, string>>();
+            this.PathParams = new List<KeyValuePair<string, string>>();
         }
 
         public void AddQueryParameter(string name, string value)
         {
-            this.QueryParams.Add(name, value);
+            this.QueryParams.Add(new KeyValuePair<string, string>(name, value));
         }
 
         public void AddPathParameter(string name, string value)
         {
-            this.PathParams.Add(name, value);
+            this.PathParams.Add(new KeyValuePair<string, string>(name, value));
         }
     }
 }
