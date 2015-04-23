@@ -45,6 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BodyAttribute.cs" />
+    <Compile Include="HeaderAttribute.cs" />
+    <Compile Include="InterceptingHttpClientHandler.cs" />
+    <Compile Include="IRequestBodySerializer.cs" />
+    <Compile Include="JsonRequestBodySerializer.cs" />
     <Compile Include="PathParamAttribute.cs" />
     <Compile Include="QueryParamAttribute.cs" />
     <Compile Include="ApiException.cs" />
@@ -58,6 +63,7 @@
     <Compile Include="RequestInfo.cs" />
     <Compile Include="ResponseDeserializerBase.cs" />
     <Compile Include="RestEaseImplementationCreationException.cs" />
+    <Compile Include="RestService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

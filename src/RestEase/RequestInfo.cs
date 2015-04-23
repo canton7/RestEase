@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace RestEase
 {
-    public class RequestParameter
+    public class BodyParameterInfo
     {
-        public string Name { get; private set; }
-        public string Value { get; private set; }
+        public BodySerializationMethod SerializationMethod { get; private set; }
+        public object Value { get; private set; }
 
-        public RequestParameter(string name, string value)
+        public BodyParameterInfo(BodySerializationMethod serializationMethod, object value)
         {
-            this.Name = name;
+            this.SerializationMethod = serializationMethod;
             this.Value = value;
         }
     }
@@ -28,14 +28,22 @@ namespace RestEase
         public CancellationToken CancellationToken { get; private set; }
         public List<KeyValuePair<string, string>> QueryParams { get; private set; }
         public List<KeyValuePair<string, string>> PathParams { get; private set; }
+        public List<string> ClassHeaders { get; private set; }
+        public List<string> MethodHeaders { get; private set; }
+        public List<KeyValuePair<string, string>> HeaderParams { get; private set; }
+        public BodyParameterInfo BodyParameterInfo { get; private set; }
 
         public RequestInfo(HttpMethod method, string path, CancellationToken cancellationToken)
         {
             this.Method = method;
             this.Path = path;
             this.CancellationToken = cancellationToken;
+
             this.QueryParams = new List<KeyValuePair<string, string>>();
             this.PathParams = new List<KeyValuePair<string, string>>();
+            this.ClassHeaders = new List<string>();
+            this.MethodHeaders = new List<string>();
+            this.HeaderParams = new List<KeyValuePair<string, string>>();
         }
 
         public void AddQueryParameter(string name, string value)
@@ -46,6 +54,26 @@ namespace RestEase
         public void AddPathParameter(string name, string value)
         {
             this.PathParams.Add(new KeyValuePair<string, string>(name, value));
+        }
+
+        public void AddClassHeader(string header)
+        {
+            this.ClassHeaders.Add(header);
+        }
+
+        public void AddMethodHeader(string header)
+        {
+            this.MethodHeaders.Add(header);
+        }
+
+        public void AddHeaderParameter(string name, string value)
+        {
+            this.HeaderParams.Add(new KeyValuePair<string, string>(name, value));
+        }
+
+        public void SetBodyParameterInfo(BodySerializationMethod serializationMethod, object value)
+        {
+            this.BodyParameterInfo = new BodyParameterInfo(serializationMethod, value);
         }
     }
 }

@@ -23,6 +23,10 @@ namespace RestEase
         private static readonly MethodInfo cancellationTokenNoneGetter = typeof(CancellationToken).GetProperty("None").GetMethod;
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
+        private static readonly MethodInfo addClassHeaderMethod = typeof(RequestInfo).GetMethod("AddClassHeader");
+        private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetMethod("AddMethodHeader");
+        private static readonly MethodInfo addHeaderParameterMethod = typeof(RequestInfo).GetMethod("AddHeaderParameter");
+        private static readonly MethodInfo setBodyParameterInfoMethod = typeof(RequestInfo).GetMethod("SetBodyParameterInfo");
         private static readonly MethodInfo toStringMethod = typeof(Object).GetMethod("ToString");
 
         private static readonly Dictionary<HttpMethod, PropertyInfo> httpMethodProperties = new Dictionary<HttpMethod, PropertyInfo>()
@@ -56,6 +60,7 @@ namespace RestEase
             });
 
             T implementation = (T)creator(requester);
+
             return implementation;
         }
 
@@ -91,6 +96,8 @@ namespace RestEase
             ctorIlGenerator.Emit(OpCodes.Stfld, requesterField);
             ctorIlGenerator.Emit(OpCodes.Ret);
 
+            var classHeaders = interfaceType.GetCustomAttributes<HeaderAttribute>();
+
             foreach (var methodInfo in interfaceType.GetMethods())
             {
                 var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
@@ -104,7 +111,15 @@ namespace RestEase
                 var cancellationTokenParameters = indexedParameters.Where(x => x.Parameter.ParameterType == typeof(CancellationToken)).ToArray();
                 if (cancellationTokenParameters.Length > 1)
                     throw new RestEaseImplementationCreationException(String.Format("Found more than one parameter of type CancellationToken for method {0}", methodInfo.Name));
-                int? cancellationTokenParameterIndex = cancellationTokenParameters.Length > 0 ? (int?)cancellationTokenParameters[0].Index : null;
+                var cancellationTokenParameter = cancellationTokenParameters.FirstOrDefault();
+
+                var bodyParameters = (from indexedParameter in indexedParameters
+                                      let attribute = indexedParameter.Parameter.GetCustomAttribute<BodyAttribute>()
+                                      where attribute != null
+                                      select new { Parameter = indexedParameter.Parameter, Index = indexedParameter.Index, Attribute = attribute }).ToArray();
+                if (bodyParameters.Length > 1)
+                    throw new RestEaseImplementationCreationException(String.Format("Found more than one parameter with a [Body] attribute for method {0}", methodInfo.Name));
+                var bodyParameter = bodyParameters.FirstOrDefault();
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();
@@ -125,8 +140,8 @@ namespace RestEase
                 methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path);
                 // 3. The CancellationToken
                 // Stack: [this.requester, HttpMethod, path, cancellationToken]
-                if (cancellationTokenParameterIndex.HasValue)
-                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)cancellationTokenParameterIndex.Value);
+                if (cancellationTokenParameter != null)
+                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)cancellationTokenParameter.Index);
                 else
                     methodIlGenerator.Emit(OpCodes.Call, cancellationTokenNoneGetter);
 
@@ -134,18 +149,57 @@ namespace RestEase
                 // Stack: [this.requester, requestInfo]
                 methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
 
+                // If there are any class headers, add them
+                foreach (var classHeader in classHeaders)
+                {
+                    this.AddClassHeader(methodIlGenerator, classHeader);
+                }
+
+                // If there are any method headers, add them
+                var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
+                foreach (var methodHeader in methodHeaders)
+                {
+                    this.AddMethodHeader(methodIlGenerator, methodHeader);
+                }
+
+                // If there's a body, add it
+                if (bodyParameter != null)
+                    this.AddBody(methodIlGenerator, bodyParameter.Attribute.SerializationMethod, bodyParameter.Parameter.ParameterType, (short)bodyParameter.Index);
+
                 foreach (var parameter in indexedParameters)
                 {
-                    if (cancellationTokenParameterIndex.HasValue && cancellationTokenParameterIndex.Value == parameter.Index)
+                    // We've already handled CancellationTokens and [Body] parameters
+                    if ((cancellationTokenParameter != null && cancellationTokenParameter.Index == parameter.Index) ||
+                        (bodyParameter != null && bodyParameter.Index == parameter.Index))
                         continue;
 
                     // For the moment, only look at those with a QueryParamAttribute
                     var queryParamAttribute = parameter.Parameter.GetCustomAttribute<QueryParamAttribute>();
                     if (queryParamAttribute != null)
-                        this.AddQueryParam(methodIlGenerator, queryParamAttribute, (short)parameter.Index);
+                    {
+                        this.AddParam(methodIlGenerator, queryParamAttribute.Name ?? parameter.Parameter.Name, (short)parameter.Index, addQueryParameterMethod);
+                        continue;
+                    }
+
+                    var pathParamAttribute = parameter.Parameter.GetCustomAttribute<PathParamAttribute>();
+                    if (pathParamAttribute != null)
+                    {
+                        this.AddParam(methodIlGenerator, pathParamAttribute.Name ?? parameter.Parameter.Name, (short)parameter.Index, addPathParameterMethod);
+                        continue;
+                    }
+
+                    var headerAttribute = parameter.Parameter.GetCustomAttribute<HeaderAttribute>();
+                    if (headerAttribute != null)
+                    {
+                        this.AddParam(methodIlGenerator, headerAttribute.Value, (short)parameter.Index, addHeaderParameterMethod);
+                        continue;
+                    }
+
+                    // Anything left? It's a query parameter
+                    this.AddParam(methodIlGenerator, parameter.Parameter.Name, (short)parameter.Index, addQueryParameterMethod);
                 }
 
-                // Call the appropriate RequestAsync method, depending on whether or not we have a return type
+                // Call the appropriate RequestVoidAsync/RequestAsync method, depending on whether or not we have a return type
                 if (methodInfo.ReturnType == typeof(Task))
                 {
                     // Stack: [Task]
@@ -153,7 +207,7 @@ namespace RestEase
                 }
                 else if (methodInfo.ReturnType.IsGenericType && methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
                 {
-                    // Stack: [Task<deserializedResponse>]
+                    // Stack: [Task<T>]
                     var typeOfT = methodInfo.ReturnType.GetGenericArguments()[0];
                     var typedRequestAsyncMethod = requestAsyncMethod.MakeGenericMethod(typeOfT);
                     methodIlGenerator.Emit(OpCodes.Callvirt, typedRequestAsyncMethod);
@@ -176,46 +230,69 @@ namespace RestEase
             }
             catch (TypeLoadException e)
             {
-                var msg = String.Format("Unable to create implementation for interface {0}. . Ensure that the interface is public", interfaceType.FullName);
+                var msg = String.Format("Unable to create implementation for interface {0}. Ensure that the interface is public", interfaceType.FullName);
                 throw new RestEaseImplementationCreationException(msg, e);
             }
 
             return constructedType;
         }
 
-        private void AddQueryParam(ILGenerator methodIlGenerator, QueryParamAttribute queryParamAttribute, short parameterIndex)
+        private void AddBody(ILGenerator methodIlGenerator, BodySerializationMethod serializationMethod, Type parameterType, short parameterIndex)
         {
             // Equivalent C#:
-            // requestInfo.AddQueryParameter("name", value.ToString());
+            // requestInfo.SetBodyParameterInfo(serializationMethod, value)
 
-            // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
-            // Load the name onto the stack
-            // Stack: [..., requestInfo, requestInfo, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, queryParamAttribute.Name);
-            // Load the param onto the stack
-            // Stack: [..., requestInfo, requestInfo, name, value]
+            // Stack: [..., requestInfo, requestInfo, serializationMethod]
+            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
+            // Stack: [..., requestInfo, requestInfo, serializationMethod, parameter]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
-            // Call ToString on the value
-            // Stack: [..., requestInfo, requestInfo, name, valueAsString]
-            methodIlGenerator.Emit(OpCodes.Callvirt, toStringMethod);
-            // Call AddQueryParameter
+            // If the parameter's a value type, we need to box it
+            if (parameterType.IsValueType)
+                methodIlGenerator.Emit(OpCodes.Box, parameterType);
             // Stack: [..., requestInfo]
-            methodIlGenerator.Emit(OpCodes.Callvirt, addQueryParameterMethod);
+            methodIlGenerator.Emit(OpCodes.Callvirt, setBodyParameterInfoMethod);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, PathParamAttribute pathParamAttribute, short parameterIndex)
+        private void AddClassHeader(ILGenerator methodIlGenerator, HeaderAttribute header)
         {
             // Equivalent C#:
-            // requestInfo.AddPathParameter("name", value.ToString());
+            // requestInfo.AddClassHeader("value");
+
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Stack: [..., requestInfo, requestInfo, "value"]
+            methodIlGenerator.Emit(OpCodes.Ldstr, header.Value);
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, addClassHeaderMethod);
+        }
+
+        private void AddMethodHeader(ILGenerator methodIlGenerator, HeaderAttribute header)
+        {
+            // Equivalent C#:
+            // requestInfo.AddMethodHeader("value");
+
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Stack: [..., requestInfo, requestInfo, "value"]
+            methodIlGenerator.Emit(OpCodes.Ldstr, header.Value);
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, addMethodHeaderMethod);
+        }
+
+        private void AddParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall)
+        {
+            // Equivalent C#:
+            // requestInfo.methodToCall("name", value.ToString());
+            // where 'value' is the parameter at index parameterIndex
 
             // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, pathParamAttribute.Name);
+            methodIlGenerator.Emit(OpCodes.Ldstr, name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
@@ -224,7 +301,7 @@ namespace RestEase
             methodIlGenerator.Emit(OpCodes.Callvirt, toStringMethod);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
-            methodIlGenerator.Emit(OpCodes.Callvirt, addPathParameterMethod);
+            methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
         }
     }
 }
