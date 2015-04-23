@@ -10,5 +10,6 @@ namespace RestEase
     {
         Task RequestVoidAsync(RequestInfo requestInfo);
         Task<T> RequestAsync<T>(RequestInfo requestInfo);
+        Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo);
     }
 }

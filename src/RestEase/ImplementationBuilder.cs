@@ -19,6 +19,7 @@ namespace RestEase
 
         private static readonly MethodInfo requestVoidAsyncMethod = typeof(IRequester).GetMethod("RequestVoidAsync");
         private static readonly MethodInfo requestAsyncMethod = typeof(IRequester).GetMethod("RequestAsync");
+        private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetMethod("RequestWithResponseAsync");
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(CancellationToken) });
         private static readonly MethodInfo cancellationTokenNoneGetter = typeof(CancellationToken).GetProperty("None").GetMethod;
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
@@ -53,6 +54,9 @@ namespace RestEase
 
         public T CreateImplementation<T>(IRequester requester)
         {
+            if (requester == null)
+                throw new ArgumentNullException("requester");
+
             var creator = this.creatorCache.GetOrAdd(typeof(T), key =>
             {
                 var implementationType = this.BuildImplementationImpl(key);
@@ -64,7 +68,7 @@ namespace RestEase
             return implementation;
         }
 
-        public Func<IRequester, object> BuildCreator(Type implementationType)
+        private Func<IRequester, object> BuildCreator(Type implementationType)
         {
             var requesterParam = Expression.Parameter(typeof(IRequester));
             var ctor = Expression.New(implementationType.GetConstructor(new[] { typeof(IRequester) }), requesterParam);
@@ -207,10 +211,20 @@ namespace RestEase
                 }
                 else if (methodInfo.ReturnType.IsGenericType && methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
                 {
-                    // Stack: [Task<T>]
                     var typeOfT = methodInfo.ReturnType.GetGenericArguments()[0];
-                    var typedRequestAsyncMethod = requestAsyncMethod.MakeGenericMethod(typeOfT);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, typedRequestAsyncMethod);
+                    // Now, is it as Task<Response<T>> or a Task<T>?
+                    if (typeOfT.IsGenericType && typeOfT.GetGenericTypeDefinition() == typeof(Response<>))
+                    {
+                        // Stack: [Task<Response<T>>]
+                        var typedRequestWithResponseAsyncMethod = requestWithResponseAsyncMethod.MakeGenericMethod(typeOfT.GetGenericArguments()[0]);
+                        methodIlGenerator.Emit(OpCodes.Callvirt, typedRequestWithResponseAsyncMethod);
+                    }
+                    else
+                    {
+                        // Stack: [Task<T>]
+                        var typedRequestAsyncMethod = requestAsyncMethod.MakeGenericMethod(typeOfT);
+                        methodIlGenerator.Emit(OpCodes.Callvirt, typedRequestAsyncMethod);
+                    }
                 }
                 else
                 {

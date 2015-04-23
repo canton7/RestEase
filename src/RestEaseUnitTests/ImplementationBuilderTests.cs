@@ -13,6 +13,30 @@ namespace RestEaseUnitTests
 {
     public class ImplementationBuilderTests
     {
+        public interface IMethodWithoutAttribute
+        {
+            [Get("foo")]
+            Task GetAsync();
+
+            Task SomethingElseAsync();
+        }
+
+        public interface IMethodReturningVoid
+        {
+            [Get("foo")]
+            Task GetAsync();
+
+            void ReturnsVoid();
+        }
+
+        public interface IMethodReturningString
+        {
+            [Get("foo")]
+            Task GetAsync();
+
+            string ReturnsString();
+        }
+
         public interface INoArgumentsNoReturn
         {
             [Get("foo")]
@@ -23,6 +47,12 @@ namespace RestEaseUnitTests
         {
             [Get("bar")]
             Task<string> BarAsync();
+        }
+
+        public interface INoArgumentsReturnsResponse
+        {
+            [Get("bar")]
+            Task<Response<string>> FooAsync();
         }
 
         public interface ICancellationTokenOnlyNoReturn
@@ -43,6 +73,88 @@ namespace RestEaseUnitTests
             Task BooAsync([QueryParam("bar")] string foo);
         }
 
+        public interface IQueryParamWithImplicitName
+        {
+            [Get("foo")]
+            Task FooAsync([QueryParam] string foo);
+        }
+
+        public interface ITwoQueryParametersWithTheSameName
+        {
+            [Get("foo")]
+            Task FooAsync([QueryParam("bar")] string foo, [QueryParam] string bar);
+        }
+
+        public interface IPathParams
+        {
+            [Get("foo")]
+            Task FooAsync([PathParam] string foo, [PathParam("foo")] string bar);
+        }
+
+        [Header("Class Header 1")]
+        [Header("Class Header 2")]
+        public interface IHasClassHeaders
+        {
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasMethodHeaders
+        {
+            [Get("foo")]
+            [Header("Method Header 1")]
+            [Header("Method Header 2")]
+            Task FooAsync();
+        }
+
+        public interface IHasParamHeaders
+        {
+            [Get("foo")]
+            Task FooAsync([Header("Param Header 1")] string foo, [Header("Param Header 2")] string bar);
+        }
+
+        public interface IAllRequestMethods
+        {
+            [Delete("foo")]
+            Task DeleteAsync();
+
+            [Get("foo")]
+            Task GetAsync();
+
+            [Head("foo")]
+            Task HeadAsync();
+
+            [Options("foo")]
+            Task OptionsAsync();
+
+            [Post("foo")]
+            Task PostAsync();
+
+            [Put("foo")]
+            Task PutAsync();
+
+            [Trace("foo")]
+            Task TraceAsync();
+        }
+
+        public interface IHasTwoBodies
+        {
+            [Get("foo")]
+            Task FooAsync([Body] string body1, [Body] string body2);
+        }
+
+        public interface IHasBody
+        {
+            [Get("foo")]
+            Task SerializedAsync([Body(BodySerializationMethod.Serialized)] object serialized);
+
+            [Get("bar")]
+            Task UrlEncodedAsync([Body(BodySerializationMethod.UrlEncoded)] object serialized);
+
+            [Get("bar")]
+            Task ValueTypeAsync([Body(BodySerializationMethod.UrlEncoded)] int serialized);
+        }
+
         private readonly Mock<IRequester> requester;
         private readonly ImplementationBuilder builder;
 
@@ -50,6 +162,25 @@ namespace RestEaseUnitTests
         {
             this.requester = new Mock<IRequester>(MockBehavior.Strict);
             this.builder = new ImplementationBuilder();
+        }
+
+        [Fact]
+        public void ThrowsIfMethodWithoutAttribute()
+        {
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IMethodWithoutAttribute>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfMethodReturningVoid()
+        {
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningVoid>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfMethodReturningString()
+        {
+            // Ideally we would test every object that isn't a Task<T>, but that's somewhat impossible...
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningString>(this.requester.Object));
         }
 
         [Fact]
@@ -89,6 +220,29 @@ namespace RestEaseUnitTests
                 .Verifiable();
 
             var response = implementation.BarAsync();
+
+            Assert.Equal(expectedResponse, response);
+            this.requester.Verify();
+            Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal("bar", requestInfo.Path);
+        }
+
+        [Fact]
+        public void NoArgumentsWithResponseCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
+
+            var expectedResponse = Task.FromResult(new Response<string>(new HttpResponseMessage(), "hello"));
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(expectedResponse)
+                .Verifiable();
+
+            var response = implementation.FooAsync();
 
             Assert.Equal(expectedResponse, response);
             this.requester.Verify();
@@ -151,6 +305,218 @@ namespace RestEaseUnitTests
             Assert.Equal("bar", requestInfo.QueryParams[0].Key);
             Assert.Equal("the value", requestInfo.QueryParams[0].Value);
             Assert.Equal("boo", requestInfo.Path);
+        }
+
+        [Fact]
+        public void QueryParamWithImplicitNameCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<IQueryParamWithImplicitName>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("the value");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal("foo", requestInfo.QueryParams[0].Key);
+            Assert.Equal("the value", requestInfo.QueryParams[0].Value);
+        }
+
+        [Fact]
+        public void HandlesMultipleQueryParamsWithTheSameName()
+        {
+            var implementation = this.builder.CreateImplementation<ITwoQueryParametersWithTheSameName>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("foo value", "bar value");
+
+            Assert.Equal(2, requestInfo.QueryParams.Count);
+
+            Assert.Equal("bar", requestInfo.QueryParams[0].Key);
+            Assert.Equal("foo value", requestInfo.QueryParams[0].Value);
+
+            Assert.Equal("bar", requestInfo.QueryParams[1].Key);
+            Assert.Equal("bar value", requestInfo.QueryParams[1].Value);
+        }
+
+        [Fact]
+        public void HandlesPathParams()
+        {
+            var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("foo value", "bar value");
+
+            Assert.Equal(2, requestInfo.PathParams.Count);
+
+            Assert.Equal("foo", requestInfo.PathParams[0].Key);
+            Assert.Equal("foo value", requestInfo.PathParams[0].Value);
+
+            Assert.Equal("foo", requestInfo.PathParams[1].Key);
+            Assert.Equal("bar value", requestInfo.PathParams[1].Value);
+        }
+
+        [Fact]
+        public void HandlesClassHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasClassHeaders>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Equal(new[] { "Class Header 1", "Class Header 2" }, requestInfo.ClassHeaders.OrderBy(x => x));
+        }
+
+        [Fact]
+        public void HandlesMethodHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasMethodHeaders>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Equal(new[] { "Method Header 1", "Method Header 2" }, requestInfo.MethodHeaders.OrderBy(x => x));
+        }
+
+        [Fact]
+        public void HandlesParamHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasParamHeaders>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("value 1", "value 2");
+
+            Assert.Equal(2, requestInfo.HeaderParams.Count);
+
+            Assert.Equal("Param Header 1", requestInfo.HeaderParams[0].Key);
+            Assert.Equal("value 1", requestInfo.HeaderParams[0].Value);
+
+            Assert.Equal("Param Header 2", requestInfo.HeaderParams[1].Key);
+            Assert.Equal("value 2", requestInfo.HeaderParams[1].Value);
+        }
+
+        [Fact]
+        public void AllHttpMethodsSupported()
+        {
+            var implementation = this.builder.CreateImplementation<IAllRequestMethods>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.DeleteAsync();
+            Assert.Equal(HttpMethod.Delete, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.GetAsync();
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.HeadAsync();
+            Assert.Equal(HttpMethod.Head, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.OptionsAsync();
+            Assert.Equal(HttpMethod.Options, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.PostAsync();
+            Assert.Equal(HttpMethod.Post, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.PutAsync();
+            Assert.Equal(HttpMethod.Put, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.TraceAsync();
+            Assert.Equal(HttpMethod.Trace, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+        }
+
+        [Fact]
+        public void ThrowsIfTwoBodies()
+        {
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IHasTwoBodies>(this.requester.Object));
+        }
+
+        [Fact]
+        public void BodyWithSerializedClassAsExpected()
+        {
+            var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
+
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            var body = new object();
+            implementation.SerializedAsync(body);
+
+            Assert.NotNull(requestInfo.BodyParameterInfo);
+            Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
+            Assert.Equal(body, requestInfo.BodyParameterInfo.Value);
+        }
+
+        [Fact]
+        public void BodyWithUrlEncodedCallsAsExpected()
+        {
+            var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
+
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            var body = new object();
+            implementation.UrlEncodedAsync(body);
+
+            Assert.NotNull(requestInfo.BodyParameterInfo);
+            Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
+            Assert.Equal(body, requestInfo.BodyParameterInfo.Value);
+        }
+
+        [Fact]
+        public void BodyWithValueTypeCallsAsExpected()
+        {
+            // Tests that the value is boxed properly
+            var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
+
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.ValueTypeAsync(3);
+
+            Assert.NotNull(requestInfo.BodyParameterInfo);
+            Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
+            Assert.Equal(3, requestInfo.BodyParameterInfo.Value);
         }
     }
 }

@@ -26,7 +26,8 @@ namespace RestEase
 
         protected virtual Uri ConstructUri(RequestInfo requestInfo)
         {
-            var uriBuilder = new UriBuilder(requestInfo.Path);
+            // UriBuilder insists that we provide it with an absolute URI, even though we only want a relative one...
+            var uriBuilder = new UriBuilder(new Uri(new Uri("http://api"), requestInfo.Path ?? String.Empty));
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
@@ -35,7 +36,7 @@ namespace RestEase
             }
             uriBuilder.Query = query.ToString();
 
-            return uriBuilder.Uri;
+            return new Uri(uriBuilder.Uri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped), UriKind.Relative);
         }
 
         protected virtual HttpContent ConstructContent(RequestInfo requestInfo)
@@ -89,6 +90,13 @@ namespace RestEase
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
             T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return deserializedResponse;
+        }
+
+        public virtual async Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo)
+        {
+            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
+            return new Response<T>(response, deserializedResponse);
         }
     }
 
