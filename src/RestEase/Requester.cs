@@ -72,7 +72,10 @@ namespace RestEase
                 Content = this.ConstructContent(requestInfo),
             };
 
-            var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestInfo.CancellationToken).ConfigureAwait(false);
+            // We're always going to want the content - we're a REST requesting library, and if there's a response we're always
+            // going to parse it out before returning. If we use HttpCompletionOptions.ResponseContentRead, then our
+            // CancellationToken will abort either the initial fetch *or* the read phases, which is what we want.
+            var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead, requestInfo.CancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
                 throw await ApiException.CreateAsync(response).ConfigureAwait(false);

@@ -62,7 +62,6 @@
     <Compile Include="Requester.cs" />
     <Compile Include="RequestInfo.cs" />
     <Compile Include="Response.cs" />
-    <Compile Include="ResponseDeserializerBase.cs" />
     <Compile Include="RestEaseImplementationCreationException.cs" />
     <Compile Include="RestService.cs" />
   </ItemGroup>
