@@ -14,7 +14,7 @@ namespace RestEase
     {
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
-        public async Task<T> ReadAndDeserialize<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+        public async Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
         {
             // We fetched using HttpCompletionOption.ResponseContentRead, so this has already been buffered
             // HttpClient has many smarts for working out the correct content encoding (headers, BOMs, etc), and

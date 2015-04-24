@@ -10,6 +10,6 @@ namespace RestEase
 {
     public interface IResponseDeserializer
     {
-        Task<T> ReadAndDeserialize<T>(HttpResponseMessage response, CancellationToken cancellationToken);
+        Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken);
     }
 }

@@ -122,8 +122,8 @@ namespace RestEase
         {
             var splitHeaders = from header in headers
                                where !String.IsNullOrWhiteSpace(header)
-                               let parts = header.Split(new[] { '.' }, 1)
-                               select new KeyValuePair<string, string>(parts[0], parts.Length > 1 ? parts[1] : null);
+                               let parts = header.Split(new[] { ':' }, 2)
+                               select new KeyValuePair<string, string>(parts[0].Trim(), parts.Length > 1 ? parts[1].Trim() : null);
             return splitHeaders;
         }
 
@@ -137,8 +137,8 @@ namespace RestEase
                 if (requestMessage.Headers.Any(x => x.Key == headersGroup.Key))
                     requestMessage.Headers.Remove(headersGroup.Key);
 
-                // Empty collection = "remove all instances of this header only"
-                if (!headersGroup.Any())
+                // Only null values = "remove all instances of this header only"
+                if (headersGroup.All(x => x.Value == null))
                     continue;
 
                 bool added = requestMessage.Headers.TryAddWithoutValidation(headersGroup.Key, headersGroup.Select(x => x.Value));
@@ -187,7 +187,7 @@ namespace RestEase
         public virtual async Task<T> RequestAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
+            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return deserializedResponse;
         }
 
@@ -200,7 +200,7 @@ namespace RestEase
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
+            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return new Response<T>(response, deserializedResponse);
         }
     }

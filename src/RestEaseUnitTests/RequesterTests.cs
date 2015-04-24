@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -28,6 +29,45 @@ namespace RestEaseUnitTests
             public new HttpContent ConstructContent(RequestInfo requestInfo)
             {
                 return base.ConstructContent(requestInfo);
+            }
+
+            public new void ApplyHeaders(RequestInfo requestInfo, HttpRequestMessage requestMessage)
+            {
+                base.ApplyHeaders(requestInfo, requestMessage);
+            }
+
+            public new Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
+            {
+                return base.SendRequestAsync(requestInfo);
+            }
+        }
+
+        private class RequesterWithStubbedSendRequestAsync : Requester
+        {
+            public RequesterWithStubbedSendRequestAsync(HttpClient httpClient)
+                : base(httpClient)
+            { }
+
+            public Task<HttpResponseMessage> ResponseMessage;
+            public RequestInfo RequestInfo;
+
+            protected override Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
+            {
+                this.RequestInfo = requestInfo;
+                return this.ResponseMessage;
+            }
+        }
+
+        private class MockHttpMessageHandler : HttpMessageHandler
+        {
+            public HttpRequestMessage Request;
+            public Task<HttpResponseMessage> ResponseMessage;
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                // Can't test against the CancellationToken, as HttpClient does some odd stuff to it
+                this.Request = request;
+                return this.ResponseMessage;
             }
         }
 
@@ -249,6 +289,255 @@ namespace RestEaseUnitTests
             requestInfo.SetBodyParameterInfo((BodySerializationMethod)100, new object());
 
             Assert.Throws<InvalidOperationException>(() => this.requester.ConstructContent(requestInfo));
+        }
+
+        [Fact]
+        public void AppliesHeadersFromClass()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddClassHeader("User-Agent: RestEase");
+            requestInfo.AddClassHeader("X-API-Key: Foo");
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("User-Agent: RestEase\r\nX-API-Key: Foo\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void AppliesHeadersFromMethod()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddMethodHeader("User-Agent: RestEase");
+            requestInfo.AddMethodHeader("X-API-Key: Foo");
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("User-Agent: RestEase\r\nX-API-Key: Foo\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void AppliesHeadersFromParams()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddHeaderParameter("User-Agent", "RestEase");
+            requestInfo.AddHeaderParameter("X-API-Key", "Foo");
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("User-Agent: RestEase\r\nX-API-Key: Foo\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void HeadersFromMethodOverrideHeadersFromClass()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddClassHeader("This-Will-Stay: YesIWill");
+            requestInfo.AddClassHeader("Something: SomethingElse");
+            requestInfo.AddClassHeader("User-Agent: RestEase");
+            requestInfo.AddClassHeader("X-API-Key: Foo");
+
+            requestInfo.AddMethodHeader("Something"); // Remove
+            requestInfo.AddMethodHeader("User-Agent:"); // Replace with null
+            requestInfo.AddMethodHeader("X-API-Key: Bar"); // Change value
+            requestInfo.AddMethodHeader("This-Is-New: YesIAM"); // New value
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("This-Will-Stay: YesIWill\r\nThis-Is-New: YesIAM\r\nUser-Agent: \r\nX-API-Key: Bar\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void HeadersFromParamsOVerrideHeadersFromMethod()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddMethodHeader("This-Will-Stay: YesIWill");
+            requestInfo.AddMethodHeader("Something: SomethingElse");
+            requestInfo.AddMethodHeader("User-Agent: RestEase");
+            requestInfo.AddMethodHeader("X-API-Key: Foo");
+
+            requestInfo.AddHeaderParameter("Something", null); // Remove
+            requestInfo.AddHeaderParameter("User-Agent", ""); // Replace with null
+            requestInfo.AddHeaderParameter("X-API-Key", "Bar"); // Change value
+            requestInfo.AddHeaderParameter("This-Is-New", "YesIAM"); // New value
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("This-Will-Stay: YesIWill\r\nThis-Is-New: YesIAM\r\nUser-Agent: \r\nX-API-Key: Bar\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void MultipleHeadersAreAllowed()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddMethodHeader("User-Agent: SomethingElse");
+            requestInfo.AddMethodHeader("User-Agent: RestEase");
+            requestInfo.AddMethodHeader("X-API-Key: Foo");
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("User-Agent: SomethingElse RestEase\r\nX-API-Key: Foo\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void SingleOverrideReplacesMultipleHeaders()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddMethodHeader("User-Agent: SomethingElse");
+            requestInfo.AddMethodHeader("User-Agent: RestEase");
+            requestInfo.AddMethodHeader("X-API-Key: Foo");
+
+            requestInfo.AddHeaderParameter("User-Agent", null);
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("X-API-Key: Foo\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void AppliesContentHeadersToContent()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddMethodHeader("Content-Type: text/html");
+
+            var message = new HttpRequestMessage();
+            message.Content = new StringContent("hello");
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("", message.Headers.ToString());
+            Assert.Equal("Content-Type: text/html\r\n", message.Content.Headers.ToString());
+        }
+
+        [Fact]
+        public void DoesNotAttemptToApplyContentHeadersIfThereIsNoContent()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.AddMethodHeader("Content-Type: text/html");
+
+            var message = new HttpRequestMessage();
+            Assert.Throws<ArgumentException>(() => this.requester.ApplyHeaders(requestInfo, message));
+        }
+
+        [Fact]
+        public void RequestVoidAsyncSendsRequest()
+        {
+            var requester = new RequesterWithStubbedSendRequestAsync(null);
+            requester.ResponseMessage = Task.FromResult(new HttpResponseMessage());
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requester.RequestVoidAsync(requestInfo).Wait();
+
+            Assert.Equal(requestInfo, requester.RequestInfo);
+        }
+
+        [Fact]
+        public void RequestAsyncSendsRequest()
+        {
+            var requester = new RequesterWithStubbedSendRequestAsync(null);
+            var responseMessage = new HttpResponseMessage();
+            requester.ResponseMessage = Task.FromResult(responseMessage);
+            var responseDeserializer = new Mock<IResponseDeserializer>();
+            requester.ResponseDeserializer = responseDeserializer.Object;
+            var cancellationToken = new CancellationToken();
+
+            responseDeserializer.Setup(x => x.ReadAndDeserializeAsync<string>(responseMessage, cancellationToken))
+                .Returns(Task.FromResult("hello"))
+                .Verifiable();
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", cancellationToken);
+            var result = requester.RequestAsync<string>(requestInfo).Result;
+
+            responseDeserializer.Verify();
+
+            Assert.Equal(requestInfo, requester.RequestInfo);
+            Assert.Equal("hello", result);
+        }
+
+        [Fact]
+        public void RequestWithResponseMessageAsyncSendsRequest()
+        {
+            var requester = new RequesterWithStubbedSendRequestAsync(null);
+            var responseMessage = new HttpResponseMessage();
+            requester.ResponseMessage = Task.FromResult(responseMessage);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var result = requester.RequestWithResponseMessageAsync(requestInfo).Result;
+
+            Assert.Equal(requestInfo, requester.RequestInfo);
+            Assert.Equal(responseMessage, result);
+        }
+
+        [Fact]
+        public void RequestWithResponseAsyncSendsRequest()
+        {
+            var requester = new RequesterWithStubbedSendRequestAsync(null);
+            var responseMessage = new HttpResponseMessage();
+            requester.ResponseMessage = Task.FromResult(responseMessage);
+            var responseDeserializer = new Mock<IResponseDeserializer>();
+            requester.ResponseDeserializer = responseDeserializer.Object;
+            var cancellationToken = new CancellationToken();
+
+            responseDeserializer.Setup(x => x.ReadAndDeserializeAsync<string>(responseMessage, cancellationToken))
+                .Returns(Task.FromResult("hello"))
+                .Verifiable();
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", cancellationToken);
+            var result = requester.RequestWithResponseAsync<string>(requestInfo).Result;
+
+            responseDeserializer.Verify();
+
+            Assert.Equal(requestInfo, requester.RequestInfo);
+            Assert.Equal("hello", result.Content);
+            Assert.Equal(responseMessage, result.ResponseMessage);
+        }
+
+        [Fact]
+        public void SendRequestAsyncSendsRequest()
+        {
+            var messageHandler = new MockHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
+            var requester = new MyRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+
+            var responseMessage = new HttpResponseMessage();
+            messageHandler.ResponseMessage = Task.FromResult(responseMessage);
+
+            var response = requester.SendRequestAsync(requestInfo).Result;
+
+            Assert.Equal("http://api.com/foo", messageHandler.Request.RequestUri.ToString());
+            Assert.Equal(responseMessage, response);
+        }
+
+        [Fact]
+        public void SendRequestThrowsIfResponseIsBad()
+        {
+            var messageHandler = new MockHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
+            var requester = new MyRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+
+            var responseMessage = new HttpResponseMessage();
+            responseMessage.Headers.Add("Foo", "bar");
+            responseMessage.StatusCode = HttpStatusCode.NotFound;
+            responseMessage.Content = new StringContent("hello");
+
+            messageHandler.ResponseMessage = Task.FromResult(responseMessage);
+
+            var aggregateException = Assert.Throws<AggregateException>(() => requester.SendRequestAsync(requestInfo).Wait());
+            var e = Assert.IsType<ApiException>(aggregateException.InnerException);
+
+            Assert.Equal(HttpStatusCode.NotFound, e.StatusCode);
+            Assert.True(e.Headers.Contains("Foo"));
+            Assert.True(e.HasContent);
+            Assert.Equal("hello", e.Content);
         }
     }
 }
