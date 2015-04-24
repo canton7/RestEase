@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace RestEase
+namespace RestEase.Implementation
 {
     public class Requester : IRequester
     {

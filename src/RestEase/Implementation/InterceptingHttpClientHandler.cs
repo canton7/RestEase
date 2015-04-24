@@ -6,10 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RestEase
+namespace RestEase.Implementation
 {
-    public delegate Task RequestInterceptor(HttpRequestMessage request, CancellationToken cancellationToken);
-
     public class InterceptingHttpClientHandler : HttpClientHandler
     {
         private readonly RequestInterceptor requestInterceptor;

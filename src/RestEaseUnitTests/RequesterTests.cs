@@ -1,5 +1,6 @@
 ﻿using Moq;
 using RestEase;
+using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
 using System.IO;

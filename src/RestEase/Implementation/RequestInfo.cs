@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RestEase
+namespace RestEase.Implementation
 {
     public class BodyParameterInfo
     {

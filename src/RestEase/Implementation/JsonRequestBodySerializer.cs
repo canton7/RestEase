@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RestEase
+namespace RestEase.Implementation
 {
     /// <summary>
     /// Default IRequestBodySerializer, using Json.NET
