@@ -55,6 +55,37 @@ namespace RestEase
             return new Uri(uriBuilder.Uri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped), UriKind.Relative);
         }
 
+        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeBodyForUrlEncoding(object body)
+        {
+            if (body == null)
+                yield break;
+
+            var dictionary = body as IDictionary;
+            if (dictionary != null)
+            {
+                foreach (var key in dictionary.Keys)
+                {
+                    var value = dictionary[key];
+                    var valueAsCollection = value as ICollection;
+                    if (valueAsCollection != null)
+                    {
+                        foreach (var individualValue in valueAsCollection)
+                        {
+                            yield return new KeyValuePair<string, string>(key.ToString(), (individualValue ?? String.Empty).ToString());
+                        }
+                    }
+                    else
+                    {
+                        yield return new KeyValuePair<string, string>(key.ToString(), (value ?? String.Empty).ToString());
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary");
+            }
+        }
+
         protected virtual HttpContent ConstructContent(RequestInfo requestInfo)
         {
             if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.Value == null)
@@ -71,7 +102,7 @@ namespace RestEase
             switch (requestInfo.BodyParameterInfo.SerializationMethod)
             {
                 case BodySerializationMethod.UrlEncoded:
-                    return new FormUrlEncodedContent(new FormValueDictionary(requestInfo.BodyParameterInfo.Value));
+                    return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.Value));
                 case BodySerializationMethod.Serialized:
                     return new StringContent(this.RequestBodySerializer.SerializeBody(requestInfo.BodyParameterInfo.Value));
                 default:
@@ -165,24 +196,6 @@ namespace RestEase
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
             T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserialize<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return new Response<T>(response, deserializedResponse);
-        }
-    }
-
-    internal class FormValueDictionary : Dictionary<string, string>
-    {
-        public FormValueDictionary(object source)
-        {
-            if (source == null)
-                return;
-
-            var dictionary = source as IDictionary;
-            if (dictionary != null)
-            {
-                foreach (var key in dictionary.Keys)
-                {
-                    this.Add(key.ToString(), (dictionary[key] ?? String.Empty).ToString());
-                }
-            }
         }
     }
 }

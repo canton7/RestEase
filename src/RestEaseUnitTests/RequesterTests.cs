@@ -1,6 +1,8 @@
-﻿using RestEase;
+﻿using Moq;
+using RestEase;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -21,6 +23,11 @@ namespace RestEaseUnitTests
             public new Uri ConstructUri(RequestInfo requestInfo)
             {
                 return base.ConstructUri(requestInfo);
+            }
+
+            public new HttpContent ConstructContent(RequestInfo requestInfo)
+            {
+                return base.ConstructContent(requestInfo);
             }
         }
 
@@ -150,6 +157,98 @@ namespace RestEaseUnitTests
             requestInfo.AddPathParameter("bar", "yay");
             var uri = this.requester.ConstructUri(requestInfo);
             Assert.Equal(new Uri("/foo/yay/yay", UriKind.Relative), uri);
+        }
+
+        [Fact]
+        public void SetsContentNullIfBodyParameterInfoNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            // Not calling SetBodyParameterInfo
+            var content = this.requester.ConstructContent(requestInfo);
+            Assert.Null(content);
+        }
+
+        [Fact]
+        public void SetsContentNullIfBodyValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, null);
+            var content = this.requester.ConstructContent(requestInfo);
+            Assert.Null(content);
+        }
+
+        [Fact]
+        public void SetsContentAsStreamContentIfBodyIsStream()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, new MemoryStream());
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.IsType<StreamContent>(content);
+        }
+
+        [Fact]
+        public void SetsContentAsStringContentIfBodyIsString()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, "hello");
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.IsType<StringContent>(content);
+        }
+
+        [Fact]
+        public void UsesBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var body = new object();
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, body);
+
+            var bodySerializer = new Mock<IRequestBodySerializer>();
+            this.requester.RequestBodySerializer = bodySerializer.Object;
+
+            bodySerializer.Setup(x => x.SerializeBody(body)).Returns("test").Verifiable();
+            var content = this.requester.ConstructContent(requestInfo);
+
+            bodySerializer.Verify();
+            Assert.IsType<StringContent>(content);
+        }
+
+        [Fact]
+        public void ThrowsIfBodyIsUrlEncodedAndBodyDoesNotImplementIDictionary()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var body = new object();
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.UrlEncoded, body);
+
+            Assert.Throws<ArgumentException>(() => this.requester.ConstructContent(requestInfo));
+        }
+
+        [Fact]
+        public void UsesFormUrlEncodedSerializerIfBodyIsObjectAndMethodIsUrlEncoded()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var body = new Dictionary<string, object>()
+            {
+                { "foo", "bar woo" },
+                { "many", new List<string>() { "one", "two" } },
+            };
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.UrlEncoded, body);
+
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.IsType<FormUrlEncodedContent>(content);
+            var encodedContent = ((FormUrlEncodedContent)content).ReadAsStringAsync().Result;
+            Assert.Equal("foo=bar+woo&many=one&many=two", encodedContent);
+        }
+
+        [Fact]
+        public void ThrowsIfBodySerializationMethodIsUnknown()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            requestInfo.SetBodyParameterInfo((BodySerializationMethod)100, new object());
+
+            Assert.Throws<InvalidOperationException>(() => this.requester.ConstructContent(requestInfo));
         }
     }
 }
