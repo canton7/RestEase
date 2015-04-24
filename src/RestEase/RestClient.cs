@@ -13,7 +13,7 @@ namespace RestEase
     /// <summary>
     /// Creates REST API clients from a suitable interface. Your single point of interaction with RestEase
     /// </summary>
-    public static class RestService
+    public static class RestClient
     {
         private static readonly ImplementationBuilder implementationBuilder = new ImplementationBuilder();
 

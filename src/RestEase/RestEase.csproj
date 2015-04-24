@@ -64,7 +64,7 @@
     <Compile Include="RequestInterceptor.cs" />
     <Compile Include="Response.cs" />
     <Compile Include="RestEaseImplementationCreationException.cs" />
-    <Compile Include="RestService.cs" />
+    <Compile Include="RestClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
