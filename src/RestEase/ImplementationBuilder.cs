@@ -103,6 +103,9 @@ namespace RestEase
         }
     }
 
+    /// <summary>
+    /// Helper class used to generate interface implementations. Exposed for testing (and very adventurous people) only.
+    /// </summary>
     public class ImplementationBuilder
     {
         private static readonly Regex pathParamMatch = new Regex(@"\{(.+?)\}");

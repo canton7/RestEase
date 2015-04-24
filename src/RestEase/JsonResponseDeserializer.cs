@@ -10,10 +10,23 @@ using System.Threading.Tasks;
 
 namespace RestEase
 {
+    /// <summary>
+    /// Default implementation of IResponseDeserializer, using Json.NET
+    /// </summary>
     public class JsonResponseDeserializer : IResponseDeserializer
     {
+        /// <summary>
+        /// Serializer settings to pass to JsonConvert.DeserializeObject{T}
+        /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
+        /// <summary>
+        /// Read the response string from the response, deserialize, and return a deserialized object
+        /// </summary>
+        /// <typeparam name="T">Type of object to deserialize into</typeparam>
+        /// <param name="response">HttpResponseMessage. Consider calling response.Content.ReadAsStringAsync() to retrieve a string</param>
+        /// <param name="cancellationToken">CancellationToken for this request</param>
+        /// <returns>Deserialized response</returns>
         public async Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
         {
             // We fetched using HttpCompletionOption.ResponseContentRead, so this has already been buffered
