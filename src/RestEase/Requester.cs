@@ -63,6 +63,52 @@ namespace RestEase
             }
         }
 
+        protected virtual void ApplyHeaders(RequestInfo requestInfo, HttpRequestMessage requestMessage)
+        {
+            // Apply from class -> method -> params, so we get the proper hierarchy
+            this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.ClassHeaders));
+            this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.MethodHeaders));
+            this.AppleHeadersSet(requestMessage, requestInfo.HeaderParams);
+        }
+
+        protected virtual IEnumerable<KeyValuePair<string, string>> SplitHeaders(List<string> headers)
+        {
+            var splitHeaders = from header in headers
+                               where !String.IsNullOrWhiteSpace(header)
+                               let parts = header.Split(new[] { '.' }, 1)
+                               select new KeyValuePair<string, string>(parts[0], parts.Length > 1 ? parts[1] : null);
+            return splitHeaders;
+        }
+
+        protected virtual void AppleHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers)
+        {
+            var headersGroups = headers.GroupBy(x => x.Key);
+
+            foreach (var headersGroup in headersGroups)
+            {
+                // Can't use .Contains, as it will throw if the header isn't a valid type
+                if (requestMessage.Headers.Any(x => x.Key == headersGroup.Key))
+                    requestMessage.Headers.Remove(headersGroup.Key);
+
+                // Empty collection = "remove all instances of this header only"
+                if (!headersGroup.Any())
+                    continue;
+
+                bool added = requestMessage.Headers.TryAddWithoutValidation(headersGroup.Key, headersGroup.Select(x => x.Value));
+                
+                // If we failed, it's probably a content header. Try again there
+                if (!added && requestMessage.Content != null)
+                {
+                    if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
+                        requestMessage.Content.Headers.Remove(headersGroup.Key);
+                    added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersGroup.Select(x => x.Value));
+                }
+
+                if (!added)
+                    throw new ArgumentException(String.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content?", headersGroup.Key));
+            }
+        }
+
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
         {
             var message = new HttpRequestMessage()
@@ -71,6 +117,9 @@ namespace RestEase
                 RequestUri = this.ConstructUri(requestInfo),
                 Content = this.ConstructContent(requestInfo),
             };
+
+            // Do this after setting the content, as doing so may set headers which we want to remove / override
+            this.ApplyHeaders(requestInfo, message);
 
             // We're always going to want the content - we're a REST requesting library, and if there's a response we're always
             // going to parse it out before returning. If we use HttpCompletionOptions.ResponseContentRead, then our
