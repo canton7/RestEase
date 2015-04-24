@@ -132,5 +132,24 @@ namespace RestEaseUnitTests
             var uri = this.requester.ConstructUri(requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz&bar=baz2", UriKind.Relative), uri);
         }
+
+        [Fact]
+        public void SubstitutesPathParameters()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}", CancellationToken.None);
+            requestInfo.AddPathParameter("bar", "yay");
+            requestInfo.AddPathParameter("baz", "woo");
+            var uri = this.requester.ConstructUri(requestInfo);
+            Assert.Equal(new Uri("/foo/yay/woo", UriKind.Relative), uri);
+        }
+
+        [Fact]
+        public void SubstitutesMultiplePathParametersOfTheSameType()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{bar}", CancellationToken.None);
+            requestInfo.AddPathParameter("bar", "yay");
+            var uri = this.requester.ConstructUri(requestInfo);
+            Assert.Equal(new Uri("/foo/yay/yay", UriKind.Relative), uri);
+        }
     }
 }

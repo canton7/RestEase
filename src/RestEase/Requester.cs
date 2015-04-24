@@ -24,10 +24,26 @@ namespace RestEase
             this.RequestBodySerializer = new JsonRequestBodySerializer();
         }
 
+        protected virtual string SubstitutePathParameters(RequestInfo requestInfo)
+        {
+            if (requestInfo.Path == null || requestInfo.PathParams.Count == 0)
+                return requestInfo.Path;
+
+            // We've already done validation to ensure that the parts in the path, and the available values, are present
+            var sb = new StringBuilder(requestInfo.Path);
+            foreach (var pathParam in requestInfo.PathParams)
+            {
+                sb.Replace("{" + pathParam.Key + "}", pathParam.Value);
+            }
+
+            return sb.ToString();
+        }
+
         protected virtual Uri ConstructUri(RequestInfo requestInfo)
         {
             // UriBuilder insists that we provide it with an absolute URI, even though we only want a relative one...
-            var uriBuilder = new UriBuilder(new Uri(new Uri("http://api"), requestInfo.Path ?? String.Empty));
+            var relativePath = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
+            var uriBuilder = new UriBuilder(new Uri(new Uri("http://api"), relativePath));
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)

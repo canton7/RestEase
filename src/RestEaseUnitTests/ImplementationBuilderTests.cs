@@ -87,8 +87,8 @@ namespace RestEaseUnitTests
 
         public interface IPathParams
         {
-            [Get("foo")]
-            Task FooAsync([PathParam] string foo, [PathParam("foo")] string bar);
+            [Get("foo/{foo}/{bar}")]
+            Task FooAsync([PathParam] string foo, [PathParam("bar")] string bar);
         }
 
         [Header("Class Header 1")]
@@ -153,6 +153,24 @@ namespace RestEaseUnitTests
 
             [Get("bar")]
             Task ValueTypeAsync([Body(BodySerializationMethod.UrlEncoded)] int serialized);
+        }
+
+        public interface IHasPathParamInPathButNotParameters
+        {
+            [Get("foo/{bar}/{baz}")]
+            Task FooAsync([PathParam("bar")] string bar);
+        }
+
+        public interface IHasPathParamInParametersButNotPath
+        {
+            [Get("foo/{bar}")]
+            Task FooAsync([PathParam("bar")] string path, [PathParam("baz")] string baz);
+        }
+
+        public interface IHasPathParamWithoutExplicitName
+        {
+            [Get("foo/{bar}")]
+            Task FooAsync([PathParam] string bar);
         }
 
         private readonly Mock<IRequester> requester;
@@ -362,7 +380,7 @@ namespace RestEaseUnitTests
             Assert.Equal("foo", requestInfo.PathParams[0].Key);
             Assert.Equal("foo value", requestInfo.PathParams[0].Value);
 
-            Assert.Equal("foo", requestInfo.PathParams[1].Key);
+            Assert.Equal("bar", requestInfo.PathParams[1].Key);
             Assert.Equal("bar value", requestInfo.PathParams[1].Value);
         }
 
@@ -517,6 +535,24 @@ namespace RestEaseUnitTests
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
             Assert.Equal(3, requestInfo.BodyParameterInfo.Value);
+        }
+
+        [Fact]
+        public void ThrowsIfPathParamPresentInPathButNotInParameters()
+        {
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInPathButNotParameters>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfPathParamPresentInParametersButNotPath()
+        {
+            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInParametersButNotPath>(this.requester.Object));
+        }
+
+        [Fact]
+        public void PathParamWithImplicitNameDoesNotFailValidation()
+        {
+            this.builder.CreateImplementation<IHasPathParamWithoutExplicitName>(this.requester.Object);
         }
     }
 }
