@@ -55,6 +55,12 @@ namespace RestEaseUnitTests
             Task<Response<string>> FooAsync();
         }
 
+        public interface INoArgumentsReturnsHttpResponseMessage
+        {
+            [Get("bar")]
+            Task<HttpResponseMessage> FooAsync();
+        }
+
         public interface ICancellationTokenOnlyNoReturn
         {
             [Get("baz")]
@@ -256,6 +262,29 @@ namespace RestEaseUnitTests
             RequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(expectedResponse)
+                .Verifiable();
+
+            var response = implementation.FooAsync();
+
+            Assert.Equal(expectedResponse, response);
+            this.requester.Verify();
+            Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal("bar", requestInfo.Path);
+        }
+
+        [Fact]
+        public void NoArgumentsWithResponseMessageCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsHttpResponseMessage>(this.requester.Object);
+
+            var expectedResponse = Task.FromResult(new HttpResponseMessage());
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestWithResponseMessageAsync(It.IsAny<RequestInfo>()))
                 .Callback((RequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();

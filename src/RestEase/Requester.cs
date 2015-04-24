@@ -191,6 +191,12 @@ namespace RestEase
             return deserializedResponse;
         }
 
+        public virtual async Task<HttpResponseMessage> RequestWithResponseMessageAsync(RequestInfo requestInfo)
+        {
+            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            return response;
+        }
+
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
