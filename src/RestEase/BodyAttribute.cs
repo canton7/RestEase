@@ -29,15 +29,21 @@ namespace RestEase
     public sealed class BodyAttribute : Attribute
     {
         /// <summary>
-        /// Serialization method to use. Defaults to BodySerializationMethod.Serialized
+        /// Gets the serialization method to use. Defaults to BodySerializationMethod.Serialized
         /// </summary>
         public BodySerializationMethod SerializationMethod { get; private set; }
 
+        /// <summary>
+        /// Instantiates a new instance of the <see cref="BodyAttribute"/> class
+        /// </summary>
         public BodyAttribute()
         {
             this.SerializationMethod = BodySerializationMethod.Serialized;
         }
 
+        /// <summary>
+        /// Instantiates a new instance of the <see cref="BodyAttribute"/> class, using the given body serialization method
+        /// </summary>
         public BodyAttribute(BodySerializationMethod serializationMethod)
         {
             this.SerializationMethod = serializationMethod;

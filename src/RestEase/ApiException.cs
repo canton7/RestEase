@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,14 +9,39 @@ using System.Threading.Tasks;
 
 namespace RestEase
 {
+    /// <summary>
+    /// Exception thrown when a bad API response is received
+    /// </summary>
     public class ApiException : Exception
     {
+        /// <summary>
+        /// Gets the HTTP status code received
+        /// </summary>
         public HttpStatusCode StatusCode { get; private set; }
+
+        /// <summary>
+        /// Gets the ReasonPhrase associated with the response
+        /// </summary>
         public string ReasonPhrase { get; private set; }
+
+        /// <summary>
+        /// Gets the headers associated with the response
+        /// </summary>
         public HttpResponseHeaders Headers { get; private set; }
+
+        /// <summary>
+        /// Gets the content headers associated with the response
+        /// </summary>
         public HttpContentHeaders ContentHeaders { get; private set; }
 
+        /// <summary>
+        /// Gets the content associated with the response, if any
+        /// </summary>
         public string Content { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether any content is associated with the response
+        /// </summary>
         public bool HasContent
         {
             get { return !String.IsNullOrWhiteSpace(this.Content); }
