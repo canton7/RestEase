@@ -47,7 +47,7 @@ namespace RestEaseUnitTests
         public interface INoArgumentsWithReturn
         {
             [Get("bar")]
-            Task<string> BarAsync();
+            Task<int> BarAsync();
         }
 
         public interface INoArgumentsReturnsResponse
@@ -60,6 +60,12 @@ namespace RestEaseUnitTests
         {
             [Get("bar")]
             Task<HttpResponseMessage> FooAsync();
+        }
+
+        public interface INoArgumentsReturnsString
+        {
+            [Get("bar")]
+            Task<string> FooAsync();
         }
 
         public interface ICancellationTokenOnlyNoReturn
@@ -236,10 +242,10 @@ namespace RestEaseUnitTests
         {
             var implementation = this.builder.CreateImplementation<INoArgumentsWithReturn>(this.requester.Object);
 
-            var expectedResponse = Task.FromResult("hello");
+            var expectedResponse = Task.FromResult(3);
             RequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestAsync<string>(It.IsAny<RequestInfo>()))
+            this.requester.Setup(x => x.RequestAsync<int>(It.IsAny<RequestInfo>()))
                 .Callback((RequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
@@ -286,6 +292,29 @@ namespace RestEaseUnitTests
             RequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestWithResponseMessageAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(expectedResponse)
+                .Verifiable();
+
+            var response = implementation.FooAsync();
+
+            Assert.Equal(expectedResponse, response);
+            this.requester.Verify();
+            Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal("bar", requestInfo.Path);
+        }
+
+        [Fact]
+        public void NoArgumentsWithRawResponseCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsString>(this.requester.Object);
+
+            var expectedResponse = Task.FromResult("testy");
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestRawAsync(It.IsAny<RequestInfo>()))
                 .Callback((RequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();

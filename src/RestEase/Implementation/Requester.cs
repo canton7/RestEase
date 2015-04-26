@@ -203,5 +203,12 @@ namespace RestEase.Implementation
             T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return new Response<T>(response, deserializedResponse);
         }
+
+        public virtual async Task<string> RequestRawAsync(RequestInfo requestInfo)
+        {
+            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            var responseString = await response.Content.ReadAsStringAsync();
+            return responseString;
+        }
     }
 }

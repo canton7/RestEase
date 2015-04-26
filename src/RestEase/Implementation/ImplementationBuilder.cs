@@ -117,6 +117,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestAsyncMethod = typeof(IRequester).GetMethod("RequestAsync");
         private static readonly MethodInfo requestWithResponseMessageAsyncMethod = typeof(IRequester).GetMethod("RequestWithResponseMessageAsync");
         private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetMethod("RequestWithResponseAsync");
+        private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetMethod("RequestRawAsync");
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(CancellationToken) });
         private static readonly MethodInfo cancellationTokenNoneGetter = typeof(CancellationToken).GetProperty("None").GetMethod;
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
@@ -287,11 +288,16 @@ namespace RestEase.Implementation
                 else if (methodInfo.ReturnType.IsGenericType && methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
                 {
                     var typeOfT = methodInfo.ReturnType.GetGenericArguments()[0];
-                    // Now, is it a Task<HttpResponseMessage>, a Task<Response<T>> or a Task<T>?
+                    // Now, is it a Task<HttpResponseMessage>, a Task<string>, a Task<Response<T>> or a Task<T>?
                     if (typeOfT == typeof(HttpResponseMessage))
                     {
                         // Stack: [Task<HttpResponseMessage>]
                         methodIlGenerator.Emit(OpCodes.Callvirt, requestWithResponseMessageAsyncMethod);
+                    }
+                    else if (typeOfT == typeof(string))
+                    {
+                        // Stack: [Task<string>]
+                        methodIlGenerator.Emit(OpCodes.Callvirt, requestRawAsyncMethod);
                     }
                     else if (typeOfT.IsGenericType && typeOfT.GetGenericTypeDefinition() == typeof(Response<>))
                     {
