@@ -126,7 +126,6 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetMethod("AddMethodHeader");
         private static readonly MethodInfo addHeaderParameterMethod = typeof(RequestInfo).GetMethod("AddHeaderParameter");
         private static readonly MethodInfo setBodyParameterInfoMethod = typeof(RequestInfo).GetMethod("SetBodyParameterInfo");
-        private static readonly MethodInfo toStringMethod = typeof(Object).GetMethod("ToString");
 
         private static readonly Dictionary<HttpMethod, PropertyInfo> httpMethodProperties = new Dictionary<HttpMethod, PropertyInfo>()
         {
@@ -261,17 +260,20 @@ namespace RestEase.Implementation
 
                 foreach (var queryParameter in parameterGrouping.QueryParameters)
                 {
-                    this.AddParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, addQueryParameterMethod);
+                    var method = addQueryParameterMethod.MakeGenericMethod(queryParameter.Parameter.ParameterType);
+                    this.AddParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method);
                 }
 
                 foreach (var plainParameter in parameterGrouping.PlainParameters)
                 {
-                    this.AddParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, addQueryParameterMethod);
+                    var method = addQueryParameterMethod.MakeGenericMethod(plainParameter.Parameter.ParameterType);
+                    this.AddParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method);
                 }
 
                 foreach (var pathParameter in parameterGrouping.PathParameters)
                 {
-                    this.AddParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, addPathParameterMethod);
+                    var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
+                    this.AddParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, method);
                 }
 
                 foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -384,7 +386,7 @@ namespace RestEase.Implementation
         private void AddParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall)
         {
             // Equivalent C#:
-            // requestInfo.methodToCall("name", value.ToString());
+            // requestInfo.methodToCall("name", value);
             // where 'value' is the parameter at index parameterIndex
 
             // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
@@ -396,9 +398,6 @@ namespace RestEase.Implementation
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
-            // Call ToString on the value
-            // Stack: [..., requestInfo, requestInfo, name, valueAsString]
-            methodIlGenerator.Emit(OpCodes.Callvirt, toStringMethod);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);

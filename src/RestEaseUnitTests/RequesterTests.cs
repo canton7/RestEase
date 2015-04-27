@@ -182,6 +182,15 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
+        public void IgnoresNullQueryParams()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo", CancellationToken.None);
+            requestInfo.AddQueryParameter<object>("bar", null);
+            var uri = this.requester.ConstructUri(requestInfo);
+            Assert.Equal(new Uri("/foo", UriKind.Relative), uri);
+        }
+
+        [Fact]
         public void SubstitutesPathParameters()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}", CancellationToken.None);
@@ -198,6 +207,15 @@ namespace RestEaseUnitTests
             requestInfo.AddPathParameter("bar", "yay");
             var uri = this.requester.ConstructUri(requestInfo);
             Assert.Equal(new Uri("/foo/yay/yay", UriKind.Relative), uri);
+        }
+
+        [Fact]
+        public void TreatsNullPathParamsAsEmpty()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz", CancellationToken.None);
+            requestInfo.AddPathParameter<int?>("bar", null);
+            var uri = this.requester.ConstructUri(requestInfo);
+            Assert.Equal(new Uri("/foo//baz", UriKind.Relative), uri);
         }
 
         [Fact]

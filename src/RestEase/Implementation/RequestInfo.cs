@@ -46,14 +46,20 @@ namespace RestEase.Implementation
             this.HeaderParams = new List<KeyValuePair<string, string>>();
         }
 
-        public void AddQueryParameter(string name, string value)
+        public void AddQueryParameter<T>(string name, T value)
         {
-            this.QueryParams.Add(new KeyValuePair<string, string>(name, value));
+            string stringValue = null;
+            if (value != null)
+                stringValue = value.ToString();
+            this.QueryParams.Add(new KeyValuePair<string, string>(name, stringValue));
         }
 
-        public void AddPathParameter(string name, string value)
+        public void AddPathParameter<T>(string name, T value)
         {
-            this.PathParams.Add(new KeyValuePair<string, string>(name, value));
+            string stringValue = null;
+            if (value != null)
+                stringValue = value.ToString();
+            this.PathParams.Add(new KeyValuePair<string, string>(name, stringValue));
         }
 
         public void AddClassHeader(string header)

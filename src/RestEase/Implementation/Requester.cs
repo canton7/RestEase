@@ -33,7 +33,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams)
             {
-                sb.Replace("{" + pathParam.Key + "}", pathParam.Value);
+                sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", pathParam.Value);
             }
 
             return sb.ToString();
@@ -48,7 +48,8 @@ namespace RestEase.Implementation
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
-                query.Add(queryParam.Key, queryParam.Value);
+                if (queryParam.Value != null)
+                    query.Add(queryParam.Key, queryParam.Value);
             }
             uriBuilder.Query = query.ToString();
 

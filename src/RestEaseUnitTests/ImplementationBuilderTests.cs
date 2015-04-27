@@ -98,10 +98,19 @@ namespace RestEaseUnitTests
             Task FooAsync([QueryParam("bar")] string foo, [QueryParam] string bar);
         }
 
+        public interface INullableQueryParameters
+        {
+            [Get("foo")]
+            Task FooAsync(object foo, int? bar, int? baz, int yay);
+        }
+
         public interface IPathParams
         {
             [Get("foo/{foo}/{bar}")]
             Task FooAsync([PathParam] string foo, [PathParam("bar")] string bar);
+
+            [Get("foo/{foo}/{bar}")]
+            Task DifferentParaneterTypesAsync([PathParam] object foo, [PathParam] int? bar);
         }
 
         [Header("Class Header 1")]
@@ -423,7 +432,55 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void HandlesPathParams()
+        public void ExcludesNullQueryParams()
+        {
+            var implementation = this.builder.CreateImplementation<INullableQueryParameters>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(null, null, 0, 0);
+
+            Assert.Equal(4, requestInfo.QueryParams.Count);
+
+            Assert.Equal("foo", requestInfo.QueryParams[0].Key);
+            Assert.Equal(null, requestInfo.QueryParams[0].Value);
+
+            Assert.Equal("bar", requestInfo.QueryParams[1].Key);
+            Assert.Equal(null, requestInfo.QueryParams[1].Value);
+
+            Assert.Equal("baz", requestInfo.QueryParams[2].Key);
+            Assert.Equal("0", requestInfo.QueryParams[2].Value);
+
+            Assert.Equal("yay", requestInfo.QueryParams[3].Key);
+            Assert.Equal("0", requestInfo.QueryParams[3].Value);
+        }
+
+        [Fact]
+        public void HandlesNullPathParams()
+        {
+            var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.DifferentParaneterTypesAsync(null, null);
+
+            Assert.Equal(2, requestInfo.PathParams.Count);
+
+            Assert.Equal("foo", requestInfo.PathParams[0].Key);
+            Assert.Equal(null, requestInfo.PathParams[0].Value);
+
+            Assert.Equal("bar", requestInfo.PathParams[1].Key);
+            Assert.Equal(null, requestInfo.PathParams[1].Value);
+        }
+
+        [Fact]
+        public void NullPathParamsAreRenderedAsEmpty()
         {
             var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
             RequestInfo requestInfo = null;
