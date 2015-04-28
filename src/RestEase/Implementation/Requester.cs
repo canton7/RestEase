@@ -67,10 +67,10 @@ namespace RestEase.Implementation
                 foreach (var key in dictionary.Keys)
                 {
                     var value = dictionary[key];
-                    var valueAsCollection = value as ICollection;
-                    if (valueAsCollection != null)
+                    // We don't want to count strings as IEnumerable
+                    if ( value != null && !(value is string) && value is IEnumerable)
                     {
-                        foreach (var individualValue in valueAsCollection)
+                        foreach (var individualValue in (IEnumerable)value)
                         {
                             yield return new KeyValuePair<string, string>(key.ToString(), (individualValue ?? String.Empty).ToString());
                         }

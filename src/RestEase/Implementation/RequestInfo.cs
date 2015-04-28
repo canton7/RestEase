@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -48,10 +49,21 @@ namespace RestEase.Implementation
 
         public void AddQueryParameter<T>(string name, T value)
         {
-            string stringValue = null;
-            if (value != null)
-                stringValue = value.ToString();
-            this.QueryParams.Add(new KeyValuePair<string, string>(name, stringValue));
+            // Don't want to count strings as IEnumerable
+            if (value != null && !(value is string) && value is IEnumerable)
+            {
+                foreach (var individualValue in (IEnumerable)value)
+                {
+                    this.QueryParams.Add(new KeyValuePair<string, string>(name, (individualValue ?? String.Empty).ToString()));
+                }
+            }
+            else
+            {
+                string stringValue = null;
+                if (value != null)
+                    stringValue = value.ToString();
+                this.QueryParams.Add(new KeyValuePair<string, string>(name, stringValue));
+            }
         }
 
         public void AddPathParameter<T>(string name, T value)

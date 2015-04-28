@@ -104,6 +104,12 @@ namespace RestEaseUnitTests
             Task FooAsync(object foo, int? bar, int? baz, int yay);
         }
 
+        public interface IArrayQueryParam
+        {
+            [Get("foo")]
+            Task FooAsync(IEnumerable<int> intArray);
+        }
+
         public interface IPathParams
         {
             [Get("foo/{foo}/{bar}")]
@@ -456,6 +462,30 @@ namespace RestEaseUnitTests
 
             Assert.Equal("yay", requestInfo.QueryParams[3].Key);
             Assert.Equal("0", requestInfo.QueryParams[3].Value);
+        }
+
+        [Fact]
+        public void HandlesQueryParamArays()
+        {
+            var implementation = this.builder.CreateImplementation<IArrayQueryParam>(this.requester.Object);
+            RequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
+                .Callback((RequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new int[] { 1, 2, 3 });
+
+            Assert.Equal(3, requestInfo.QueryParams.Count);
+
+            Assert.Equal("intArray", requestInfo.QueryParams[0].Key);
+            Assert.Equal("1", requestInfo.QueryParams[0].Value);
+
+            Assert.Equal("intArray", requestInfo.QueryParams[1].Key);
+            Assert.Equal("2", requestInfo.QueryParams[1].Value);
+
+            Assert.Equal("intArray", requestInfo.QueryParams[2].Key);
+            Assert.Equal("3", requestInfo.QueryParams[2].Value);
         }
 
         [Fact]
