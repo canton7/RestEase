@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -146,6 +147,8 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.UrlEncoded:
                     return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.Value));
                 case BodySerializationMethod.Serialized:
+                    if (this.RequestBodySerializer == null)
+                        throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
                     return new StringContent(this.RequestBodySerializer.SerializeBody(requestInfo.BodyParameterInfo.Value));
                 default:
                     throw new InvalidOperationException("Should never get here");
@@ -245,6 +248,20 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
+        /// Calls this.ResponseDeserializer.ReadAndDeserializeAsync, after checking it's not null
+        /// </summary>
+        /// <typeparam name="T">Type of object to deserialize into</typeparam>
+        /// <param name="response">Response to deserialize from</param>
+        /// <param name="cancellationToken">CancellationToken to abort the operation</param>
+        /// <returns>A task containing the deserialized response</returns>
+        protected virtual Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+        {
+            if (this.ResponseDeserializer == null)
+                throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
+            return this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, cancellationToken);
+        }
+
+        /// <summary>
         /// Called from interface methods which return a Task
         /// </summary>
         /// <param name="requestInfo">RequestInfo to construct the request from</param>
@@ -263,7 +280,7 @@ namespace RestEase.Implementation
         public virtual async Task<T> RequestAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
+            T deserializedResponse = await this.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return deserializedResponse;
         }
 
@@ -287,7 +304,7 @@ namespace RestEase.Implementation
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            T deserializedResponse = await this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
+            T deserializedResponse = await this.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
             return new Response<T>(response, deserializedResponse);
         }
 
