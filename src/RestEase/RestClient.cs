@@ -43,9 +43,9 @@ namespace RestEase
         /// <param name="baseUrl">Base URL</param>
         /// <param name="requestInterceptor">Delegate called on every request</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(string baseUrl, RequestInterceptor requestInterceptor)
+        public static T For<T>(string baseUrl, RequestModifier requestInterceptor)
         {
-            var httpClient = new HttpClient(new InterceptingHttpClientHandler(requestInterceptor))
+            var httpClient = new HttpClient(new ModifyingClientHttpHandler(requestInterceptor))
             {
                 BaseAddress = new Uri(baseUrl),
             };

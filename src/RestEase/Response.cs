@@ -14,15 +14,20 @@ namespace RestEase
     public class Response<T>
     {
         /// <summary>
-        /// Raw HttpResponseMessage
+        /// Gets the raw HttpResponseMessage
         /// </summary>
         public HttpResponseMessage ResponseMessage { get; private set; }
 
         /// <summary>
-        /// Deserialized response
+        /// Gets the deserialized response
         /// </summary>
         public T Content { get; private set; }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="Response{T}"/> class
+        /// </summary>
+        /// <param name="response">HttpResponseMessage to retain</param>
+        /// <param name="content">Deserialized response to retain</param>
         public Response(HttpResponseMessage response, T content)
         {
             this.ResponseMessage = response;

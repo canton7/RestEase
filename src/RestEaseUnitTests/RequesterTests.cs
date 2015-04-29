@@ -22,9 +22,14 @@ namespace RestEaseUnitTests
                 : base(httpClient)
             { }
 
-            public new Uri ConstructUri(RequestInfo requestInfo)
+            public new Uri ConstructUri(string relativePath, RequestInfo requestInfo)
             {
-                return base.ConstructUri(requestInfo);
+                return base.ConstructUri(relativePath, requestInfo);
+            }
+
+            public new string SubstitutePathParameters(RequestInfo requestInfo)
+            {
+                return base.SubstitutePathParameters(requestInfo);
             }
 
             public new HttpContent ConstructContent(RequestInfo requestInfo)
@@ -83,110 +88,110 @@ namespace RestEaseUnitTests
         public void ConstructsUriWithNoRelativePath()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("", requestInfo);
             Assert.Equal(new Uri("/", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithSimpleRelativePathNoLeadingSlash()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo/bar/baz", CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var uri = this.requester.ConstructUri("foo/bar/baz", requestInfo);
             Assert.Equal(new Uri("/foo/bar/baz", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithSimpleRelativePathWithLeadingSlash()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/bar/baz", CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var uri = this.requester.ConstructUri("/foo/bar/baz", requestInfo);
             Assert.Equal(new Uri("/foo/bar/baz", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithEscapedPath()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/ba  r/baz", CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var uri = this.requester.ConstructUri("/foo/ba  r/baz", requestInfo);
             Assert.Equal(new Uri("/foo/ba%20%20r/baz", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithExistingParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo?bar=baz", CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var uri = this.requester.ConstructUri("/foo?bar=baz", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
             requestInfo.AddQueryParameter("bar", "baz");
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriCombiningExistingAndGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo?a=yay", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
             requestInfo.AddQueryParameter("bar", "baz");
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("/foo?a=yay", requestInfo);
             Assert.Equal(new Uri("/foo?a=yay&bar=baz", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithEscapedExistingParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo?bar=b az", CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var uri = this.requester.ConstructUri("/foo?bar=b az", requestInfo);
             Assert.Equal(new Uri("/foo?bar=b+az", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithEscapedGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
             requestInfo.AddQueryParameter("b ar", "b az");
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo?b+ar=b+az", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithPreservedDuplicateExistingParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo?bar=baz&bar=baz2", CancellationToken.None);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var uri = this.requester.ConstructUri("/foo?bar=baz&bar=baz2", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz&bar=baz2", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithPreservedDuplicateGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
             requestInfo.AddQueryParameter("bar", "baz");
             requestInfo.AddQueryParameter("bar", "baz2");
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz&bar=baz2", UriKind.Relative), uri);
         }
 
         [Fact]
         public void ConstructsUriWithPreservedDuplicateExistingAndGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo?bar=baz", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
             requestInfo.AddQueryParameter("bar", "baz2");
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("/foo?bar=baz", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz&bar=baz2", UriKind.Relative), uri);
         }
 
         [Fact]
         public void IgnoresNullQueryParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
             requestInfo.AddQueryParameter<object>("bar", null);
-            var uri = this.requester.ConstructUri(requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo", UriKind.Relative), uri);
         }
 
@@ -196,8 +201,8 @@ namespace RestEaseUnitTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}", CancellationToken.None);
             requestInfo.AddPathParameter("bar", "yay");
             requestInfo.AddPathParameter("baz", "woo");
-            var uri = this.requester.ConstructUri(requestInfo);
-            Assert.Equal(new Uri("/foo/yay/woo", UriKind.Relative), uri);
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("/foo/yay/woo", uri);
         }
 
         [Fact]
@@ -205,8 +210,8 @@ namespace RestEaseUnitTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{bar}", CancellationToken.None);
             requestInfo.AddPathParameter("bar", "yay");
-            var uri = this.requester.ConstructUri(requestInfo);
-            Assert.Equal(new Uri("/foo/yay/yay", UriKind.Relative), uri);
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("/foo/yay/yay", uri);
         }
 
         [Fact]
@@ -214,8 +219,8 @@ namespace RestEaseUnitTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz", CancellationToken.None);
             requestInfo.AddPathParameter<int?>("bar", null);
-            var uri = this.requester.ConstructUri(requestInfo);
-            Assert.Equal(new Uri("/foo//baz", UriKind.Relative), uri);
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("/foo//baz", uri);
         }
 
         [Fact]

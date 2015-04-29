@@ -47,7 +47,8 @@
   <ItemGroup>
     <Compile Include="BodyAttribute.cs" />
     <Compile Include="HeaderAttribute.cs" />
-    <Compile Include="Implementation\InterceptingHttpClientHandler.cs" />
+    <Compile Include="Implementation\BodyParameterInfo.cs" />
+    <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
     <Compile Include="Implementation\JsonRequestBodySerializer.cs" />
     <Compile Include="PathParamAttribute.cs" />
@@ -61,9 +62,9 @@
     <Compile Include="RequestAttribute.cs" />
     <Compile Include="Implementation\Requester.cs" />
     <Compile Include="Implementation\RequestInfo.cs" />
-    <Compile Include="RequestInterceptor.cs" />
+    <Compile Include="RequestModifier.cs" />
     <Compile Include="Response.cs" />
-    <Compile Include="RestEaseImplementationCreationException.cs" />
+    <Compile Include="ImplementationCreationException.cs" />
     <Compile Include="RestClient.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -11,12 +11,27 @@ using System.Web;
 
 namespace RestEase.Implementation
 {
+    /// <summary>
+    /// Clas used by generated implementations to make HTTP requests
+    /// </summary>
     public class Requester : IRequester
     {
         private readonly HttpClient httpClient;
+
+        /// <summary>
+        /// Gets or sets the deserializer used to deserialize responses
+        /// </summary>
         public IResponseDeserializer ResponseDeserializer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the serializer used to serialize request bodies, when [Body(BodySerializationMethod.Serialized)] is used
+        /// </summary>
         public IRequestBodySerializer RequestBodySerializer { get; set; }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
+        /// </summary>
+        /// <param name="httpClient">HttpClient to use to make requests</param>
         public Requester(HttpClient httpClient)
         {
             this.httpClient = httpClient;
@@ -24,6 +39,16 @@ namespace RestEase.Implementation
             this.RequestBodySerializer = new JsonRequestBodySerializer();
         }
 
+        /// <summary>
+        /// Takes the Path and PathParams from the given RequestInfo, and constructs a path with placeholders substituted
+        /// for their desired values.
+        /// </summary>
+        /// <remarks>
+        /// Note that this method assumes that valdation has occurred. That is, there won't by any
+        /// placeholders with no value, or values without a placeholder.
+        /// </remarks>
+        /// <param name="requestInfo">RequestInfo to get Path and PathParams from</param>
+        /// <returns>The constructed path, with placeholders substituted for their actual values</returns>
         protected virtual string SubstitutePathParameters(RequestInfo requestInfo)
         {
             if (requestInfo.Path == null || requestInfo.PathParams.Count == 0)
@@ -39,10 +64,15 @@ namespace RestEase.Implementation
             return sb.ToString();
         }
 
-        protected virtual Uri ConstructUri(RequestInfo requestInfo)
+        /// <summary>
+        /// Given a RequestInfo and pre-substituted relative path, constructs a URI with the right query parameters
+        /// </summary>
+        /// <param name="relativePath">Relative path to start with, with placeholders already substituted</param>
+        /// <param name="requestInfo">RequestInfo to retrieve the query parameters from</param>
+        /// <returns>Constructed relative URI</returns>
+        protected virtual Uri ConstructUri(string relativePath, RequestInfo requestInfo)
         {
             // UriBuilder insists that we provide it with an absolute URI, even though we only want a relative one...
-            var relativePath = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
             var uriBuilder = new UriBuilder(new Uri(new Uri("http://api"), relativePath));
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -56,6 +86,12 @@ namespace RestEase.Implementation
             return new Uri(uriBuilder.Uri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped), UriKind.Relative);
         }
 
+        /// <summary>
+        /// Given an object, attempt to serialize it into a form suitable for URL Encoding
+        /// </summary>
+        /// <remarks>Currently only supports objects which implement IDictionary</remarks>
+        /// <param name="body">Object to attempt to serialize</param>
+        /// <returns>Key/value collection suitable for URL encoding</returns>
         protected virtual IEnumerable<KeyValuePair<string, string>> SerializeBodyForUrlEncoding(object body)
         {
             if (body == null)
@@ -68,7 +104,7 @@ namespace RestEase.Implementation
                 {
                     var value = dictionary[key];
                     // We don't want to count strings as IEnumerable
-                    if ( value != null && !(value is string) && value is IEnumerable)
+                    if (value != null && !(value is string) && value is IEnumerable)
                     {
                         foreach (var individualValue in (IEnumerable)value)
                         {
@@ -87,6 +123,11 @@ namespace RestEase.Implementation
             }
         }
 
+        /// <summary>
+        /// Given a RequestInfo which may have a BodyParameterInfo, construct a suitable HttpContent for it if possible
+        /// </summary>
+        /// <param name="requestInfo">RequestInfo to get the BodyParameterInfo for</param>
+        /// <returns>null if no body is set, otherwise a suitable HttpContent (StringContent, StreamContent, FormUrlEncodedContent, etc)</returns>
         protected virtual HttpContent ConstructContent(RequestInfo requestInfo)
         {
             if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.Value == null)
@@ -111,6 +152,12 @@ namespace RestEase.Implementation
             }
         }
 
+        /// <summary>
+        /// Given a RequestInfo containing a number of class/method/param headers, and a HttpRequestMessage,
+        /// add the headers to the message, taing priority and overriding into account
+        /// </summary>
+        /// <param name="requestInfo">RequestInfo to get the headers from</param>
+        /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         protected virtual void ApplyHeaders(RequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
             // Apply from class -> method -> params, so we get the proper hierarchy
@@ -119,7 +166,13 @@ namespace RestEase.Implementation
             this.AppleHeadersSet(requestMessage, requestInfo.HeaderParams);
         }
 
-        protected virtual IEnumerable<KeyValuePair<string, string>> SplitHeaders(List<string> headers)
+        /// <summary>
+        /// Given a collection of headers in the form 'Foo', 'Foo:', or 'Foo: Bar',
+        /// construct KeyValuePairs in the form ['Foo', null], ['Foo', ''], and ['Foo', 'Bar'] respectively
+        /// </summary>
+        /// <param name="headers">Headers to split</param>
+        /// <returns>Result of splitting</returns>
+        protected virtual IEnumerable<KeyValuePair<string, string>> SplitHeaders(IEnumerable<string> headers)
         {
             var splitHeaders = from header in headers
                                where !String.IsNullOrWhiteSpace(header)
@@ -128,6 +181,11 @@ namespace RestEase.Implementation
             return splitHeaders;
         }
 
+        /// <summary>
+        /// Given a set of headers, apply them to the given HttpRequestMessage. Headers will override any of that type already present
+        /// </summary>
+        /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
+        /// <param name="headers">Headers to add</param>
         protected virtual void AppleHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers)
         {
             var headersGroups = headers.GroupBy(x => x.Key);
@@ -157,12 +215,18 @@ namespace RestEase.Implementation
             }
         }
 
+        /// <summary>
+        /// Given a RequestInfo, construct a HttpRequestMessage, send it, check the response for success, then return it
+        /// </summary>
+        /// <param name="requestInfo">RequestInfo to construct the request from</param>
+        /// <returns>Resulting HttpResponseMessage</returns>
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
         {
+            var relativePath = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
-                RequestUri = this.ConstructUri(requestInfo),
+                RequestUri = this.ConstructUri(relativePath, requestInfo),
                 Content = this.ConstructContent(requestInfo),
             };
 
@@ -180,11 +244,22 @@ namespace RestEase.Implementation
             return response;
         }
 
+        /// <summary>
+        /// Called from interface methods which return a Task
+        /// </summary>
+        /// <param name="requestInfo">RequestInfo to construct the request from</param>
+        /// <returns>Task which completes when the request completed</returns>
         public virtual async Task RequestVoidAsync(RequestInfo requestInfo)
         {
             await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Called from interface methods which return a Task{CustomType}. Deserializes and returns the response
+        /// </summary>
+        /// <typeparam name="T">Type of the response, to deserialize into</typeparam>
+        /// <param name="requestInfo">RequestInfo to construct the request from</param>
+        /// <returns>Task resulting in the deserialized response</returns>
         public virtual async Task<T> RequestAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
@@ -192,12 +267,23 @@ namespace RestEase.Implementation
             return deserializedResponse;
         }
 
+        /// <summary>
+        /// Called from interface methods which return a Task{HttpResponseMessage}
+        /// </summary>
+        /// <param name="requestInfo">RequestInfo to construct the request from</param>
+        /// <returns>Task containing the result of the request</returns>
         public virtual async Task<HttpResponseMessage> RequestWithResponseMessageAsync(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
             return response;
         }
 
+        /// <summary>
+        /// Called from interface methods which return a Task{Response{T}}
+        /// </summary>
+        /// <typeparam name="T">Type of the response, to deserialize into</typeparam>
+        /// <param name="requestInfo">RequestInfo to construct the request from</param>
+        /// <returns>Task containing a Response{T}, which contains the raw HttpResponseMessage, and its deserialized content</returns>
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
@@ -205,10 +291,15 @@ namespace RestEase.Implementation
             return new Response<T>(response, deserializedResponse);
         }
 
+        /// <summary>
+        /// Called from interface methods which return a Task{string}
+        /// </summary>
+        /// <param name="requestInfo">RequestInfo to construct the request from</param>
+        /// <returns>Task containing the raw string body of the response</returns>
         public virtual async Task<string> RequestRawAsync(RequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            var responseString = await response.Content.ReadAsStringAsync();
+            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return responseString;
         }
     }

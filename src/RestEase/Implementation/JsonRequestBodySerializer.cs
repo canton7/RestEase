@@ -13,7 +13,7 @@ namespace RestEase.Implementation
     public class JsonRequestBodySerializer : IRequestBodySerializer
     {
         /// <summary>
-        /// Serializer settings to pass to JsonConvert.SerializeObject
+        /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 

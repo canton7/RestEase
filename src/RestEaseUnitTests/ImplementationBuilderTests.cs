@@ -213,20 +213,20 @@ namespace RestEaseUnitTests
         [Fact]
         public void ThrowsIfMethodWithoutAttribute()
         {
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IMethodWithoutAttribute>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IMethodWithoutAttribute>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfMethodReturningVoid()
         {
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningVoid>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningVoid>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfMethodReturningString()
         {
             // Ideally we would test every object that isn't a Task<T>, but that's somewhat impossible...
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningString>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningString>(this.requester.Object));
         }
 
         [Fact]
@@ -371,7 +371,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void TwoCancellationTokensThrows()
         {
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<ITwoCancellationTokens>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoCancellationTokens>(this.requester.Object));
         }
 
         [Fact]
@@ -623,7 +623,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ThrowsIfTwoBodies()
         {
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IHasTwoBodies>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasTwoBodies>(this.requester.Object));
         }
 
         [Fact]
@@ -686,13 +686,13 @@ namespace RestEaseUnitTests
         [Fact]
         public void ThrowsIfPathParamPresentInPathButNotInParameters()
         {
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInPathButNotParameters>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInPathButNotParameters>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfPathParamPresentInParametersButNotPath()
         {
-            Assert.Throws<RestEaseImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInParametersButNotPath>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInParametersButNotPath>(this.requester.Object));
         }
 
         [Fact]

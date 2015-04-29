@@ -16,7 +16,7 @@ namespace RestEase.Implementation
     public class JsonResponseDeserializer : IResponseDeserializer
     {
         /// <summary>
-        /// Serializer settings to pass to JsonConvert.DeserializeObject{T}
+        /// Gets or sets the serializer settings to pass to JsonConvert.DeserializeObject{T}
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 

@@ -32,11 +32,11 @@ namespace RestEase.Implementation
         public readonly T Attribute;
 
         public IndexedParameter(int index, ParameterInfo parameter, T attribute)
-	    {
+        {
             this.Index = index;
             this.Parameter = parameter;
             this.Attribute = attribute;
-	    }
+        }
     }
 
     internal class ParameterGrouping
@@ -62,7 +62,7 @@ namespace RestEase.Implementation
                 if (parameter.Parameter.ParameterType == typeof(CancellationToken))
                 {
                     if (this.CancellationToken.HasValue)
-                        throw new RestEaseImplementationCreationException(String.Format("Found more than one parameter of type CancellationToken for method {0}", methodName));
+                        throw new ImplementationCreationException(String.Format("Found more than one parameter of type CancellationToken for method {0}", methodName));
                     this.CancellationToken = new IndexedParameter(parameter.Index, parameter.Parameter);
                     continue;
                 }
@@ -71,7 +71,7 @@ namespace RestEase.Implementation
                 if (bodyAttribute != null)
                 {
                     if (this.Body.HasValue)
-                        throw new RestEaseImplementationCreationException(String.Format("Found more than one parameter with a [Body] attribute for method {0}", methodName));
+                        throw new ImplementationCreationException(String.Format("Found more than one parameter with a [Body] attribute for method {0}", methodName));
                     this.Body = new IndexedParameter<BodyAttribute>(parameter.Index, parameter.Parameter, bodyAttribute);
                     continue;
                 }
@@ -141,6 +141,9 @@ namespace RestEase.Implementation
         private readonly ModuleBuilder moduleBuilder;
         private readonly ConcurrentDictionary<Type, Func<IRequester, object>> creatorCache = new ConcurrentDictionary<Type, Func<IRequester, object>>();
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ImplementationBuilder"/> class
+        /// </summary>
         public ImplementationBuilder()
         {
             var assemblyName = new AssemblyName(factoryAssemblyName);
@@ -149,6 +152,12 @@ namespace RestEase.Implementation
             this.moduleBuilder = moduleBuilder;
         }
 
+        /// <summary>
+        /// Create an implementation of the given interface, using the given requester
+        /// </summary>
+        /// <typeparam name="T">Type of interface to implement</typeparam>
+        /// <param name="requester">Requester to be used by the generated implementation</param>
+        /// <returns>An implementation of the given interface</returns>
         public T CreateImplementation<T>(IRequester requester)
         {
             if (requester == null)
@@ -203,7 +212,7 @@ namespace RestEase.Implementation
             {
                 var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
                 if (requestAttribute == null)
-                    throw new RestEaseImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
+                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
 
                 var parameters = methodInfo.GetParameters();
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
@@ -316,7 +325,7 @@ namespace RestEase.Implementation
                 }
                 else
                 {
-                    throw new RestEaseImplementationCreationException(String.Format("Method {0} has a return type that is not Task<T> or Task", methodInfo.Name));
+                    throw new ImplementationCreationException(String.Format("Method {0} has a return type that is not Task<T> or Task", methodInfo.Name));
                 }
 
                 // Finally, return
@@ -333,7 +342,7 @@ namespace RestEase.Implementation
             catch (TypeLoadException e)
             {
                 var msg = String.Format("Unable to create implementation for interface {0}. Ensure that the interface is public", interfaceType.FullName);
-                throw new RestEaseImplementationCreationException(msg, e);
+                throw new ImplementationCreationException(msg, e);
             }
 
             return constructedType;
@@ -409,8 +418,7 @@ namespace RestEase.Implementation
             pathPartsSet.SymmetricExceptWith(pathParams);
             var firstInvalid = pathPartsSet.FirstOrDefault();
             if (firstInvalid != null)
-                throw new RestEaseImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [PathParam(\"{0}\")] for parameter {0}", firstInvalid));
+                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [PathParam(\"{0}\")] for parameter {0}", firstInvalid));
         }
     }
 }
-

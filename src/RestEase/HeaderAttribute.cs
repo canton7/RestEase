@@ -13,10 +13,14 @@ namespace RestEase
     public sealed class HeaderAttribute : Attribute
     {
         /// <summary>
-        /// Header value
+        /// Gets or sets the value of the header
         /// </summary>
         public string Value { get; set; }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="HeaderAttribute"/> class
+        /// </summary>
+        /// <param name="value">Value of the header</param>
         public HeaderAttribute(string value)
         {
             this.Value = value;
