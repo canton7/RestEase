@@ -48,7 +48,9 @@
     <Compile Include="BodyAttribute.cs" />
     <Compile Include="HeaderAttribute.cs" />
     <Compile Include="Implementation\BodyParameterInfo.cs" />
+    <Compile Include="Implementation\IndexedParameter.cs" />
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
+    <Compile Include="Implementation\ParameterGrouping.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
     <Compile Include="Implementation\JsonRequestBodySerializer.cs" />
     <Compile Include="PathParamAttribute.cs" />
