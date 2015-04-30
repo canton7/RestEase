@@ -201,6 +201,12 @@ namespace RestEaseUnitTests
             Task FooAsync([PathParam] string bar);
         }
 
+        public interface IHasDuplicatePathParams
+        {
+            [Get("foo/{bar}")]
+            Task FooAsync([PathParam] string bar, [PathParam("bar")] string yay);
+        }
+
         private readonly Mock<IRequester> requester;
         private readonly ImplementationBuilder builder;
 
@@ -699,6 +705,12 @@ namespace RestEaseUnitTests
         public void PathParamWithImplicitNameDoesNotFailValidation()
         {
             this.builder.CreateImplementation<IHasPathParamWithoutExplicitName>(this.requester.Object);
+        }
+
+        [Fact]
+        public void ThrowsIfDuplicatePathParameters()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicatePathParams>(this.requester.Object));
         }
     }
 }

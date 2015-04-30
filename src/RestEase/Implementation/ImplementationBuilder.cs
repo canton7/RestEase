@@ -127,7 +127,7 @@ namespace RestEase.Implementation
                 var parameters = methodInfo.GetParameters();
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
 
-                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name));
+                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name), methodInfo.Name);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();
@@ -322,13 +322,19 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
         }
 
-        private void ValidatePathParams(string path, IEnumerable<string> pathParams)
+        private void ValidatePathParams(string path, IEnumerable<string> pathParams, string methodName)
         {
+            // Check that there are no duplicate param names in the attributes
+            var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1);
+            if (duplicateKey != null)
+                throw new ImplementationCreationException(String.Format("Found more than one path parameter for key {0}. Method: {1}", duplicateKey, methodName));
+
+            // Check that each placeholder has a matching attribute, and vice versa
             var pathPartsSet = new HashSet<string>(pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value));
             pathPartsSet.SymmetricExceptWith(pathParams);
             var firstInvalid = pathPartsSet.FirstOrDefault();
             if (firstInvalid != null)
-                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [PathParam(\"{0}\")] for parameter {0}", firstInvalid));
+                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [PathParam(\"{0}\")] for parameter {0}. Method: {1}", firstInvalid, methodName));
         }
     }
 }
