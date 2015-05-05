@@ -22,27 +22,27 @@ namespace RestEaseUnitTests
                 : base(httpClient)
             { }
 
-            public new Uri ConstructUri(string relativePath, RequestInfo requestInfo)
+            public new Uri ConstructUri(string relativePath, IRequestInfo requestInfo)
             {
                 return base.ConstructUri(relativePath, requestInfo);
             }
 
-            public new string SubstitutePathParameters(RequestInfo requestInfo)
+            public new string SubstitutePathParameters(IRequestInfo requestInfo)
             {
                 return base.SubstitutePathParameters(requestInfo);
             }
 
-            public new HttpContent ConstructContent(RequestInfo requestInfo)
+            public new HttpContent ConstructContent(IRequestInfo requestInfo)
             {
                 return base.ConstructContent(requestInfo);
             }
 
-            public new void ApplyHeaders(RequestInfo requestInfo, HttpRequestMessage requestMessage)
+            public new void ApplyHeaders(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
             {
                 base.ApplyHeaders(requestInfo, requestMessage);
             }
 
-            public new Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
+            public new Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo)
             {
                 return base.SendRequestAsync(requestInfo);
             }
@@ -55,9 +55,9 @@ namespace RestEaseUnitTests
             { }
 
             public Task<HttpResponseMessage> ResponseMessage;
-            public RequestInfo RequestInfo;
+            public IRequestInfo RequestInfo;
 
-            protected override Task<HttpResponseMessage> SendRequestAsync(RequestInfo requestInfo)
+            protected override Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo)
             {
                 this.RequestInfo = requestInfo;
                 return this.ResponseMessage;

@@ -18,7 +18,7 @@ namespace RestEase
         /// </summary>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
-        Task RequestVoidAsync(RequestInfo requestInfo);
+        Task RequestVoidAsync(IRequestInfo requestInfo);
 
         /// <summary>
         /// Invoked when the API interface method being called returns a Task{T}
@@ -26,14 +26,14 @@ namespace RestEase
         /// <typeparam name="T">Type of response object expected by the caller</typeparam>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
-        Task<T> RequestAsync<T>(RequestInfo requestInfo);
+        Task<T> RequestAsync<T>(IRequestInfo requestInfo);
 
         /// <summary>
         /// Invoked when the API interface method being called returns a Task{HttpResponseMessage}
         /// </summary>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
-        Task<HttpResponseMessage> RequestWithResponseMessageAsync(RequestInfo requestInfo);
+        Task<HttpResponseMessage> RequestWithResponseMessageAsync(IRequestInfo requestInfo);
 
         /// <summary>
         /// Invoked when the API interface method being called returns a Task{Response{T}}
@@ -41,13 +41,13 @@ namespace RestEase
         /// <typeparam name="T">Type of response object expected by the caller</typeparam>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
-        Task<Response<T>> RequestWithResponseAsync<T>(RequestInfo requestInfo);
+        Task<Response<T>> RequestWithResponseAsync<T>(IRequestInfo requestInfo);
 
         /// <summary>
         /// Invoked when the API interface method being called returns a Task{string}
         /// </summary>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
-        Task<string> RequestRawAsync(RequestInfo requestInfo);
+        Task<string> RequestRawAsync(IRequestInfo requestInfo);
     }
 }

@@ -241,10 +241,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<INoArgumentsNoReturn>(this.requester.Object);
             
             var expectedResponse = Task.FromResult(false);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -264,10 +264,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<INoArgumentsWithReturn>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(3);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestAsync<int>(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestAsync<int>(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -287,10 +287,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(new Response<string>(new HttpResponseMessage(), "hello"));
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -310,10 +310,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<INoArgumentsReturnsHttpResponseMessage>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(new HttpResponseMessage());
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestWithResponseMessageAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestWithResponseMessageAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -333,10 +333,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<INoArgumentsReturnsString>(this.requester.Object);
 
             var expectedResponse = Task.FromResult("testy");
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestRawAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestRawAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -356,10 +356,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<ICancellationTokenOnlyNoReturn>(this.requester.Object);
             
             var expectedResponse = Task.FromResult(false);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -386,10 +386,10 @@ namespace RestEaseUnitTests
             var implementation = this.builder.CreateImplementation<ISingleParameterWithQueryParamAttributeNoReturn>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(false);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();
 
@@ -409,10 +409,10 @@ namespace RestEaseUnitTests
         public void QueryParamWithImplicitNameCallsCorrectly()
         {
             var implementation = this.builder.CreateImplementation<IQueryParamWithImplicitName>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync("the value");
@@ -426,10 +426,10 @@ namespace RestEaseUnitTests
         public void HandlesMultipleQueryParamsWithTheSameName()
         {
             var implementation = this.builder.CreateImplementation<ITwoQueryParametersWithTheSameName>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync("foo value", "bar value");
@@ -447,10 +447,10 @@ namespace RestEaseUnitTests
         public void ExcludesNullQueryParams()
         {
             var implementation = this.builder.CreateImplementation<INullableQueryParameters>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync(null, null, 0, 0);
@@ -474,10 +474,10 @@ namespace RestEaseUnitTests
         public void HandlesQueryParamArays()
         {
             var implementation = this.builder.CreateImplementation<IArrayQueryParam>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync(new int[] { 1, 2, 3 });
@@ -498,10 +498,10 @@ namespace RestEaseUnitTests
         public void HandlesNullPathParams()
         {
             var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.DifferentParaneterTypesAsync(null, null);
@@ -519,10 +519,10 @@ namespace RestEaseUnitTests
         public void NullPathParamsAreRenderedAsEmpty()
         {
             var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync("foo value", "bar value");
@@ -540,10 +540,10 @@ namespace RestEaseUnitTests
         public void HandlesClassHeaders()
         {
             var implementation = this.builder.CreateImplementation<IHasClassHeaders>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync();
@@ -555,10 +555,10 @@ namespace RestEaseUnitTests
         public void HandlesMethodHeaders()
         {
             var implementation = this.builder.CreateImplementation<IHasMethodHeaders>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync();
@@ -570,10 +570,10 @@ namespace RestEaseUnitTests
         public void HandlesParamHeaders()
         {
             var implementation = this.builder.CreateImplementation<IHasParamHeaders>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync("value 1", "value 2");
@@ -591,10 +591,10 @@ namespace RestEaseUnitTests
         public void AllHttpMethodsSupported()
         {
             var implementation = this.builder.CreateImplementation<IAllRequestMethods>(this.requester.Object);
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.DeleteAsync();
@@ -637,10 +637,10 @@ namespace RestEaseUnitTests
         {
             var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
 
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             var body = new object();
@@ -656,10 +656,10 @@ namespace RestEaseUnitTests
         {
             var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
 
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             var body = new object();
@@ -676,10 +676,10 @@ namespace RestEaseUnitTests
             // Tests that the value is boxed properly
             var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
 
-            RequestInfo requestInfo = null;
+            IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<RequestInfo>()))
-                .Callback((RequestInfo r) => requestInfo = r)
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
             implementation.ValueTypeAsync(3);

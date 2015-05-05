@@ -14,7 +14,7 @@ namespace RestEase.Implementation
     /// Class containing information to construct a request from.
     /// An instance of this is created per request by the generated interface implementation
     /// </summary>
-    public class RequestInfo
+    public class RequestInfo : IRequestInfo
     {
         /// <summary>
         /// Gets the HttpMethod which should be used to make the request
@@ -31,30 +31,55 @@ namespace RestEase.Implementation
         /// </summary>
         public CancellationToken CancellationToken { get; private set; }
 
+        private readonly List<KeyValuePair<string, string>> _queryParams;
+
         /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
-        public List<KeyValuePair<string, string>> QueryParams { get; private set; }
+        public IReadOnlyList<KeyValuePair<string, string>> QueryParams
+        {
+            get { return this._queryParams; }
+        }
+
+        private readonly List<KeyValuePair<string, string>> _pathParams;
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        public List<KeyValuePair<string, string>> PathParams { get; private set; }
+        public IReadOnlyList<KeyValuePair<string, string>> PathParams
+        {
+            get { return this._pathParams; }
+        }
+
+        private readonly List<string> _classHeaders;
 
         /// <summary>
         /// Gets the headers which were applied to the interface
         /// </summary>
-        public List<string> ClassHeaders { get; private set; }
+        public IReadOnlyList<string> ClassHeaders
+        {
+            get { return this._classHeaders; }
+        }
+
+        private readonly List<string> _methodHeaders;
 
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        public List<string> MethodHeaders { get; private set; }
+        public IReadOnlyList<string> MethodHeaders
+        {
+            get { return this._methodHeaders; }
+        }
+
+        private readonly List<KeyValuePair<string, string>> _headerParams;
 
         /// <summary>
         /// Gets the headers which were passed to the method as parameters
         /// </summary>
-        public List<KeyValuePair<string, string>> HeaderParams { get; private set; }
+        public IReadOnlyList<KeyValuePair<string, string>> HeaderParams
+        {
+            get { return this._headerParams; }
+        }
 
         /// <summary>
         /// Gets information the [Body] method parameter, if it exists
@@ -73,11 +98,11 @@ namespace RestEase.Implementation
             this.Path = path;
             this.CancellationToken = cancellationToken;
 
-            this.QueryParams = new List<KeyValuePair<string, string>>();
-            this.PathParams = new List<KeyValuePair<string, string>>();
-            this.ClassHeaders = new List<string>();
-            this.MethodHeaders = new List<string>();
-            this.HeaderParams = new List<KeyValuePair<string, string>>();
+            this._queryParams = new List<KeyValuePair<string, string>>();
+            this._pathParams = new List<KeyValuePair<string, string>>();
+            this._classHeaders = new List<string>();
+            this._methodHeaders = new List<string>();
+            this._headerParams = new List<KeyValuePair<string, string>>();
         }
 
         /// <summary>
@@ -94,7 +119,7 @@ namespace RestEase.Implementation
             {
                 foreach (var individualValue in (IEnumerable)value)
                 {
-                    this.QueryParams.Add(new KeyValuePair<string, string>(name, (individualValue ?? String.Empty).ToString()));
+                    this._queryParams.Add(new KeyValuePair<string, string>(name, (individualValue ?? String.Empty).ToString()));
                 }
             }
             else
@@ -102,7 +127,7 @@ namespace RestEase.Implementation
                 string stringValue = null;
                 if (value != null)
                     stringValue = value.ToString();
-                this.QueryParams.Add(new KeyValuePair<string, string>(name, stringValue));
+                this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
             }
         }
 
@@ -117,7 +142,7 @@ namespace RestEase.Implementation
             string stringValue = null;
             if (value != null)
                 stringValue = value.ToString();
-            this.PathParams.Add(new KeyValuePair<string, string>(name, stringValue));
+            this._pathParams.Add(new KeyValuePair<string, string>(name, stringValue));
         }
 
         /// <summary>
@@ -126,7 +151,7 @@ namespace RestEase.Implementation
         /// <param name="header">Header to add</param>
         public void AddClassHeader(string header)
         {
-            this.ClassHeaders.Add(header);
+            this._classHeaders.Add(header);
         }
 
         /// <summary>
@@ -135,7 +160,7 @@ namespace RestEase.Implementation
         /// <param name="header">Header to add</param>
         public void AddMethodHeader(string header)
         {
-            this.MethodHeaders.Add(header);
+            this._methodHeaders.Add(header);
         }
 
         /// <summary>
@@ -145,7 +170,7 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the header (value of the parameter)</param>
         public void AddHeaderParameter(string name, string value)
         {
-            this.HeaderParams.Add(new KeyValuePair<string, string>(name, value));
+            this._headerParams.Add(new KeyValuePair<string, string>(name, value));
         }
 
         /// <summary>
