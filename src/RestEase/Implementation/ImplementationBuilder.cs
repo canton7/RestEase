@@ -100,7 +100,7 @@ namespace RestEase.Implementation
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
             // Define a field which holds a reference to the IRequester
-            var requesterField = typeBuilder.DefineField("requester", typeof(IRequester), FieldAttributes.Private);
+            var requesterField = typeBuilder.DefineField("requester", typeof(IRequester), FieldAttributes.Private | FieldAttributes.InitOnly);
 
             // Add a constructor which takes the IRequester and assigns it to the field
             // public Name(IRequester requester)
