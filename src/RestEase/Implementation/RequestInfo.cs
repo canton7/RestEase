@@ -29,7 +29,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the CancellationToken used to cancel the request
         /// </summary>
-        public CancellationToken CancellationToken { get; private set; }
+        public CancellationToken CancellationToken { get; set; }
 
         private readonly List<KeyValuePair<string, string>> _queryParams;
 
@@ -92,11 +92,11 @@ namespace RestEase.Implementation
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
         /// <param name="cancellationToken">CancellationToken to use to cancel the requwest</param>
-        public RequestInfo(HttpMethod method, string path, CancellationToken cancellationToken)
+        public RequestInfo(HttpMethod method, string path)
         {
             this.Method = method;
             this.Path = path;
-            this.CancellationToken = cancellationToken;
+            this.CancellationToken = CancellationToken.None;
 
             this._queryParams = new List<KeyValuePair<string, string>>();
             this._pathParams = new List<KeyValuePair<string, string>>();

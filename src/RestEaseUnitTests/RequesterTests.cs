@@ -87,7 +87,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithNoRelativePath()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("", requestInfo);
             Assert.Equal(new Uri("/", UriKind.Relative), uri);
         }
@@ -95,7 +95,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithSimpleRelativePathNoLeadingSlash()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("foo/bar/baz", requestInfo);
             Assert.Equal(new Uri("/foo/bar/baz", UriKind.Relative), uri);
         }
@@ -103,7 +103,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithSimpleRelativePathWithLeadingSlash()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("/foo/bar/baz", requestInfo);
             Assert.Equal(new Uri("/foo/bar/baz", UriKind.Relative), uri);
         }
@@ -111,7 +111,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithEscapedPath()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("/foo/ba  r/baz", requestInfo);
             Assert.Equal(new Uri("/foo/ba%20%20r/baz", UriKind.Relative), uri);
         }
@@ -119,7 +119,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithExistingParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("/foo?bar=baz", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz", UriKind.Relative), uri);
         }
@@ -127,7 +127,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter("bar", "baz");
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz", UriKind.Relative), uri);
@@ -136,7 +136,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriCombiningExistingAndGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter("bar", "baz");
             var uri = this.requester.ConstructUri("/foo?a=yay", requestInfo);
             Assert.Equal(new Uri("/foo?a=yay&bar=baz", UriKind.Relative), uri);
@@ -145,7 +145,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithEscapedExistingParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("/foo?bar=b az", requestInfo);
             Assert.Equal(new Uri("/foo?bar=b+az", UriKind.Relative), uri);
         }
@@ -153,7 +153,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithEscapedGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter("b ar", "b az");
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo?b+ar=b+az", UriKind.Relative), uri);
@@ -162,7 +162,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithPreservedDuplicateExistingParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var uri = this.requester.ConstructUri("/foo?bar=baz&bar=baz2", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz&bar=baz2", UriKind.Relative), uri);
         }
@@ -170,7 +170,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithPreservedDuplicateGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter("bar", "baz");
             requestInfo.AddQueryParameter("bar", "baz2");
             var uri = this.requester.ConstructUri("/foo", requestInfo);
@@ -180,7 +180,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ConstructsUriWithPreservedDuplicateExistingAndGivenParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter("bar", "baz2");
             var uri = this.requester.ConstructUri("/foo?bar=baz", requestInfo);
             Assert.Equal(new Uri("/foo?bar=baz&bar=baz2", UriKind.Relative), uri);
@@ -189,7 +189,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void IgnoresNullQueryParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, null, CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter<object>("bar", null);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("/foo", UriKind.Relative), uri);
@@ -198,7 +198,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SubstitutesPathParameters()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}");
             requestInfo.AddPathParameter("bar", "yay");
             requestInfo.AddPathParameter("baz", "woo");
             var uri = this.requester.SubstitutePathParameters(requestInfo);
@@ -208,7 +208,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SubstitutesMultiplePathParametersOfTheSameType()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{bar}", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{bar}");
             requestInfo.AddPathParameter("bar", "yay");
             var uri = this.requester.SubstitutePathParameters(requestInfo);
             Assert.Equal("/foo/yay/yay", uri);
@@ -217,7 +217,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void TreatsNullPathParamsAsEmpty()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
             requestInfo.AddPathParameter<int?>("bar", null);
             var uri = this.requester.SubstitutePathParameters(requestInfo);
             Assert.Equal("/foo//baz", uri);
@@ -226,7 +226,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SetsContentNullIfBodyParameterInfoNull()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             // Not calling SetBodyParameterInfo
             var content = this.requester.ConstructContent(requestInfo);
             Assert.Null(content);
@@ -235,7 +235,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SetsContentNullIfBodyValueIsNull()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, null);
             var content = this.requester.ConstructContent(requestInfo);
             Assert.Null(content);
@@ -244,7 +244,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SetsContentAsStreamContentIfBodyIsStream()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, new MemoryStream());
             var content = this.requester.ConstructContent(requestInfo);
 
@@ -254,7 +254,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SetsContentAsStringContentIfBodyIsString()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, "hello");
             var content = this.requester.ConstructContent(requestInfo);
 
@@ -264,7 +264,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void UsesBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             var body = new object();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, body);
 
@@ -281,7 +281,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ThrowsIfBodyIsUrlEncodedAndBodyDoesNotImplementIDictionary()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             var body = new object();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.UrlEncoded, body);
 
@@ -291,7 +291,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void UsesFormUrlEncodedSerializerIfBodyIsObjectAndMethodIsUrlEncoded()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             var body = new Dictionary<string, object>()
             {
                 { "foo", "bar woo" },
@@ -309,7 +309,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void ThrowsIfBodySerializationMethodIsUnknown()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.SetBodyParameterInfo((BodySerializationMethod)100, new object());
 
             Assert.Throws<InvalidOperationException>(() => this.requester.ConstructContent(requestInfo));
@@ -318,7 +318,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void AppliesHeadersFromClass()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddClassHeader("User-Agent: RestEase");
             requestInfo.AddClassHeader("X-API-Key: Foo");
 
@@ -331,7 +331,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void AppliesHeadersFromMethod()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("User-Agent: RestEase");
             requestInfo.AddMethodHeader("X-API-Key: Foo");
 
@@ -344,7 +344,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void AppliesHeadersFromParams()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddHeaderParameter("User-Agent", "RestEase");
             requestInfo.AddHeaderParameter("X-API-Key", "Foo");
 
@@ -357,7 +357,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void HeadersFromMethodOverrideHeadersFromClass()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddClassHeader("This-Will-Stay: YesIWill");
             requestInfo.AddClassHeader("Something: SomethingElse");
             requestInfo.AddClassHeader("User-Agent: RestEase");
@@ -377,7 +377,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void HeadersFromParamsOVerrideHeadersFromMethod()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("This-Will-Stay: YesIWill");
             requestInfo.AddMethodHeader("Something: SomethingElse");
             requestInfo.AddMethodHeader("User-Agent: RestEase");
@@ -397,7 +397,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void MultipleHeadersAreAllowed()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("User-Agent: SomethingElse");
             requestInfo.AddMethodHeader("User-Agent: RestEase");
             requestInfo.AddMethodHeader("X-API-Key: Foo");
@@ -411,7 +411,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void SingleOverrideReplacesMultipleHeaders()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("User-Agent: SomethingElse");
             requestInfo.AddMethodHeader("User-Agent: RestEase");
             requestInfo.AddMethodHeader("X-API-Key: Foo");
@@ -427,7 +427,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void AppliesContentHeadersToContent()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("Content-Type: text/html");
 
             var message = new HttpRequestMessage();
@@ -441,7 +441,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void DoesNotAttemptToApplyContentHeadersIfThereIsNoContent()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("Content-Type: text/html");
 
             var message = new HttpRequestMessage();
@@ -454,7 +454,7 @@ namespace RestEaseUnitTests
             var requester = new RequesterWithStubbedSendRequestAsync(null);
             requester.ResponseMessage = Task.FromResult(new HttpResponseMessage());
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requester.RequestVoidAsync(requestInfo).Wait();
 
             Assert.Equal(requestInfo, requester.RequestInfo);
@@ -474,7 +474,8 @@ namespace RestEaseUnitTests
                 .Returns(Task.FromResult("hello"))
                 .Verifiable();
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", cancellationToken);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.CancellationToken = cancellationToken;
             var result = requester.RequestAsync<string>(requestInfo).Result;
 
             responseDeserializer.Verify();
@@ -490,7 +491,7 @@ namespace RestEaseUnitTests
             var responseMessage = new HttpResponseMessage();
             requester.ResponseMessage = Task.FromResult(responseMessage);
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             var result = requester.RequestWithResponseMessageAsync(requestInfo).Result;
 
             Assert.Equal(requestInfo, requester.RequestInfo);
@@ -511,7 +512,8 @@ namespace RestEaseUnitTests
                 .Returns(Task.FromResult("hello"))
                 .Verifiable();
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", cancellationToken);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.CancellationToken = cancellationToken;
             var result = requester.RequestWithResponseAsync<string>(requestInfo).Result;
 
             responseDeserializer.Verify();
@@ -528,7 +530,7 @@ namespace RestEaseUnitTests
             var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
             var requester = new MyRequester(httpClient);
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
 
             var responseMessage = new HttpResponseMessage();
             messageHandler.ResponseMessage = Task.FromResult(responseMessage);
@@ -546,7 +548,7 @@ namespace RestEaseUnitTests
             var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
             var requester = new MyRequester(httpClient);
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo", CancellationToken.None);
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
 
             var responseMessage = new HttpResponseMessage();
             responseMessage.Headers.Add("Foo", "bar");

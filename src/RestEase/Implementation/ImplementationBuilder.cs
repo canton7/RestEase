@@ -28,8 +28,8 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestWithResponseMessageAsyncMethod = typeof(IRequester).GetMethod("RequestWithResponseMessageAsync");
         private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetMethod("RequestWithResponseAsync");
         private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetMethod("RequestRawAsync");
-        private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(CancellationToken) });
-        private static readonly MethodInfo cancellationTokenNoneGetter = typeof(CancellationToken).GetProperty("None").GetMethod;
+        private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string) });
+        private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo addClassHeaderMethod = typeof(RequestInfo).GetMethod("AddClassHeader");
@@ -146,16 +146,18 @@ namespace RestEase.Implementation
                 // 2. The Path
                 // Stack: [this.requester, HttpMethod, path]
                 methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path);
-                // 3. The CancellationToken
-                // Stack: [this.requester, HttpMethod, path, cancellationToken]
-                if (parameterGrouping.CancellationToken != null)
-                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameterGrouping.CancellationToken.Value.Index);
-                else
-                    methodIlGenerator.Emit(OpCodes.Call, cancellationTokenNoneGetter);
 
                 // Ctor the RequestInfo
                 // Stack: [this.requester, requestInfo]
                 methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
+
+                // If there's a cancellationtoken, add that
+                if (parameterGrouping.CancellationToken.HasValue)
+                {
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameterGrouping.CancellationToken.Value.Index);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
+                }
 
                 // If there are any class headers, add them
                 foreach (var classHeader in classHeaders)
