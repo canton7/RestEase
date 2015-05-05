@@ -51,15 +51,10 @@ namespace RestEase.Implementation
             get { return this._pathParams; }
         }
 
-        private readonly List<string> _classHeaders;
-
         /// <summary>
         /// Gets the headers which were applied to the interface
         /// </summary>
-        public IReadOnlyList<string> ClassHeaders
-        {
-            get { return this._classHeaders; }
-        }
+        public IReadOnlyList<string> ClassHeaders { get; set; }
 
         private readonly List<string> _methodHeaders;
 
@@ -100,7 +95,6 @@ namespace RestEase.Implementation
 
             this._queryParams = new List<KeyValuePair<string, string>>();
             this._pathParams = new List<KeyValuePair<string, string>>();
-            this._classHeaders = new List<string>();
             this._methodHeaders = new List<string>();
             this._headerParams = new List<KeyValuePair<string, string>>();
         }
@@ -143,15 +137,6 @@ namespace RestEase.Implementation
             if (value != null)
                 stringValue = value.ToString();
             this._pathParams.Add(new KeyValuePair<string, string>(name, stringValue));
-        }
-
-        /// <summary>
-        /// Add a header which is defined on the interface itself
-        /// </summary>
-        /// <param name="header">Header to add</param>
-        public void AddClassHeader(string header)
-        {
-            this._classHeaders.Add(header);
         }
 
         /// <summary>

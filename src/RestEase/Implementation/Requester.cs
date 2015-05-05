@@ -164,7 +164,8 @@ namespace RestEase.Implementation
         protected virtual void ApplyHeaders(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
             // Apply from class -> method -> params, so we get the proper hierarchy
-            this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.ClassHeaders));
+            if (requestInfo.ClassHeaders != null)
+                this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.ClassHeaders));
             this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.MethodHeaders));
             this.AppleHeadersSet(requestMessage, requestInfo.HeaderParams);
         }

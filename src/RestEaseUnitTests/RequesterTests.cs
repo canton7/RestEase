@@ -319,8 +319,7 @@ namespace RestEaseUnitTests
         public void AppliesHeadersFromClass()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddClassHeader("User-Agent: RestEase");
-            requestInfo.AddClassHeader("X-API-Key: Foo");
+            requestInfo.ClassHeaders = new List<string>() { "User-Agent: RestEase", "X-API-Key: Foo" };
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -358,10 +357,13 @@ namespace RestEaseUnitTests
         public void HeadersFromMethodOverrideHeadersFromClass()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddClassHeader("This-Will-Stay: YesIWill");
-            requestInfo.AddClassHeader("Something: SomethingElse");
-            requestInfo.AddClassHeader("User-Agent: RestEase");
-            requestInfo.AddClassHeader("X-API-Key: Foo");
+            requestInfo.ClassHeaders = new List<string>()
+            {
+                "This-Will-Stay: YesIWill",
+                "Something: SomethingElse",
+                "User-Agent: RestEase",
+                "X-API-Key: Foo",
+            };
 
             requestInfo.AddMethodHeader("Something"); // Remove
             requestInfo.AddMethodHeader("User-Agent:"); // Replace with null
