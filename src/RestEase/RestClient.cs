@@ -15,6 +15,11 @@ namespace RestEase
     /// </summary>
     public static class RestClient
     {
+        /// <summary>
+        /// Name of the assembly in which interface implementations are built. Use in [assembly: InternalsVisibleTo(RestEase.FactoryAssemblyName)] to allow clients to be generated for internal interface types
+        /// </summary>
+        public const string FactoryAssemblyName = "RestEaseFactory";
+
         private static readonly ImplementationBuilder implementationBuilder = new ImplementationBuilder();
 
         private static HttpClient CreateClient(string baseUrl)
