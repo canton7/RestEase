@@ -86,7 +86,6 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
-        /// <param name="cancellationToken">CancellationToken to use to cancel the requwest</param>
         public RequestInfo(HttpMethod method, string path)
         {
             this.Method = method;

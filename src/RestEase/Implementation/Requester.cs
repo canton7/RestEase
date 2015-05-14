@@ -66,15 +66,27 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Given n IRequestInfo and pre-substituted relative path, constructs a URI with the right query parameters
+        /// Given an IRequestInfo and pre-substituted relative path, constructs a URI with the right query parameters
         /// </summary>
-        /// <param name="relativePath">Relative path to start with, with placeholders already substituted</param>
+        /// <param name="path">Path to start with, with placeholders already substituted</param>
         /// <param name="requestInfo">IRequestInfo to retrieve the query parameters from</param>
-        /// <returns>Constructed relative URI</returns>
-        protected virtual Uri ConstructUri(string relativePath, IRequestInfo requestInfo)
+        /// <returns>Constructed URI; relative if 'path' was relative, otherwise absolute</returns>
+        protected virtual Uri ConstructUri(string path, IRequestInfo requestInfo)
         {
-            // UriBuilder insists that we provide it with an absolute URI, even though we only want a relative one...
-            var uriBuilder = new UriBuilder(new Uri(new Uri("http://api"), relativePath));
+            var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+            UriBuilder uriBuilder;
+            try
+            {
+                // First, find out whether they've given us a relative or an absolute path
+                var absoluteUri = uri.IsAbsoluteUri ? uri : new Uri(new Uri("http://api"), uri);
+                // UriBuilder insists that we provide it with an absolute URI, even though we only want a relative one...
+                uriBuilder = new UriBuilder(absoluteUri);
+            }
+            catch (UriFormatException e)
+            {
+                // The original exception doesn't actually include the path - which is not helpful to the user
+                throw new UriFormatException(String.Format("Path {0} is not valid: {1}", path, e.Message));
+            }
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
@@ -84,7 +96,10 @@ namespace RestEase.Implementation
             }
             uriBuilder.Query = query.ToString();
 
-            return new Uri(uriBuilder.Uri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped), UriKind.Relative);
+            if (uri.IsAbsoluteUri)
+                return uriBuilder.Uri;
+            else
+                return new Uri(uriBuilder.Uri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped), UriKind.Relative);
         }
 
         /// <summary>
@@ -226,11 +241,11 @@ namespace RestEase.Implementation
         /// <returns>Resulting HttpResponseMessage</returns>
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo)
         {
-            var relativePath = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
+            var path = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
-                RequestUri = this.ConstructUri(relativePath, requestInfo),
+                RequestUri = this.ConstructUri(path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
             };
 

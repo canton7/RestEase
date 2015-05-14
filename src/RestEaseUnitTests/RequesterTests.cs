@@ -196,6 +196,22 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
+        public void ThrowsIfUriIsUnparsable()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "http://base.com/");
+            Assert.Throws<UriFormatException>(() => this.requester.ConstructUri("http://api.com:80:80/foo", requestInfo));
+        }
+
+        [Fact]
+        public void AllowsAbsoluteUri()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "http://base.com/");
+            var uri = this.requester.ConstructUri("http://api.com/foo/bar", requestInfo);
+            Assert.True(uri.IsAbsoluteUri);
+            Assert.Equal(new Uri("http://api.com/foo/bar"), uri);
+        }
+
+        [Fact]
         public void SubstitutesPathParameters()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}");
