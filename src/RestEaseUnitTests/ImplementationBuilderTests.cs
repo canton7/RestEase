@@ -225,6 +225,12 @@ namespace RestEaseUnitTests
             Task HasAttributeAsync();
         }
 
+        public interface IGenericApi<T>
+        {
+            [Get("foo")]
+            Task<T> FooAsync();
+        }
+
         private readonly Mock<IRequester> requester;
         private readonly ImplementationBuilder builder;
 
@@ -777,6 +783,22 @@ namespace RestEaseUnitTests
             implementation.HasAttributeAsync();
 
             Assert.False(requestInfo.AllowAnyStatusCode);
+        }
+
+        [Fact]
+        public void AllowsGenericApis()
+        {
+            var implementation = this.builder.CreateImplementation<IGenericApi<int>>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestAsync<int>(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(3));
+
+            var result = implementation.FooAsync().Result;
+
+            Assert.Equal(3, result);
         }
     }
 }
