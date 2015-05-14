@@ -8,13 +8,39 @@ Almost every aspect of RestEase can be overridden and customized, leading to a l
 To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
 RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
 
-TODO: Installation instructions
+RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
+
+
+Installation
+------------
+
+[RestEase is available on NuGet](https://www.nuget.org/packages/RestEase).
+
+Either open the package console and type:
+
+```
+PM> Install-Package RestEase
+```
+
+Or right-click your project -> Manage NuGet Packages... -> Online -> search for RestEase in the top right.
+
+I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to Stylet's source when debugging. If you haven't yet set up Visual Studio to use SymbolSource, do that now:
+
+In Visual Studio, go to Debug -> Options and Settings, and make the following changes:
+
+ 1. In General
+   1. Turn **off** "Enable Just My Code"
+   2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+   3. Turn **on** "Enable source server support". You may have to OK a security warning.
+ 2. In Symbols
+   1. Add "http://srv.symbolsource.org/pdb/Public" to the list. 
+
 
 Quick Start
 -----------
 
 To start, first create an interface which represents the endpoint you wish to make requests to.
-Please note that it does have to be public, or you must add RestEase as a friend assembly, see TODO BELOW.
+Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#redefining-headers).
 
 ```csharp
 // Define an interface representing the API
@@ -56,7 +82,7 @@ Return Types
 Your interface methods may return one of the following types:
 
  - `Task`: This method does not return any data, but the task will complete when the request has completed
- - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using its configured deserializer, see TODO BELOW
+ - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using Json.NET (or a custom deserializer, see [Controlling Serialization and Deserialization below](#controlling-serialization-and-deserialization)).
  - `Task<string>`: This method returns the raw response, as a string
  - `Task<HttpResponseMessage>`: This method returns the raw `HttpResponseMessage` resulting from the request. It does not do any deserialiation
  - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers
@@ -541,6 +567,19 @@ What you *can* do however is to provide your own [`IRequester`](https://github.c
 In fact, the default implementation of `IRequester`, [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), has been carefully written so that it's easy to extend: each little bit of functionality is broken out into its own virtual method, so it's easy to replace just the behaviour you need.
 
 Have a read through [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), figure out what you want to change, subclass it, and provide an instance of that subclass to `RestClient.For<T>`. 
+
+
+Interface Accessibility
+-----------------------
+
+Since RestEase generates an interface implementation in a separate assembly, the interface ideally needs to be public.
+
+If you don't want to do this, you'll need to mark RestEase as being a 'friend' assembly, which allows RestEase to see your internal types.
+Add the following line to your `AssemblyInfo.cs`:
+
+```
+[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]
+```
 
 
 Using Generic Interfaces
