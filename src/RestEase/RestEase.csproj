@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllowAnyStatusCodeAttribute.cs" />
     <Compile Include="BodyAttribute.cs" />
     <Compile Include="HeaderAttribute.cs" />
     <Compile Include="Implementation\BodyParameterInfo.cs" />

@@ -27,9 +27,14 @@ namespace RestEase.Implementation
         public string Path { get; private set; }
 
         /// <summary>
-        /// Gets the CancellationToken used to cancel the request
+        /// Gets or sets the CancellationToken used to cancel the request
         /// </summary>
         public CancellationToken CancellationToken { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to suppress the exception on invalid status codes
+        /// </summary>
+        public bool AllowAnyStatusCode { get; set; }
 
         private readonly List<KeyValuePair<string, string>> _queryParams;
 
@@ -52,7 +57,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Gets the headers which were applied to the interface
+        /// Gets or sets the headers which were applied to the interface
         /// </summary>
         public IReadOnlyList<string> ClassHeaders { get; set; }
 

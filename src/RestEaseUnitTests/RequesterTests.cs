@@ -583,5 +583,24 @@ namespace RestEaseUnitTests
             Assert.True(e.HasContent);
             Assert.Equal("hello", e.Content);
         }
+
+        [Fact]
+        public void SendRequestDoesNotThrowIfResponseIsBadButAllowAnyStatusCodeSpecified()
+        {
+            var messageHandler = new MockHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
+            var requester = new MyRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.AllowAnyStatusCode = true;
+
+            var responseMessage = new HttpResponseMessage();
+            responseMessage.StatusCode = HttpStatusCode.NotFound;
+
+            messageHandler.ResponseMessage = Task.FromResult(responseMessage);
+
+            var response = requester.SendRequestAsync(requestInfo).Result;
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
     }
 }

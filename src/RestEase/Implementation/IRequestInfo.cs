@@ -30,6 +30,11 @@ namespace RestEase.Implementation
         CancellationToken CancellationToken { get; }
 
         /// <summary>
+        /// Gets a value indicating whether to suppress the exception on invalid status codes
+        /// </summary>
+        bool AllowAnyStatusCode { get; }
+
+        /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
         IReadOnlyList<KeyValuePair<string, string>> QueryParams { get; }

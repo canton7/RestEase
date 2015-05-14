@@ -257,7 +257,7 @@ namespace RestEase.Implementation
             // CancellationToken will abort either the initial fetch *or* the read phases, which is what we want.
             var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead, requestInfo.CancellationToken).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
                 throw await ApiException.CreateAsync(response).ConfigureAwait(false);
 
             return response;

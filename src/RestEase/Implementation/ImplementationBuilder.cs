@@ -29,6 +29,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetMethod("RequestRawAsync");
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetProperty("CancellationToken").SetMethod;
+        private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetProperty("AllowAnyStatusCode").SetMethod;
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").SetMethod;
@@ -101,6 +102,7 @@ namespace RestEase.Implementation
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
             var classHeaders = interfaceType.GetCustomAttributes<HeaderAttribute>().Select(x => x.Value).ToArray();
+            var classAllowAnyStatusCodeAttribute = interfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
             // Define a readonly field which holds a reference to the IRequester
             var requesterField = typeBuilder.DefineField("requester", typeof(IRequester), FieldAttributes.Private | FieldAttributes.InitOnly);
@@ -121,6 +123,8 @@ namespace RestEase.Implementation
                 var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
                 if (requestAttribute == null)
                     throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
+
+                var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
                 var parameters = methodInfo.GetParameters();
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
@@ -154,6 +158,15 @@ namespace RestEase.Implementation
                 foreach (var methodHeader in methodHeaders)
                 {
                     this.AddMethodHeader(methodIlGenerator, methodHeader);
+                }
+
+                // If we want to allow any status code, set that
+                var resolvedAllowAnyStatusAttribute = allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute;
+                if (resolvedAllowAnyStatusAttribute != null && resolvedAllowAnyStatusAttribute.AllowAnyStatusCode)
+                {
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
                 }
 
                 this.AddParameters(methodIlGenerator, parameterGrouping);
