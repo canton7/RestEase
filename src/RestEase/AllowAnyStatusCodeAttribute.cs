@@ -26,7 +26,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="AllowAnyStatusCodeAttribute"/> class
+        /// Initialises a new instance of the <see cref="AllowAnyStatusCodeAttribute"/> classe whi
         /// </summary>
         /// <param name="allowAnyStatusCode">True to allow any response status code; False to throw an exception on response status codes that do not indicate success</param>
         public AllowAnyStatusCodeAttribute(bool allowAnyStatusCode)

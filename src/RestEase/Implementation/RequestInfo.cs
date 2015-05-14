@@ -167,9 +167,10 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializationMethod">Method to use to serialize the body</param>
         /// <param name="value">Body to serialize</param>
-        public void SetBodyParameterInfo(BodySerializationMethod serializationMethod, object value)
+        /// <typeparam name="T">Type of the body's value</typeparam>
+        public void SetBodyParameterInfo<T>(BodySerializationMethod serializationMethod, T value)
         {
-            this.BodyParameterInfo = new BodyParameterInfo(serializationMethod, value);
+            this.BodyParameterInfo = new BodyParameterInfo<T>(serializationMethod, value);
         }
     }
 }

@@ -339,6 +339,7 @@ namespace RestEase.Implementation
         {
             // Equivalent C#:
             // requestInfo.SetBodyParameterInfo(serializationMethod, value)
+            var typedMethod = setBodyParameterInfoMethod.MakeGenericMethod(parameterType);
 
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
@@ -346,11 +347,8 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
             // Stack: [..., requestInfo, requestInfo, serializationMethod, parameter]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
-            // If the parameter's a value type, we need to box it
-            if (parameterType.IsValueType)
-                methodIlGenerator.Emit(OpCodes.Box, parameterType);
             // Stack: [..., requestInfo]
-            methodIlGenerator.Emit(OpCodes.Callvirt, setBodyParameterInfoMethod);
+            methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
         }
 
         private void AddMethodHeader(ILGenerator methodIlGenerator, HeaderAttribute header)

@@ -252,7 +252,7 @@ namespace RestEaseUnitTests
         public void SetsContentNullIfBodyValueIsNull()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, null);
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, null);
             var content = this.requester.ConstructContent(requestInfo);
             Assert.Null(content);
         }

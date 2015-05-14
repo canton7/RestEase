@@ -666,7 +666,7 @@ namespace RestEaseUnitTests
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
-            Assert.Equal(body, requestInfo.BodyParameterInfo.Value);
+            Assert.Equal(body, requestInfo.BodyParameterInfo.ObjectValue);
         }
 
         [Fact]
@@ -685,7 +685,7 @@ namespace RestEaseUnitTests
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
-            Assert.Equal(body, requestInfo.BodyParameterInfo.Value);
+            Assert.Equal(body, requestInfo.BodyParameterInfo.ObjectValue);
         }
 
         [Fact]
@@ -704,7 +704,7 @@ namespace RestEaseUnitTests
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
-            Assert.Equal(3, requestInfo.BodyParameterInfo.Value);
+            Assert.Equal(3, requestInfo.BodyParameterInfo.ObjectValue);
         }
 
         [Fact]

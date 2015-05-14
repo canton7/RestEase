@@ -146,25 +146,25 @@ namespace RestEase.Implementation
         /// <returns>null if no body is set, otherwise a suitable HttpContent (StringContent, StreamContent, FormUrlEncodedContent, etc)</returns>
         protected virtual HttpContent ConstructContent(IRequestInfo requestInfo)
         {
-            if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.Value == null)
+            if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.ObjectValue == null)
                 return null;
 
-            var streamValue = requestInfo.BodyParameterInfo.Value as Stream;
+            var streamValue = requestInfo.BodyParameterInfo.ObjectValue as Stream;
             if (streamValue != null)
                 return new StreamContent(streamValue);
 
-            var stringValue = requestInfo.BodyParameterInfo.Value as string;
+            var stringValue = requestInfo.BodyParameterInfo.ObjectValue as string;
             if (stringValue != null)
                 return new StringContent(stringValue);
 
             switch (requestInfo.BodyParameterInfo.SerializationMethod)
             {
                 case BodySerializationMethod.UrlEncoded:
-                    return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.Value));
+                    return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.ObjectValue));
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return new StringContent(this.RequestBodySerializer.SerializeBody(requestInfo.BodyParameterInfo.Value));
+                    return new StringContent(requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer));
                 default:
                     throw new InvalidOperationException("Should never get here");
             }

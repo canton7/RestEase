@@ -21,8 +21,9 @@ namespace RestEase.Implementation
         /// Serialize the given request body
         /// </summary>
         /// <param name="body">Body to serialize</param>
+        /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <returns>String suitable for attaching as the requests's Content</returns>
-        public string SerializeBody(object body)
+        public string SerializeBody<T>(T body)
         {
             return JsonConvert.SerializeObject(body, this.JsonSerializerSettings);
         }
