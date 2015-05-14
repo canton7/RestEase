@@ -424,11 +424,76 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
 
 ### Redefining Headers
 
-TODO
+You've probably noticed that you can specify the same header in multiple places: on the interface, on the method, and as a parameter.
+
+Redefining a header will replace it, in the following order of precidence:
+
+ - Attributes on the interface *(lowest priority)*
+ - Attributes on the method
+ - Attributes on method parameters *(highest priority)*
+
+```csharp
+[Headers("X-Emoji: :rocket:")]
+public interface IGitHubApi
+{
+    [Get("/users/list")]
+    Task<List> GetUsersAsync();
+
+    [Get("/users/{user}")]
+    [Headers("X-Emoji: :smile_cat:")]
+    Task<User> GetUserAsync(string user);
+
+    [Post("/users/new")]
+    [Headers("X-Emoji: :metal:")]
+    Task CreateUserAsync([Body] User user, [Header("X-Emoji")] string emoji);
+}
+
+// X-Emoji: :rocket:
+var users = await GetUsersAsync();
+
+// X-Emoji: :smile_cat:
+var user = await GetUserAsync("octocat");
+
+// X-Emoji: :trollface:
+await CreateUserAsync(user, ":trollface:"); 
+```
 
 ### Removing Headers
 
-TODO
+As with defining headers, headers can be removed entirely by `[Header]` declarations on something with higher priority.
+For interface and method headers, define the header without a value (and without the colon between the key and the value).
+For parameter headers, pass `null` as the header's value.
+
+For example:
+
+```csharp
+[Headers("X-Emoji: :rocket:")]
+public interface IGitHubApi
+{
+    [Get("/users/list")]
+    [Headers("X-Emoji")] // Remove the X-Emoji header
+    Task<List> GetUsersAsync();
+
+    [Get("/users/{user}")]
+    [Headers("X-Emoji:")] // Redefine the X-Emoji header as empty
+    Task<User> GetUserAsync(string user);
+
+    [Post("/users/new")]
+    Task CreateUserAsync([Body] User user, [Header("X-Emoji")] string emoji);
+}
+
+// No X-Emoji header
+var users = await GetUsersAsync();
+
+// X-Emoji: 
+var user = await GetUserAsync("octocat");
+
+// No X-Emoji header
+await CreateUserAsync(user, null); 
+
+// X-Emoji: 
+await CreateUserAsync(user, ""); 
+```
 
 
 Customizing RestEase
