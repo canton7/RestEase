@@ -6,7 +6,7 @@ namespace RestEase
     /// Marks a parameter as being a query param
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
-    public class QueryParamAttribute : Attribute
+    public sealed class QueryParamAttribute : Attribute
     {
         /// <summary>
         /// Gets or sets the name of the query param. Will use the parameter name if null
