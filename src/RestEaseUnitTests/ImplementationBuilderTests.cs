@@ -83,19 +83,19 @@ namespace RestEaseUnitTests
         public interface ISingleParameterWithQueryParamAttributeNoReturn
         {
             [Get("boo")]
-            Task BooAsync([QueryParam("bar")] string foo);
+            Task BooAsync([Query("bar")] string foo);
         }
 
         public interface IQueryParamWithImplicitName
         {
             [Get("foo")]
-            Task FooAsync([QueryParam] string foo);
+            Task FooAsync([Query] string foo);
         }
 
         public interface ITwoQueryParametersWithTheSameName
         {
             [Get("foo")]
-            Task FooAsync([QueryParam("bar")] string foo, [QueryParam] string bar);
+            Task FooAsync([Query("bar")] string foo, [Query] string bar);
         }
 
         public interface INullableQueryParameters
@@ -113,10 +113,10 @@ namespace RestEaseUnitTests
         public interface IPathParams
         {
             [Get("foo/{foo}/{bar}")]
-            Task FooAsync([PathParam] string foo, [PathParam("bar")] string bar);
+            Task FooAsync([Path] string foo, [Path("bar")] string bar);
 
             [Get("foo/{foo}/{bar}")]
-            Task DifferentParaneterTypesAsync([PathParam] object foo, [PathParam] int? bar);
+            Task DifferentParaneterTypesAsync([Path] object foo, [Path] int? bar);
         }
 
         [Header("Class Header 1")]
@@ -186,25 +186,25 @@ namespace RestEaseUnitTests
         public interface IHasPathParamInPathButNotParameters
         {
             [Get("foo/{bar}/{baz}")]
-            Task FooAsync([PathParam("bar")] string bar);
+            Task FooAsync([Path("bar")] string bar);
         }
 
         public interface IHasPathParamInParametersButNotPath
         {
             [Get("foo/{bar}")]
-            Task FooAsync([PathParam("bar")] string path, [PathParam("baz")] string baz);
+            Task FooAsync([Path("bar")] string path, [Path("baz")] string baz);
         }
 
         public interface IHasPathParamWithoutExplicitName
         {
             [Get("foo/{bar}")]
-            Task FooAsync([PathParam] string bar);
+            Task FooAsync([Path] string bar);
         }
 
         public interface IHasDuplicatePathParams
         {
             [Get("foo/{bar}")]
-            Task FooAsync([PathParam] string bar, [PathParam("bar")] string yay);
+            Task FooAsync([Path] string bar, [Path("bar")] string yay);
         }
 
         public interface IHasMethodWithAllowAnyStatusCode

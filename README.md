@@ -70,12 +70,12 @@ Query Parameters
 It is very common to want to include query parameters in your request (e.g. `/foo?key=value`), and RestEase makes this easy.
 Any parameters to a method which are:
 
- - Decorated with the `[QueryParam]` attribute, or
+ - Decorated with the `[Query]` attribute, or
  - Not decorated at all
 
 will be interpreted as query parameters.
 
-The name of the parameter will be used as the key, unless an argument is passed to `[QueryParam("key")]`, in which case that will be used instead.
+The name of the parameter will be used as the key, unless an argument is passed to `[Query("key")]`, in which case that will be used instead.
 
 For example:
 
@@ -88,12 +88,12 @@ public interface IGithubApi
     // Is the same as
 
     [Get("user")]
-    Task<User> FetchUserAsync([QueryParam] int userid);
+    Task<User> FetchUserAsync([Query] int userid);
 
     // Is the same as
 
     [Get("user")]
-    Task<User> FetchUserAsync([QueryParam("userid")] int userId);
+    Task<User> FetchUserAsync([Query("userid")] int userId);
 }
 
 IGithubApi api = RestClient.For<IGithubApi>("http://api.github.com");
@@ -118,7 +118,7 @@ You can have duplicate keys if you want:
 public interface ISomeApi
 {
     [Get("search")]
-    Task<SearchResult> SearchAsync([QueryParam("filter")] string filter1, [QueryParam("filter")] string filter2);
+    Task<SearchResult> SearchAsync([Query("filter")] string filter1, [Query("filter")] string filter2);
 }
 
 ISomeApi api = RestClient.For<ISomeApi>("http://someendpoint.com");
@@ -135,7 +135,7 @@ public interface ISomeApi
 	// You can use IEnumerable<T>, or any type which implements IEnumerable<T>
 
     [Get("search")]
-    Task<SearchResult> SearchAsync([QueryParam("filter")] IEnumerable<string> filters);
+    Task<SearchResult> SearchAsync([Query("filter")] IEnumerable<string> filters);
 }
 
 ISomeApi api = RestClient.For<ISomeApi>("http://someendpoint.com");
@@ -149,7 +149,7 @@ Path Parameters
 ---------------
 
 Sometimes you also want to be able to control some parts of the path itself, rather than just the query parameters.
-This is done using placeholders in the path, and corresponding method parameters decorated with `[PathParam]`.
+This is done using placeholders in the path, and corresponding method parameters decorated with `[Path]`.
 
 For example:
 
@@ -157,7 +157,7 @@ For example:
 public interface ISomeApi
 {
     [Get("user/{userId}")]
-    Task<User> FetchUserAsync([PathParam] string userId);
+    Task<User> FetchUserAsync([Path] string userId);
 }
 
 ISomeApi api = RestClient.For<ISomeApi>("http://example.com");
@@ -166,14 +166,14 @@ ISomeApi api = RestClient.For<ISomeApi>("http://example.com");
 await api.FetchUserAsync("fred");
 ```
 
-As with `[QueryParam]`, the name of the placeholder to substitute is determined by the name of the parameter.
-If you want to override this, you can pass an argument to `[QueryParam("placeholder")]`, e.g.:
+As with `[Query]`, the name of the placeholder to substitute is determined by the name of the parameter.
+If you want to override this, you can pass an argument to `[Query("placeholder")]`, e.g.:
 
 ```csharp
 public interface ISomeApi
 {
     [Get("user/{userId}")]
-    Task<User> FetchUserAsync([PathParam("userId")] string idOfTheUser);
+    Task<User> FetchUserAsync([Path("userId")] string idOfTheUser);
 }
 ```
 
@@ -323,7 +323,7 @@ You can set one or more static request headers for a request by applying a `[Hea
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
-   Task<User> GetUserAsync([PathParam] string user);
+   Task<User> GetUserAsync([Path] string user);
 }
 ```
 
@@ -334,7 +334,7 @@ Likewise, you can also apply these to all methods, by defining them on the inter
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
-   Task<User> GetUserAsync([PathParam] string user);
+   Task<User> GetUserAsync([Path] string user);
 
    [Post("/users/new")]
    Task CreateUserAsync[Body] User user);
@@ -349,7 +349,7 @@ If you need to, you can also have dynamic headers, but specifying the `[Header]`
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
-   Task<User> GetUserAsync([PathParam] string user, [Header("Authorization")] string authorization);
+   Task<User> GetUserAsync([Path] string user, [Header("Authorization")] string authorization);
 }
 
 IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
@@ -364,7 +364,7 @@ If you've got a header which needs to be specified when the API is created, but 
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
-   Task<User> GetUserAsync([PathParam] string user);
+   Task<User> GetUserAsync([Path] string user);
 }
 
 var httpClient = new HttpClient();
@@ -381,7 +381,7 @@ Alternatively, there's a `RestClient.For<T>` overload which lets you specify a d
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
-   Task<User> GetUserAsync([PathParam] string user);
+   Task<User> GetUserAsync([Path] string user);
 }
 
 IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", (request, cancellationToken) =>
@@ -508,7 +508,7 @@ Given an API like:
 public interface ISomeApi
 {
     [Get("users/{userId}")]
-    Task GetUserAsync([PathParam] string userId);
+    Task GetUserAsync([Path] string userId);
 }
 ```
 
@@ -529,7 +529,7 @@ namespace RestEase.AutoGenerated
         public Task GetUserAsync(string userId)
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "users/{userId}");
-            requestInfo.AddPathParameter<string>("userId", userId);
+            requestInfo.AddPatheter<string>("userId", userId);
             return this.requester.RequestVoidAsync(requestInfo);
         }
     }

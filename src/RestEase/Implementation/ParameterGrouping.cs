@@ -8,8 +8,8 @@ namespace RestEase.Implementation
 {
     internal class ParameterGrouping
     {
-        public List<IndexedParameter<PathParamAttribute>> PathParameters { get; private set; }
-        public List<IndexedParameter<QueryParamAttribute>> QueryParameters { get; private set; }
+        public List<IndexedParameter<PathAttribute>> PathParameters { get; private set; }
+        public List<IndexedParameter<QueryAttribute>> QueryParameters { get; private set; }
         public List<IndexedParameter<HeaderAttribute>> HeaderParameters { get; private set; }
         public List<IndexedParameter> PlainParameters { get; private set; }
         public IndexedParameter<BodyAttribute>? Body { get; private set; }
@@ -17,8 +17,8 @@ namespace RestEase.Implementation
 
         public ParameterGrouping(IEnumerable<ParameterInfo> parameters, string methodName)
         {
-            this.PathParameters = new List<IndexedParameter<PathParamAttribute>>();
-            this.QueryParameters = new List<IndexedParameter<QueryParamAttribute>>();
+            this.PathParameters = new List<IndexedParameter<PathAttribute>>();
+            this.QueryParameters = new List<IndexedParameter<QueryAttribute>>();
             this.HeaderParameters = new List<IndexedParameter<HeaderAttribute>>();
             this.PlainParameters = new List<IndexedParameter>();
 
@@ -43,17 +43,17 @@ namespace RestEase.Implementation
                     continue;
                 }
 
-                var queryParamAttribute = parameter.Parameter.GetCustomAttribute<QueryParamAttribute>();
+                var queryParamAttribute = parameter.Parameter.GetCustomAttribute<QueryAttribute>();
                 if (queryParamAttribute != null)
                 {
-                    this.QueryParameters.Add(new IndexedParameter<QueryParamAttribute>(parameter.Index, parameter.Parameter, queryParamAttribute));
+                    this.QueryParameters.Add(new IndexedParameter<QueryAttribute>(parameter.Index, parameter.Parameter, queryParamAttribute));
                     continue;
                 }
 
-                var pathParamAttribute = parameter.Parameter.GetCustomAttribute<PathParamAttribute>();
+                var pathParamAttribute = parameter.Parameter.GetCustomAttribute<PathAttribute>();
                 if (pathParamAttribute != null)
                 {
-                    this.PathParameters.Add(new IndexedParameter<PathParamAttribute>(parameter.Index, parameter.Parameter, pathParamAttribute));
+                    this.PathParameters.Add(new IndexedParameter<PathAttribute>(parameter.Index, parameter.Parameter, pathParamAttribute));
                     continue;
                 }
 
