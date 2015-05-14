@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 
@@ -34,6 +35,11 @@ namespace RestEase.Implementation
         /// Gets the query parameters to append to the request URI
         /// </summary>
         IReadOnlyList<KeyValuePair<string, string>> QueryParams { get; }
+
+        /// <summary>
+        /// Gets the query map, if specified
+        /// </summary>
+        IDictionary QueryMap { get; }
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path

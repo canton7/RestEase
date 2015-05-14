@@ -98,6 +98,24 @@ namespace RestEaseUnitTests
             Task FooAsync([Query("bar")] string foo, [Query] string bar);
         }
 
+        public interface IHasInvalidQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] string map);
+        }
+
+        public interface IHasTwoQueryMaps
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] IDictionary<string, string> map, [QueryMap] IDictionary<string, string> map2);
+        }
+
+        public interface IHasQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] Dictionary<string, string> map);
+        }
+
         public interface INullableQueryParameters
         {
             [Get("foo")]
@@ -465,6 +483,39 @@ namespace RestEaseUnitTests
 
             Assert.Equal("bar", requestInfo.QueryParams[1].Key);
             Assert.Equal("bar value", requestInfo.QueryParams[1].Value);
+        }
+
+        [Fact]
+        public void ThrowsIfInvalidQueryMapType()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasInvalidQueryMap>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfMoreThanOneQueryMap()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasTwoQueryMaps>(this.requester.Object));
+        }
+
+        [Fact]
+        public void AssignsQueryMap()
+        {
+            var implementation = this.builder.CreateImplementation<IHasQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            var queryMap = new Dictionary<string, string>()
+            {
+                { "foo", "bar" },
+                { "baz", null },
+            };
+
+            implementation.FooAsync(queryMap);
+
+            Assert.Equal(queryMap, requestInfo.QueryMap);
         }
 
         [Fact]

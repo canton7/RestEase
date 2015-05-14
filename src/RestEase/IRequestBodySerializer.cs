@@ -1,5 +1,4 @@
-﻿
-namespace RestEase
+﻿namespace RestEase
 {
     /// <summary>
     /// Helper which knows how to serialize a request body

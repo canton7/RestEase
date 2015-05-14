@@ -93,6 +93,14 @@ namespace RestEase.Implementation
                 if (queryParam.Value != null)
                     query.Add(queryParam.Key, queryParam.Value);
             }
+            if (requestInfo.QueryMap != null)
+            { 
+                foreach (var queryParam in this.TransformIDictionaryToCollectionOfKeysAndValues(requestInfo.QueryMap))
+                {
+                    if (queryParam.Value != null)
+                        query.Add(queryParam.Key, queryParam.Value);
+                }
+            }
             uriBuilder.Query = query.ToString();
 
             if (uri.IsAbsoluteUri)
@@ -110,31 +118,39 @@ namespace RestEase.Implementation
         protected virtual IEnumerable<KeyValuePair<string, string>> SerializeBodyForUrlEncoding(object body)
         {
             if (body == null)
-                yield break;
+                return Enumerable.Empty<KeyValuePair<string, string>>();
 
             var dictionary = body as IDictionary;
             if (dictionary != null)
+                return this.TransformIDictionaryToCollectionOfKeysAndValues(dictionary);
+            else
+                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary");
+        }
+
+        /// <summary>
+        /// Takes an IDictionary, and emits KeyValuePairs for each key
+        /// Takes account of IEnumerable values, null values, etc
+        /// </summary>
+        /// <param name="dictionary">Dictionary to transform</param>
+        /// <returns>A set of KeyValuePairs</returns>
+        protected virtual IEnumerable<KeyValuePair<string, string>> TransformIDictionaryToCollectionOfKeysAndValues(IDictionary dictionary)
+        {
+            foreach (var key in dictionary.Keys)
             {
-                foreach (var key in dictionary.Keys)
+                var value = dictionary[key];
+                // We don't want to count strings as IEnumerable
+                if (value != null && !(value is string) && value is IEnumerable)
                 {
-                    var value = dictionary[key];
-                    // We don't want to count strings as IEnumerable
-                    if (value != null && !(value is string) && value is IEnumerable)
+                    foreach (var individualValue in (IEnumerable)value)
                     {
-                        foreach (var individualValue in (IEnumerable)value)
-                        {
-                            yield return new KeyValuePair<string, string>(key.ToString(), (individualValue ?? String.Empty).ToString());
-                        }
-                    }
-                    else
-                    {
-                        yield return new KeyValuePair<string, string>(key.ToString(), (value ?? String.Empty).ToString());
+                        var stringValue = individualValue == null ? null : individualValue.ToString();
+                        yield return new KeyValuePair<string, string>(key.ToString(), stringValue);
                     }
                 }
-            }
-            else
-            {
-                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary");
+                else if (value != null)
+                {
+                    yield return new KeyValuePair<string, string>(key.ToString(), value.ToString());
+                }
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetProperty("AllowAnyStatusCode").SetMethod;
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
+        private static readonly MethodInfo queryMapSetter = typeof(RequestInfo).GetProperty("QueryMap").SetMethod;
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").SetMethod;
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetMethod("AddMethodHeader");
@@ -168,7 +170,7 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
                 }
 
-                this.AddParameters(methodIlGenerator, parameterGrouping);
+                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name);
 
                 this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
 
@@ -260,13 +262,22 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
         }
 
-        private void AddParameters(ILGenerator methodIlGenerator, ParameterGrouping parameterGrouping)
+        private void AddParameters(ILGenerator methodIlGenerator, ParameterGrouping parameterGrouping, string methodName)
         {
             // If there's a body, add it
             if (parameterGrouping.Body != null)
             {
                 var body = parameterGrouping.Body.Value;
                 this.AddBody(methodIlGenerator, body.Attribute.SerializationMethod, body.Parameter.ParameterType, (short)body.Index);
+            }
+
+            // If there's a query map, add it
+            if (parameterGrouping.QueryMap != null)
+            {
+                var queryMap = parameterGrouping.QueryMap.Value;
+                if (!typeof(IDictionary).IsAssignableFrom(queryMap.Parameter.ParameterType))
+                    throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary (or one of its descendents). Method: {0}", methodName));
+                this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index);
             }
 
             foreach (var queryParameter in parameterGrouping.QueryParameters)
@@ -348,6 +359,20 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+        }
+
+        private void AddQueryMap(ILGenerator methodILGenerator, Type parameterType, short parameterIndex)
+        {
+            // Equivalent C#:
+            // requestInfo.QueryMap = value
+            // They might possible potentially provide a struct here (although it's unlikely)
+            // so we need to box
+
+            methodILGenerator.Emit(OpCodes.Dup);
+            methodILGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            if (parameterType.IsValueType)
+                methodILGenerator.Emit(OpCodes.Box);
+            methodILGenerator.Emit(OpCodes.Callvirt, queryMapSetter);
         }
 
         private void AddMethodHeader(ILGenerator methodIlGenerator, HeaderAttribute header)

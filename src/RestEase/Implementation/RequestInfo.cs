@@ -42,6 +42,11 @@ namespace RestEase.Implementation
             get { return this._queryParams; }
         }
 
+        /// <summary>
+        /// Gets or sets the query map, if specified
+        /// </summary>
+        public IDictionary QueryMap { get; set; }
+
         private readonly List<KeyValuePair<string, string>> _pathParams;
 
         /// <summary>
@@ -113,14 +118,13 @@ namespace RestEase.Implementation
             {
                 foreach (var individualValue in (IEnumerable)value)
                 {
-                    this._queryParams.Add(new KeyValuePair<string, string>(name, (individualValue ?? String.Empty).ToString()));
+                    var stringValue = individualValue == null ? null : individualValue.ToString();
+                    this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
                 }
             }
             else
             {
-                string stringValue = null;
-                if (value != null)
-                    stringValue = value.ToString();
+                var stringValue = value == null ? null : value.ToString();
                 this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
             }
         }

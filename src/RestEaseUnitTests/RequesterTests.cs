@@ -196,6 +196,44 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
+        public void AddsParamsFromQueryMap()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.QueryMap = new Dictionary<string, object>()
+            {
+                { "foo", "bar" },
+                { "baz", "yay" },
+            };
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
+            Assert.Equal(new Uri("/foo?foo=bar&baz=yay", UriKind.Relative), uri);
+        }
+
+        [Fact]
+        public void IgnoresNullItemsFromQueryMap()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.QueryMap = new Dictionary<string, object>()
+            {
+                { "foo", "bar" },
+                { "baz", null },
+            };
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
+            Assert.Equal(new Uri("/foo?foo=bar", UriKind.Relative), uri);
+        }
+
+        [Fact]
+        public void HandlesArraysInQueryMap()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.QueryMap = new Dictionary<string, object>()
+            {
+                { "foo", new[] { "bar", "baz" } },
+            };
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
+            Assert.Equal(new Uri("/foo?foo=bar&foo=baz", UriKind.Relative), uri);
+        }
+
+        [Fact]
         public void ThrowsIfUriIsUnparsable()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "http://base.com/");
