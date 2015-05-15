@@ -49,12 +49,12 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the headers which were applied to the interface
         /// </summary>
-        IReadOnlyList<string> ClassHeaders { get; }
+        IReadOnlyList<KeyValuePair<string, string>> ClassHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        IReadOnlyList<string> MethodHeaders { get; }
+        IReadOnlyList<KeyValuePair<string, string>> MethodHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were passed to the method as parameters

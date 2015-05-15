@@ -442,13 +442,13 @@ Specifying headers is actually a surprisingly large topic, and is broken down in
 
 ### Static Headers
 
-You can set one or more static request headers for a request by applying a `[Headers]` attribute to the method:
+You can set one or more static request headers for a request by applying a `[Header]` attribute to the method:
 
 ```csharp
-[Header("User-Agent: RestEase")]
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
+   [Header("User-Agent", "RestEase")]
    Task<User> GetUserAsync([Path] string user);
 }
 ```
@@ -456,7 +456,7 @@ public interface IGitHubApi
 Likewise, you can also apply these to all methods, by defining them on the interface itself:
 
 ```csharp
-[Header("User-Agent: RestEase")]
+[Header("User-Agent", "RestEase")]
 public interface IGitHubApi
 {
    [Get("/users/{user}")]
@@ -530,7 +530,7 @@ public interface IMyRestService
     Task<Foobar> SomePublicMethodAsync();
 
     [Get("/secretStuff")]
-    [Headers("Authorization: Bearer")]
+    [Header("Authorization", "Bearer")]
     Task<Location> GetLocationOfRebelBaseAsync();
 }
 
@@ -563,18 +563,18 @@ TODO: Add DefaultRequestHeaders and RequestInterceptor in here
  - Attributes on method parameters *(highest priority)*
 
 ```csharp
-[Headers("X-Emoji: :rocket:")]
+[Header("X-Emoji", ":rocket:")]
 public interface IGitHubApi
 {
     [Get("/users/list")]
     Task<List> GetUsersAsync();
 
     [Get("/users/{user}")]
-    [Headers("X-Emoji: :smile_cat:")]
+    [Header("X-Emoji", ":smile_cat:")]
     Task<User> GetUserAsync(string user);
 
     [Post("/users/new")]
-    [Headers("X-Emoji: :metal:")]
+    [Header("X-Emoji", ":metal:")]
     Task CreateUserAsync([Body] User user, [Header("X-Emoji")] string emoji);
 }
 
@@ -597,15 +597,15 @@ For parameter headers, pass `null` as the header's value.
 For example:
 
 ```csharp
-[Headers("X-Emoji: :rocket:")]
+[Header("X-Emoji", ":rocket:")]
 public interface IGitHubApi
 {
     [Get("/users/list")]
-    [Headers("X-Emoji")] // Remove the X-Emoji header
+    [Header("X-Emoji", null)] // Remove the X-Emoji header
     Task<List> GetUsersAsync();
 
     [Get("/users/{user}")]
-    [Headers("X-Emoji:")] // Redefine the X-Emoji header as empty
+    [Header("X-Emoji", String.Empty)] // Redefine the X-Emoji header as empty
     Task<User> GetUserAsync(string user);
 
     [Post("/users/new")]

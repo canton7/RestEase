@@ -405,7 +405,11 @@ namespace RestEaseUnitTests
         public void AppliesHeadersFromClass()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.ClassHeaders = new List<string>() { "User-Agent: RestEase", "X-API-Key: Foo" };
+            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            {
+                new KeyValuePair<string, string>("User-Agent", "RestEase"),
+                new KeyValuePair<string, string>("X-API-Key", "Foo"),
+            };
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -417,8 +421,8 @@ namespace RestEaseUnitTests
         public void AppliesHeadersFromMethod()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("User-Agent: RestEase");
-            requestInfo.AddMethodHeader("X-API-Key: Foo");
+            requestInfo.AddMethodHeader("User-Agent", "RestEase");
+            requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -443,18 +447,18 @@ namespace RestEaseUnitTests
         public void HeadersFromMethodOverrideHeadersFromClass()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.ClassHeaders = new List<string>()
+            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
             {
-                "This-Will-Stay: YesIWill",
-                "Something: SomethingElse",
-                "User-Agent: RestEase",
-                "X-API-Key: Foo",
+                new KeyValuePair<string, string>("This-Will-Stay", "YesIWill"),
+                new KeyValuePair<string, string>("Something", "SomethingElse"),
+                new KeyValuePair<string, string>("User-Agent", "RestEase"),
+                new KeyValuePair<string, string>("X-API-Key", "Foo"),
             };
 
-            requestInfo.AddMethodHeader("Something"); // Remove
-            requestInfo.AddMethodHeader("User-Agent:"); // Replace with null
-            requestInfo.AddMethodHeader("X-API-Key: Bar"); // Change value
-            requestInfo.AddMethodHeader("This-Is-New: YesIAM"); // New value
+            requestInfo.AddMethodHeader("Something", null); // Remove
+            requestInfo.AddMethodHeader("User-Agent", String.Empty); // Replace with null
+            requestInfo.AddMethodHeader("X-API-Key", "Bar"); // Change value
+            requestInfo.AddMethodHeader("This-Is-New", "YesIAM"); // New value
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -466,10 +470,10 @@ namespace RestEaseUnitTests
         public void HeadersFromParamsOVerrideHeadersFromMethod()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("This-Will-Stay: YesIWill");
-            requestInfo.AddMethodHeader("Something: SomethingElse");
-            requestInfo.AddMethodHeader("User-Agent: RestEase");
-            requestInfo.AddMethodHeader("X-API-Key: Foo");
+            requestInfo.AddMethodHeader("This-Will-Stay", "YesIWill");
+            requestInfo.AddMethodHeader("Something", "SomethingElse");
+            requestInfo.AddMethodHeader("User-Agent", "RestEase");
+            requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
             requestInfo.AddHeaderParameter("Something", null); // Remove
             requestInfo.AddHeaderParameter("User-Agent", ""); // Replace with null
@@ -486,9 +490,9 @@ namespace RestEaseUnitTests
         public void MultipleHeadersAreAllowed()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("User-Agent: SomethingElse");
-            requestInfo.AddMethodHeader("User-Agent: RestEase");
-            requestInfo.AddMethodHeader("X-API-Key: Foo");
+            requestInfo.AddMethodHeader("User-Agent", "SomethingElse");
+            requestInfo.AddMethodHeader("User-Agent", "RestEase");
+            requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -500,9 +504,9 @@ namespace RestEaseUnitTests
         public void SingleOverrideReplacesMultipleHeaders()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("User-Agent: SomethingElse");
-            requestInfo.AddMethodHeader("User-Agent: RestEase");
-            requestInfo.AddMethodHeader("X-API-Key: Foo");
+            requestInfo.AddMethodHeader("User-Agent", "SomethingElse");
+            requestInfo.AddMethodHeader("User-Agent", "RestEase");
+            requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
             requestInfo.AddHeaderParameter("User-Agent", null);
 
@@ -516,7 +520,7 @@ namespace RestEaseUnitTests
         public void AppliesContentHeadersToContent()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("Content-Type: text/html");
+            requestInfo.AddMethodHeader("Content-Type", "text/html");
 
             var message = new HttpRequestMessage();
             message.Content = new StringContent("hello");
@@ -530,7 +534,7 @@ namespace RestEaseUnitTests
         public void DoesNotAttemptToApplyContentHeadersIfThereIsNoContent()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("Content-Type: text/html");
+            requestInfo.AddMethodHeader("Content-Type", "text/html");
 
             var message = new HttpRequestMessage();
             Assert.Throws<ArgumentException>(() => this.requester.ApplyHeaders(requestInfo, message));

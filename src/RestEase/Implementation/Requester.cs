@@ -193,24 +193,9 @@ namespace RestEase.Implementation
         {
             // Apply from class -> method -> params, so we get the proper hierarchy
             if (requestInfo.ClassHeaders != null)
-                this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.ClassHeaders));
-            this.AppleHeadersSet(requestMessage, this.SplitHeaders(requestInfo.MethodHeaders));
+                this.AppleHeadersSet(requestMessage, requestInfo.ClassHeaders);
+            this.AppleHeadersSet(requestMessage, requestInfo.MethodHeaders);
             this.AppleHeadersSet(requestMessage, requestInfo.HeaderParams);
-        }
-
-        /// <summary>
-        /// Given a collection of headers in the form 'Foo', 'Foo:', or 'Foo: Bar',
-        /// construct KeyValuePairs in the form ['Foo', null], ['Foo', ''], and ['Foo', 'Bar'] respectively
-        /// </summary>
-        /// <param name="headers">Headers to split</param>
-        /// <returns>Result of splitting</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> SplitHeaders(IEnumerable<string> headers)
-        {
-            var splitHeaders = from header in headers
-                               where !String.IsNullOrWhiteSpace(header)
-                               let parts = header.Split(new[] { ':' }, 2)
-                               select new KeyValuePair<string, string>(parts[0].Trim(), parts.Length > 1 ? parts[1].Trim() : null);
-            return splitHeaders;
         }
 
         /// <summary>

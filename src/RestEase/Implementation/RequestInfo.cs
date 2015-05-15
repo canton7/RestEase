@@ -60,14 +60,14 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
         /// </summary>
-        public IReadOnlyList<string> ClassHeaders { get; set; }
+        public IReadOnlyList<KeyValuePair<string, string>> ClassHeaders { get; set; }
 
-        private readonly List<string> _methodHeaders;
+        private readonly List<KeyValuePair<string, string>> _methodHeaders;
 
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        public IReadOnlyList<string> MethodHeaders
+        public IReadOnlyList<KeyValuePair<string, string>> MethodHeaders
         {
             get { return this._methodHeaders; }
         }
@@ -100,7 +100,7 @@ namespace RestEase.Implementation
 
             this._queryParams = new List<KeyValuePair<string, string>>();
             this._pathParams = new List<KeyValuePair<string, string>>();
-            this._methodHeaders = new List<string>();
+            this._methodHeaders = new List<KeyValuePair<string, string>>();
             this._headerParams = new List<KeyValuePair<string, string>>();
         }
 
@@ -146,10 +146,11 @@ namespace RestEase.Implementation
         /// <summary>
         /// Add a header which is defined on the method
         /// </summary>
-        /// <param name="header">Header to add</param>
-        public void AddMethodHeader(string header)
+        /// <param name="name">Name of the header to add</param>
+        /// <param name="value">Value of the header to add</param>
+        public void AddMethodHeader(string name, string value)
         {
-            this._methodHeaders.Add(header);
+            this._methodHeaders.Add(new KeyValuePair<string, string>(name, value));
         }
 
         /// <summary>

@@ -145,8 +145,8 @@ namespace RestEaseUnitTests
             Task DifferentParaneterTypesAsync([Path] object foo, [Path] int? bar);
         }
 
-        [Header("Class Header 1")]
-        [Header("Class Header 2")]
+        [Header("Class Header 1", "Yes")]
+        [Header("Class Header 2", "Yes")]
         public interface IHasClassHeaders
         {
             [Get("foo")]
@@ -156,8 +156,8 @@ namespace RestEaseUnitTests
         public interface IHasMethodHeaders
         {
             [Get("foo")]
-            [Header("Method Header 1")]
-            [Header("Method Header 2")]
+            [Header("Method Header 1", "Yes")]
+            [Header("Method Header 2", "Yes")]
             Task FooAsync();
         }
 
@@ -165,6 +165,45 @@ namespace RestEaseUnitTests
         {
             [Get("foo")]
             Task FooAsync([Header("Param Header 1")] string foo, [Header("Param Header 2")] string bar);
+        }
+
+        public interface IHasParamHeaderWithValue
+        {
+            [Get("foo")]
+            Task FooAsync([Header("Param Header", "ShouldNotBeSet")] string foo);
+        }
+
+        [Header("Foo")]
+        public interface IHasClassHeaderWithoutValue
+        {
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        [Header("Foo: Bar", "Bar")]
+        public interface IHasClassHeaderWithColon
+        {
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasMethodHeaderWithColon
+        {
+            [Get("foo")]
+            [Header("Foo: Bar", "Baz")]
+            Task FooAsync();
+        }
+
+        public interface IHasHeaderParamWithColon
+        {
+            [Get("foo")]
+            Task FooAsync([Header("Foo: Bar")] string foo);
+        }
+
+        public interface IHasHeaderParamWithValue
+        {
+            [Get("foo")]
+            Task FooAsync([Header("Foo", "Bar")] string foo);
         }
 
         public interface IAllRequestMethods
@@ -650,8 +689,13 @@ namespace RestEaseUnitTests
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync();
+            var expected = new[]
+            {
+                new KeyValuePair<string, string>("Class Header 1", "Yes"),
+                new KeyValuePair<string, string>("Class Header 2", "Yes"),
+            };
 
-            Assert.Equal(new[] { "Class Header 1", "Class Header 2" }, requestInfo.ClassHeaders.OrderBy(x => x));
+            Assert.Equal(expected, requestInfo.ClassHeaders.OrderBy(x => x.Key));
         }
 
         [Fact]
@@ -665,8 +709,13 @@ namespace RestEaseUnitTests
                 .Returns(Task.FromResult(false));
 
             implementation.FooAsync();
+            var expected = new[]
+            {
+                new KeyValuePair<string, string>("Method Header 1", "Yes"),
+                new KeyValuePair<string, string>("Method Header 2", "Yes"),
+            };
 
-            Assert.Equal(new[] { "Method Header 1", "Method Header 2" }, requestInfo.MethodHeaders.OrderBy(x => x));
+            Assert.Equal(expected, requestInfo.MethodHeaders.OrderBy(x => x.Key));
         }
 
         [Fact]
@@ -688,6 +737,42 @@ namespace RestEaseUnitTests
 
             Assert.Equal("Param Header 2", requestInfo.HeaderParams[1].Key);
             Assert.Equal("value 2", requestInfo.HeaderParams[1].Value);
+        }
+
+        [Fact]
+        public void ThrowsIfParamHeaderHasValue()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasParamHeaderWithValue>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfClassHeaderDoesNotHaveValue()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasClassHeaderWithoutValue>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfClassHeaderHasColon()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasClassHeaderWithColon>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfMethodHeaderHasColon()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasMethodHeaderWithColon>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfHeaderParamHasColon()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasHeaderParamWithColon>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfHeaderParamHasValue()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasHeaderParamWithValue>(this.requester.Object)); ;
         }
 
         [Fact]
