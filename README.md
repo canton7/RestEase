@@ -347,7 +347,7 @@ if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
 }
 else
 {
-    var user = response.Content;
+    var user = response.GetContent();
     // ...
 }
 ```
@@ -397,13 +397,15 @@ For example:
 
 public class XmlResponseDeserializer : IResponseDeserializer
 {
-    public async Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+    public T Deserialize<T>(string content, HttpResponseMessage response)
     {
         // Consider caching generated XmlSerializers
         var serializer = new XmlSerializer(typeof(T));
 
-        var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        return (T)serializer.Deserialize(contentStream);
+        using (var stringReader = new StringReader(content))
+        {
+            return (T)serializer.Deserialize(stringReader);
+        }
     }
 }
 

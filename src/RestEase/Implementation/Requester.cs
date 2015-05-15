@@ -265,14 +265,14 @@ namespace RestEase.Implementation
         /// Calls this.ResponseDeserializer.ReadAndDeserializeAsync, after checking it's not null
         /// </summary>
         /// <typeparam name="T">Type of object to deserialize into</typeparam>
+        /// <param name="content">String content read from the response</param>
         /// <param name="response">Response to deserialize from</param>
-        /// <param name="cancellationToken">CancellationToken to abort the operation</param>
         /// <returns>A task containing the deserialized response</returns>
-        protected virtual Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+        protected virtual T Deserialize<T>(string content, HttpResponseMessage response)
         {
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
-            return this.ResponseDeserializer.ReadAndDeserializeAsync<T>(response, cancellationToken);
+            return this.ResponseDeserializer.Deserialize<T>(content, response);
         }
 
         /// <summary>
@@ -294,7 +294,8 @@ namespace RestEase.Implementation
         public virtual async Task<T> RequestAsync<T>(IRequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            T deserializedResponse = await this.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            T deserializedResponse = this.Deserialize<T>(content, response);
             return deserializedResponse;
         }
 
@@ -318,8 +319,8 @@ namespace RestEase.Implementation
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(IRequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
-            T deserializedResponse = await this.ReadAndDeserializeAsync<T>(response, requestInfo.CancellationToken).ConfigureAwait(false);
-            return new Response<T>(response, deserializedResponse);
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return new Response<T>(content, response, () => this.Deserialize<T>(content, response));
         }
 
         /// <summary>

@@ -556,14 +556,17 @@ namespace RestEaseUnitTests
         public void RequestAsyncSendsRequest()
         {
             var requester = new RequesterWithStubbedSendRequestAsync(null);
-            var responseMessage = new HttpResponseMessage();
+            var responseMessage = new HttpResponseMessage()
+            {
+                Content = new StringContent("content"),
+            };
             requester.ResponseMessage = Task.FromResult(responseMessage);
             var responseDeserializer = new Mock<IResponseDeserializer>();
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.ReadAndDeserializeAsync<string>(responseMessage, cancellationToken))
-                .Returns(Task.FromResult("hello"))
+            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage))
+                .Returns("hello")
                 .Verifiable();
 
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
@@ -594,24 +597,30 @@ namespace RestEaseUnitTests
         public void RequestWithResponseAsyncSendsRequest()
         {
             var requester = new RequesterWithStubbedSendRequestAsync(null);
-            var responseMessage = new HttpResponseMessage();
+            var responseMessage = new HttpResponseMessage()
+            {
+                Content = new StringContent("content"),
+            };
             requester.ResponseMessage = Task.FromResult(responseMessage);
             var responseDeserializer = new Mock<IResponseDeserializer>();
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.ReadAndDeserializeAsync<string>(responseMessage, cancellationToken))
-                .Returns(Task.FromResult("hello"))
+            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage))
+                .Returns("hello")
                 .Verifiable();
 
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.CancellationToken = cancellationToken;
             var result = requester.RequestWithResponseAsync<string>(requestInfo).Result;
 
+            var deserializedContent = result.GetContent();
+
             responseDeserializer.Verify();
 
             Assert.Equal(requestInfo, requester.RequestInfo);
-            Assert.Equal("hello", result.Content);
+            Assert.Equal("content", result.StringContent);
+            Assert.Equal("hello", deserializedContent);
             Assert.Equal(responseMessage, result.ResponseMessage);
         }
 

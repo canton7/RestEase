@@ -19,15 +19,11 @@ namespace RestEase.Implementation
         /// Read the response string from the response, deserialize, and return a deserialized object
         /// </summary>
         /// <typeparam name="T">Type of object to deserialize into</typeparam>
+        /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage. Consider calling response.Content.ReadAsStringAsync() to retrieve a string</param>
-        /// <param name="cancellationToken">CancellationToken for this request</param>
         /// <returns>Deserialized response</returns>
-        public async Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+        public T Deserialize<T>(string content, HttpResponseMessage response)
         {
-            // We fetched using HttpCompletionOption.ResponseContentRead, so this has already been buffered
-            // HttpClient has many smarts for working out the correct content encoding (headers, BOMs, etc), and
-            // it's much better to trust it (using ReadAsStringAsync) than to try and replicate it (using ReadAsStreamAsync).
-            var content = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<T>(content, this.JsonSerializerSettings);
         }
     }
