@@ -51,6 +51,7 @@
     <Compile Include="BodyAttribute.cs" />
     <Compile Include="HeaderAttribute.cs" />
     <Compile Include="Implementation\BodyParameterInfo.cs" />
+    <Compile Include="Implementation\DictionaryIterator.cs" />
     <Compile Include="Implementation\IndexedParameter.cs" />
     <Compile Include="Implementation\IRequestInfo.cs" />
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />

@@ -230,9 +230,9 @@ Exactly how this will be serialized depends on the type of parameters:
 ### URL Encoded bodies
 
 For APIs which take form posts (i.e. serialized as `application/x-www-form-urlencoded`), initialize the `[Body]` attribute with `BodySerializationMethod.UrlEncoded`.
-This parameter must implement `IDictionary`.
+This parameter must implement `IDictionary` or `IDictionary<TKey, TValue>`.
 
-If any of the values in the `IDictionary` implement `IEnumerable`, then they will be serilaized as an array of values.
+If any of the values implement `IEnumerable`, then they will be serilaized as an array of values.
 
 For example:
 
@@ -635,6 +635,7 @@ Here's a brief summary of pros/cons, compared to Refit:
    - Can specify custom response deserializer
    - Can specify custom request body serializer
    - Can customize almost every aspect of setting up and creating the request (through implementing `IRequester`)
+ - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
 
 ## Cons
 

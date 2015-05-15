@@ -43,9 +43,9 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Gets or sets the query map, if specified
+        /// Gets or sets the query map, if specified. Must be an IDictionary or IDictionary{TKey, TValue}
         /// </summary>
-        public IDictionary QueryMap { get; set; }
+        public object QueryMap { get; set; }
 
         private readonly List<KeyValuePair<string, string>> _pathParams;
 

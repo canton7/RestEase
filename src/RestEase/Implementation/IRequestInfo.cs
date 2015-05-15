@@ -37,9 +37,9 @@ namespace RestEase.Implementation
         IReadOnlyList<KeyValuePair<string, string>> QueryParams { get; }
 
         /// <summary>
-        /// Gets the query map, if specified
+        /// Gets the query map, if specified. Must be an IDictionary or IDictionary{TKey, TValue}
         /// </summary>
-        IDictionary QueryMap { get; }
+        object QueryMap { get; }
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path

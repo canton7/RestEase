@@ -95,7 +95,8 @@ namespace RestEase.Implementation
             }
             if (requestInfo.QueryMap != null)
             { 
-                foreach (var queryParam in this.TransformIDictionaryToCollectionOfKeysAndValues(requestInfo.QueryMap))
+                // ImplementationBuilder asserts that we can iterate the QueryMap type
+                foreach (var queryParam in this.TransformDictionaryToCollectionOfKeysAndValues(requestInfo.QueryMap))
                 {
                     if (queryParam.Value != null)
                         query.Add(queryParam.Key, queryParam.Value);
@@ -120,36 +121,33 @@ namespace RestEase.Implementation
             if (body == null)
                 return Enumerable.Empty<KeyValuePair<string, string>>();
 
-            var dictionary = body as IDictionary;
-            if (dictionary != null)
-                return this.TransformIDictionaryToCollectionOfKeysAndValues(dictionary);
+            if (DictionaryIterator.CanIterate(body.GetType()))
+                return this.TransformDictionaryToCollectionOfKeysAndValues(body);
             else
-                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary");
+                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary or IDictionary<TKey, TValue>");
         }
 
         /// <summary>
-        /// Takes an IDictionary, and emits KeyValuePairs for each key
+        /// Takes an IDictionary or IDictionary{TKey, TValue}, and emits KeyValuePairs for each key
         /// Takes account of IEnumerable values, null values, etc
         /// </summary>
         /// <param name="dictionary">Dictionary to transform</param>
         /// <returns>A set of KeyValuePairs</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> TransformIDictionaryToCollectionOfKeysAndValues(IDictionary dictionary)
+        protected virtual IEnumerable<KeyValuePair<string, string>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
         {
-            foreach (var key in dictionary.Keys)
+            foreach (var kvp in DictionaryIterator.Iterate(dictionary))
             {
-                var value = dictionary[key];
-                // We don't want to count strings as IEnumerable
-                if (value != null && !(value is string) && value is IEnumerable)
+                if (kvp.Value != null && !(kvp.Value is string) && kvp.Value is IEnumerable)
                 {
-                    foreach (var individualValue in (IEnumerable)value)
+                    foreach (var individualValue in (IEnumerable)kvp.Value)
                     {
                         var stringValue = individualValue == null ? null : individualValue.ToString();
-                        yield return new KeyValuePair<string, string>(key.ToString(), stringValue);
+                        yield return new KeyValuePair<string, string>(kvp.Key.ToString(), stringValue);
                     }
                 }
-                else if (value != null)
+                else if (kvp.Value != null)
                 {
-                    yield return new KeyValuePair<string, string>(key.ToString(), value.ToString());
+                    yield return new KeyValuePair<string, string>(kvp.Key.ToString(), kvp.Value.ToString());
                 }
             }
         }

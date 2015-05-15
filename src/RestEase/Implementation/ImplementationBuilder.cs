@@ -275,8 +275,8 @@ namespace RestEase.Implementation
             if (parameterGrouping.QueryMap != null)
             {
                 var queryMap = parameterGrouping.QueryMap.Value;
-                if (!typeof(IDictionary).IsAssignableFrom(queryMap.Parameter.ParameterType))
-                    throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary (or one of its descendents). Method: {0}", methodName));
+                if (!DictionaryIterator.CanIterate(queryMap.Parameter.ParameterType))
+                    throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents). Method: {0}", methodName));
                 this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index);
             }
 
@@ -365,8 +365,7 @@ namespace RestEase.Implementation
         {
             // Equivalent C#:
             // requestInfo.QueryMap = value
-            // They might possible potentially provide a struct here (although it's unlikely)
-            // so we need to box
+            // They might possible potentially provide a struct here (although it's unlikely), so we need to box
 
             methodILGenerator.Emit(OpCodes.Dup);
             methodILGenerator.Emit(OpCodes.Ldarg, parameterIndex);

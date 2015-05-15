@@ -2,7 +2,9 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -196,10 +198,23 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void AddsParamsFromQueryMap()
+        public void AddsParamsFromGenericQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.QueryMap = new Dictionary<string, object>()
+            // Use an ExpandoObject, as it implements IDictionary<string, object> but *not* IDictionary
+            dynamic queryMap = new ExpandoObject();
+            queryMap.foo = "bar";
+            queryMap.baz = "yay";
+            requestInfo.QueryMap = queryMap;
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
+            Assert.Equal(new Uri("/foo?foo=bar&baz=yay", UriKind.Relative), uri);
+        }
+
+        [Fact]
+        public void AddsParamsFromNonGenericQueryMap()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.QueryMap = (IDictionary)new Dictionary<string, object>()
             {
                 { "foo", "bar" },
                 { "baz", "yay" },
@@ -343,10 +358,27 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void UsesFormUrlEncodedSerializerIfBodyIsObjectAndMethodIsUrlEncoded()
+        public void UsesFormUrlEncodedSerializerIfBodyIsGenericDictionaryAndMethodIsUrlEncoded()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            var body = new Dictionary<string, object>()
+            // ExpandoObject implements IDictionary<string, object> but not IDictionary
+            dynamic body = new ExpandoObject();
+            body.foo = "bar woo";
+            body.many = new List<string>() { "one", "two" };
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.UrlEncoded, body);
+
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.IsType<FormUrlEncodedContent>(content);
+            var encodedContent = ((FormUrlEncodedContent)content).ReadAsStringAsync().Result;
+            Assert.Equal("foo=bar+woo&many=one&many=two", encodedContent);
+        }
+
+        [Fact]
+        public void UsesFormUrlEncodedSerializerIfBodyIsNonGenericDictionaryAndMethodIsUrlEncoded()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            IDictionary body = new Dictionary<string, object>()
             {
                 { "foo", "bar woo" },
                 { "many", new List<string>() { "one", "two" } },
