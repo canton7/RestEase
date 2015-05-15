@@ -10,6 +10,34 @@ RestEase will then generate an implementation of that interface for you, and by 
 
 RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
 
+### Table of Contents
+
+1. [Installation](#installation)
+2. [Quick Start](#quick-start)
+3. [Request Types](#request-types)
+4. [Return Types](#return-types)
+5. [Query Parameters](#query-parameters)
+  1. [Constant Query Parameters](#constant-query-parameters)
+  2. [Variable Query Parameters](#variable-query-parameters)
+  3. [Query Parameters Map](#query-parameters-map)
+6. [Path Parameters](#path-parameters)
+7. [Body Content](#body-content)
+  1. [URL Encoded Bodies](#url-encoded-bodies)
+8. [Response Status Codes](#response-status-codes)
+9. [Cancelling Requests](#cancelling-requests)
+10. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+  1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
+  2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
+11. [Headers](#headers)
+  1. [Static Headers](#static-headers)
+  2. [Dynamic Headers](#dynamic-headers)
+  3. [Redefining Headers](#redefining-headers)
+  4. [Removing Headers](#removing-headers)
+12. [Customizing RestEase](#customizing-restease)
+13. [Interface Accessibility](#interface-accessibility)
+14. [Using Generic Interfaces](#using-generic-interfaces)
+15. [Comparison to Refit](#comparison-to-refit)
+
 
 Installation
 ------------
@@ -26,25 +54,22 @@ Or right-click your project -> Manage NuGet Packages... -> Online -> search for 
 
 I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to Stylet's source when debugging. If you haven't yet set up Visual Studio to use SymbolSource, do that now:
 
-In Visual Studio, go to Debug -> Options and Settings, and make the following changes:
+In Visual Studio, go to Debug -> Options and Settings -> General, and make the following changes:
 
- 1. In General
-   1. Turn **off** "Enable Just My Code"
-   2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
-   3. Turn **on** "Enable source server support". You may have to OK a security warning.
- 2. In Symbols
-   1. Add "http://srv.symbolsource.org/pdb/Public" to the list. 
+1. Turn **off** "Enable Just My Code"
+2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+3. Turn **on** "Enable source server support". You may have to OK a security warning.
 
 
 Quick Start
 -----------
 
-To start, first create an interface which represents the endpoint you wish to make requests to.
-Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#redefining-headers).
+To start, first create an public interface which represents the endpoint you wish to make requests to.
+Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#interface-accessibility).
 
 ```csharp
 // Define an interface representing the API
-public interface IGithubApi
+public interface IGitHubApi
 {
     // All interface methods must return a Task or Task<T>. We'll discuss what sort of T in more detail below.
 
@@ -56,7 +81,7 @@ public interface IGithubApi
 
 // Create an implementation of that interface
 // We'll pass in the base URL for the API
-IGithubApi api = RestClient.For<IGithubApi>("http://api.github.com");
+IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
 
 // Now we can simply call methods on it
 // Sets a GET request to http://api.github.com/users
@@ -84,7 +109,7 @@ Your interface methods may return one of the following types:
  - `Task`: This method does not return any data, but the task will complete when the request has completed
  - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using Json.NET (or a custom deserializer, see [Controlling Serialization and Deserialization below](#controlling-serialization-and-deserialization)).
  - `Task<string>`: This method returns the raw response, as a string
- - `Task<HttpResponseMessage>`: This method returns the raw `HttpResponseMessage` resulting from the request. It does not do any deserialiation
+ - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage%28v=vs.118%29.aspx) resulting from the request. It does not do any deserialiation
  - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
@@ -94,6 +119,22 @@ Query Parameters
 ----------------
 
 It is very common to want to include query parameters in your request (e.g. `/foo?key=value`), and RestEase makes this easy.
+
+### Constant Query Parameters
+
+The most basic type of query parameter is a constant - the value never changes.
+For these, simply put the query parameter as part of the URL:
+
+```csharp
+public interface IGitHubApi
+{
+   [Get("users/list?sort=desc")]
+   Task<List<User>> GetUsersAsync();
+}
+```
+
+### Variable Query Parameters
+
 Any parameters to a method which are:
 
  - Decorated with the `[Query]` attribute, or
@@ -106,17 +147,18 @@ The name of the parameter will be used as the key, unless an argument is passed 
 For example:
 
 ```csharp
-public interface IGithubApi
+public interface IGitHubApi
 {
-	[Get("user")]
+    [Get("user")]
     Task<User> FetchUserAsync(int userid);
 
-    // Is the same as
+    // Is the same as:
 
     [Get("user")]
     Task<User> FetchUserAsync([Query] int userid);
 
-    // Is the same as
+    // Is the same as:
+    // (Note the casing of the parameter name)
 
     [Get("user")]
     Task<User> FetchUserAsync([Query("userid")] int userId);
@@ -128,16 +170,6 @@ IGithubApi api = RestClient.For<IGithubApi>("http://api.github.com");
 await api.FetchUserAsync(3);
 ```
 
-Constant query parameters can just be specified in the path:
-
-```csharp
-public interface ISomeApi
-{
-    [Get("users?userid=3")]
-    Task<User> GetUserIdThreeAsync();
-}
-```
-
 You can have duplicate keys if you want:
 
 ```csharp
@@ -147,7 +179,7 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query("filter")] string filter1, [Query("filter")] string filter2);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://someendpoint.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://someapibase.com");
 
 // Requests http://somenedpoint.com/search?filter=foo&filter=bar
 await api.SearchAsync("foo", "bar");
@@ -158,16 +190,47 @@ You can also have an array of query parameters:
 ```csharp
 public interface ISomeApi
 {
-	// You can use IEnumerable<T>, or any type which implements IEnumerable<T>
+    // You can use IEnumerable<T>, or any type which implements IEnumerable<T>
 
     [Get("search")]
     Task<SearchResult> SearchAsync([Query("filter")] IEnumerable<string> filters);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://someendpoint.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://someapibase.com");
 
 // Requests http://somenedpint.com/search?filter=foo&filter=bar&filter=baz
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
+```
+
+### Query Parameters Map
+
+Sometimes you have a load of query parameters, or they're generated dynamically, etc.
+In this case, you may want to supply a dictionary of query parameters, rather than specifying a load of method parameters.
+
+To facilitate this, you may decorate a single method parameter with `[QueryMap]`.
+The parameter type must be an `IDictionary` or `IDictionary<TKey, TValue>`.
+Arrays and null values are handled the same as for method parameters.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("search")]
+    // I've used IDictionary<string, object> here, but you can use whatever type parameters you like,
+    // or any type which implements IDictionary or IDictionary<TKey, TValue>
+    Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, object> filters);
+}
+
+var api = RestClient.For<ISomeApi>("http://someapibase.com");
+var filters = new Dictionary<string, object>()
+{
+    { "title", "bobby" },
+    { "tag", new[] { "c#", "programming" } }
+};
+
+// Requests http://someapibase.com/search?title=bobby&tag=c%23&tag=programming
+var searchResults = await api.SearchBlogPostsAsync(filters);
 ```
 
 
@@ -223,16 +286,16 @@ Exactly how this will be serialized depends on the type of parameters:
 
  - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://msdn.microsoft.com/en-us/library/system.net.http.streamcontent%28v=vs.118%29.aspx).
  - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://msdn.microsoft.com/en-us/library/system.net.http.stringcontent%28v=vs.118%29.aspx)).
- - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded (see below).
- - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see TODO REFERENCE).
+ - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
+ - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 
-### URL Encoded bodies
+### URL Encoded Bodies
 
 For APIs which take form posts (i.e. serialized as `application/x-www-form-urlencoded`), initialize the `[Body]` attribute with `BodySerializationMethod.UrlEncoded`.
 This parameter must implement `IDictionary` or `IDictionary<TKey, TValue>`.
 
-If any of the values implement `IEnumerable`, then they will be serilaized as an array of values.
+If any of the values implement `IEnumerable`, then they will be serialized as an array of values.
 
 For example:
 
@@ -253,6 +316,40 @@ var data = new Dictionary<string, object> {
 // Serialized as: v=1&tids=UA-1234-5&tids=UA-1234-6&cid=d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c&t=event
 await api.CollectAsync(data);
  ```
+
+
+Response Status Codes
+---------------------
+
+By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage.issuccessstatuscode%28v=vs.118%29.aspx)) will cause an `ApiException` to be thrown.
+
+This is usually what you want (you don't want to try and parse the result of a failed request), but sometimes you're expecting failure.
+
+In this case, you can apply `[AllowAnyStatusCode]` to you method, or indeed to the whole interface, to suppress this behaviour. If you do this, then you probably want to make your method return either a `HttpResponseMessage` or a `Response<T>` (see [Return Types](#return-types)) so you can examine the response code yourself.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("users/{userId}")]
+    [AllowAnyStatusCode]
+    Task<Response<User>> FetchUserThatMayNotExistAsync([Path] int userId);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com");
+
+var response = await api.FetchUserThatMayNotExistAsync(3);
+if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
+{
+    // User wasn't found
+}
+else
+{
+    var user = response.Content;
+    // ...
+}
+```
 
 
 Cancelling Requests
@@ -283,10 +380,12 @@ If you want to specify your own `JsonSerializerSettings`, you can do this using 
 var settings = new JsonSerializerSettings()
 {
     ContractResolver = new CamelCasePropertyNamesContractResolver(),
-    Converters = {new StringEnumConverter()}
+    Converters = { new StringEnumConverter() }
 };
 var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", settings);
 ```
+
+### Custom Serializers and Deserializers
 
 If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
 
@@ -299,7 +398,7 @@ public class XmlResponseDeserializer : IResponseDeserializer
 {
     public async Task<T> ReadAndDeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        // Consider caching generated serializers
+        // Consider caching generated XmlSerializers
         var serializer = new XmlSerializer(typeof(T));
 
         var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -314,7 +413,7 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
 {
     public string SerializeBody<T>(T body)
     {
-        // Consider caching generated serializers
+        // Consider caching generated XmlSerializers
         var serializer = new XmlSerializer(typeof(T));
 
         using (var stringWriter = new StringWriter())
@@ -369,7 +468,7 @@ public interface IGitHubApi
 
 ### Dynamic Headers
 
-If you need to, you can also have dynamic headers, but specifying the `[Header]` attribute on a method parameter:
+If you need to, you can also have dynamic headers, by specifying the `[Header]` attribute on a method parameter:
 
 ```csharp
 public interface IGitHubApi
@@ -384,7 +483,7 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
 var user = await api.GetUserAsync("octocat", "token OAUTH-TOKEN");
 ```
 
-If you've got a header which needs to be specified when the API is created, but also need to be specified for all methods, you can use the `RestClient.For<T>` overload which takes a HttpClient, and use its `DefaultRequestHeaders` property:
+If you've got a header which needs to be specified when the API is created, but also needs to be specified for all methods, you can use the `RestClient.For<T>` overload which takes a HttpClient, and use its `DefaultRequestHeaders` property:
 
 ```csharp
 public interface IGitHubApi
@@ -525,6 +624,8 @@ await CreateUserAsync(user, "");
 Customizing RestEase
 --------------------
 
+You've already seen how to [specify custom Serializers and Deserializers](#controlling-serialization-and-deserialization).
+
 RestEase has been written in a way which makes it very easy to customize exactly how it works.
 In order to describe this, I'm first going to have to outline its architecture.
 
@@ -578,7 +679,7 @@ If you don't want to do this, you'll need to mark RestEase as being a 'friend' a
 Add the following line to your `AssemblyInfo.cs`:
 
 ```
-[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]
+[assembly: InternalsVisibleTo(RestEase.RestClient.FactoryAssemblyName)]
 ```
 
 
@@ -609,9 +710,11 @@ public interface IReallyExcitingCrudApi<T, in TKey> where T : class
 
 Which can be used like this:
 
+```csharp
 // The "/users" part here is kind of important if you want it to work for more 
 // than one type (unless you have a different domain for each type)
 var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users"); 
+```
 
 
 Comparison to Refit
@@ -621,7 +724,7 @@ RestEase is very heavily inspired by [Paul Betts' Refit](https://github.com/paul
 Refit is a fantastic library, and in my opinion does a lot of things very right.
 It was the first C# REST client library that I actually enjoyed using.
 
-I write RestEase for two reasons: 1) there were a couple of things about Refit which I didn't like, and 2) I thought it would be fun.
+I wrote RestEase for two reasons: 1) there were a couple of things about Refit which I didn't like, and 2) I thought it would be fun.
 
 Here's a brief summary of pros/cons, compared to Refit:
 
@@ -635,9 +738,11 @@ Here's a brief summary of pros/cons, compared to Refit:
    - Can specify custom response deserializer
    - Can specify custom request body serializer
    - Can customize almost every aspect of setting up and creating the request (through implementing `IRequester`)
+ - Supports `[QueryMap]`
+ - Supports arrays of query parameters (and body parameters when serializing a body parameter as UrlEncoded)
  - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
 
-## Cons
+### Cons
 
  - Interfaces need to be public, or you need to add `[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]` to your `AssemblyInfo.cs`
  - No `IObservable` support
