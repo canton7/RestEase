@@ -296,6 +296,16 @@ namespace RestEaseUnitTests
             Task<T> FooAsync();
         }
 
+        public interface IHasEvents
+        {
+            event EventHandler Foo;
+        }
+
+        public interface IHasProperties
+        {
+            bool SomeProperty { get; }
+        }
+
         private readonly Mock<IRequester> requester;
         private readonly ImplementationBuilder builder;
 
@@ -963,6 +973,18 @@ namespace RestEaseUnitTests
             var result = implementation.FooAsync().Result;
 
             Assert.Equal(3, result);
+        }
+
+        [Fact]
+        public void Test()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasEvents>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfInterfaceHasProperties()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasProperties>(this.requester.Object));
         }
     }
 }

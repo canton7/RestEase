@@ -127,68 +127,9 @@ namespace RestEase.Implementation
                 this.AddStaticCtor(typeBuilder, classHeaders, classHeadersField);
             }
 
-            foreach (var methodInfo in interfaceType.GetMethods())
-            {
-                var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
-                if (requestAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
-
-                var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
-
-                var parameters = methodInfo.GetParameters();
-                var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
-
-                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name), methodInfo.Name);
-
-                var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
-                var methodIlGenerator = methodBuilder.GetILGenerator();
-
-                this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
-
-                // If there's a cancellationtoken, add that
-                if (parameterGrouping.CancellationToken.HasValue)
-                {
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameterGrouping.CancellationToken.Value.Index);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
-                }
-
-                // If there are any class headers, add them
-                if (classHeadersField != null)
-                {
-                    // requestInfo.ClassHeaders = classHeaders
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
-                }
-
-                // If there are any method headers, add them
-                var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
-                foreach (var methodHeader in methodHeaders)
-                {
-                    if (methodHeader.Name.Contains(':'))
-                        throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
-                    this.AddMethodHeader(methodIlGenerator, methodHeader);
-                }
-
-                // If we want to allow any status code, set that
-                var resolvedAllowAnyStatusAttribute = allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute;
-                if (resolvedAllowAnyStatusAttribute != null && resolvedAllowAnyStatusAttribute.AllowAnyStatusCode)
-                {
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
-                }
-
-                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name);
-
-                this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
-
-                // Finally, return
-                methodIlGenerator.Emit(OpCodes.Ret);
-
-                typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
-            }
+            this.HandleEvents(interfaceType);
+            this.HandleProperties(interfaceType);
+            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute);
 
             Type constructedType;
             try
@@ -251,6 +192,89 @@ namespace RestEase.Implementation
             // Finally, store the list in its static field
             staticCtorIlGenerator.Emit(OpCodes.Stsfld, classHeadersField);
             staticCtorIlGenerator.Emit(OpCodes.Ret);
+        }
+
+        private void HandleMethods(
+            TypeBuilder typeBuilder,
+            Type interfaceType,
+            FieldBuilder requesterField,
+            FieldInfo classHeadersField,
+            AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute)
+        {
+            foreach (var methodInfo in interfaceType.GetMethods())
+            {
+                var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
+                if (requestAttribute == null)
+                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
+
+                var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
+
+                var parameters = methodInfo.GetParameters();
+                var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
+
+                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name), methodInfo.Name);
+
+                var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+                var methodIlGenerator = methodBuilder.GetILGenerator();
+
+                this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
+
+                // If there's a cancellationtoken, add that
+                if (parameterGrouping.CancellationToken.HasValue)
+                {
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameterGrouping.CancellationToken.Value.Index);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
+                }
+
+                // If there are any class headers, add them
+                if (classHeadersField != null)
+                {
+                    // requestInfo.ClassHeaders = classHeaders
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
+                }
+
+                // If there are any method headers, add them
+                var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
+                foreach (var methodHeader in methodHeaders)
+                {
+                    if (methodHeader.Name.Contains(':'))
+                        throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
+                    this.AddMethodHeader(methodIlGenerator, methodHeader);
+                }
+
+                // If we want to allow any status code, set that
+                var resolvedAllowAnyStatusAttribute = allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute;
+                if (resolvedAllowAnyStatusAttribute != null && resolvedAllowAnyStatusAttribute.AllowAnyStatusCode)
+                {
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
+                }
+
+                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name);
+
+                this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
+
+                // Finally, return
+                methodIlGenerator.Emit(OpCodes.Ret);
+
+                typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+            }
+        }
+
+        private void HandleEvents(Type interfaceType)
+        {
+            if (interfaceType.GetEvents().Any())
+                throw new ImplementationCreationException("Interface must not have any events");
+        }
+
+        private void HandleProperties(Type interfaceType)
+        {
+            if (interfaceType.GetProperties().Any())
+                throw new ImplementationCreationException("Interface must not have any properties");
         }
 
         private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
