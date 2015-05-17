@@ -174,9 +174,12 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="name">Name of the header (passed to the HeaderAttribute)</param>
         /// <param name="value">Value of the header (value of the parameter)</param>
-        public void AddHeaderParameter(string name, string value)
+        public void AddHeaderParameter<T>(string name, T value)
         {
-            this._headerParams.Add(new KeyValuePair<string, string>(name, value));
+            string stringValue = null;
+            if (value != null)
+                stringValue = value.ToString();
+            this._headerParams.Add(new KeyValuePair<string, string>(name, stringValue));
         }
 
         /// <summary>

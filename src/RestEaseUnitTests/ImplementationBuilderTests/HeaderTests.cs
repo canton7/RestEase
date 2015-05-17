@@ -34,6 +34,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Header("Param Header 1")] string foo, [Header("Param Header 2")] string bar);
         }
 
+        public interface IHasParamHeaderOfNonStringType
+        {
+            [Get("foo")]
+            Task FooAsync([Header("Param Header")] int foo);
+        }
+
         public interface IHasParamHeaderWithValue
         {
             [Get("foo")]
@@ -168,6 +174,43 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal("Param Header 2", requestInfo.HeaderParams[1].Key);
             Assert.Equal("value 2", requestInfo.HeaderParams[1].Value);
+        }
+
+        [Fact]
+        public void HandlesNullParamHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasParamHeaders>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("value 1", null);
+
+            Assert.Equal(2, requestInfo.HeaderParams.Count);
+
+            Assert.Equal("Param Header 2", requestInfo.HeaderParams[1].Key);
+            Assert.Equal(null, requestInfo.HeaderParams[1].Value);
+        }
+
+        [Fact]
+        public void HandlesNonStringParamHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasParamHeaderOfNonStringType>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(3);
+
+            Assert.Equal(1, requestInfo.HeaderParams.Count);
+
+            Assert.Equal("Param Header", requestInfo.HeaderParams[0].Key);
+            Assert.Equal("3", requestInfo.HeaderParams[0].Value);
         }
 
         [Fact]

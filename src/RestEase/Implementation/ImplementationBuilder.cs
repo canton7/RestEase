@@ -395,7 +395,8 @@ namespace RestEase.Implementation
                     throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] for method {2} must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", headerParameter.Attribute.Name, headerParameter.Attribute.Value, methodName));
                 if (headerParameter.Attribute.Name.Contains(':'))
                     throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have a colon in its name", headerParameter.Attribute.Name, methodName));
-                this.AddParam(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, addHeaderParameterMethod);
+                var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
+                this.AddParam(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
             }
         }
 

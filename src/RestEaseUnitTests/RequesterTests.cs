@@ -508,7 +508,7 @@ namespace RestEaseUnitTests
             requestInfo.AddMethodHeader("User-Agent", "RestEase");
             requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
-            requestInfo.AddHeaderParameter("Something", null); // Remove
+            requestInfo.AddHeaderParameter<object>("Something", null); // Remove
             requestInfo.AddHeaderParameter("User-Agent", ""); // Replace with null
             requestInfo.AddHeaderParameter("X-API-Key", "Bar"); // Change value
             requestInfo.AddHeaderParameter("This-Is-New", "YesIAM"); // New value
@@ -541,7 +541,7 @@ namespace RestEaseUnitTests
             requestInfo.AddMethodHeader("User-Agent", "RestEase");
             requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
-            requestInfo.AddHeaderParameter("User-Agent", null);
+            requestInfo.AddHeaderParameter<object>("User-Agent", null);
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
