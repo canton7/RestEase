@@ -112,6 +112,20 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync();
         }
 
+        [Header("Name", "Value")]
+        public interface IHasDuplicateHeaderOnInterfaceAndProperty
+        {
+            [Header("Name")]
+            string SomeHeader { get; set; }
+        }
+
+        public interface IHasDuplicateHeaderOnMethodAndParameter
+        {
+            [Get("foo")]
+            [Header("Name", "Value")]
+            Task FooAsync([Header("Name")] string someHeader);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -290,6 +304,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal("X-API-Key", requestInfo.PropertyHeaders[0].Key);
             Assert.Equal("Foo Bar", requestInfo.PropertyHeaders[0].Value);
+        }
+
+        [Fact]
+        public void ThrowsIfDuplicateHeadersAppearsOnInterfaceAndProperty()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicateHeaderOnInterfaceAndProperty>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfDuplicateHeaderAppearsOnMethodAndParameter()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicateHeaderOnMethodAndParameter>(this.requester.Object));
         }
     }
 }

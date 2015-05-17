@@ -130,6 +130,12 @@ namespace RestEase.Implementation
 
             this.HandleEvents(interfaceType);
             var propertyHeaders = this.HandleProperties(typeBuilder, interfaceType);
+
+            // Time out for a quick sanity check
+            var firstDuplicateInterfaceHeader = classHeaders.Select(x => x.Name).Intersect(propertyHeaders.Select(x => x.Key)).FirstOrDefault();
+            if (firstDuplicateInterfaceHeader != null)
+                throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] exists both on the interface and on a property. You can specify it on one or the other, but not both", firstDuplicateInterfaceHeader));
+
             this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, propertyHeaders);
 
             Type constructedType;
@@ -255,6 +261,11 @@ namespace RestEase.Implementation
 
                 // If there are any method headers, add them
                 var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
+                // ... after a quick sanity check
+                var firstDuplicateHeader = methodHeaders.Select(x => x.Name).Intersect(parameterGrouping.HeaderParameters.Select(x => x.Attribute.Name)).FirstOrDefault();
+                if (firstDuplicateHeader != null)
+                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] exists both on method {1} and on one of its parameters. You can specify it on one or the other, but not both", firstDuplicateHeader, methodInfo.Name));
+
                 foreach (var methodHeader in methodHeaders)
                 {
                     if (methodHeader.Name.Contains(':'))
