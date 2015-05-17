@@ -436,120 +436,78 @@ var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", new XmlResponse
 Headers
 -------
 
-Specifying headers is actually a surprisingly large topic, and is broken down into several levels: interface, method, and parameter.
+Specifying headers is actually a surprisingly large topic, and can be done in several ways, depending on the precise behaviour you want.
 
- - Interface headers are constant, and apply to all method in that interface.
- - Method headers are constant, and apply to just that method, and override the interface headers.
- - Parameter headers are dynamic: that is, you can specify their value per-request. They apply to a single method, and override the method headers.
+### Constant Interface Headers
 
-### Static Headers
+If you want to have a header that applies to every single request, and whose value is fixed, use a constant interface headers.
+These are specified as `[Header("Name", "Value")]` attributes on the interface.
 
-You can set one or more static request headers for a request by applying a `[Header]` attribute to the method:
-
-```csharp
-public interface IGitHubApi
-{
-   [Get("/users/{user}")]
-   [Header("User-Agent", "RestEase")]
-   Task<User> GetUserAsync([Path] string user);
-}
-```
-
-Likewise, you can also apply these to all methods, by defining them on the interface itself:
+For example:
 
 ```csharp
 [Header("User-Agent", "RestEase")]
+[Header("Cache-Control", "no-cache")]
 public interface IGitHubApi
 {
-   [Get("/users/{user}")]
-   Task<User> GetUserAsync([Path] string user);
-
-   [Post("/users/new")]
-   Task CreateUserAsync[Body] User user);
+    [Get("users")]
+    Task<List<User>> GetUsersAsync();
 }
 ```
 
-### Dynamic Headers
+### Variable Interface Headers
 
-If you need to, you can also have dynamic headers, by specifying the `[Header]` attribute on a method parameter:
+If you want to have a header that applies to every single request, and whose value is variable, then use a variable interface header.
+These are specifed using properties, using a `[Header("Name")]` attribute on that property.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Header("X-API-Key")]
+    string ApiKey { get; set; }
+
+    [Get("users/{userId}")]
+    Task<User> FetchUserId([Path] string userId);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com")
+api.ApiKey = "The-API-KEY-value";
+// ...
+```
+
+### Constant Method Headers
+
+If you want to have a header which only applies to a particular method, and whose value never changes, then use a constant method header.
+Like constant interface headers, these are defined in their entirety using an attribute.
+However, instead of applying the attribute to the interface, you apply it to the header.
 
 ```csharp
 public interface IGitHubApi
 {
-   [Get("/users/{user}")]
-   Task<User> GetUserAsync([Path] string user, [Header("Authorization")] string authorization);
+    [Header("User-Agent", "RestEase")]
+    [Header("Cache-Control", "no-cache")]
+    [Get("users")]
+    Task<List<User>> GetUsersAsync();
+
+    // This method doesn't have any headers applied
+    [Get("users/{userId}")]
+    Task<User> GetUserAsync([Path] string userId);
 }
-
-IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
-
-// Has the header 'Authorization: token OAUTH-TOKEN'
-var user = await api.GetUserAsync("octocat", "token OAUTH-TOKEN");
 ```
 
-### Per-Instance Headers
+### Variable Method Headers
 
-If you've got a header which needs to be specified when the API is created, but also needs to be specified for all methods, you can use the `RestClient.For<T>` overload which takes a HttpClient, and use its `DefaultRequestHeaders` property:
-
-```csharp
-public interface IGitHubApi
-{
-   [Get("/users/{user}")]
-   Task<User> GetUserAsync([Path] string user);
-}
-
-var httpClient = new HttpClient();
-httpClient.BaseAddress = new Uri("http://api.github.com"),
-httpClient.DefaultRequestHeaders.Add("Authorization", "token OAUTH-TOKEN");
-
-IGitHubApi api = RestClient.For<IGitHubApi>(httpClient);
-var user = await api.GetUserAsync("octocat");
-```
-
-Alternatively, there's a `RestClient.For<T>` overload which lets you specify a delegate which will modify every outgoing request:
+Finally, you can have headers which only apply to a single method and whose values are variable.
+These consist of a `[Header("Name")]` attribute applied to a method parameter.
 
 ```csharp
-public interface IGitHubApi
+public interface ISomeApi
 {
-   [Get("/users/{user}")]
-   Task<User> GetUserAsync([Path] string user);
+    [Get("users")]
+    Task<List<User>> GetUsersAsync([Header("Authorization")] string authorization);
 }
-
-IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", (request, cancellationToken) =>
-   {
-      request.Headers.Add("Authorization", "token OAUTH-TOKEN");
-      return Task.FromResult(0); // Return a completed task
-   });
-var user = await api.GetUserAsync("octocat");
-```
-
-This technique lets you do other fancy stuff per-request, as well.
-For example, if you need to refresh an oAuth access token occasionally (using the [ADAL](https://msdn.microsoft.com/en-us/library/azure/jj573266.aspx) library as an example):
-
-```csharp
-public interface IMyRestService
-{
-    [Get("/getPublicInfo")]
-    Task<Foobar> SomePublicMethodAsync();
-
-    [Get("/secretStuff")]
-    [Header("Authorization", "Bearer")]
-    Task<Location> GetLocationOfRebelBaseAsync();
-}
-
-AuthenticationContext context = new AuthenticationContext(...);
-IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (request, cancellationToken) =>
-   {
-      // See if the request has an authorize header
-      var auth = request.Headers.Authorization;
-      if (auth != null)
-      {
-          // The AquireTokenAsync call will prompt with a UI if necessary
-          // Or otherwise silently use a refresh token to return a valid access token 
-          var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
-          request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
-      }
-   });
-
 ```
 
 ### Redefining Headers
@@ -558,11 +516,8 @@ You've probably noticed that you can specify the same header in multiple places:
 
 Redefining a header will replace it, in the following order of precidence:
 
-TODO: Add DefaultRequestHeaders and RequestInterceptor in here
-
- - Attributes on the interface *(lowest priority)*
- - Attributes on the method
- - Attributes on method parameters *(highest priority)*
+ - Static and Dynamic interface headers *(lowest priority)*
+ - Static and Dynamic method headers *(highest priority)*
 
 ```csharp
 [Header("X-Emoji", ":rocket:")]
@@ -627,6 +582,37 @@ await CreateUserAsync(user, null);
 await CreateUserAsync(user, ""); 
 ```
 
+### Advanced Techniques
+
+If you really want to go overboard, you can pass a delegate to `RestClient.For<T>` which allows you to intercept requests and inspect/modify them.
+For example, if you need to refresh an oAuth access token occasionally (using the [ADAL](https://msdn.microsoft.com/en-us/library/azure/jj573266.aspx) library as an example):
+
+```csharp
+public interface IMyRestService
+{
+    [Get("/getPublicInfo")]
+    Task<Foobar> SomePublicMethodAsync();
+
+    [Get("/secretStuff")]
+    [Header("Authorization", "Bearer")]
+    Task<Location> GetLocationOfRebelBaseAsync();
+}
+
+AuthenticationContext context = new AuthenticationContext(...);
+IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (request, cancellationToken) =>
+   {
+      // See if the request has an authorize header
+      var auth = request.Headers.Authorization;
+      if (auth != null)
+      {
+          // The AquireTokenAsync call will prompt with a UI if necessary
+          // Or otherwise silently use a refresh token to return a valid access token 
+          var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
+          request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
+      }
+   });
+
+```
 
 Customizing RestEase
 --------------------
