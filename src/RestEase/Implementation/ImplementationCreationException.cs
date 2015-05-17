@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RestEase
+namespace RestEase.Implementation
 {
     /// <summary>
     /// Exception thrown if an interface implementation cannot be created

@@ -72,7 +72,7 @@
     <Compile Include="Implementation\RequestInfo.cs" />
     <Compile Include="RequestModifier.cs" />
     <Compile Include="Response.cs" />
-    <Compile Include="ImplementationCreationException.cs" />
+    <Compile Include="Implementation\ImplementationCreationException.cs" />
     <Compile Include="RestClient.cs" />
   </ItemGroup>
   <ItemGroup>
