@@ -325,7 +325,7 @@ namespace RestEase.Implementation
                 setterIlGenerator.Emit(OpCodes.Ret);
                 propertyBuilder.SetSetMethod(setter);
 
-                propertyHeaderFields.Add(new KeyValuePair<string,FieldBuilder>(headerAttribute.Name, backingField));
+                propertyHeaderFields.Add(new KeyValuePair<string, FieldBuilder>(headerAttribute.Name, backingField));
             }
 
             return propertyHeaderFields;

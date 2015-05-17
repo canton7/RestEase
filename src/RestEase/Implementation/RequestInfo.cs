@@ -64,6 +64,9 @@ namespace RestEase.Implementation
 
         private readonly List<KeyValuePair<string, string>> _propertyHeaders;
 
+        /// <summary>
+        /// Gets the headers which were applied using properties
+        /// </summary>
         public IReadOnlyList<KeyValuePair<string, string>> PropertyHeaders
         {
             get { return this._propertyHeaders; }
@@ -138,7 +141,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Add a path parameter: a [PathParam] method parameter which is used to substitude a placeholder in the path
+        /// Add a path parameter: a [PathParam] method parameter which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
         /// <param name="name">Name of the name/value pair</param>
@@ -151,6 +154,12 @@ namespace RestEase.Implementation
             this._pathParams.Add(new KeyValuePair<string, string>(name, stringValue));
         }
 
+        /// <summary>
+        /// Add a property header
+        /// </summary>
+        /// <typeparam name="T">Type of value</typeparam>
+        /// <param name="name">Name of the header</param>
+        /// <param name="value">Value of the header</param>
         public void AddPropertyHeader<T>(string name, T value)
         {
             string stringValue = null;
@@ -172,6 +181,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Add a header which is defined as a [Header("foo")] parameter to the method
         /// </summary>
+        /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="name">Name of the header (passed to the HeaderAttribute)</param>
         /// <param name="value">Value of the header (value of the parameter)</param>
         public void AddHeaderParameter<T>(string name, T value)
