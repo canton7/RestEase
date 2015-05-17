@@ -62,6 +62,13 @@ namespace RestEase.Implementation
         /// </summary>
         public IReadOnlyList<KeyValuePair<string, string>> ClassHeaders { get; set; }
 
+        private readonly List<KeyValuePair<string, string>> _propertyHeaders;
+
+        public IReadOnlyList<KeyValuePair<string, string>> PropertyHeaders
+        {
+            get { return this._propertyHeaders; }
+        }
+
         private readonly List<KeyValuePair<string, string>> _methodHeaders;
 
         /// <summary>
@@ -101,6 +108,7 @@ namespace RestEase.Implementation
             this._queryParams = new List<KeyValuePair<string, string>>();
             this._pathParams = new List<KeyValuePair<string, string>>();
             this._methodHeaders = new List<KeyValuePair<string, string>>();
+            this._propertyHeaders = new List<KeyValuePair<string, string>>();
             this._headerParams = new List<KeyValuePair<string, string>>();
         }
 
@@ -141,6 +149,14 @@ namespace RestEase.Implementation
             if (value != null)
                 stringValue = value.ToString();
             this._pathParams.Add(new KeyValuePair<string, string>(name, stringValue));
+        }
+
+        public void AddPropertyHeader<T>(string name, T value)
+        {
+            string stringValue = null;
+            if (value != null)
+                stringValue = value.ToString();
+            this._propertyHeaders.Add(new KeyValuePair<string, string>(name, stringValue));
         }
 
         /// <summary>

@@ -33,6 +33,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo queryMapSetter = typeof(RequestInfo).GetProperty("QueryMap").SetMethod;
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").SetMethod;
+        private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetMethod("AddPropertyHeader");
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetMethod("AddMethodHeader");
         private static readonly MethodInfo addHeaderParameterMethod = typeof(RequestInfo).GetMethod("AddHeaderParameter");
         private static readonly MethodInfo setBodyParameterInfoMethod = typeof(RequestInfo).GetMethod("SetBodyParameterInfo");
@@ -128,8 +129,8 @@ namespace RestEase.Implementation
             }
 
             this.HandleEvents(interfaceType);
-            this.HandleProperties(interfaceType);
-            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute);
+            var propertyHeaders = this.HandleProperties(typeBuilder, interfaceType);
+            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, propertyHeaders);
 
             Type constructedType;
             try
@@ -199,13 +200,18 @@ namespace RestEase.Implementation
             Type interfaceType,
             FieldBuilder requesterField,
             FieldInfo classHeadersField,
-            AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute)
+            AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
+            List<KeyValuePair<string, FieldBuilder>> propertyHeaders)
         {
             foreach (var methodInfo in interfaceType.GetMethods())
             {
+                // Exclude property getter / setters, etc
+                if (methodInfo.IsSpecialName)
+                    continue;
+
                 var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
                 if (requestAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable attribute on it", methodInfo.Name));
+                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
 
                 var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
@@ -234,6 +240,17 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Dup);
                     methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
                     methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
+                }
+
+                // If there are any property headers, add them
+                foreach (var propertyHeader in propertyHeaders)
+                {
+                    var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.Value.FieldType);
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Key);
+                    methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                    methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.Value);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
                 }
 
                 // If there are any method headers, add them
@@ -271,10 +288,47 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException("Interface must not have any events");
         }
 
-        private void HandleProperties(Type interfaceType)
+        private List<KeyValuePair<string, FieldBuilder>> HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
         {
-            if (interfaceType.GetProperties().Any())
-                throw new ImplementationCreationException("Interface must not have any properties");
+            var propertyHeaderFields = new List<KeyValuePair<string, FieldBuilder>>();
+            MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
+
+            foreach (var property in interfaceType.GetProperties())
+            {
+                var headerAttribute = property.GetCustomAttribute<HeaderAttribute>();
+                if (headerAttribute == null)
+                    throw new ImplementationCreationException(String.Format("Property {0} does not have a [Header(\"Name\")] attribute", property.Name));
+
+                if (headerAttribute.Value != null)
+                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", headerAttribute.Name, headerAttribute.Value, property.Name));
+                if (headerAttribute.Name.Contains(':'))
+                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on property {1} must not have a colon in its name", headerAttribute.Name, property.Name));
+
+                if (!property.CanRead || !property.CanWrite)
+                    throw new ImplementationCreationException(String.Format("Property {0} must have both a getter and a setter", property.Name));
+
+                var propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.None, property.PropertyType, null);
+                var getter = typeBuilder.DefineMethod(property.GetMethod.Name, attributes, property.PropertyType, Type.EmptyTypes);
+                var setter = typeBuilder.DefineMethod(property.SetMethod.Name, attributes, null, new Type[] { property.PropertyType });
+                var backingField = typeBuilder.DefineField("bk_" + property.Name, property.PropertyType, FieldAttributes.Private);
+
+                var getterIlGenerator = getter.GetILGenerator();
+                getterIlGenerator.Emit(OpCodes.Ldarg_0);
+                getterIlGenerator.Emit(OpCodes.Ldfld, backingField);
+                getterIlGenerator.Emit(OpCodes.Ret);
+                propertyBuilder.SetGetMethod(getter);
+
+                var setterIlGenerator = setter.GetILGenerator();
+                setterIlGenerator.Emit(OpCodes.Ldarg_0);
+                setterIlGenerator.Emit(OpCodes.Ldarg_1);
+                setterIlGenerator.Emit(OpCodes.Stfld, backingField);
+                setterIlGenerator.Emit(OpCodes.Ret);
+                propertyBuilder.SetSetMethod(setter);
+
+                propertyHeaderFields.Add(new KeyValuePair<string,FieldBuilder>(headerAttribute.Name, backingField));
+            }
+
+            return propertyHeaderFields;
         }
 
         private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)

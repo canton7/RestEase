@@ -193,9 +193,10 @@ namespace RestEase.Implementation
         {
             // Apply from class -> method -> params, so we get the proper hierarchy
             if (requestInfo.ClassHeaders != null)
-                this.AppleHeadersSet(requestMessage, requestInfo.ClassHeaders);
-            this.AppleHeadersSet(requestMessage, requestInfo.MethodHeaders);
-            this.AppleHeadersSet(requestMessage, requestInfo.HeaderParams);
+                this.ApplyHeadersSet(requestMessage, requestInfo.ClassHeaders);
+            this.ApplyHeadersSet(requestMessage, requestInfo.PropertyHeaders);
+            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders);
+            this.ApplyHeadersSet(requestMessage, requestInfo.HeaderParams);
         }
 
         /// <summary>
@@ -203,7 +204,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         /// <param name="headers">Headers to add</param>
-        protected virtual void AppleHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers)
+        protected virtual void ApplyHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers)
         {
             var headersGroups = headers.GroupBy(x => x.Key);
 

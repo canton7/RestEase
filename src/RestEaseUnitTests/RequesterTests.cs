@@ -418,6 +418,19 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
+        public void AppliesHeadersFromProperties()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.AddPropertyHeader("User-Agent", "RestEase");
+            requestInfo.AddPropertyHeader("X-API-Key", "Foo");
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("User-Agent: RestEase\r\nX-API-Key: Foo\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
         public void AppliesHeadersFromMethod()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
@@ -444,7 +457,7 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void HeadersFromMethodOverrideHeadersFromClass()
+        public void HeadersFromPropertiesOverrideHeadersFromClass()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
@@ -455,8 +468,28 @@ namespace RestEaseUnitTests
                 new KeyValuePair<string, string>("X-API-Key", "Foo"),
             };
 
+            requestInfo.AddPropertyHeader<string>("Something", null); // Remove
+            requestInfo.AddPropertyHeader("User-Agent", String.Empty); // Replace with null
+            requestInfo.AddPropertyHeader("X-API-Key", "Bar"); // Change value
+            requestInfo.AddPropertyHeader("This-Is-New", "YesIAM"); // New value
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("This-Will-Stay: YesIWill\r\nThis-Is-New: YesIAM\r\nUser-Agent: \r\nX-API-Key: Bar\r\n", message.Headers.ToString());
+        }
+
+        [Fact]
+        public void HeadersFromMethodOverrideHeadersFromProperties()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.AddPropertyHeader("This-Will-Stay", "YesIWill");
+            requestInfo.AddPropertyHeader("Something", "SomethingElse");
+            requestInfo.AddPropertyHeader("User-Agent", "RestEase");
+            requestInfo.AddPropertyHeader("X-API-Key", "Foo");
+
             requestInfo.AddMethodHeader("Something", null); // Remove
-            requestInfo.AddMethodHeader("User-Agent", String.Empty); // Replace with null
+            requestInfo.AddMethodHeader("User-Agent", ""); // Replace with null
             requestInfo.AddMethodHeader("X-API-Key", "Bar"); // Change value
             requestInfo.AddMethodHeader("This-Is-New", "YesIAM"); // New value
 
@@ -467,7 +500,7 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void HeadersFromParamsOVerrideHeadersFromMethod()
+        public void HeadersFromParamsOverrideHeadersFromMethod()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("This-Will-Stay", "YesIWill");

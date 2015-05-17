@@ -72,6 +72,39 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             [Get("foo")]
             Task FooAsync([Header("Foo", "Bar")] string foo);
         }
+        
+        public interface IHasPropertyHeaderWithValue
+        {
+            [Header("Name", "Value")]
+            string Header { get; set; }
+        }
+
+        public interface IHasPropertyHeaderWithColon
+        {
+            [Header("Name: Value")]
+            string Header { get; set; }
+        }
+
+        public interface IHasPropertyHeaderWithGetterOnly
+        {
+            [Header("Name")]
+            string Header { get; }
+        }
+
+        public interface IHasPropertyHeaderWithSetterOnly
+        {
+            [Header("Name")]
+            string Header { set; }
+        }
+
+        public interface IHasPropertyHeader
+        {
+            [Header("X-API-Key")]
+            string ApiKey { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
@@ -171,6 +204,49 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public void ThrowsIfHeaderParamHasValue()
         {
             Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasHeaderParamWithValue>(this.requester.Object)); ;
+        }
+
+        [Fact]
+        public void ThrowsIfPropertyHeaderHasValue()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPropertyHeaderWithValue>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfPropertyHeaderHasColon()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPropertyHeaderWithColon>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfPropertyHeaderOnlyHasGetter()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPropertyHeaderWithGetterOnly>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfPropertyHeaderOnlyHasSetter()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPropertyHeaderWithSetterOnly>(this.requester.Object));
+        }
+
+        [Fact]
+        public void HandlesPropertyHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasPropertyHeader>(this.requester.Object);
+            implementation.ApiKey = "Foo Bar";
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
+
+            Assert.Equal("X-API-Key", requestInfo.PropertyHeaders[0].Key);
+            Assert.Equal("Foo Bar", requestInfo.PropertyHeaders[0].Value);
         }
     }
 }

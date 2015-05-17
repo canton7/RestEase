@@ -52,6 +52,11 @@ namespace RestEase.Implementation
         IReadOnlyList<KeyValuePair<string, string>> ClassHeaders { get; }
 
         /// <summary>
+        /// Gets the headers which were applied using properties
+        /// </summary>
+        IReadOnlyList<KeyValuePair<string, string>> PropertyHeaders { get; }
+
+        /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
         IReadOnlyList<KeyValuePair<string, string>> MethodHeaders { get; }
