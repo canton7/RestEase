@@ -291,5 +291,19 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal("X-API-Key", requestInfo.PropertyHeaders[0].Key);
             Assert.Equal("Foo Bar", requestInfo.PropertyHeaders[0].Value);
         }
+
+        [Fact]
+        public void PropertyHeadersBehaveAsReadHeaders()
+        {
+            var implementation = this.builder.CreateImplementation<IHasPropertyHeader>(this.requester.Object);
+
+            Assert.Null(implementation.ApiKey);
+
+            implementation.ApiKey = "test";
+            Assert.Equal("test", implementation.ApiKey);
+
+            implementation.ApiKey = null;
+            Assert.Null(implementation.ApiKey);
+        }
     }
 }
