@@ -54,7 +54,7 @@ namespace RestEase.Implementation
         };
 
         private readonly ModuleBuilder moduleBuilder;
-        private readonly ConcurrentDictionary<Type, Func<IRequester, object>> creatorCache = new ConcurrentDictionary<Type, Func<IRequester, object>>();
+        private readonly ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>> creatorCache = new ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>>();
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ImplementationBuilder"/> class
@@ -78,9 +78,12 @@ namespace RestEase.Implementation
             if (requester == null)
                 throw new ArgumentNullException("requester");
 
-            var creator = this.creatorCache.GetOrAdd(typeof(T), key =>
+            var creator = this.creatorCache.GetOrAdd(typeof(T).TypeHandle, key =>
             {
-                var implementationType = this.BuildImplementationImpl(key);
+                // We could use 'typeof(T)' instead of Type.GetTypeFromHandle(key) here, but that would mean that
+                // this delegate becomes a closure, leading to slightly more runtime cost. 'typeof(T)' just calls
+                // Type.GetTypeFromHandle anyway...
+                var implementationType = this.BuildImplementationImpl(Type.GetTypeFromHandle(key));
                 return this.BuildCreator(implementationType);
             });
 
