@@ -457,7 +457,7 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void HeadersFromPropertiesOverrideHeadersFromClass()
+        public void HeadersFromPropertiesCombineWithHeadersFromClass()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
@@ -468,15 +468,19 @@ namespace RestEaseUnitTests
                 new KeyValuePair<string, string>("X-API-Key", "Foo"),
             };
 
-            requestInfo.AddPropertyHeader<string>("Something", null); // Remove
-            requestInfo.AddPropertyHeader("User-Agent", String.Empty); // Replace with null
-            requestInfo.AddPropertyHeader("X-API-Key", "Bar"); // Change value
-            requestInfo.AddPropertyHeader("This-Is-New", "YesIAM"); // New value
+            requestInfo.AddPropertyHeader<string>("Something", null);
+            requestInfo.AddPropertyHeader("User-Agent", String.Empty);
+            requestInfo.AddPropertyHeader("X-API-Key", "Bar");
+            requestInfo.AddPropertyHeader("This-Is-New", "YesIAm");
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
 
-            Assert.Equal("This-Will-Stay: YesIWill\r\nThis-Is-New: YesIAM\r\nUser-Agent: \r\nX-API-Key: Bar\r\n", message.Headers.ToString());
+            Assert.Equal(new[] { "YesIWill" }, message.Headers.GetValues("This-Will-Stay"));
+            Assert.Equal(new[] { "SomethingElse" }, message.Headers.GetValues("Something"));
+            Assert.Equal(new[] { "RestEase", "" }, message.Headers.GetValues("User-Agent"));
+            Assert.Equal(new[] { "Foo", "Bar" }, message.Headers.GetValues("X-API-Key"));
+            Assert.Equal(new[] { "YesIAm" }, message.Headers.GetValues("This-Is-New"));
         }
 
         [Fact]
@@ -500,7 +504,7 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void HeadersFromParamsOverrideHeadersFromMethod()
+        public void HeadersFromParamsCombineWithHeadersFromMethod()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("This-Will-Stay", "YesIWill");
@@ -508,15 +512,19 @@ namespace RestEaseUnitTests
             requestInfo.AddMethodHeader("User-Agent", "RestEase");
             requestInfo.AddMethodHeader("X-API-Key", "Foo");
 
-            requestInfo.AddHeaderParameter<object>("Something", null); // Remove
-            requestInfo.AddHeaderParameter("User-Agent", ""); // Replace with null
-            requestInfo.AddHeaderParameter("X-API-Key", "Bar"); // Change value
-            requestInfo.AddHeaderParameter("This-Is-New", "YesIAM"); // New value
+            requestInfo.AddHeaderParameter<string>("Something", null);
+            requestInfo.AddHeaderParameter("User-Agent", "");
+            requestInfo.AddHeaderParameter("X-API-Key", "Bar");
+            requestInfo.AddHeaderParameter("This-Is-New", "YesIAm");
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
 
-            Assert.Equal("This-Will-Stay: YesIWill\r\nThis-Is-New: YesIAM\r\nUser-Agent: \r\nX-API-Key: Bar\r\n", message.Headers.ToString());
+            Assert.Equal(new[] { "YesIWill" }, message.Headers.GetValues("This-Will-Stay"));
+            Assert.Equal(new[] { "SomethingElse" }, message.Headers.GetValues("Something"));
+            Assert.Equal(new[] { "RestEase", "" }, message.Headers.GetValues("User-Agent"));
+            Assert.Equal(new[] { "Foo", "Bar" }, message.Headers.GetValues("X-API-Key"));
+            Assert.Equal(new[] { "YesIAm" }, message.Headers.GetValues("This-Is-New"));
         }
 
         [Fact]
@@ -537,9 +545,12 @@ namespace RestEaseUnitTests
         public void SingleOverrideReplacesMultipleHeaders()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddMethodHeader("User-Agent", "SomethingElse");
-            requestInfo.AddMethodHeader("User-Agent", "RestEase");
-            requestInfo.AddMethodHeader("X-API-Key", "Foo");
+            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            {
+                new KeyValuePair<string, string>("User-Agent", "SomethingElse"),
+                new KeyValuePair<string, string>("User-Agent", "RestEase"),
+                new KeyValuePair<string, string>("X-API-Key", "Foo"),
+            };
 
             requestInfo.AddHeaderParameter<object>("User-Agent", null);
 

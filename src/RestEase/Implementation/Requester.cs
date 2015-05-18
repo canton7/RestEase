@@ -191,12 +191,10 @@ namespace RestEase.Implementation
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         protected virtual void ApplyHeaders(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
-            // Apply from class -> method -> params, so we get the proper hierarchy
-            if (requestInfo.ClassHeaders != null)
-                this.ApplyHeadersSet(requestMessage, requestInfo.ClassHeaders);
-            this.ApplyHeadersSet(requestMessage, requestInfo.PropertyHeaders);
-            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders);
-            this.ApplyHeadersSet(requestMessage, requestInfo.HeaderParams);
+            // Apply from class -> method (combining static/dynamic), so we get the proper hierarchy
+            var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
+            this.ApplyHeadersSet(requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders));
+            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams));
         }
 
         /// <summary>
@@ -214,18 +212,19 @@ namespace RestEase.Implementation
                 if (requestMessage.Headers.Any(x => x.Key == headersGroup.Key))
                     requestMessage.Headers.Remove(headersGroup.Key);
 
-                // Only null values = "remove all instances of this header only"
-                if (headersGroup.All(x => x.Value == null))
+                // Null values are used to remove instances of a header, but should not be added
+                var headersToAdd = headersGroup.Select(x => x.Value).Where(x => x != null).ToArray();
+                if (!headersToAdd.Any())
                     continue;
 
-                bool added = requestMessage.Headers.TryAddWithoutValidation(headersGroup.Key, headersGroup.Select(x => x.Value));
+                bool added = requestMessage.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                 
                 // If we failed, it's probably a content header. Try again there
                 if (!added && requestMessage.Content != null)
                 {
                     if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
                         requestMessage.Content.Headers.Remove(headersGroup.Key);
-                    added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersGroup.Select(x => x.Value));
+                    added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                 }
 
                 if (!added)
