@@ -34,7 +34,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
   1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
   2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
-12. [Controlling Requests](#controlling-requests)
+12. [Controlling the Requests](#controlling-the-requests)
   1. [`RequestModifier`](#requestmodifier)
   2. [Custom `HttpClient`](#custom-httpclient)
 13. [Customizing RestEase](#customizing-restease)
@@ -47,6 +47,8 @@ Installation
 ------------
 
 [RestEase is available on NuGet](https://www.nuget.org/packages/RestEase).
+
+**NOTE: Until this library hits version 1.0, small backwards-incompatible changes may be made.**
 
 Either open the package console and type:
 
