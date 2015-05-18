@@ -806,6 +806,29 @@ api.Authorization = new AuthenticationHeaderValue("Basic", value);
 await api.DoSomethingAsync();
 ```
 
+### I need to request an absolute path
+
+Sometimes your API responses will contain absolute URLs, for example a "next page" link.
+Therefore you'll want a way to request a resource using an absolute URL which overrides the base URL you specified.
+
+Thankfully this is easy: if you give an absolute URL to e.g. `[Get("http://api.example.com/foo")]`, then the base URL will be ignored.
+
+```csharp
+public interface ISomeApi
+{
+    [Get("/users")]
+    Task<UsersResponse> FetchUsersAsync();
+
+    [Get("{url}")]
+    Task<UsersResponse> FetchUsersByUrlAsync([Path] string url);
+}
+
+ISomeApi api = RestClient.For<ISomeApi("http://api.example.com");
+
+var firstPage = await api.FetchUsersAsync();
+// Actually put decent logic here...
+var secondPage = await api.FetchUsersByUrlAsync(firstPage.NextPage);
+```
 
 Comparison to Refit
 -------------------
