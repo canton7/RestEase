@@ -186,7 +186,7 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query("filter")] string filter1, [Query("filter")] string filter2);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://someapibase.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://somenedpoint.com/search?filter=foo&filter=bar
 await api.SearchAsync("foo", "bar");
@@ -203,7 +203,7 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query("filter")] IEnumerable<string> filters);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://someapibase.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://somenedpint.com/search?filter=foo&filter=bar&filter=baz
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
@@ -229,14 +229,14 @@ public interface ISomeApi
     Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, object> filters);
 }
 
-var api = RestClient.For<ISomeApi>("http://someapibase.com");
+var api = RestClient.For<ISomeApi>("http://api.example.com");
 var filters = new Dictionary<string, object>()
 {
     { "title", "bobby" },
     { "tag", new[] { "c#", "programming" } }
 };
 
-// Requests http://someapibase.com/search?title=bobby&tag=c%23&tag=programming
+// Requests http://api.example.com/search?title=bobby&tag=c%23&tag=programming
 var searchResults = await api.SearchBlogPostsAsync(filters);
 ```
 
@@ -344,7 +344,7 @@ public interface ISomeApi
     Task<Response<User>> FetchUserThatMayNotExistAsync([Path] int userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com");
 
 var response = await api.FetchUserThatMayNotExistAsync(3);
 if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -389,7 +389,7 @@ var settings = new JsonSerializerSettings()
     ContractResolver = new CamelCasePropertyNamesContractResolver(),
     Converters = { new StringEnumConverter() }
 };
-var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", settings);
+var api = RestClient.For<ISomeApi>("http://api.example.com.com", settings);
 ```
 
 
@@ -432,7 +432,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com")
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com")
 api.ApiKey = "The-API-KEY-value";
 // ...
 ```
@@ -449,7 +449,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com")
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com")
 
 // "X-API-Key: None"
 var user = await api.FetchUserAsync("bob");
@@ -532,7 +532,7 @@ public interface ISomeApi
     );
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com");
 
 api.ParameterOnlyHeader = "ParameterValue";
 api.InterfaceAndParameterHeader = "ParameterValue";
@@ -598,7 +598,7 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
 
 // ...
 
-var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
+var api = RestClient.For<ISomeApi>("http://api.example.com.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
 ```
 
 
@@ -678,7 +678,7 @@ public class CustomHttpClientHandler : WebRequestHandler
 
 var httpClient = new HttpClient(new CustomHttpClientHandler())
 {
-    BaseAddress = new Uri("https://some-secure-api-base.com"),
+    BaseAddress = new Uri("https://secure-api.example.com"),
     Timeout = TimeSpan.FromSeconds(3), // Very slow to respond, this server
 };
 
