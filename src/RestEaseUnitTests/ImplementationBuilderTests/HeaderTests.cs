@@ -82,7 +82,25 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasPropertyHeaderWithValue
         {
             [Header("Name", "Value")]
+            int Header { get; set; }
+        }
+
+        public interface IHasNullablePropertyHeaderWithValue
+        {
+            [Header("Name", "Value")]
+            int? Header { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasObjectPropertyHeaderWithValue
+        {
+            [Header("Name", "Value")]
             string Header { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
         }
 
         public interface IHasPropertyHeaderWithColon
@@ -105,7 +123,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
         public interface IHasPropertyHeader
         {
-            [Header("X-API-Key")]
+            [Header("X-API-Key", "IgnoredDefault")]
             string ApiKey { get; set; }
 
             [Get("foo")]
@@ -250,9 +268,43 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         [Fact]
-        public void ThrowsIfPropertyHeaderHasValue()
+        public void ThrowsIfPropertyHeaderIsValueTypeAndHasValue()
         {
             Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPropertyHeaderWithValue>(this.requester.Object));
+        }
+
+        [Fact]
+        public void UsesSpecifiedDefaultForNullableProperty()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNullablePropertyHeaderWithValue>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
+            Assert.Equal("Name", requestInfo.PropertyHeaders[0].Key);
+            Assert.Equal("Value", requestInfo.PropertyHeaders[0].Value);
+        }
+
+        [Fact]
+        public void UsesSpecifiedDefaultForObjectProperty()
+        {
+            var implementation = this.builder.CreateImplementation<IHasObjectPropertyHeaderWithValue>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
+            Assert.Equal("Name", requestInfo.PropertyHeaders[0].Key);
+            Assert.Equal("Value", requestInfo.PropertyHeaders[0].Value);
         }
 
         [Fact]

@@ -160,9 +160,10 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of value</typeparam>
         /// <param name="name">Name of the header</param>
         /// <param name="value">Value of the header</param>
-        public void AddPropertyHeader<T>(string name, T value)
+        /// <param name="defaultValue">Value to use if 'value' == null</param>
+        public void AddPropertyHeader<T>(string name, T value, string defaultValue)
         {
-            string stringValue = null;
+            string stringValue = defaultValue;
             if (value != null)
                 stringValue = value.ToString();
             this._propertyHeaders.Add(new KeyValuePair<string, string>(name, stringValue));

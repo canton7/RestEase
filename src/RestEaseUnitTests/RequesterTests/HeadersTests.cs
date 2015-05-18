@@ -33,8 +33,8 @@ namespace RestEaseUnitTests.RequesterTests
         public void AppliesHeadersFromProperties()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddPropertyHeader("User-Agent", "RestEase");
-            requestInfo.AddPropertyHeader("X-API-Key", "Foo");
+            requestInfo.AddPropertyHeader("User-Agent", "RestEase", null);
+            requestInfo.AddPropertyHeader("X-API-Key", "Foo", null);
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -80,10 +80,10 @@ namespace RestEaseUnitTests.RequesterTests
                 new KeyValuePair<string, string>("X-API-Key", "Foo"),
             };
 
-            requestInfo.AddPropertyHeader<string>("Something", null);
-            requestInfo.AddPropertyHeader("User-Agent", String.Empty);
-            requestInfo.AddPropertyHeader("X-API-Key", "Bar");
-            requestInfo.AddPropertyHeader("This-Is-New", "YesIAm");
+            requestInfo.AddPropertyHeader<string>("Something", null, null);
+            requestInfo.AddPropertyHeader("User-Agent", String.Empty, null);
+            requestInfo.AddPropertyHeader("X-API-Key", "Bar", null);
+            requestInfo.AddPropertyHeader("This-Is-New", "YesIAm", null);
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
@@ -99,10 +99,10 @@ namespace RestEaseUnitTests.RequesterTests
         public void HeadersFromMethodOverrideHeadersFromProperties()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddPropertyHeader("This-Will-Stay", "YesIWill");
-            requestInfo.AddPropertyHeader("Something", "SomethingElse");
-            requestInfo.AddPropertyHeader("User-Agent", "RestEase");
-            requestInfo.AddPropertyHeader("X-API-Key", "Foo");
+            requestInfo.AddPropertyHeader("This-Will-Stay", "YesIWill", null);
+            requestInfo.AddPropertyHeader("Something", "SomethingElse", null);
+            requestInfo.AddPropertyHeader("User-Agent", "RestEase", null);
+            requestInfo.AddPropertyHeader("X-API-Key", "Foo", null);
 
             requestInfo.AddMethodHeader("Something", null); // Remove
             requestInfo.AddMethodHeader("User-Agent", ""); // Replace with null

@@ -232,7 +232,7 @@ namespace RestEase.Implementation
             FieldBuilder requesterField,
             FieldInfo classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
-            List<KeyValuePair<string, FieldBuilder>> propertyHeaders)
+            List<KeyValuePair<HeaderAttribute, FieldBuilder>> propertyHeaders)
         {
             foreach (var methodInfo in interfaceType.GetMethods())
             {
@@ -278,9 +278,13 @@ namespace RestEase.Implementation
                 {
                     var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.Value.FieldType);
                     methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Key);
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Key.Name);
                     methodIlGenerator.Emit(OpCodes.Ldarg_0);
                     methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.Value);
+                    if (propertyHeader.Key.Value == null)
+                        methodIlGenerator.Emit(OpCodes.Ldnull);
+                    else
+                        methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Key.Value);
                     methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
                 }
 
@@ -320,9 +324,9 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException("Interface must not have any events");
         }
 
-        private List<KeyValuePair<string, FieldBuilder>> HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
+        private List<KeyValuePair<HeaderAttribute, FieldBuilder>> HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
         {
-            var propertyHeaderFields = new List<KeyValuePair<string, FieldBuilder>>();
+            var propertyHeaderFields = new List<KeyValuePair<HeaderAttribute, FieldBuilder>>();
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
 
             foreach (var property in interfaceType.GetProperties())
@@ -331,8 +335,9 @@ namespace RestEase.Implementation
                 if (headerAttribute == null)
                     throw new ImplementationCreationException(String.Format("Property {0} does not have a [Header(\"Name\")] attribute", property.Name));
 
-                if (headerAttribute.Value != null)
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", headerAttribute.Name, headerAttribute.Value, property.Name));
+                // Only allow default value if type is nullable (reference type or Nullable<T>)
+                if (headerAttribute.Value != null && property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
+                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} (i.e. containing a default value) can only be used if the property type is nullable", headerAttribute.Name, headerAttribute.Value, property.Name));
                 if (headerAttribute.Name.Contains(':'))
                     throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on property {1} must not have a colon in its name", headerAttribute.Name, property.Name));
 
@@ -357,7 +362,7 @@ namespace RestEase.Implementation
                 setterIlGenerator.Emit(OpCodes.Ret);
                 propertyBuilder.SetSetMethod(setter);
 
-                propertyHeaderFields.Add(new KeyValuePair<string, FieldBuilder>(headerAttribute.Name, backingField));
+                propertyHeaderFields.Add(new KeyValuePair<HeaderAttribute, FieldBuilder>(headerAttribute, backingField));
             }
 
             return propertyHeaderFields;
