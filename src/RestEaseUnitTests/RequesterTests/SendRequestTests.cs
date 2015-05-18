@@ -191,5 +191,35 @@ namespace RestEaseUnitTests.RequesterTests
             var response = requester.SendRequestAsync(requestInfo).Result;
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact]
+        public void AllowsEmptyPath()
+        {
+            var messageHandler = new MockHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.example.com/base") };
+            var requester = new PublicRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "");
+
+            messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
+
+            var response = requester.SendRequestAsync(requestInfo).Result;
+            Assert.Equal("http://api.example.com/base", messageHandler.Request.RequestUri.ToString());
+        }
+
+        [Fact]
+        public void AllowsPathWithLeadingSlash()
+        {
+            var messageHandler = new MockHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.example.com/base/") };
+            var requester = new PublicRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo");
+
+            messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
+
+            var response = requester.SendRequestAsync(requestInfo).Result;
+            Assert.Equal("http://api.example.com/base/foo", messageHandler.Request.RequestUri.ToString());
+        }
     }
 }

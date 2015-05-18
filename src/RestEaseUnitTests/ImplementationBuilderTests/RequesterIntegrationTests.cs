@@ -68,6 +68,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task TraceAsync();
         }
 
+        public interface IHasEmptyPath
+        {
+            [Get("")]
+            Task FooAsync();
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -223,6 +229,21 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.TraceAsync();
             Assert.Equal(HttpMethod.Trace, requestInfo.Method);
             Assert.Equal("foo", requestInfo.Path);
+        }
+
+        [Fact]
+        public void AllowsEmptyPath()
+        {
+            var implementation = this.builder.CreateImplementation<IHasEmptyPath>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(0));
+
+            var response = implementation.FooAsync();
+
+            Assert.Equal("", requestInfo.Path);
         }
     }
 }

@@ -72,14 +72,22 @@ namespace RestEase.Implementation
         /// <returns>Constructed URI; relative if 'path' was relative, otherwise absolute</returns>
         protected virtual Uri ConstructUri(string path, IRequestInfo requestInfo)
         {
-            var uri = new Uri(path, UriKind.RelativeOrAbsolute);
             UriBuilder uriBuilder;
             try
             {
-                // First, find out whether they've given us a relative or an absolute path
-                var absoluteUri = uri.IsAbsoluteUri ? uri : new Uri(new Uri("http://api"), uri);
-                // UriBuilder insists that we provide it with an absolute URI, even though we only want a relative one...
-                uriBuilder = new UriBuilder(absoluteUri);
+                var trimmedPath = path.TrimStart('/');
+                // Here, a leading slash will strip the path from baseAddress
+                var uri = new Uri(trimmedPath, UriKind.RelativeOrAbsolute);
+                if (!uri.IsAbsoluteUri)
+                {
+                    var baseAddress = this.httpClient.BaseAddress.ToString();
+                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
+                    // the last path component (assuming we *have* a relative path)
+                    if (!baseAddress.EndsWith("/") && !String.IsNullOrWhiteSpace(trimmedPath))
+                        baseAddress += '/';
+                    uri = new Uri(new Uri(baseAddress), uri);
+                }
+                uriBuilder = new UriBuilder(uri);
             }
             catch (UriFormatException e)
             {
@@ -104,10 +112,7 @@ namespace RestEase.Implementation
             }
             uriBuilder.Query = query.ToString();
 
-            if (uri.IsAbsoluteUri)
-                return uriBuilder.Uri;
-            else
-                return new Uri(uriBuilder.Uri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped), UriKind.Relative);
+            return uriBuilder.Uri;
         }
 
         /// <summary>

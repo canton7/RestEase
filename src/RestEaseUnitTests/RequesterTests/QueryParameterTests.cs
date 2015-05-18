@@ -13,7 +13,7 @@ namespace RestEaseUnitTests.RequesterTests
 {
     public class QueryParameterTests
     {
-        private readonly PublicRequester requester = new PublicRequester(null);
+        private readonly PublicRequester requester = new PublicRequester(new HttpClient() { BaseAddress = new Uri("http://api.example.com/base") });
 
         [Fact]
         public void IgnoresNullQueryParams()
@@ -21,7 +21,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter<object>("bar", null);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
-            Assert.Equal(new Uri("/foo", UriKind.Relative), uri);
+            Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace RestEaseUnitTests.RequesterTests
             queryMap.baz = "yay";
             requestInfo.QueryMap = queryMap;
             var uri = this.requester.ConstructUri("/foo", requestInfo);
-            Assert.Equal(new Uri("/foo?foo=bar&baz=yay", UriKind.Relative), uri);
+            Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&baz=yay"), uri);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace RestEaseUnitTests.RequesterTests
                 { "baz", "yay" },
             };
             var uri = this.requester.ConstructUri("/foo", requestInfo);
-            Assert.Equal(new Uri("/foo?foo=bar&baz=yay", UriKind.Relative), uri);
+            Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&baz=yay"), uri);
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace RestEaseUnitTests.RequesterTests
                 { "baz", null },
             };
             var uri = this.requester.ConstructUri("/foo", requestInfo);
-            Assert.Equal(new Uri("/foo?foo=bar", UriKind.Relative), uri);
+            Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar"), uri);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace RestEaseUnitTests.RequesterTests
                 { "foo", new[] { "bar", "baz" } },
             };
             var uri = this.requester.ConstructUri("/foo", requestInfo);
-            Assert.Equal(new Uri("/foo?foo=bar&foo=baz", UriKind.Relative), uri);
+            Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&foo=baz"), uri);
         }
     }
 }
