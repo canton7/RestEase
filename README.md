@@ -27,10 +27,10 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 9. [Cancelling Requests](#cancelling-requests)
 10. [Headers](#headers)
   1. [Constant Interface Headers](#constant-interface-headers)
-  1. [Variable Interface Headers](#variable-interface-headers)
-  1. [Constant Method Headers](#constant-method-headers)
-  1. [Variable Method Headers](#variable-method-headers)
-  3. [Redefining Headers](#redefining-headers)
+  2. [Variable Interface Headers](#variable-interface-headers)
+  3. [Constant Method Headers](#constant-method-headers)
+  4. [Variable Method Headers](#variable-method-headers)
+  5. [Redefining Headers](#redefining-headers)
 11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
   1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
   2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
@@ -59,8 +59,7 @@ PM> Install-Package RestEase
 
 Or right-click your project -> Manage NuGet Packages... -> Online -> search for RestEase in the top right.
 
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to Stylet's source when debugging. If you haven't yet set up Visual Studio to use SymbolSource, do that now:
-
+Symbols are available.
 In Visual Studio, go to Debug -> Options and Settings -> General, and make the following changes:
 
 1. Turn **off** "Enable Just My Code"
@@ -256,9 +255,9 @@ public interface ISomeApi
     Task<User> FetchUserAsync([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
-// Requests http://example.com/user/fred
+// Requests http://api.example.com/user/fred
 await api.FetchUserAsync("fred");
 ```
 
