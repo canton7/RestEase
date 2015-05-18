@@ -25,19 +25,22 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
   1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
 9. [Cancelling Requests](#cancelling-requests)
-10. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+10. [Headers](#headers)
+  1. [Constant Interface Headers](#constant-interface-headers)
+  1. [Variable Interface Headers](#variable-interface-headers)
+  1. [Constant Method Headers](#constant-method-headers)
+  1. [Variable Method Headers](#variable-method-headers)
+  3. [Redefining Headers](#redefining-headers)
+11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
   1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
   2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
-11. [Headers](#headers)
-  1. [Static Headers](#static-headers)
-  2. [Dynamic Headers](#dynamic-headers)
-  3. [Per-Instance Headers](#per-instance-headers)
-  4. [Redefining Headers](#redefining-headers)
-  5. [Removing Headers](#removing-headers)
-12. [Customizing RestEase](#customizing-restease)
-13. [Interface Accessibility](#interface-accessibility)
-14. [Using Generic Interfaces](#using-generic-interfaces)
-15. [Comparison to Refit](#comparison-to-refit)
+12. [Controlling Requests](#controlling-requests)
+  1. [`RequestModifier`](#requestmodifier)
+  2. [Custom `HttpClient`](#custom-httpclient)
+13. [Customizing RestEase](#customizing-restease)
+14. [Interface Accessibility](#interface-accessibility)
+15. [Using Generic Interfaces](#using-generic-interfaces)
+16. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -386,52 +389,6 @@ var settings = new JsonSerializerSettings()
 var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", settings);
 ```
 
-### Custom Serializers and Deserializers
-
-If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
-
-For example:
-
-```csharp
-// This API returns XML
-
-public class XmlResponseDeserializer : IResponseDeserializer
-{
-    public T Deserialize<T>(string content, HttpResponseMessage response)
-    {
-        // Consider caching generated XmlSerializers
-        var serializer = new XmlSerializer(typeof(T));
-
-        using (var stringReader = new StringReader(content))
-        {
-            return (T)serializer.Deserialize(stringReader);
-        }
-    }
-}
-
-// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
-// I'm going to do both as an example
-
-public class XmlRequestBodySerializer : IRequestBodySerializer
-{
-    public string SerializeBody<T>(T body)
-    {
-        // Consider caching generated XmlSerializers
-        var serializer = new XmlSerializer(typeof(T));
-
-        using (var stringWriter = new StringWriter())
-        {
-            serializer.Serialize(stringWriter, body);
-            return new StringContent(stringWriter.ToString());
-        }
-    }
-}
-
-// ...
-
-var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
-```
-
 
 Headers
 -------
@@ -512,79 +469,128 @@ public interface ISomeApi
 
 ### Redefining Headers
 
-You've probably noticed that you can specify the same header in multiple places: on the interface, on the method, and as a parameter.
+You've probably noticed that there are 4 places you can define a header: on the interface, as a property, on a method, and as a parameter (or, Constant Interface Headers, Variable Interface Headers, Constant Method Headers, and Variable Method Headers, respectively).
+There are rules specifying how headers from different places are merged.
 
-Redefining a header will replace it, in the following order of precidence:
+Constant and Variable Interface headers are merged, as are Constant and Variable Method headers.
+That is, if a header is supplied both as an attribute on the interface, and as a property, that header will have multiple values.
 
- - Static and Dynamic interface headers *(lowest priority)*
- - Static and Dynamic method headers *(highest priority)*
+Method headers will replace Interface headers.
+If you have the same header on a method and on the interface, then the header on the method will replace the one on the interface.
+
+Another rule is that a header with a value of `null` will not be added, but can still replace a previously-defined header of the same name.
+
+Example time:
 
 ```csharp
-[Header("X-Emoji", ":rocket:")]
-public interface IGitHubApi
+[Header("X-InterfaceOnly", "InterfaceValue")]
+[Header("X-InterfaceAndParamater", "InterfaceValue")]
+[Header("X-InterfaceAndMethod", "InterfaceValue"]
+[Header("X-InterfaceAndParameter", "InterfaceValue"]
+[Header("X-InterfaceAndMethod-ToBeRemoved", "InterfaceValue")]
+public interface ISomeApi
 {
-    [Get("/users/list")]
-    Task<List> GetUsersAsync();
+    [Header("X-ParameterOnly")]
+    string ParameterOnlyHeader { get; set; }
 
-    [Get("/users/{user}")]
-    [Header("X-Emoji", ":smile_cat:")]
-    Task<User> GetUserAsync(string user);
+    [Header("X-InterfaceAndParameter")]
+    string InterfaceAndParameterHeader { get; set; }
 
-    [Post("/users/new")]
-    [Header("X-Emoji", ":metal:")]
-    Task CreateUserAsync([Body] User user, [Header("X-Emoji")] string emoji);
+    [Header("X-ParameterAndMethod")]
+    string ParameterAndMethodHeader { get; set; }
+
+    [Get("url")]
+    [Header("X-MethodOnly", "MethodValue")]
+    [Header("X-MethodAndParameter", "MethodValue")]
+    [Header("X-ParameterAndMethod", "MethodValue")]
+    [Header("X-InterfaceAndMethod-ToBeRemoved", null)]
+    Task DoSomethingAsync(
+        [Header("X-ParameterOnly")] string parameterOnly,
+        [Header("X-MethodAndParameter")] string methodAndParameter,
+        [Header("X-InterfaceAndParameter")] string interfaceAndParameter
+    );
 }
 
-// X-Emoji: :rocket:
-var users = await GetUsersAsync();
+ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com");
 
-// X-Emoji: :smile_cat:
-var user = await GetUserAsync("octocat");
+api.ParameterOnlyHeader = "ParameterValue";
+api.InterfaceAndParameterHeader = "ParameterValue";
+api.ParameterAndMethodHeader = "ParameterValue";
 
-// X-Emoji: :trollface:
-await CreateUserAsync(user, ":trollface:"); 
+await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue");
+
+// Has the following headers:
+// X-InterfaceOnly: InterfaceValue
+// X-InterfaceAndParameter: InterfaceValue, ParameterValue
+// X-InterfaceAndMethod: MethodValue
+// X-InterfaceAndParameter: ParameterValue
+
+// X-ParameterAndMethod: MethodValue
+
+// X-MethodOnly: MethodValue
+// X-MethodAndParameter: MethodValue, ParameterValue
+
+// X-ParameterAndMethod-ToBeRemoved isn't set, because it was removed
+
 ```
 
-### Removing Headers
+### Custom Serializers and Deserializers
 
-As with defining headers, headers can be removed entirely by `[Header]` declarations on something with higher priority.
-For interface and method headers, define the header without a value (and without the colon between the key and the value).
-For parameter headers, pass `null` as the header's value.
+If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
 
 For example:
 
 ```csharp
-[Header("X-Emoji", ":rocket:")]
-public interface IGitHubApi
+// This API returns XML
+
+public class XmlResponseDeserializer : IResponseDeserializer
 {
-    [Get("/users/list")]
-    [Header("X-Emoji", null)] // Remove the X-Emoji header
-    Task<List> GetUsersAsync();
+    public T Deserialize<T>(string content, HttpResponseMessage response)
+    {
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
 
-    [Get("/users/{user}")]
-    [Header("X-Emoji", String.Empty)] // Redefine the X-Emoji header as empty
-    Task<User> GetUserAsync(string user);
-
-    [Post("/users/new")]
-    Task CreateUserAsync([Body] User user, [Header("X-Emoji")] string emoji);
+        using (var stringReader = new StringReader(content))
+        {
+            return (T)serializer.Deserialize(stringReader);
+        }
+    }
 }
 
-// No X-Emoji header
-var users = await GetUsersAsync();
+// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
+// I'm going to do both as an example
 
-// X-Emoji: 
-var user = await GetUserAsync("octocat");
+public class XmlRequestBodySerializer : IRequestBodySerializer
+{
+    public HttpContent SerializeBody<T>(T body)
+    {
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
 
-// No X-Emoji header
-await CreateUserAsync(user, null); 
+        using (var stringWriter = new StringWriter())
+        {
+            serializer.Serialize(stringWriter, body);
+            return new StringContent(stringWriter.ToString());
+        }
+    }
+}
 
-// X-Emoji: 
-await CreateUserAsync(user, ""); 
+// ...
+
+var api = RestClient.For<ISomeApi>("http://somebaseaddress.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
 ```
 
-### Advanced Techniques
 
-If you really want to go overboard, you can pass a delegate to `RestClient.For<T>` which allows you to intercept requests and inspect/modify them.
+Controlling the Requests
+------------------------
+
+RestEase provides two ways for you to manipulate how exactly requests are made, before you need to resort to [Customizing RestEase](#customizing-restease).
+
+### `RequestModifier`
+
+The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoke whenever a request is made.
+This allows you to inspect and alter the request in any way you want: changing the content, changing the headers, make your own requests in the meantime, etc.
+
 For example, if you need to refresh an oAuth access token occasionally (using the [ADAL](https://msdn.microsoft.com/en-us/library/azure/jj573266.aspx) library as an example):
 
 ```csharp
@@ -614,10 +620,55 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
 
 ```
 
+### Custom `HttpClient`
+
+The second is a `RestClient.For<T>` overload which lets you specify a custom `HttpClient` to use.
+This lets you customize the `HttpClient`, e.g. to set the request timeout.
+It also lets you specify a custom `HttpMessageHandler` subclass, which allows you to control all sorts of things.
+
+For example, if you wanted to 1) adjust the request timeout, and 2) allow invalid certificates (although the same approach would apply if you wanted to customize how certificates are validated), you could do something like this. Note that `WebRequestHandler` is a `HttpMessageHandler` subclass which allows you to specify things like `ServerCertificateValidationCallback`.
+
+```csharp
+public class CustomHttpClientHandler : WebRequestHandler
+{
+    // Let's log all of our requests!
+    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+    public CustomHttpClientHandler()
+    {
+        // Allow any cert, valid or invalid
+        this.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        if (logger.IsTraceEnabled)
+        {
+            var response = await base.SendAsync(request, cancellationToken);
+            logger.Trace((await response.Content.ReadAsStringAsync()).Trim());
+            return response;
+        }
+        else
+        {
+            return await base.SendAsync(request, cancellationToken);
+        }
+    }
+}
+
+var httpClient = new HttpClient(new CustomHttpClientHandler())
+{
+    BaseAddress = new Uri("https://some-secure-api-base.com"),
+    Timeout = TimeSpan.FromSeconds(3), // Very slow to respond, this server
+};
+
+ISomeApi api = RestClient.For<ISomeApi>(httpClient);
+```
+
+
 Customizing RestEase
 --------------------
 
-You've already seen how to [specify custom Serializers and Deserializers](#controlling-serialization-and-deserialization).
+You've already seen how to [specify custom Serializers and Deserializers](#controlling-serialization-and-deserialization), and [control requests](#controlling-the-requests).
 
 RestEase has been written in a way which makes it very easy to customize exactly how it works.
 In order to describe this, I'm first going to have to outline its architecture.
@@ -726,7 +777,8 @@ Here's a brief summary of pros/cons, compared to Refit:
  - No autogenerated `RefitStubs.cs`
  - Supports `CancellationToken`s for Task-based methods
  - Supports method overloading
- - Possible to avoid `ApiExceptions` if the API is expected to return a non-success status code
+ - Supports property-defined headers
+ - Better support for API calls which are expected to fail: `[AllowAnyStatusCode]` and `Response<T>`
  - Easier to customize:
    - Can specify custom response deserializer
    - Can specify custom request body serializer
