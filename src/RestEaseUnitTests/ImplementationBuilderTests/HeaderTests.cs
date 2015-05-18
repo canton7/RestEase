@@ -4,6 +4,7 @@ using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -125,6 +126,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             [Header("X-API-Key", "IgnoredDefault")]
             string ApiKey { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasAuthorizationHeader
+        {
+            [Header("Authorization")]
+            AuthenticationHeaderValue Authorization { get; set; }
 
             [Get("foo")]
             Task FooAsync();
@@ -356,6 +366,27 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.ApiKey = null;
             Assert.Null(implementation.ApiKey);
+        }
+
+        [Fact]
+        public void SpecifyingAuthorizationHeaderWorksAsExpected()
+        {
+            var implementation = this.builder.CreateImplementation<IHasAuthorizationHeader>(this.requester.Object);
+            // Values from http://en.wikipedia.org/wiki/Basic_access_authentication#Client_side
+            var value = Convert.ToBase64String(Encoding.ASCII.GetBytes("Aladdin:open sesame"));
+            implementation.Authorization = new AuthenticationHeaderValue("Basic", value);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
+
+            Assert.Equal("Authorization", requestInfo.PropertyHeaders[0].Key);
+            Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", requestInfo.PropertyHeaders[0].Value);
         }
     }
 }
