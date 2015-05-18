@@ -1,7 +1,7 @@
 RestEase
 ========
 
-RestEase is a little type-safe REST API client library, which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
+RestEase is a little type-safe REST API client library for .NET Framework 4.5, which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
@@ -440,7 +440,7 @@ api.ApiKey = "The-API-KEY-value";
 
 If you want to have a header which only applies to a particular method, and whose value never changes, then use a constant method header.
 Like constant interface headers, these are defined in their entirety using an attribute.
-However, instead of applying the attribute to the interface, you apply it to the header.
+However, instead of applying the attribute to the interface, you apply it to the method.
 
 ```csharp
 public interface IGitHubApi
@@ -792,5 +792,6 @@ Here's a brief summary of pros/cons, compared to Refit:
 ### Cons
 
  - Interfaces need to be public, or you need to add `[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]` to your `AssemblyInfo.cs`
+ - Only supports .NET Framework
  - No `IObservable` support
  - Slightly more work done at runtime (but not very much more)
