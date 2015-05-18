@@ -436,6 +436,24 @@ api.ApiKey = "The-API-KEY-value";
 // ...
 ```
 
+For nullable property types, you can also specify a default (which will be used when the property is null):
+
+```csharp
+public interface ISomeApi
+{
+    [Header("X-API-Key", "None")]
+    string ApiKey { get; set; }
+
+    [Get("users/{userId}")]
+    Task<User> FetchUserId([Path] string userId);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://somebaseaddress.com")
+
+// "X-API-Key: None"
+var user = await api.FetchUserAsync("bob");
+```
+
 ### Constant Method Headers
 
 If you want to have a header which only applies to a particular method, and whose value never changes, then use a constant method header.
