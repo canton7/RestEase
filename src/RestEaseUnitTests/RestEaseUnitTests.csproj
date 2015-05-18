@@ -69,7 +69,13 @@
     <Compile Include="ImplementationBuilderTests\QueryParamTests.cs" />
     <Compile Include="ImplementationBuilderTests\SanityCheckTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequesterTests.cs" />
+    <Compile Include="RequesterTests\ContentConstructionTests.cs" />
+    <Compile Include="RequesterTests\HeadersTests.cs" />
+    <Compile Include="RequesterTests\PathParameterTests.cs" />
+    <Compile Include="RequesterTests\QueryParameterTests.cs" />
+    <Compile Include="RequesterTests\SendRequestTests.cs" />
+    <Compile Include="RequesterTests\UriConstructionTests.cs" />
+    <Compile Include="RequesterTests\PublicRequester.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
