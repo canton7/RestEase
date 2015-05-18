@@ -177,7 +177,7 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return new StringContent(requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer));
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }

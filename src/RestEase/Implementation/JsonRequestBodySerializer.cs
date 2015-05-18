@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace RestEase.Implementation
 {
@@ -17,10 +18,10 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="body">Body to serialize</param>
         /// <typeparam name="T">Type of the value to serialize</typeparam>
-        /// <returns>String suitable for attaching as the requests's Content</returns>
-        public string SerializeBody<T>(T body)
+        /// <returns>HttpContent to assign to the request</returns>
+        public HttpContent SerializeBody<T>(T body)
         {
-            return JsonConvert.SerializeObject(body, this.JsonSerializerSettings);
+            return new StringContent(JsonConvert.SerializeObject(body, this.JsonSerializerSettings));
         }
     }
 }

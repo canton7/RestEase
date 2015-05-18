@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 
 namespace RestEase.Implementation
 {
@@ -22,7 +23,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public abstract string SerializeValue(IRequestBodySerializer serializer);
+        public abstract HttpContent SerializeValue(IRequestBodySerializer serializer);
     }
 
     /// <summary>
@@ -60,7 +61,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public override string SerializeValue(IRequestBodySerializer serializer)
+        public override HttpContent SerializeValue(IRequestBodySerializer serializer)
         {
             if (serializer == null)
                 throw new ArgumentNullException("serializer");

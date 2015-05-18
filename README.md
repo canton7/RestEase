@@ -422,7 +422,7 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
         using (var stringWriter = new StringWriter())
         {
             serializer.Serialize(stringWriter, body);
-            return stringWriter.ToString();
+            return new StringContent(stringWriter.ToString());
         }
     }
 }
