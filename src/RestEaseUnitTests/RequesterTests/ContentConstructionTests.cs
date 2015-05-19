@@ -37,6 +37,16 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void SetsContentAsHttpContentIfBodyIsHttpContent()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            var content = new StringContent("test");
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, content);
+
+            Assert.Equal(content, this.requester.ConstructContent(requestInfo));
+        }
+
+        [Fact]
         public void SetsContentAsStreamContentIfBodyIsStream()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");

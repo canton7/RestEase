@@ -293,6 +293,7 @@ Exactly how this will be serialized depends on the type of parameters:
  - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://msdn.microsoft.com/en-us/library/system.net.http.streamcontent%28v=vs.118%29.aspx).
  - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://msdn.microsoft.com/en-us/library/system.net.http.stringcontent%28v=vs.118%29.aspx)).
  - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
+ - If the type is a [`HttpContent`](https://msdn.microsoft.com/en-us/library/system.net.http.httpcontent%28v=vs.118%29.aspx) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
  - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 
