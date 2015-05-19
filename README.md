@@ -830,6 +830,50 @@ var firstPage = await api.FetchUsersAsync();
 var secondPage = await api.FetchUsersByUrlAsync(firstPage.NextPage);
 ```
 
+### I may get responses in both XML and JSON, and want to deserialize both
+
+Occasionally you get an API which can return both JSON and XML (apparently...).
+In this case, you'll want to auto-detect what sort of response you got, and deserialize with an appropriate deserializer.
+
+To do this, use a custom deserializer, which can do this detection.
+
+```csharp
+public class HybridResponseDeserializer : IResponseDeserializer
+{
+    private T DeserializeXml<T>(string content)
+    {
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
+
+        using (var stringReader = new StringReader(content))
+        {
+            return (T)serializer.Deserialize(stringReader);
+        }
+    }
+
+    private T DeserializeJson<T>(string content)
+    {
+        return JsonConvert.Deserialize<T>(content);
+    }
+
+    public T Deserialize<T>(string content, HttpResponseMessage response)
+    {
+        switch (response.Content.Headers.ContentType.MediaType)
+        {
+            case "application/json":
+                return this.DeserializeJson<T>(content);
+            case "application/xml":
+                return this.DeserializeXml<T>(content);
+        }
+
+        throw new ArgumentException("Response was not JSON or XML");
+    }
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com", new HybridResponseDeserializer());
+```
+
+
 Comparison to Refit
 -------------------
 
