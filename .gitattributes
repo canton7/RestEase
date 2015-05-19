@@ -1,0 +1,6 @@
+*.cs		eol=crlf
+*.sln		eol=crlf
+*.csproj	eol=crlf
+*.resx 		eol=crlf
+*.settings 	eol=crlf
+*.config	eol=crlf
