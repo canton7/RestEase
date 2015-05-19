@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <id>RestEase</id>
+    <version>0.9.1</version>
+    <title>RestEase</title>
+    <authors>Antony Male</authors>
+    <owners>Antony Male</owners>
+    <licenseUrl>http://github.com/canton7/RestEase/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>http://github.com/canton7/RestEase</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Simple but powerful REST library for .NET, inspired by Refit</description>
+    <copyright>Copyright 2015 Antony Male</copyright>
+    <tags>REST JSON</tags>
+    <iconUrl>https://raw.githubusercontent.com/canton7/RestEase/master/icon.png</iconUrl>
+
+    <dependencies>
+      <group>
+        <dependency id="Newtonsoft.Json" version="6.0.5"/>
+      </group>
+    </dependencies>
+  </metadata>
+
+  <files>
+    <file src="..\bin\Release\RestEase.dll" target="lib\net45"/>
+    <file src="..\bin\Release\RestEase.pdb" target="lib\net45"/>
+    <file src="..\bin\Release\RestEase.xml" target="lib\net45"/>
+  </files>
+</package>
