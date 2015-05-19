@@ -283,7 +283,7 @@ If you're sending a request with a body, you can specify that one of the paramet
 ```csharp
 public interface ISomeApi
 {
-    [Post("/users/new")]
+    [Post("users/new")]
     Task CreateUserAsync([Body] User user);
 }
 ```
@@ -308,7 +308,7 @@ For example:
 ```csharp
 public interface IMeasurementProtocolApi
 {
-    [Post("/collect")]
+    [Post("collect")]
     Task CollectAsync([Body(BodySerializationMethod.UrlEncoded)] Dictionary<string, object> data);
 }
 
@@ -616,10 +616,10 @@ For example, if you need to refresh an oAuth access token occasionally (using th
 ```csharp
 public interface IMyRestService
 {
-    [Get("/getPublicInfo")]
+    [Get("getPublicInfo")]
     Task<Foobar> SomePublicMethodAsync();
 
-    [Get("/secretStuff")]
+    [Get("secretStuff")]
     [Header("Authorization", "Bearer")]
     Task<Location> GetLocationOfRebelBaseAsync();
 }
@@ -761,13 +761,13 @@ public interface IReallyExcitingCrudApi<T, TKey>
     [Get("")]
     Task<List<T>> ReadAll();
 
-    [Get("/{key}")]
+    [Get("{key}")]
     Task<T> ReadOne(TKey key);
 
-    [Put("/{key}")]
+    [Put("{key}")]
     Task Update(TKey key, [Body]T payload);
 
-    [Delete("/{key}")]
+    [Delete("{key}")]
     Task Delete(TKey key);
 }
 ```
@@ -815,7 +815,7 @@ Thankfully this is easy: if you give an absolute URL to e.g. `[Get("http://api.e
 ```csharp
 public interface ISomeApi
 {
-    [Get("/users")]
+    [Get("users")]
     Task<UsersResponse> FetchUsersAsync();
 
     [Get("{url}")]
