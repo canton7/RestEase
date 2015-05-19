@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>RestEase</id>
-    <version>0.9.2</version>
+    <version>0.9.3</version>
     <title>RestEase</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
@@ -25,5 +25,6 @@
     <file src="..\bin\Release\RestEase.dll" target="lib\net45"/>
     <file src="..\bin\Release\RestEase.pdb" target="lib\net45"/>
     <file src="..\bin\Release\RestEase.xml" target="lib\net45"/>
+    <file src="..\bin\Release\RestEase.pdb.srcsrv" target="lib\net45"/>
   </files>
 </package>
