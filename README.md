@@ -873,6 +873,57 @@ public class HybridResponseDeserializer : IResponseDeserializer
 var api = RestClient.For<ISomeApi>("http://api.example.com", new HybridResponseDeserializer());
 ```
 
+### I want to upload a file
+
+Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits of not).
+There are a couple of ways of doing this, depending on your needs:
+
+```csharp
+public interface ISomeApi
+{
+    [Header("Content-Disposition", "form-data; filename=\"somefile.txt\"")]
+    [Header("Content-Type", "text/plain")]
+    [Post("upload")]
+    Task UploadFileVersionOneAsync([Body] Stream file);
+
+    [Post("upload")]
+    // You can use strings instead of strongly-typed header values, if you want
+    Task UploadFileVersionTwoAsync(
+        [Header("Content-Disposition")] ContentDispositionHeaderValue contentDisposition,
+        [Header("Content-Type")] MediaTypeHeaderValue contentType,
+        [Body] Stream file);
+
+    [Post("upload")]
+    Task UploadFileVersionThreeAsync([Body] HttpContent content);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Version one (constant headers)
+using (var fileStream = File.OpenRead("somefile.txt"))
+{
+    await api.UploadFileVersionOneAsync(fileStream);
+}
+
+// Version two (variable headers)
+using (var fileStream = File.OpenRead("somefile.txt"))
+{
+    var contentDisposition = new ContentDispositionHeaderValue("form-header") { FileName = "\"somefile.txt\"" };
+    var contentType = new MediaTypeHeaderValue("text/plain");
+    await api.UploadFileVersionTwoAsync(contentDisposition, contentType, fileStream);
+}
+
+// Version three (precise control over HttpContent)
+using (var fileStream = File.OpenRead("somefile.txt"))
+{
+    var fileContent = new StreamContent(fileStream);
+    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-header") { FileName = "\"somefile.txt\"" };
+    fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+    await api.UploadFileVersionThreeAsync(fileContent);
+}
+```
+
+Obviously, set the headers you need - don't just copy me blindly.
 
 Comparison to Refit
 -------------------
