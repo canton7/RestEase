@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>RestEase</id>
-    <version>1.0.0</version>
+    <version>0.9.0</version>
     <title>Stylet</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
