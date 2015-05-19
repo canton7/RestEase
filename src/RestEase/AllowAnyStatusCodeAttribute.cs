@@ -5,7 +5,7 @@ namespace RestEase
     /// <summary>
     /// Controls whether the given method, or all methods within the given interface, will throw an exception if the response status code does not indicate success
     /// </summary>
-    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class AllowAnyStatusCodeAttribute : Attribute
     {
         /// <summary>
