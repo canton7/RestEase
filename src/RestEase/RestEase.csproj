@@ -57,14 +57,14 @@
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
-    <Compile Include="Implementation\JsonRequestBodySerializer.cs" />
+    <Compile Include="JsonRequestBodySerializer.cs" />
     <Compile Include="PathAttribute.cs" />
     <Compile Include="QueryAttribute.cs" />
     <Compile Include="ApiException.cs" />
     <Compile Include="Implementation\ImplementationBuilder.cs" />
     <Compile Include="IRequester.cs" />
     <Compile Include="IResponseDeserializer.cs" />
-    <Compile Include="Implementation\JsonResponseDeserializer.cs" />
+    <Compile Include="JsonResponseDeserializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryMapAttribute.cs" />
     <Compile Include="RequestAttribute.cs" />

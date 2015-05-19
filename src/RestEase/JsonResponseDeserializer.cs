@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RestEase.Implementation
+namespace RestEase
 {
     /// <summary>
     /// Default implementation of IResponseDeserializer, using Json.NET

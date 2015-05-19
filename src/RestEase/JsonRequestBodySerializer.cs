@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Net.Http;
 
-namespace RestEase.Implementation
+namespace RestEase
 {
     /// <summary>
     /// Default IRequestBodySerializer, using Json.NET
