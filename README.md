@@ -343,7 +343,7 @@ public interface ISomeApi
     Task<Response<User>> FetchUserThatMayNotExistAsync([Path] int userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 var response = await api.FetchUserThatMayNotExistAsync(3);
 if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -388,7 +388,7 @@ var settings = new JsonSerializerSettings()
     ContractResolver = new CamelCasePropertyNamesContractResolver(),
     Converters = { new StringEnumConverter() }
 };
-var api = RestClient.For<ISomeApi>("http://api.example.com.com", settings);
+var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
 ```
 
 
@@ -431,7 +431,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com")
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
 api.ApiKey = "The-API-KEY-value";
 // ...
 ```
@@ -448,7 +448,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com")
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
 
 // "X-API-Key: None"
 var user = await api.FetchUserAsync("bob");
@@ -531,7 +531,7 @@ public interface ISomeApi
     );
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 api.ParameterOnlyHeader = "ParameterValue";
 api.InterfaceAndParameterHeader = "ParameterValue";
@@ -597,7 +597,7 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
 
 // ...
 
-var api = RestClient.For<ISomeApi>("http://api.example.com.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
+var api = RestClient.For<ISomeApi>("http://api.example.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
 ```
 
 
