@@ -262,7 +262,7 @@ await api.FetchUserAsync("fred");
 ```
 
 As with `[Query]`, the name of the placeholder to substitute is determined by the name of the parameter.
-If you want to override this, you can pass an argument to `[Query("placeholder")]`, e.g.:
+If you want to override this, you can pass an argument to `[Path("placeholder")]`, e.g.:
 
 ```csharp
 public interface ISomeApi
