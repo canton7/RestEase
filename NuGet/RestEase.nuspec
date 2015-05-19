@@ -12,6 +12,7 @@
     <description>Simple but powerful REST library for .NET, inspired by Refit</description>
     <copyright>Copyright 2015 Antony Male</copyright>
     <tags>REST JSON</tags>
+    <iconUrl>https://raw.githubusercontent.com/canton7/RestEase/master/icon.png</iconUrl>
 
     <dependencies>
       <group>
