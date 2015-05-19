@@ -25,5 +25,6 @@
     <file src="..\bin\Release\RestEase.dll" target="lib\net45"/>
     <file src="..\bin\Release\RestEase.pdb" target="lib\net45"/>
     <file src="..\bin\Release\RestEase.xml" target="lib\net45"/>
+    <file src="..\bin\Release\RestEase.pdb.srcsrv" target="lib\net45"/>
   </files>
 </package>
