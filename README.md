@@ -49,8 +49,6 @@ Installation
 
 [RestEase is available on NuGet](https://www.nuget.org/packages/RestEase).
 
-**NOTE: Until this library hits version 1.0, small backwards-incompatible changes may be made.**
-
 Either open the package console and type:
 
 ```
@@ -262,7 +260,7 @@ await api.FetchUserAsync("fred");
 ```
 
 As with `[Query]`, the name of the placeholder to substitute is determined by the name of the parameter.
-If you want to override this, you can pass an argument to `[Query("placeholder")]`, e.g.:
+If you want to override this, you can pass an argument to `[Path("placeholder")]`, e.g.:
 
 ```csharp
 public interface ISomeApi
@@ -283,7 +281,7 @@ If you're sending a request with a body, you can specify that one of the paramet
 ```csharp
 public interface ISomeApi
 {
-    [Post("/users/new")]
+    [Post("users/new")]
     Task CreateUserAsync([Body] User user);
 }
 ```
@@ -293,6 +291,7 @@ Exactly how this will be serialized depends on the type of parameters:
  - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://msdn.microsoft.com/en-us/library/system.net.http.streamcontent%28v=vs.118%29.aspx).
  - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://msdn.microsoft.com/en-us/library/system.net.http.stringcontent%28v=vs.118%29.aspx)).
  - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
+ - If the type is a [`HttpContent`](https://msdn.microsoft.com/en-us/library/system.net.http.httpcontent%28v=vs.118%29.aspx) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
  - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 
@@ -308,7 +307,7 @@ For example:
 ```csharp
 public interface IMeasurementProtocolApi
 {
-    [Post("/collect")]
+    [Post("collect")]
     Task CollectAsync([Body(BodySerializationMethod.UrlEncoded)] Dictionary<string, object> data);
 }
 
@@ -343,7 +342,7 @@ public interface ISomeApi
     Task<Response<User>> FetchUserThatMayNotExistAsync([Path] int userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 var response = await api.FetchUserThatMayNotExistAsync(3);
 if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -388,7 +387,7 @@ var settings = new JsonSerializerSettings()
     ContractResolver = new CamelCasePropertyNamesContractResolver(),
     Converters = { new StringEnumConverter() }
 };
-var api = RestClient.For<ISomeApi>("http://api.example.com.com", settings);
+var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
 ```
 
 
@@ -431,7 +430,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com")
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
 api.ApiKey = "The-API-KEY-value";
 // ...
 ```
@@ -448,7 +447,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com")
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
 
 // "X-API-Key: None"
 var user = await api.FetchUserAsync("bob");
@@ -531,7 +530,7 @@ public interface ISomeApi
     );
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 api.ParameterOnlyHeader = "ParameterValue";
 api.InterfaceAndParameterHeader = "ParameterValue";
@@ -597,7 +596,7 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
 
 // ...
 
-var api = RestClient.For<ISomeApi>("http://api.example.com.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
+var api = RestClient.For<ISomeApi>("http://api.example.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
 ```
 
 
@@ -616,10 +615,10 @@ For example, if you need to refresh an oAuth access token occasionally (using th
 ```csharp
 public interface IMyRestService
 {
-    [Get("/getPublicInfo")]
+    [Get("getPublicInfo")]
     Task<Foobar> SomePublicMethodAsync();
 
-    [Get("/secretStuff")]
+    [Get("secretStuff")]
     [Header("Authorization", "Bearer")]
     Task<Location> GetLocationOfRebelBaseAsync();
 }
@@ -761,13 +760,13 @@ public interface IReallyExcitingCrudApi<T, TKey>
     [Get("")]
     Task<List<T>> ReadAll();
 
-    [Get("/{key}")]
+    [Get("{key}")]
     Task<T> ReadOne(TKey key);
 
-    [Put("/{key}")]
+    [Put("{key}")]
     Task Update(TKey key, [Body]T payload);
 
-    [Delete("/{key}")]
+    [Delete("{key}")]
     Task Delete(TKey key);
 }
 ```
@@ -815,7 +814,7 @@ Thankfully this is easy: if you give an absolute URL to e.g. `[Get("http://api.e
 ```csharp
 public interface ISomeApi
 {
-    [Get("/users")]
+    [Get("users")]
     Task<UsersResponse> FetchUsersAsync();
 
     [Get("{url}")]
@@ -828,6 +827,101 @@ var firstPage = await api.FetchUsersAsync();
 // Actually put decent logic here...
 var secondPage = await api.FetchUsersByUrlAsync(firstPage.NextPage);
 ```
+
+### I may get responses in both XML and JSON, and want to deserialize both
+
+Occasionally you get an API which can return both JSON and XML (apparently...).
+In this case, you'll want to auto-detect what sort of response you got, and deserialize with an appropriate deserializer.
+
+To do this, use a custom deserializer, which can do this detection.
+
+```csharp
+public class HybridResponseDeserializer : IResponseDeserializer
+{
+    private T DeserializeXml<T>(string content)
+    {
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
+
+        using (var stringReader = new StringReader(content))
+        {
+            return (T)serializer.Deserialize(stringReader);
+        }
+    }
+
+    private T DeserializeJson<T>(string content)
+    {
+        return JsonConvert.Deserialize<T>(content);
+    }
+
+    public T Deserialize<T>(string content, HttpResponseMessage response)
+    {
+        switch (response.Content.Headers.ContentType.MediaType)
+        {
+            case "application/json":
+                return this.DeserializeJson<T>(content);
+            case "application/xml":
+                return this.DeserializeXml<T>(content);
+        }
+
+        throw new ArgumentException("Response was not JSON or XML");
+    }
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com", new HybridResponseDeserializer());
+```
+
+### I want to upload a file
+
+Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits of not).
+There are a couple of ways of doing this, depending on your needs:
+
+```csharp
+public interface ISomeApi
+{
+    [Header("Content-Disposition", "form-data; filename=\"somefile.txt\"")]
+    [Header("Content-Type", "text/plain")]
+    [Post("upload")]
+    Task UploadFileVersionOneAsync([Body] Stream file);
+
+    [Post("upload")]
+    // You can use strings instead of strongly-typed header values, if you want
+    Task UploadFileVersionTwoAsync(
+        [Header("Content-Disposition")] ContentDispositionHeaderValue contentDisposition,
+        [Header("Content-Type")] MediaTypeHeaderValue contentType,
+        [Body] Stream file);
+
+    [Post("upload")]
+    Task UploadFileVersionThreeAsync([Body] HttpContent content);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Version one (constant headers)
+using (var fileStream = File.OpenRead("somefile.txt"))
+{
+    await api.UploadFileVersionOneAsync(fileStream);
+}
+
+// Version two (variable headers)
+using (var fileStream = File.OpenRead("somefile.txt"))
+{
+    var contentDisposition = new ContentDispositionHeaderValue("form-header") { FileName = "\"somefile.txt\"" };
+    var contentType = new MediaTypeHeaderValue("text/plain");
+    await api.UploadFileVersionTwoAsync(contentDisposition, contentType, fileStream);
+}
+
+// Version three (precise control over HttpContent)
+using (var fileStream = File.OpenRead("somefile.txt"))
+{
+    var fileContent = new StreamContent(fileStream);
+    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-header") { FileName = "\"somefile.txt\"" };
+    fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+    await api.UploadFileVersionThreeAsync(fileContent);
+}
+```
+
+Obviously, set the headers you need - don't just copy me blindly.
 
 Comparison to Refit
 -------------------

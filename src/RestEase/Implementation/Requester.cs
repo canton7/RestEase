@@ -167,6 +167,10 @@ namespace RestEase.Implementation
             if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.ObjectValue == null)
                 return null;
 
+            var httpContentValue = requestInfo.BodyParameterInfo.ObjectValue as HttpContent;
+            if (httpContentValue != null)
+                return httpContentValue;
+
             var streamValue = requestInfo.BodyParameterInfo.ObjectValue as Stream;
             if (streamValue != null)
                 return new StreamContent(streamValue);
