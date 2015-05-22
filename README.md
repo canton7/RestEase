@@ -49,8 +49,6 @@ Installation
 
 [RestEase is available on NuGet](https://www.nuget.org/packages/RestEase).
 
-**NOTE: Until this library hits version 1.0, small backwards-incompatible changes may be made.**
-
 Either open the package console and type:
 
 ```
