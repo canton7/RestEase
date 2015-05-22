@@ -8,9 +8,9 @@ GITLINK_BRANCH = 'master'
 
 def verify_gitlink
   remote_hash = `git ls-remote #{GITLINK_REMOTE} #{GITLINK_BRANCH}`.split.first
-  local_hash = `git rev-parse #{GITLINK_BRANCH}`.chomp
+  local_hash = `git rev-parse HEAD`.chomp
   if remote_hash != local_hash
-    raise "Local version of branch #{GITLINK_BRANCH} (#{local_hash[0..7]}) does not match remote version (#{remote_hash[0..7]}). Perhaps you need to push?"
+    raise "HEAD (#{local_hash[0..7]}) does not match remote branch #{GITLINK_BRANCH} (#{remote_hash[0..7]}). Perhaps you need to push?"
   end
 end
 
