@@ -560,6 +560,9 @@ If you want to completely customize how responses / requests are deserialized / 
 For example:
 
 ```csharp
+// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
+// I'm going to do both as an example
+
 // This API returns XML
 
 public class XmlResponseDeserializer : IResponseDeserializer
@@ -575,9 +578,6 @@ public class XmlResponseDeserializer : IResponseDeserializer
         }
     }
 }
-
-// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
-// I'm going to do both as an example
 
 public class XmlRequestBodySerializer : IRequestBodySerializer
 {
