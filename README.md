@@ -371,26 +371,6 @@ public interface ISomeApi
 ```
 
 
-Controlling Serialization and Deserialization
----------------------------------------------
-
-By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies.
-However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own Deserializer and Serializer.
-
-### Custom `JsonSerializerSettings`
-
-If you want to specify your own `JsonSerializerSettings`, you can do this using the appropriate `RestClient.For<T>` overload, for example:
-
-```csharp
-var settings = new JsonSerializerSettings()
-{
-    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-    Converters = { new StringEnumConverter() }
-};
-var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
-```
-
-
 Headers
 -------
 
@@ -551,6 +531,26 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 
 // X-ParameterAndMethod-ToBeRemoved isn't set, because it was removed
 
+```
+
+
+Controlling Serialization and Deserialization
+---------------------------------------------
+
+By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies.
+However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own Deserializer and Serializer.
+
+### Custom `JsonSerializerSettings`
+
+If you want to specify your own `JsonSerializerSettings`, you can do this using the appropriate `RestClient.For<T>` overload, for example:
+
+```csharp
+var settings = new JsonSerializerSettings()
+{
+    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+    Converters = { new StringEnumConverter() }
+};
+var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
 ```
 
 ### Custom Serializers and Deserializers
