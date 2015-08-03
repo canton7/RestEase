@@ -21,7 +21,9 @@ namespace RestEase
         /// <returns>HttpContent to assign to the request</returns>
         public HttpContent SerializeBody<T>(T body)
         {
-            return new StringContent(JsonConvert.SerializeObject(body, this.JsonSerializerSettings));
+            var content = new StringContent(JsonConvert.SerializeObject(body, this.JsonSerializerSettings));
+            content.Headers.ContentType.MediaType = "application/json";
+            return content;
         }
     }
 }

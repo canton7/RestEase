@@ -1,4 +1,5 @@
-﻿using RestEase.Implementation;
+﻿using RestEase;
+using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -137,6 +138,36 @@ namespace RestEaseUnitTests.RequesterTests
             Assert.Equal(new[] { "RestEase", "" }, message.Headers.GetValues("User-Agent"));
             Assert.Equal(new[] { "Foo", "Bar" }, message.Headers.GetValues("X-API-Key"));
             Assert.Equal(new[] { "YesIAm" }, message.Headers.GetValues("This-Is-New"));
+        }
+
+        [Fact]
+        public void AppliesHeadersFromSerializer()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, new object());
+
+            var message = new HttpRequestMessage();
+            message.Content = this.requester.ConstructContent(requestInfo);
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("Content-Type: application/json; charset=utf-8\r\n", message.Content.Headers.ToString());
+        }
+
+        [Fact]
+        public void HeadersFromClassOverrideHeadersFromSerializer()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            {
+                new KeyValuePair<string, string>("Content-Type", "foo/bar"),
+            };
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, new object());
+
+            var message = new HttpRequestMessage();
+            message.Content = this.requester.ConstructContent(requestInfo);
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Equal("Content-Type: foo/bar\r\n", message.Content.Headers.ToString());
         }
 
         [Fact]
