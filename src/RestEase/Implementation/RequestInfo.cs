@@ -141,7 +141,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Add a path parameter: a [PathParam] method parameter which is used to substitute a placeholder in the path
+        /// Add a path parameter: a [Path] method parameter which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
         /// <param name="name">Name of the name/value pair</param>
