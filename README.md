@@ -371,26 +371,6 @@ public interface ISomeApi
 ```
 
 
-Controlling Serialization and Deserialization
----------------------------------------------
-
-By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies.
-However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own Deserializer and Serializer.
-
-### Custom `JsonSerializerSettings`
-
-If you want to specify your own `JsonSerializerSettings`, you can do this using the appropriate `RestClient.For<T>` overload, for example:
-
-```csharp
-var settings = new JsonSerializerSettings()
-{
-    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-    Converters = { new StringEnumConverter() }
-};
-var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
-```
-
-
 Headers
 -------
 
@@ -553,13 +533,39 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 
 ```
 
+
+Controlling Serialization and Deserialization
+---------------------------------------------
+
+By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies.
+However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own Deserializer and Serializer.
+
+### Custom `JsonSerializerSettings`
+
+If you want to specify your own `JsonSerializerSettings`, you can do this using the appropriate `RestClient.For<T>` overload, for example:
+
+```csharp
+var settings = new JsonSerializerSettings()
+{
+    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+    Converters = { new StringEnumConverter() }
+};
+var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
+```
+
 ### Custom Serializers and Deserializers
 
 If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
 
+When writing an `IRequestBodySerializer` implementation, you may choose to provide some default headers, such as `Content-Type`.
+These will be overidden by any `[Header]` attributes.
+
 For example:
 
 ```csharp
+// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
+// I'm going to do both as an example
+
 // This API returns XML
 
 public class XmlResponseDeserializer : IResponseDeserializer
@@ -576,9 +582,6 @@ public class XmlResponseDeserializer : IResponseDeserializer
     }
 }
 
-// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
-// I'm going to do both as an example
-
 public class XmlRequestBodySerializer : IRequestBodySerializer
 {
     public HttpContent SerializeBody<T>(T body)
@@ -589,7 +592,10 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
         using (var stringWriter = new StringWriter())
         {
             serializer.Serialize(stringWriter, body);
-            return new StringContent(stringWriter.ToString());
+            var content = new StringContent(stringWriter.ToString());
+            // Set the default Content-Type header to application/xml
+            content.Headers.ContentType.MediaType = "application/xml";
+            return content;
         }
     }
 }
@@ -607,7 +613,7 @@ RestEase provides two ways for you to manipulate how exactly requests are made, 
 
 ### `RequestModifier`
 
-The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoke whenever a request is made.
+The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoked whenever a request is made.
 This allows you to inspect and alter the request in any way you want: changing the content, changing the headers, make your own requests in the meantime, etc.
 
 For example, if you need to refresh an oAuth access token occasionally (using the [ADAL](https://msdn.microsoft.com/en-us/library/azure/jj573266.aspx) library as an example):
@@ -625,17 +631,17 @@ public interface IMyRestService
 
 AuthenticationContext context = new AuthenticationContext(...);
 IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (request, cancellationToken) =>
-   {
-      // See if the request has an authorize header
-      var auth = request.Headers.Authorization;
-      if (auth != null)
-      {
-          // The AquireTokenAsync call will prompt with a UI if necessary
-          // Or otherwise silently use a refresh token to return a valid access token 
-          var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
-          request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
-      }
-   });
+{
+    // See if the request has an authorize header
+    var auth = request.Headers.Authorization;
+    if (auth != null)
+    {
+        // The AquireTokenAsync call will prompt with a UI if necessary
+        // Or otherwise silently use a refresh token to return a valid access token 
+        var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
+        request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
+  }
+});
 
 ```
 
