@@ -557,6 +557,9 @@ var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
 
 If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
 
+When writing an `IRequestBodySerializer` implementation, you may choose to provide some default headers, such as `Content-Type`.
+These will be overidden by any `[Header]` attributes.
+
 For example:
 
 ```csharp
@@ -589,7 +592,10 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
         using (var stringWriter = new StringWriter())
         {
             serializer.Serialize(stringWriter, body);
-            return new StringContent(stringWriter.ToString());
+            var content = new StringContent(stringWriter.ToString());
+            // Set the default Content-Type header to application/xml
+            content.Headers.ContentType.MediaType = "application/xml";
+            return content;
         }
     }
 }
