@@ -613,7 +613,7 @@ RestEase provides two ways for you to manipulate how exactly requests are made, 
 
 ### `RequestModifier`
 
-The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoke whenever a request is made.
+The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoked whenever a request is made.
 This allows you to inspect and alter the request in any way you want: changing the content, changing the headers, make your own requests in the meantime, etc.
 
 For example, if you need to refresh an oAuth access token occasionally (using the [ADAL](https://msdn.microsoft.com/en-us/library/azure/jj573266.aspx) library as an example):
@@ -631,17 +631,17 @@ public interface IMyRestService
 
 AuthenticationContext context = new AuthenticationContext(...);
 IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (request, cancellationToken) =>
-   {
-      // See if the request has an authorize header
-      var auth = request.Headers.Authorization;
-      if (auth != null)
-      {
-          // The AquireTokenAsync call will prompt with a UI if necessary
-          // Or otherwise silently use a refresh token to return a valid access token 
-          var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
-          request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
-      }
-   });
+{
+    // See if the request has an authorize header
+    var auth = request.Headers.Authorization;
+    if (auth != null)
+    {
+        // The AquireTokenAsync call will prompt with a UI if necessary
+        // Or otherwise silently use a refresh token to return a valid access token 
+        var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
+        request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
+  }
+});
 
 ```
 
