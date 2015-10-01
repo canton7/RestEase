@@ -40,8 +40,9 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 13. [Customizing RestEase](#customizing-restease)
 14. [Interface Accessibility](#interface-accessibility)
 15. [Using Generic Interfaces](#using-generic-interfaces)
-16. [FAQs](#faqs)
-17. [Comparison to Refit](#comparison-to-refit)
+16. [Interface Inheritance](#interface-inheritance)
+17. [FAQs](#faqs)
+18. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -785,6 +786,35 @@ Which can be used like this:
 var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users"); 
 ```
 
+Interface Inheritance
+---------------------
+
+You're allowed to use interface inheritance to share common properties and methods between different APIs.
+However, you are not allowed to put any attributes (`[Header]` or `[AllowAnyStatusCode]`) onto the child interfaces being inherited, just onto the parent-most interface.
+
+For example:
+
+```csharp
+public interface IAuthenticatedEndpoint
+{
+    [Header("X-Api-Token")]
+    string ApiToken { get; set; }
+    [Header("X-Api-Username")]
+    string ApiUsername { get; set; }
+}
+
+public interface IDevicesEndpoint : IAuthenticatedEndpoint
+{
+    [Get("/devices")]
+    Task<IList<Device>> GetAllDevices([QueryMap] IDictionary<string, object> filters);
+}
+
+public interface IUsersEndpoint : IAuthenticatedEndpoint
+{
+    [Get("/user")]
+    Task<User> FetchUserAsync(int userid)
+}
+```
 
 FAQs
 ----
