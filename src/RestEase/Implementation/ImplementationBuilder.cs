@@ -117,6 +117,14 @@ namespace RestEase.Implementation
 
             var classAllowAnyStatusCodeAttribute = interfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
+            foreach (var childInterfaceType in interfaceType.GetInterfaces())
+            {
+                if (childInterfaceType.GetCustomAttributes<HeaderAttribute>().Any())
+                    throw new ImplementationCreationException(String.Format("Child interface {0} may not have any [Header] attribtues", childInterfaceType.Name));
+                if (childInterfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
+                    throw new ImplementationCreationException(String.Format("Child interface {0} may not have any [AllowAnyStatusCode] attributes", childInterfaceType.Name));
+            }
+
             // Define a readonly field which holds a reference to the IRequester
             var requesterField = typeBuilder.DefineField("requester", typeof(IRequester), FieldAttributes.Private | FieldAttributes.InitOnly);
 
@@ -234,7 +242,7 @@ namespace RestEase.Implementation
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
             List<KeyValuePair<HeaderAttribute, FieldBuilder>> propertyHeaders)
         {
-            foreach (var methodInfo in interfaceType.GetMethods())
+            foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetMethods()))
             {
                 // Exclude property getter / setters, etc
                 if (methodInfo.IsSpecialName)
@@ -320,8 +328,8 @@ namespace RestEase.Implementation
 
         private void HandleEvents(Type interfaceType)
         {
-            if (interfaceType.GetEvents().Any())
-                throw new ImplementationCreationException("Interface must not have any events");
+            if (InterfaceAndChildren(interfaceType, x => x.GetEvents()).Any())
+                throw new ImplementationCreationException("Interfaces must not have any events");
         }
 
         private List<KeyValuePair<HeaderAttribute, FieldBuilder>> HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
@@ -329,7 +337,7 @@ namespace RestEase.Implementation
             var propertyHeaderFields = new List<KeyValuePair<HeaderAttribute, FieldBuilder>>();
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
 
-            foreach (var property in interfaceType.GetProperties())
+            foreach (var property in InterfaceAndChildren(interfaceType, x => x.GetProperties()))
             {
                 var headerAttribute = property.GetCustomAttribute<HeaderAttribute>();
                 if (headerAttribute == null)
@@ -555,6 +563,21 @@ namespace RestEase.Implementation
             var firstInvalid = pathPartsSet.FirstOrDefault();
             if (firstInvalid != null)
                 throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [Path(\"{0}\")] for parameter {0}. Method: {1}", firstInvalid, methodName));
+        }
+
+        private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, T[]> selector)
+        {
+            foreach (var item in selector(interfaceType))
+            {
+                yield return item;
+            }
+            foreach (var child in interfaceType.GetInterfaces())
+            {
+                foreach (var item in selector(child))
+                {
+                    yield return item;
+                }
+            }
         }
     }
 }

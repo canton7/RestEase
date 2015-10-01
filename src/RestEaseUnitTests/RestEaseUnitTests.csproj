@@ -67,6 +67,7 @@
     <Compile Include="ImplementationBuilderTests\BodyTests.cs" />
     <Compile Include="ImplementationBuilderTests\CancellationTokenTests.cs" />
     <Compile Include="ImplementationBuilderTests\HeaderTests.cs" />
+    <Compile Include="ImplementationBuilderTests\InterfaceInheritanceTests.cs" />
     <Compile Include="ImplementationBuilderTests\RequesterIntegrationTests.cs" />
     <Compile Include="ImplementationBuilderTests\PathParamTests.cs" />
     <Compile Include="ImplementationBuilderTests\QueryMapTests.cs" />
