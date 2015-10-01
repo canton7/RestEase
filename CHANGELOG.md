@@ -1,3 +1,8 @@
+1.0.2
+-----
+
+ - Allow interface inheritance (#3)
+
 1.0.1
 -----
 
