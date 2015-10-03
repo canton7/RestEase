@@ -1,3 +1,9 @@
+1.0.3
+-----
+
+ - Allow interface headers in interface inheritance (#3)
+ - Add missing `RestClient.For` overloads
+
 1.0.2
 -----
 
