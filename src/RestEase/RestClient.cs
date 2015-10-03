@@ -17,12 +17,15 @@ namespace RestEase
 
         private static readonly ImplementationBuilder implementationBuilder = new ImplementationBuilder();
 
-        private static HttpClient CreateClient(string baseUrl)
+        private static HttpClient CreateClient(string baseUrl, RequestModifier requestModifier = null)
         {
-            return new HttpClient()
-            {
-                BaseAddress = new Uri(baseUrl),
-            };
+            var httpClient = requestModifier == null ?
+                new HttpClient() :
+                new HttpClient(new ModifyingClientHttpHandler(requestModifier));
+
+            httpClient.BaseAddress = new Uri(baseUrl);
+
+            return httpClient;
         }
 
         /// <summary>
@@ -45,23 +48,7 @@ namespace RestEase
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(string baseUrl, RequestModifier requestInterceptor)
         {
-            var httpClient = new HttpClient(new ModifyingClientHttpHandler(requestInterceptor))
-            {
-                BaseAddress = new Uri(baseUrl),
-            };
-
-            return For<T>(httpClient);
-        }
-
-        /// <summary>
-        /// Create a client using the given HttpClient
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="httpClient">HttpClient to use to make requests</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(HttpClient httpClient)
-        {
-            return For<T>(httpClient, jsonSerializerSettings: null);
+            return For<T>(CreateClient(baseUrl, requestInterceptor));
         }
 
         /// <summary>
@@ -74,6 +61,57 @@ namespace RestEase
         public static T For<T>(string baseUrl, JsonSerializerSettings jsonSerializerSettings)
         {
             return For<T>(CreateClient(baseUrl), jsonSerializerSettings);
+        }
+
+        /// <summary>
+        /// Create a client using the given base URL and Json.NET serializer settings
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">Base URL</param>
+        /// <param name="requestInterceptor">Delegate called on every request</param>
+        /// <param name="jsonSerializerSettings">Serializer settings to pass to Json.NET</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(string baseUrl, RequestModifier requestInterceptor, JsonSerializerSettings jsonSerializerSettings)
+        {
+            return For<T>(CreateClient(baseUrl, requestInterceptor), jsonSerializerSettings);
+        }
+
+        /// <summary>
+        /// Create a client using the given base URL, and custom serializer and/or deserializer
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">Base URL</param>
+        /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, for which BodySerializationMethod.Serialized has been selected</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        {
+            return For<T>(CreateClient(baseUrl), responseDeserializer, requestBodySerializer);
+        }
+
+        /// <summary>
+        /// Create a client using the given base URL, and custom serializer and/or deserializer
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">Base URL</param>
+        /// <param name="requestInterceptor">Delegate called on every request</param>
+        /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, for which BodySerializationMethod.Serialized has been selected</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(string baseUrl, RequestModifier requestInterceptor, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        {
+            return For<T>(CreateClient(baseUrl, requestInterceptor), responseDeserializer, requestBodySerializer);
+        }
+
+        /// <summary>
+        /// Create a client using the given HttpClient
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="httpClient">HttpClient to use to make requests</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(HttpClient httpClient)
+        {
+            return For<T>(httpClient, jsonSerializerSettings: null);
         }
 
         /// <summary>
@@ -95,19 +133,6 @@ namespace RestEase
             };
 
             return For<T>(httpClient, responseDeserializer, requestBodySerializer);
-        }
-
-        /// <summary>
-        /// Create a client using the given base URL, and custom serializer and/or deserializer
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="baseUrl">Base URL</param>
-        /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, for which BodySerializationMethod.Serialized has been selected</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
-        {
-            return For<T>(CreateClient(baseUrl), responseDeserializer, requestBodySerializer);
         }
 
         /// <summary>
