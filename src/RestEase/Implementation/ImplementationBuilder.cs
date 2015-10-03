@@ -107,7 +107,7 @@ namespace RestEase.Implementation
             var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public);
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
-            var classHeaders = interfaceType.GetCustomAttributes<HeaderAttribute>().ToArray();
+            var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetCustomAttributes<HeaderAttribute>()).ToArray();
             var firstHeaderWithoutValue = classHeaders.FirstOrDefault(x => x.Value == null);
             if (firstHeaderWithoutValue != null)
                 throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on interface must have the form [Header(\"Name\", \"Value\")]", firstHeaderWithoutValue.Name));
@@ -119,10 +119,8 @@ namespace RestEase.Implementation
 
             foreach (var childInterfaceType in interfaceType.GetInterfaces())
             {
-                if (childInterfaceType.GetCustomAttributes<HeaderAttribute>().Any())
-                    throw new ImplementationCreationException(String.Format("Child interface {0} may not have any [Header] attribtues", childInterfaceType.Name));
                 if (childInterfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
-                    throw new ImplementationCreationException(String.Format("Child interface {0} may not have any [AllowAnyStatusCode] attributes", childInterfaceType.Name));
+                    throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", childInterfaceType.Name));
             }
 
             // Define a readonly field which holds a reference to the IRequester
@@ -565,7 +563,7 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [Path(\"{0}\")] for parameter {0}. Method: {1}", firstInvalid, methodName));
         }
 
-        private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, T[]> selector)
+        private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, IEnumerable<T>> selector)
         {
             foreach (var item in selector(interfaceType))
             {

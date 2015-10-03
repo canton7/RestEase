@@ -37,12 +37,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         [Header("X-Foo", "Bar")]
-        public interface IChildWithInvalidHeader
+        public interface IChildWithInterfaceHeader
         {
         }
 
-        public interface IParentWithInvalidHeader : IChildWithInvalidHeader
+        [Header("X-Foo", "Baz")]
+        public interface IParentWithInterfaceHeader : IChildWithInterfaceHeader
         {
+            [Get("/foo")]
+            Task FooAsync();
         }
 
         [AllowAnyStatusCode]
@@ -91,9 +94,23 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         [Fact]
-        public void DoesNotAllowHeadersOnChildInterfaces()
+        public void CombinesHeadersFromChildInterfaces()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IParentWithInvalidHeader>(this.requester.Object));
+            var impl = this.builder.CreateImplementation<IParentWithInterfaceHeader>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback<IRequestInfo>(r => requestInfo = r)
+                .Returns(Task.FromResult(false));
+            impl.FooAsync();
+
+            Assert.NotNull(requestInfo);
+
+            Assert.Equal("X-Foo", requestInfo.ClassHeaders[0].Key);
+            Assert.Equal("Baz", requestInfo.ClassHeaders[0].Value);
+
+            Assert.Equal("X-Foo", requestInfo.ClassHeaders[1].Key);
+            Assert.Equal("Bar", requestInfo.ClassHeaders[1].Value);
         }
 
         [Fact]
