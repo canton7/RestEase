@@ -73,6 +73,7 @@
     <Compile Include="ImplementationBuilderTests\QueryMapTests.cs" />
     <Compile Include="ImplementationBuilderTests\QueryParamTests.cs" />
     <Compile Include="ImplementationBuilderTests\SanityCheckTests.cs" />
+    <Compile Include="ImplementationBuilderTests\ThreadSafetyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequesterTests\ContentConstructionTests.cs" />
     <Compile Include="RequesterTests\HeadersTests.cs" />

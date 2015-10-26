@@ -54,6 +54,8 @@ namespace RestEase.Implementation
         };
 
         private readonly ModuleBuilder moduleBuilder;
+
+        private readonly object implementationBuildLockObject = new object();
         private readonly ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>> creatorCache = new ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>>();
 
         /// <summary>
@@ -78,14 +80,27 @@ namespace RestEase.Implementation
             if (requester == null)
                 throw new ArgumentNullException("requester");
 
-            var creator = this.creatorCache.GetOrAdd(typeof(T).TypeHandle, key =>
+            // We have to be careful here. The common case is going to be fetching an existing creator. However in the case
+            // that one doesn't yet exist, we can't try and create two of the same type at the same time.
+            // We have a lock around creating all types, as that's simpler and probably won't be noticable in practice.
+
+            Func<IRequester, object> creator;
+            var key = typeof(T).TypeHandle;
+
+            if (!this.creatorCache.TryGetValue(key, out creator))
             {
-                // We could use 'typeof(T)' instead of Type.GetTypeFromHandle(key) here, but that would mean that
-                // this delegate becomes a closure, leading to slightly more runtime cost. 'typeof(T)' just calls
-                // Type.GetTypeFromHandle anyway...
-                var implementationType = this.BuildImplementationImpl(Type.GetTypeFromHandle(key));
-                return this.BuildCreator(implementationType);
-            });
+                lock (this.implementationBuildLockObject)
+                {
+                    // Two threads can fail the TryGetValue and acquire this lock in order. The first one will create the type.
+                    // Therefore the second one has to check for this...
+                    if (!this.creatorCache.TryGetValue(key, out creator))
+                    {
+                        var implementationType = this.BuildImplementationImpl(typeof(T));
+                        creator = this.BuildCreator(implementationType);
+                        this.creatorCache.TryAdd(key, creator);
+                    }
+                }
+            }
 
             T implementation = (T)creator(requester);
 
