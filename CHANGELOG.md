@@ -1,3 +1,8 @@
+v1.0.4
+------
+
+ - Fix race condition when creating implementations (#4)
+
 1.0.3
 -----
 
