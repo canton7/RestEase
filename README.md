@@ -1,5 +1,5 @@
-RestEase
-========
+![Project Icon](icon.png) RestEase
+==================================
 
 [![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
 [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
