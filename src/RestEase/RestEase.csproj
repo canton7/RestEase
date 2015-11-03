@@ -52,13 +52,15 @@
     <Compile Include="HeaderAttribute.cs" />
     <Compile Include="Implementation\BodyParameterInfo.cs" />
     <Compile Include="Implementation\DictionaryIterator.cs" />
+    <Compile Include="Implementation\EnumerableExtensions.cs" />
     <Compile Include="Implementation\IndexedParameter.cs" />
     <Compile Include="Implementation\IRequestInfo.cs" />
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
+    <Compile Include="Implementation\QueryMapInfo.cs" />
     <Compile Include="Implementation\QueryParameterInfo.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
-    <Compile Include="JsonRequestBodySerializer.cs" />
+    <Compile Include="JsonRequestSerializer.cs" />
     <Compile Include="PathAttribute.cs" />
     <Compile Include="QueryAttribute.cs" />
     <Compile Include="ApiException.cs" />

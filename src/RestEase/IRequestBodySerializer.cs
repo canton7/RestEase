@@ -2,10 +2,12 @@
 namespace RestEase
 {
     /// <summary>
-    /// Helper which knows how to serialize a request body
+    /// Helper which knows how to serialize a request body and parameters
     /// </summary>
-    public interface IRequestBodySerializer
+    public interface IRequestSerializer
     {
+        string SerializeQueryParameter<T>(T queryParameter);
+
         /// <summary>
         /// Serialize the given request body
         /// </summary>

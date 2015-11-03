@@ -447,7 +447,8 @@ namespace RestEase.Implementation
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
-                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index);
+                var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
+                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, method);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -463,7 +464,10 @@ namespace RestEase.Implementation
 
         private static MethodInfo MakeQueryParameterMethodInfo(Type parameterType)
         {
-            var typeOfT = CollectionTypeOfType(parameterType);
+            Type typeOfT = null;
+            // Don't want to count string as an IEnumrable<char>...
+            if (parameterType != typeof(string))
+                typeOfT = CollectionTypeOfType(parameterType);
 
             // Does not implement IEnumerable<T>
             if (typeOfT == null)
@@ -474,7 +478,7 @@ namespace RestEase.Implementation
 
         private static Type CollectionTypeOfType(Type input)
         {
-            foreach (var baseType in input.GetInterfaces())
+            foreach (var baseType in EnumerableExtensions.Concat(input, input.GetInterfaces()))
             {
                 if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     return baseType.GetGenericArguments()[0];
@@ -589,7 +593,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex)
+        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodInfo)
         {
             // Equivalent C#:
             // requestInfo.AddPathParameter("name", value);
@@ -606,7 +610,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
-            methodIlGenerator.Emit(OpCodes.Callvirt, addPathParameterMethod);
+            methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
         private void AddHeaderParameter(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo method)

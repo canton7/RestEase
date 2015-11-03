@@ -1,17 +1,23 @@
 ﻿using Newtonsoft.Json;
 using System.Net.Http;
+using System;
 
 namespace RestEase
 {
     /// <summary>
-    /// Default IRequestBodySerializer, using Json.NET
+    /// Default IRequestSerializer, using Json.NET
     /// </summary>
-    public class JsonRequestBodySerializer : IRequestBodySerializer
+    public class JsonRequestSerializer : IRequestSerializer
     {
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
+
+        public string SerializeQueryParameter<T>(T queryParameter)
+        {
+            return JsonConvert.SerializeObject(queryParameter, this.JsonSerializerSettings);
+        }
 
         /// <summary>
         /// Serialize the given request body

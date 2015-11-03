@@ -24,9 +24,9 @@ namespace RestEase.Implementation
         public IResponseDeserializer ResponseDeserializer { get; set; }
 
         /// <summary>
-        /// Gets or sets the serializer used to serialize request bodies, when [Body(BodySerializationMethod.Serialized)] is used
+        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used) or query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
-        public IRequestBodySerializer RequestBodySerializer { get; set; }
+        public IRequestSerializer RequestSerializer { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
@@ -36,7 +36,7 @@ namespace RestEase.Implementation
         {
             this.httpClient = httpClient;
             this.ResponseDeserializer = new JsonResponseDeserializer();
-            this.RequestBodySerializer = new JsonRequestBodySerializer();
+            this.RequestSerializer = new JsonRequestSerializer();
         }
 
         /// <summary>
@@ -98,8 +98,9 @@ namespace RestEase.Implementation
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
-                if (queryParam.ObjectValue != null)
-                    query.Add(queryParam.Name, queryParam.ObjectValue.ToString());
+                var serialized = this.SerializeQueryParameterValue(queryParam);
+                if (serialized != null)
+                    query.Add(queryParam.Name, serialized);
             }
             if (requestInfo.QueryMap != null)
             { 
@@ -157,6 +158,24 @@ namespace RestEase.Implementation
             }
         }
 
+        protected virtual string SerializeQueryParameterValue(QueryParameterInfo queryParameter)
+        {
+            if (queryParameter.ObjectValue == null)
+                return null;
+
+            switch (queryParameter.SerializationMethod)
+            {
+                case QuerySerialializationMethod.ToString:
+                    return queryParameter.ObjectValue.ToString();
+                case QuerySerialializationMethod.Serialized:
+                    if (this.RequestSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize query parameter when RequestBodySerializer is null. Please set RequestSerializer");
+                    return queryParameter.SerializeValue(this.RequestSerializer);
+                default:
+                    throw new InvalidOperationException("Should never get here");
+            }
+        }
+
         /// <summary>
         /// Given an IRequestInfo which may have a BodyParameterInfo, construct a suitable HttpContent for it if possible
         /// </summary>
@@ -184,9 +203,9 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.UrlEncoded:
                     return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.ObjectValue));
                 case BodySerializationMethod.Serialized:
-                    if (this.RequestBodySerializer == null)
-                        throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer);
+                    if (this.RequestSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize request body when RequestSerializer is null. Please set RequestSerializer");
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestSerializer);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }

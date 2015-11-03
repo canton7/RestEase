@@ -82,11 +82,11 @@ namespace RestEase
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="baseUrl">Base URL</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, for which BodySerializationMethod.Serialized has been selected</param>
+        /// <param name="requestSerializer">Serializer to use when serializing request bodies or query parameters, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestSerializer requestSerializer = null)
         {
-            return For<T>(CreateClient(baseUrl), responseDeserializer, requestBodySerializer);
+            return For<T>(CreateClient(baseUrl), responseDeserializer, requestSerializer);
         }
 
         /// <summary>
@@ -96,11 +96,11 @@ namespace RestEase
         /// <param name="baseUrl">Base URL</param>
         /// <param name="requestInterceptor">Delegate called on every request</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, for which BodySerializationMethod.Serialized has been selected</param>
+        /// <param name="requestSerializer">Serializer to use when serializing request bodies or query parameters, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(string baseUrl, RequestModifier requestInterceptor, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(string baseUrl, RequestModifier requestInterceptor, IResponseDeserializer responseDeserializer = null, IRequestSerializer requestSerializer = null)
         {
-            return For<T>(CreateClient(baseUrl, requestInterceptor), responseDeserializer, requestBodySerializer);
+            return For<T>(CreateClient(baseUrl, requestInterceptor), responseDeserializer, requestSerializer);
         }
 
         /// <summary>
@@ -127,12 +127,12 @@ namespace RestEase
             {
                 JsonSerializerSettings = jsonSerializerSettings,
             };
-            var requestBodySerializer = new JsonRequestBodySerializer()
+            var requestSerializer = new JsonRequestSerializer()
             {
                 JsonSerializerSettings = jsonSerializerSettings,
             };
 
-            return For<T>(httpClient, responseDeserializer, requestBodySerializer);
+            return For<T>(httpClient, responseDeserializer, requestSerializer);
         }
 
         /// <summary>
@@ -141,16 +141,16 @@ namespace RestEase
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="httpClient">HttpClient to use to make requests</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, for which BodySerializationMethod.Serialized has been selected</param>
+        /// <param name="requestSerializer">Serializer to use when serializing request bodies or query parameters, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(HttpClient httpClient, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(HttpClient httpClient, IResponseDeserializer responseDeserializer = null, IRequestSerializer requestSerializer = null)
         {
             var requester = new Requester(httpClient);
 
             if (responseDeserializer != null)
                 requester.ResponseDeserializer = responseDeserializer;
-            if (requestBodySerializer != null)
-                requester.RequestBodySerializer = requestBodySerializer;
+            if (requestSerializer != null)
+                requester.RequestSerializer = requestSerializer;
 
             return For<T>(requester);
         }

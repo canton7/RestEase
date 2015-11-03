@@ -67,8 +67,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal("bar", requestInfo.QueryParams[0].Key);
-            Assert.Equal("the value", requestInfo.QueryParams[0].Value);
+            Assert.Equal("bar", requestInfo.QueryParams[0].Name);
+            Assert.Equal("the value", requestInfo.QueryParams[0].ObjectValue);
             Assert.Equal("boo", requestInfo.Path);
         }
 
@@ -85,8 +85,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync("the value");
 
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal("foo", requestInfo.QueryParams[0].Key);
-            Assert.Equal("the value", requestInfo.QueryParams[0].Value);
+            Assert.Equal("foo", requestInfo.QueryParams[0].Name);
+            Assert.Equal("the value", requestInfo.QueryParams[0].ObjectValue);
         }
 
         [Fact]
@@ -103,11 +103,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, requestInfo.QueryParams.Count);
 
-            Assert.Equal("bar", requestInfo.QueryParams[0].Key);
-            Assert.Equal("foo value", requestInfo.QueryParams[0].Value);
+            Assert.Equal("bar", requestInfo.QueryParams[0].Name);
+            Assert.Equal("foo value", requestInfo.QueryParams[0].ObjectValue);
 
-            Assert.Equal("bar", requestInfo.QueryParams[1].Key);
-            Assert.Equal("bar value", requestInfo.QueryParams[1].Value);
+            Assert.Equal("bar", requestInfo.QueryParams[1].Name);
+            Assert.Equal("bar value", requestInfo.QueryParams[1].ObjectValue);
         }
 
         [Fact]
@@ -124,17 +124,17 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(4, requestInfo.QueryParams.Count);
 
-            Assert.Equal("foo", requestInfo.QueryParams[0].Key);
-            Assert.Equal(null, requestInfo.QueryParams[0].Value);
+            Assert.Equal("foo", requestInfo.QueryParams[0].Name);
+            Assert.Equal(null, requestInfo.QueryParams[0].ObjectValue);
 
-            Assert.Equal("bar", requestInfo.QueryParams[1].Key);
-            Assert.Equal(null, requestInfo.QueryParams[1].Value);
+            Assert.Equal("bar", requestInfo.QueryParams[1].Name);
+            Assert.Equal(null, requestInfo.QueryParams[1].ObjectValue);
 
-            Assert.Equal("baz", requestInfo.QueryParams[2].Key);
-            Assert.Equal("0", requestInfo.QueryParams[2].Value);
+            Assert.Equal("baz", requestInfo.QueryParams[2].Name);
+            Assert.Equal(0, requestInfo.QueryParams[2].ObjectValue);
 
-            Assert.Equal("yay", requestInfo.QueryParams[3].Key);
-            Assert.Equal("0", requestInfo.QueryParams[3].Value);
+            Assert.Equal("yay", requestInfo.QueryParams[3].Name);
+            Assert.Equal(0, requestInfo.QueryParams[3].ObjectValue);
         }
 
         [Fact]
@@ -151,14 +151,14 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(3, requestInfo.QueryParams.Count);
 
-            Assert.Equal("intArray", requestInfo.QueryParams[0].Key);
-            Assert.Equal("1", requestInfo.QueryParams[0].Value);
+            Assert.Equal("intArray", requestInfo.QueryParams[0].Name);
+            Assert.Equal(1, requestInfo.QueryParams[0].ObjectValue);
 
-            Assert.Equal("intArray", requestInfo.QueryParams[1].Key);
-            Assert.Equal("2", requestInfo.QueryParams[1].Value);
+            Assert.Equal("intArray", requestInfo.QueryParams[1].Name);
+            Assert.Equal(2, requestInfo.QueryParams[1].ObjectValue);
 
-            Assert.Equal("intArray", requestInfo.QueryParams[2].Key);
-            Assert.Equal("3", requestInfo.QueryParams[2].Value);
+            Assert.Equal("intArray", requestInfo.QueryParams[2].Name);
+            Assert.Equal(3, requestInfo.QueryParams[2].ObjectValue);
         }
     }
 }

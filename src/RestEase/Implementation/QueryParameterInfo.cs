@@ -14,7 +14,7 @@ namespace RestEase.Implementation
 
         public abstract object ObjectValue { get; }
 
-        public abstract string SerializeValue(IRequestBodySerializer serializer);
+        public abstract string SerializeValue(IRequestSerializer serializer);
     }
 
     public class QueryParameterInfo<T> : QueryParameterInfo
@@ -33,9 +33,14 @@ namespace RestEase.Implementation
             this.Value = value;
         }
 
-        public override string SerializeValue(IRequestBodySerializer serializer)
+        public override string SerializeValue(IRequestSerializer serializer)
         {
-            throw new NotImplementedException();   
+            if (serializer == null)
+                throw new ArgumentNullException("serializer");
+            if (this.Value == null)
+                return null;
+
+            return serializer.SerializeQueryParameter<T>(this.Value);
         }
     }
 }

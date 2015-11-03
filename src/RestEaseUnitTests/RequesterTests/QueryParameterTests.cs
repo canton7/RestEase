@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using RestEase;
 
 namespace RestEaseUnitTests.RequesterTests
 {
@@ -19,7 +20,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void IgnoresNullQueryParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter<object>("bar", null);
+            requestInfo.AddQueryParameter<object>(QuerySerialializationMethod.ToString, "bar", null);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
