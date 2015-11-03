@@ -9,11 +9,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using RestEase;
+using Moq;
 
 namespace RestEaseUnitTests.RequesterTests
 {
     public class QueryParameterTests
     {
+        // See http://stackoverflow.com/q/16979196/1086121
+        public class HasToString
+        {
+            public override string ToString()
+            {
+                return "HasToString";
+            }
+        }
+
         private readonly PublicRequester requester = new PublicRequester(new HttpClient() { BaseAddress = new Uri("http://api.example.com/base") });
 
         [Fact]
@@ -23,6 +33,45 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddQueryParameter<object>(QuerySerialializationMethod.ToString, "bar", null);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
+        }
+
+        [Fact]
+        public void CallsToStringForToStringSerializationMethod()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            var objectMock = new Mock<HasToString>();
+            objectMock.Setup(x => x.ToString()).Returns("BOOM").Verifiable();
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", objectMock.Object);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
+
+            objectMock.VerifyAll();
+            Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOM"), uri);
+        }
+
+        [Fact]
+        public void ThrowsIfSerializedSerializationMethodUsedButNotRequestSerializerSet()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.Serialized, "bar", "boom");
+            this.requester.RequestSerializer = null;
+            Assert.Throws<InvalidOperationException>(() => this.requester.ConstructUri("/foo", requestInfo));
+        }
+
+        [Fact]
+        public void SerializesUsingSerializerForSerializedSerializationMethod()
+        {
+            var obj = new HasToString();
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.Serialized, "bar", obj);
+
+            var serializer = new Mock<IRequestSerializer>();
+            serializer.Setup(x => x.SerializeQueryParameter<HasToString>(obj)).Returns("BOOMYAY").Verifiable();
+            this.requester.RequestSerializer = serializer.Object;
+
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
+
+            serializer.VerifyAll();
+            Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOMYAY"), uri);
         }
 
         [Fact]

@@ -44,6 +44,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync(IEnumerable<int> intArray);
         }
 
+        public interface ISerializedQueryParam
+        {
+            [Get("foo")]
+            Task FooAsync([Query(QuerySerialializationMethod.Serialized)] object foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -159,6 +165,38 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal("intArray", requestInfo.QueryParams[2].Name);
             Assert.Equal(3, requestInfo.QueryParams[2].ObjectValue);
+        }
+
+        [Fact]
+        public void RecordsToStringSerializationMethod()
+        {
+            var implementation = this.builder.CreateImplementation<ISingleParameterWithQueryParamAttributeNoReturn>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.BooAsync("yay");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerialializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void RecordsSerializedSerializationMethod()
+        {
+            var implementation = this.builder.CreateImplementation<ISerializedQueryParam>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("boom");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerialializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
         }
     }
 }
