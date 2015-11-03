@@ -98,8 +98,8 @@ namespace RestEase.Implementation
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
-                if (queryParam.Value != null)
-                    query.Add(queryParam.Key, queryParam.Value);
+                if (queryParam.ObjectValue != null)
+                    query.Add(queryParam.Name, queryParam.ObjectValue.ToString());
             }
             if (requestInfo.QueryMap != null)
             { 

@@ -30,7 +30,11 @@ namespace RestEase.Implementation
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetConstructor(new[] { typeof(HttpMethod), typeof(string) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetProperty("AllowAnyStatusCode").SetMethod;
+        
+        // These two methods have the same signature, which is very useful...
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
+        private static readonly MethodInfo addQueryCollectionParameterMethod = typeof(RequestInfo).GetMethod("AddQueryCollectionParameter");
+
         private static readonly MethodInfo queryMapSetter = typeof(RequestInfo).GetProperty("QueryMap").SetMethod;
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").SetMethod;
@@ -431,20 +435,19 @@ namespace RestEase.Implementation
 
             foreach (var queryParameter in parameterGrouping.QueryParameters)
             {
-                var method = addQueryParameterMethod.MakeGenericMethod(queryParameter.Parameter.ParameterType);
-                this.AddParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method);
+                var method = MakeQueryParameterMethodInfo(queryParameter.Parameter.ParameterType);
+                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method, queryParameter.Attribute.SerializationMethod);
             }
 
             foreach (var plainParameter in parameterGrouping.PlainParameters)
             {
-                var method = addQueryParameterMethod.MakeGenericMethod(plainParameter.Parameter.ParameterType);
-                this.AddParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method);
+                var method = MakeQueryParameterMethodInfo(plainParameter.Parameter.ParameterType);
+                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, QuerySerialializationMethod.ToString);
             }
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
-                var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
-                this.AddParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, method);
+                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -454,8 +457,30 @@ namespace RestEase.Implementation
                 if (headerParameter.Attribute.Name.Contains(':'))
                     throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have a colon in its name", headerParameter.Attribute.Name, methodName));
                 var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
-                this.AddParam(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
+                this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
             }
+        }
+
+        private static MethodInfo MakeQueryParameterMethodInfo(Type parameterType)
+        {
+            var typeOfT = CollectionTypeOfType(parameterType);
+
+            // Does not implement IEnumerable<T>
+            if (typeOfT == null)
+                return addQueryParameterMethod.MakeGenericMethod(parameterType);
+            else
+                return addQueryCollectionParameterMethod.MakeGenericMethod(typeOfT);
+        }
+
+        private static Type CollectionTypeOfType(Type input)
+        {
+            foreach (var baseType in input.GetInterfaces())
+            {
+                if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    return baseType.GetGenericArguments()[0];
+            }
+
+            return null;
         }
 
         private void AddRequestMethodInvocation(ILGenerator methodIlGenerator, MethodInfo methodInfo)
@@ -543,10 +568,31 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, addMethodHeaderMethod);
         }
 
-        private void AddParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall)
+        private void AddQueryParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall, QuerySerialializationMethod serializationMethod)
         {
             // Equivalent C#:
-            // requestInfo.methodToCall("name", value);
+            // requestInfo.AddQueryParameter(serializationMethod, name, value) (or AddQueryCollectionParameter)
+
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the serialization method onto the stack
+            // Stack: [..., requestInfo, requestInfo, serializationMethod]
+            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
+            // Load the name onto the stack
+            // Stack: [..., requestInfo, requestInfo, serializationMethod, name]
+            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, serializationMethod, name, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Call AddPathParameter
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
+        }
+
+        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex)
+        {
+            // Equivalent C#:
+            // requestInfo.AddPathParameter("name", value);
             // where 'value' is the parameter at index parameterIndex
 
             // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
@@ -560,7 +606,27 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
-            methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
+            methodIlGenerator.Emit(OpCodes.Callvirt, addPathParameterMethod);
+        }
+
+        private void AddHeaderParameter(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo method)
+        {
+            // Equivalent C#:
+            // requestInfo.AddHeaderParameter("name", value);
+            // where 'value' is the parameter at index parameterIndex
+
+            // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the name onto the stack
+            // Stack: [..., requestInfo, requestInfo, name]
+            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, name, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Call AddPathParameter
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, method);
         }
 
         private void ValidatePathParams(string path, IEnumerable<string> pathParams, string methodName)

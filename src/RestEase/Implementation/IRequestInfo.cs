@@ -34,7 +34,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
-        IReadOnlyList<KeyValuePair<string, string>> QueryParams { get; }
+        IReadOnlyList<QueryParameterInfo> QueryParams { get; }
 
         /// <summary>
         /// Gets the query map, if specified. Must be an IDictionary or IDictionary{TKey, TValue}
