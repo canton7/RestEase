@@ -59,7 +59,7 @@
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
     <Compile Include="Implementation\QueryParameterInfo.cs" />
-    <Compile Include="IRequestBodySerializer.cs" />
+    <Compile Include="IRequestSerializer.cs" />
     <Compile Include="JsonRequestSerializer.cs" />
     <Compile Include="PathAttribute.cs" />
     <Compile Include="QueryAttribute.cs" />
