@@ -1027,9 +1027,10 @@ Here's a brief summary of pros/cons, compared to Refit:
  - Better support for API calls which are expected to fail: `[AllowAnyStatusCode]` and `Response<T>`
  - Easier to customize:
    - Can specify custom response deserializer
-   - Can specify custom request body serializer
+   - Can specify custom request serializer
    - Can customize almost every aspect of setting up and creating the request (through implementing `IRequester`)
  - Supports `[QueryMap]`
+ - Supports custom query parameter serialization
  - Supports arrays of query parameters (and body parameters when serializing a body parameter as UrlEncoded)
  - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
 
