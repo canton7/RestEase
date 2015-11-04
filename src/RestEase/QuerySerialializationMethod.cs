@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RestEase
+﻿namespace RestEase
 {
     /// <summary>
     /// Type of serialization that should be applied to the query parameter's value
