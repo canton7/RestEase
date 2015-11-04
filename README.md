@@ -22,6 +22,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 5. [Query Parameters](#query-parameters)
   1. [Constant Query Parameters](#constant-query-parameters)
   2. [Variable Query Parameters](#variable-query-parameters)
+    1. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
   3. [Query Parameters Map](#query-parameters-map)
 6. [Path Parameters](#path-parameters)
 7. [Body Content](#body-content)
@@ -206,9 +207,37 @@ public interface ISomeApi
 
 ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
-// Requests http://somenedpint.com/search?filter=foo&filter=bar&filter=baz
+// Requests http://api.exapmle.com/search?filter=foo&filter=bar&filter=baz
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
 ```
+
+#### Serialization of Variable Query Parameters
+
+By default, query parameter values will be serialized by calling `ToString()` on them.
+This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+
+However, some APIs require that you send e.g. JSON as a query parameter.
+In this case, you can mark the parameter for custom serialization using `QuerySerializationMethod`, and further control it by using a [custom serializer](#custom-serializers-and-deserializers).
+
+For example:
+```csharp
+public class SearchParams
+{
+    public string Term { get; set; }
+    public string Mode { get; set; }
+}
+
+public interface ISomeApi
+{
+    [Get("search")]
+    Task<SearchResult> SearchAsync([Query(QuerySerializationMethod.Serialized)] SearchParams param);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+// Requests http://api.example.com/search?params={"Term": "foo", "Mode": "basic"}
+await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
+```
+
 
 ### Query Parameters Map
 
@@ -559,15 +588,16 @@ var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
 
 ### Custom Serializers and Deserializers
 
-If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
+If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestSerializer.cs) respectively.
 
-When writing an `IRequestBodySerializer` implementation, you may choose to provide some default headers, such as `Content-Type`.
+An `IRequestSerializer` controls how query parameter values (where `QuerySerializationMethod.Serialized` has been used) and request bodies (where `BodySerializationMethod.Serialized` has been used) are serialized.
+When writing an `IRequestSerializer`'s `SerializeBody` implementation, you may choose to provide some default headers, such as `Content-Type`.
 These will be overidden by any `[Header]` attributes.
 
 For example:
 
 ```csharp
-// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
+// You can define either IResponseDeserializer, or IRequestSerializer, or both
 // I'm going to do both as an example
 
 // This API returns XML
@@ -586,8 +616,23 @@ public class XmlResponseDeserializer : IResponseDeserializer
     }
 }
 
-public class XmlRequestBodySerializer : IRequestBodySerializer
+public class XmlRequestSerializer : IRequestSerializer
 {
+    public string SerializeQueryParameter<T>(T queryParameterValue)
+    {
+        // It's highly unusual to serialize query parameters as xml,
+        // but for the sake of an example
+
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
+
+        using (var stringWriter = new StringWriter())
+        {
+            serializer.Serialize(stringWriter, body);
+            return stringWriter.ToString();
+        }
+    }
+
     public HttpContent SerializeBody<T>(T body)
     {
         // Consider caching generated XmlSerializers
@@ -606,7 +651,7 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
 
 // ...
 
-var api = RestClient.For<ISomeApi>("http://api.example.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
+var api = RestClient.For<ISomeApi>("http://api.example.com", new XmlResponseDeserializer(), new XmlRequestSerializer());
 ```
 
 

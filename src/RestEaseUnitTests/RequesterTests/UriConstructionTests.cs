@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using RestEase;
 
 namespace RestEaseUnitTests.RequesterTests
 {
@@ -57,7 +58,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ConstructsUriWithGivenParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter("bar", "baz");
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", "baz");
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=baz"), uri);
         }
@@ -66,7 +67,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ConstructsUriCombiningExistingAndGivenParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter("bar", "baz");
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", "baz");
             var uri = this.requester.ConstructUri("/foo?a=yay", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?a=yay&bar=baz"), uri);
         }
@@ -83,7 +84,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ConstructsUriWithEscapedGivenParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter("b ar", "b az");
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "b ar", "b az");
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?b+ar=b+az"), uri);
         }
@@ -100,8 +101,8 @@ namespace RestEaseUnitTests.RequesterTests
         public void ConstructsUriWithPreservedDuplicateGivenParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter("bar", "baz");
-            requestInfo.AddQueryParameter("bar", "baz2");
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", "baz");
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", "baz2");
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=baz&bar=baz2"), uri);
         }
@@ -110,7 +111,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ConstructsUriWithPreservedDuplicateExistingAndGivenParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter("bar", "baz2");
+            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", "baz2");
             var uri = this.requester.ConstructUri("/foo?bar=baz", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=baz&bar=baz2"), uri);
         }

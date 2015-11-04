@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 
@@ -32,12 +33,12 @@ namespace RestEase.Implementation
         /// </summary>
         public bool AllowAnyStatusCode { get; set; }
 
-        private readonly List<KeyValuePair<string, string>> _queryParams;
+        private readonly List<QueryParameterInfo> _queryParams;
 
         /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> QueryParams
+        public IReadOnlyList<QueryParameterInfo> QueryParams
         {
             get { return this._queryParams; }
         }
@@ -108,7 +109,7 @@ namespace RestEase.Implementation
             this.Path = path;
             this.CancellationToken = CancellationToken.None;
 
-            this._queryParams = new List<KeyValuePair<string, string>>();
+            this._queryParams = new List<QueryParameterInfo>();
             this._pathParams = new List<KeyValuePair<string, string>>();
             this._methodHeaders = new List<KeyValuePair<string, string>>();
             this._propertyHeaders = new List<KeyValuePair<string, string>>();
@@ -120,23 +121,26 @@ namespace RestEase.Implementation
         /// </summary>
         /// <remarks>value may be an IEnumerable, in which case each value is added separately</remarks>
         /// <typeparam name="T">Type of the value to add</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public void AddQueryParameter<T>(string name, T value)
+        public void AddQueryParameter<T>(QuerySerialializationMethod serializationMethod, string name, T value)
         {
-            // Don't want to count strings as IEnumerable
-            if (value != null && !(value is string) && value is IEnumerable)
+            this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
+        }
+
+        /// <summary>
+        /// Add a collection of query parameter values under the same name
+        /// </summary>
+        /// <typeparam name="T">Type of the value to add</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="name">Name of the name/values pair</param>
+        /// <param name="values">Values of the name/values pairs</param>
+        public void AddQueryCollectionParameter<T>(QuerySerialializationMethod serializationMethod, string name, IEnumerable<T> values)
+        {
+            foreach (T value in values)
             {
-                foreach (var individualValue in (IEnumerable)value)
-                {
-                    var stringValue = individualValue == null ? null : individualValue.ToString();
-                    this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
-                }
-            }
-            else
-            {
-                var stringValue = value == null ? null : value.ToString();
-                this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
+                this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
             }
         }
 
