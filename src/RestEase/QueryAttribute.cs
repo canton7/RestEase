@@ -13,7 +13,10 @@ namespace RestEase
         /// </summary>
         public string Name { get; set; }
 
-        public QuerySerialializationMethod SerializationMethod { get; set; }
+        /// <summary>
+        /// Gets the serialization method to use to serialize the value. Defaults to QuerySerializationMethod.ToString
+        /// </summary>
+        public QuerySerialializationMethod SerializationMethod { get; private set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class
@@ -30,10 +33,19 @@ namespace RestEase
             : this(name, QuerySerialializationMethod.ToString)
         { }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given serialization method
+        /// </summary>
+        /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(QuerySerialializationMethod serializationMethod)
             : this(null, serializationMethod)
         { }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given name and serialization method
+        /// </summary>
+        /// <param name="name">Name of the query parameter</param>
+        /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(string name, QuerySerialializationMethod serializationMethod)
         {
             this.Name = name;

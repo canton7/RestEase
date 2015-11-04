@@ -158,6 +158,11 @@ namespace RestEase.Implementation
             }
         }
 
+        /// <summary>
+        /// Serializes the value of a query parameter, using an appropriate method
+        /// </summary>
+        /// <param name="queryParameter">Query parameter to serialize</param>
+        /// <returns>Serialized value</returns>
         protected virtual string SerializeQueryParameterValue(QueryParameterInfo queryParameter)
         {
             if (queryParameter.ObjectValue == null)
@@ -169,7 +174,7 @@ namespace RestEase.Implementation
                     return queryParameter.ObjectValue.ToString();
                 case QuerySerialializationMethod.Serialized:
                     if (this.RequestSerializer == null)
-                        throw new InvalidOperationException("Cannot serialize query parameter when RequestBodySerializer is null. Please set RequestSerializer");
+                        throw new InvalidOperationException("Cannot serialize query parameter when RequestSerializer is null. Please set RequestSerializer");
                     return queryParameter.SerializeValue(this.RequestSerializer);
                 default:
                     throw new InvalidOperationException("Should never get here");

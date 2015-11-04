@@ -12,16 +12,5 @@ namespace RestEase
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = true)]
     public sealed class QueryMapAttribute : Attribute
     {
-        public QuerySerialializationMethod SerializationMethod { get; set; }
-
-        public QueryMapAttribute()
-            : this(QuerySerialializationMethod.ToString)
-        {
-        }
-
-        public QueryMapAttribute(QuerySerialializationMethod serializationMethod)
-        {
-            this.SerializationMethod = serializationMethod;
-        }
     }
 }

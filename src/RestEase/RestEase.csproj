@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="AllowAnyStatusCodeAttribute.cs" />
     <Compile Include="BodyAttribute.cs" />
+    <Compile Include="BodySerializationMethod.cs" />
     <Compile Include="HeaderAttribute.cs" />
     <Compile Include="Implementation\BodyParameterInfo.cs" />
     <Compile Include="Implementation\DictionaryIterator.cs" />
@@ -57,7 +58,6 @@
     <Compile Include="Implementation\IRequestInfo.cs" />
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
-    <Compile Include="Implementation\QueryMapInfo.cs" />
     <Compile Include="Implementation\QueryParameterInfo.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
     <Compile Include="JsonRequestSerializer.cs" />

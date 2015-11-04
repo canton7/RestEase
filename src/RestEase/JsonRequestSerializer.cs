@@ -14,9 +14,15 @@ namespace RestEase
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
-        public string SerializeQueryParameter<T>(T queryParameter)
+        /// <summary>
+        /// Serialize the given query parameter value
+        /// </summary>
+        /// <typeparam name="T">Type of the query parameter value</typeparam>
+        /// <param name="queryParameterValue">Query parameter value to serialize</param>
+        /// <returns>Serialized value</returns>
+        public string SerializeQueryParameter<T>(T queryParameterValue)
         {
-            return JsonConvert.SerializeObject(queryParameter, this.JsonSerializerSettings);
+            return JsonConvert.SerializeObject(queryParameterValue, this.JsonSerializerSettings);
         }
 
         /// <summary>

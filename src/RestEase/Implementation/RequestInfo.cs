@@ -121,6 +121,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <remarks>value may be an IEnumerable, in which case each value is added separately</remarks>
         /// <typeparam name="T">Type of the value to add</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         public void AddQueryParameter<T>(QuerySerialializationMethod serializationMethod, string name, T value)
@@ -128,6 +129,13 @@ namespace RestEase.Implementation
             this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
         }
 
+        /// <summary>
+        /// Add a collection of query parameter values under the same name
+        /// </summary>
+        /// <typeparam name="T">Type of the value to add</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="name">Name of the name/values pair</param>
+        /// <param name="values">Values of the name/values pairs</param>
         public void AddQueryCollectionParameter<T>(QuerySerialializationMethod serializationMethod, string name, IEnumerable<T> values)
         {
             foreach (T value in values)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RestEase.Implementation
 {
-    public static class EnumerableExtensions
+    internal static class EnumerableExtensions
     {
         public static IEnumerable<T> Concat<T>(T item1, IEnumerable<T> rest)
         {

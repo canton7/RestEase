@@ -16,7 +16,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the body to serialize, as an object
         /// </summary>
-        public abstract object ObjectValue { get; }
+        public object ObjectValue { get; protected set; }
 
         /// <summary>
         /// Serialize the (typed) value using the given serializer
@@ -38,14 +38,6 @@ namespace RestEase.Implementation
         public T Value { get; private set; }
 
         /// <summary>
-        /// Gets the body to serialize, as an object
-        /// </summary>
-        public override object ObjectValue
-        {
-            get { return this.Value; }
-        }
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="BodyParameterInfo{T}"/> class
         /// </summary>
         /// <param name="serializationMethod">Method to use the serialize the body</param>
@@ -53,6 +45,7 @@ namespace RestEase.Implementation
         public BodyParameterInfo(BodySerializationMethod serializationMethod, T value)
         {
             this.SerializationMethod = serializationMethod;
+            this.ObjectValue = value;
             this.Value = value;
         }
 

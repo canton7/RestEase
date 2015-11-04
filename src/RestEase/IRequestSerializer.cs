@@ -6,7 +6,13 @@ namespace RestEase
     /// </summary>
     public interface IRequestSerializer
     {
-        string SerializeQueryParameter<T>(T queryParameter);
+        /// <summary>
+        /// Serialize the given query parameter value
+        /// </summary>
+        /// <typeparam name="T">Type of the query parameter value</typeparam>
+        /// <param name="queryParameterValue">Query parameter value to serialize</param>
+        /// <returns>Serialized value</returns>
+        string SerializeQueryParameter<T>(T queryParameterValue);
 
         /// <summary>
         /// Serialize the given request body

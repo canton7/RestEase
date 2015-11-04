@@ -67,7 +67,7 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
-        public void UsesBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
+        public void UsesRequestSerializerIfContentBodyIsObjectAndMethodIsSerialized()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             var body = new object();
