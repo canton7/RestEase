@@ -23,10 +23,13 @@ namespace RestEase.Implementation
         public IResponseDeserializer ResponseDeserializer { get; set; }
 
         /// <summary>
-        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used) or query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
+        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
         public IRequestBodySerializer RequestBodySerializer { get; set; }
 
+        /// <summary>
+        /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
+        /// </summary>
         public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
 
         /// <summary>

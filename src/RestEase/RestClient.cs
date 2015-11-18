@@ -19,11 +19,35 @@ namespace RestEase
 
         private readonly HttpClient httpClient;
 
-        public JsonSerializerSettings JsonSerializerSettings { get; set; }
-        public IRequestBodySerializer RequestBodySerializer { get; set; }
-        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+        /// <summary>
+        /// Gets or sets the deserializer used to deserialize responses
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <see cref="JsonResponseDeserializer"/>
+        /// </remarks>
         public IResponseDeserializer ResponseDeserializer { get; set; }
 
+        /// <summary>
+        /// Gets or sets the JsonSerializerSettings to use with all non-overridden serializers / deserializers
+        /// </summary>
+        public JsonSerializerSettings JsonSerializerSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
+        /// </summary>
+        /// <remarks>Defaults to <see cref="JsonRequestBodySerializer"/></remarks>
+        public IRequestBodySerializer RequestBodySerializer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
+        /// </summary>
+        /// <remarks>Defaults to <see cref="JsonRequestQueryParamSerializer"/></remarks>
+        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
+        /// </summary>
+        /// <param name="baseUrl">Base URL of the API</param>
         public RestClient(string baseUrl)
         {
             if (baseUrl == null)
@@ -35,6 +59,11 @@ namespace RestEase
             };
         }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// </summary>
+        /// <param name="baseUrl">Base URL of the API</param>
+        /// <param name="requestModifier">Delegate called on every request</param>
         public RestClient(string baseUrl, RequestModifier requestModifier)
         {
             if (baseUrl == null)
@@ -48,6 +77,10 @@ namespace RestEase
             };
         }
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, using the given HttpClient
+        /// </summary>
+        /// <param name="httpClient">HttpClient to use</param>
         public RestClient(HttpClient httpClient)
         {
             if (httpClient == null)
@@ -56,6 +89,11 @@ namespace RestEase
             this.httpClient = httpClient;
         }
 
+        /// <summary>
+        /// Create an implementation for the given API interface
+        /// </summary>
+        /// <typeparam name="T">Type of interfae to implement</typeparam>
+        /// <returns>An implementation which can be used to make REST requests</returns>
         public T For<T>()
         {
             var requester = new Requester(this.httpClient);
