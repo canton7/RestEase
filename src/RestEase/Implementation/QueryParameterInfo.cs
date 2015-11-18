@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RestEase.Implementation
 {
@@ -13,21 +15,13 @@ namespace RestEase.Implementation
         public QuerySerialializationMethod SerializationMethod { get; protected set; }
 
         /// <summary>
-        /// Gets the name of the query parameter
-        /// </summary>
-        public string Name { get; protected set; }
-
-        /// <summary>
-        /// Gets the value of the query parameter, as an object
-        /// </summary>
-        public object ObjectValue { get; protected set; }
-
-        /// <summary>
         /// Serialize the (typed) value using the given serializer
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public abstract string SerializeValue(IRequestSerializer serializer);
+        public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer);
+
+        public abstract IEnumerable<KeyValuePair<string, string>> SerializeToString();
     }
 
     /// <summary>
@@ -36,10 +30,8 @@ namespace RestEase.Implementation
     /// <typeparam name="T">Type of the value</typeparam>
     public class QueryParameterInfo<T> : QueryParameterInfo
     {
-        /// <summary>
-        /// Gets the value to serialize
-        /// </summary>
-        public T Value { get; private set; }
+        private readonly string name;
+        private readonly T value;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryParameterInfo{T}"/> class
@@ -49,10 +41,9 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the name/value pair</param>
         public QueryParameterInfo(QuerySerialializationMethod serializationMethod, string name, T value)
         {
-            this.Name = name;
+            this.name = name;
+            this.value = value;
             this.SerializationMethod = serializationMethod;
-            this.ObjectValue = value;
-            this.Value = value;
         }
 
         /// <summary>
@@ -60,14 +51,56 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public override string SerializeValue(IRequestSerializer serializer)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer)
         {
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
-            if (this.Value == null)
+            if (this.value == null)
                 return null;
 
-            return serializer.SerializeQueryParameter<T>(this.Value);
+            return serializer.SerializeQueryParam<T>(this.name, this.value);
+        }
+
+        public override IEnumerable<KeyValuePair<string, string>> SerializeToString()
+        {
+            if (this.value == null)
+                return Enumerable.Empty<KeyValuePair<string, string>>();
+
+            return new[] { new KeyValuePair<string, string>(this.name, this.value.ToString()) };
+        }
+    }
+
+    public class QueryCollectionParameterInfo<T> : QueryParameterInfo
+    {
+        private readonly string name;
+        private readonly IEnumerable<T> values;
+
+        public QueryCollectionParameterInfo(QuerySerialializationMethod serializationMethod, string name, IEnumerable<T> values)
+        {
+            this.name = name;
+            this.values = values;
+            this.SerializationMethod = serializationMethod;
+        }
+
+        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer)
+        {
+            if (serializer == null)
+                throw new ArgumentNullException("serializer");
+            if (this.values == null)
+                return null;
+
+            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values);
+        }
+
+        public override IEnumerable<KeyValuePair<string, string>> SerializeToString()
+        {
+            if (this.values == null)
+                yield break;
+
+            foreach (var value in this.values)
+            {
+                yield return new KeyValuePair<string, string>(this.name, value.ToString());
+            }
         }
     }
 }

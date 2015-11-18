@@ -49,11 +49,11 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
-        public void ThrowsIfSerializedSerializationMethodUsedButNotRequestSerializerSet()
+        public void ThrowsIfSerializedSerializationMethodUsedButNoRequestQueryParamSerializerSet()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerialializationMethod.Serialized, "bar", "boom");
-            this.requester.RequestSerializer = null;
+            this.requester.RequestQueryParamSerializer = null;
             Assert.Throws<InvalidOperationException>(() => this.requester.ConstructUri("/foo", requestInfo));
         }
 
@@ -64,9 +64,9 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerialializationMethod.Serialized, "bar", obj);
 
-            var serializer = new Mock<IRequestSerializer>();
-            serializer.Setup(x => x.SerializeQueryParameter<HasToString>(obj)).Returns("BOOMYAY").Verifiable();
-            this.requester.RequestSerializer = serializer.Object;
+            var serializer = new Mock<IRequestQueryParamSerializer>();
+            serializer.Setup(x => x.SerializeQueryParam<HasToString>("bar", obj)).Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY") }).Verifiable();
+            this.requester.RequestQueryParamSerializer = serializer.Object;
 
             var uri = this.requester.ConstructUri("/foo", requestInfo);
 

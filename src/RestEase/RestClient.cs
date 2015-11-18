@@ -20,7 +20,8 @@ namespace RestEase
         private readonly HttpClient httpClient;
 
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
-        public IRequestSerializer RequestSerializer { get; set; }
+        public IRequestBodySerializer RequestBodySerializer { get; set; }
+        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
         public IResponseDeserializer ResponseDeserializer { get; set; }
 
         public RestClient(string baseUrl)
@@ -57,14 +58,22 @@ namespace RestEase
 
         public T For<T>()
         {
-            var requestSerializer = this.RequestSerializer ?? new JsonRequestSerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
-            var responseDeserializer = this.ResponseDeserializer ?? new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
+            var requester = new Requester(this.httpClient);
 
-            var requester = new Requester(this.httpClient)
-            {
-                RequestSerializer = requestSerializer,
-                ResponseDeserializer = responseDeserializer,
-            };
+            if (this.RequestBodySerializer != null)
+                requester.RequestBodySerializer = this.RequestBodySerializer;
+            else if (this.JsonSerializerSettings != null)
+                requester.RequestBodySerializer = new JsonRequestBodySerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
+
+            if (this.RequestQueryParamSerializer != null)
+                requester.RequestQueryParamSerializer = this.RequestQueryParamSerializer;
+            else if (this.JsonSerializerSettings != null)
+                requester.RequestQueryParamSerializer = new JsonRequestQueryParamSerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
+
+            if (this.ResponseDeserializer != null)
+                requester.ResponseDeserializer = this.ResponseDeserializer;
+            else if (this.JsonSerializerSettings != null)
+                requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
             return implementationBuilder.CreateImplementation<T>(requester);
         }
@@ -147,12 +156,12 @@ namespace RestEase
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="baseUrl">Base URL</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestSerializer">Serializer to use when serializing request bodies or query parameters, when appropriate</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        [Obsolete("Use 'new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestSerializer = requestSerializer }.For<T>()' instead")]
-        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestSerializer requestSerializer = null)
+        [Obsolete("Use 'new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
+        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
         {
-            return new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestSerializer = requestSerializer }.For<T>();
+            return new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
 
         /// <summary>
@@ -162,12 +171,12 @@ namespace RestEase
         /// <param name="baseUrl">Base URL</param>
         /// <param name="requestModifier">Delegate called on every request</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestSerializer">Serializer to use when serializing request bodies or query parameters, when appropriate</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodiess, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        [Obsolete("Use 'new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestSerializer = requestSerializer }.For<T>()' instead")]
-        public static T For<T>(string baseUrl, RequestModifier requestModifier, IResponseDeserializer responseDeserializer = null, IRequestSerializer requestSerializer = null)
+        [Obsolete("Use 'new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
+        public static T For<T>(string baseUrl, RequestModifier requestModifier, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
         {
-            return new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestSerializer = requestSerializer }.For<T>();
+            return new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
 
         /// <summary>
@@ -189,12 +198,12 @@ namespace RestEase
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="httpClient">HttpClient to use to make requests</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestSerializer">Serializer to use when serializing request bodies or query parameters, when appropriate</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        [Obsolete("Use 'new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestSerializer = requestSerializer }.For<T>()' instead")]
-        public static T For<T>(HttpClient httpClient, IResponseDeserializer responseDeserializer = null, IRequestSerializer requestSerializer = null)
+        [Obsolete("Use 'new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
+        public static T For<T>(HttpClient httpClient, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
         {
-            return new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestSerializer = requestSerializer }.For<T>();
+            return new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
     }
 }

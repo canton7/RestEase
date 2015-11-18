@@ -11,7 +11,7 @@
         ToString,
 
         /// <summary>
-        /// Serialized using the configured IRequestSerializer (uses Json.NET by default)
+        /// Serialized using the configured IRequestQueryParamSerializer (uses Json.NET by default)
         /// </summary>
         Serialized
     }

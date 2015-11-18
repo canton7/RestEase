@@ -6,7 +6,7 @@
     public enum BodySerializationMethod
     {
         /// <summary>
-        /// Serialized using the configured IRequestSerializer (uses Json.NET by default)
+        /// Serialized using the configured IRequestBodySerializer (uses Json.NET by default)
         /// </summary>
         Serialized,
 

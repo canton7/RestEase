@@ -4,25 +4,14 @@ using System.Net.Http;
 namespace RestEase
 {
     /// <summary>
-    /// Default IRequestSerializer, using Json.NET
+    /// Default IRequestBodySerializer, using Json.NET
     /// </summary>
-    public class JsonRequestSerializer : IRequestSerializer
+    public class JsonRequestBodySerializer : IRequestBodySerializer
     {
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
-
-        /// <summary>
-        /// Serialize the given query parameter value
-        /// </summary>
-        /// <typeparam name="T">Type of the query parameter value</typeparam>
-        /// <param name="queryParameterValue">Query parameter value to serialize</param>
-        /// <returns>Serialized value</returns>
-        public string SerializeQueryParameter<T>(T queryParameterValue)
-        {
-            return JsonConvert.SerializeObject(queryParameterValue, this.JsonSerializerSettings);
-        }
 
         /// <summary>
         /// Serialize the given request body

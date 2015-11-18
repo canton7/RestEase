@@ -59,8 +59,10 @@
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
     <Compile Include="Implementation\QueryParameterInfo.cs" />
-    <Compile Include="IRequestSerializer.cs" />
-    <Compile Include="JsonRequestSerializer.cs" />
+    <Compile Include="IRequestBodySerializer.cs" />
+    <Compile Include="IRequestQueryParamSerializer.cs" />
+    <Compile Include="JsonRequestBodySerializer.cs" />
+    <Compile Include="JsonRequestQueryParamSerializer.cs" />
     <Compile Include="PathAttribute.cs" />
     <Compile Include="QueryAttribute.cs" />
     <Compile Include="ApiException.cs" />
