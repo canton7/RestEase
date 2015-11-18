@@ -23,9 +23,14 @@ namespace RestEase.Implementation
         public IResponseDeserializer ResponseDeserializer { get; set; }
 
         /// <summary>
-        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used) or query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
+        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
-        public IRequestSerializer RequestSerializer { get; set; }
+        public IRequestBodySerializer RequestBodySerializer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
+        /// </summary>
+        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
@@ -35,7 +40,8 @@ namespace RestEase.Implementation
         {
             this.httpClient = httpClient;
             this.ResponseDeserializer = new JsonResponseDeserializer();
-            this.RequestSerializer = new JsonRequestSerializer();
+            this.RequestBodySerializer = new JsonRequestBodySerializer();
+            this.RequestQueryParamSerializer = new JsonRequestQueryParamSerializer();
         }
 
         /// <summary>
@@ -97,9 +103,10 @@ namespace RestEase.Implementation
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
-                var serialized = this.SerializeQueryParameterValue(queryParam);
-                if (serialized != null)
-                    query.Add(queryParam.Name, serialized);
+                foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
+                {
+                    query.Add(serializedParam.Key, serializedParam.Value);
+                }
             }
             if (requestInfo.QueryMap != null)
             { 
@@ -162,19 +169,16 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="queryParameter">Query parameter to serialize</param>
         /// <returns>Serialized value</returns>
-        protected virtual string SerializeQueryParameterValue(QueryParameterInfo queryParameter)
+        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter)
         {
-            if (queryParameter.ObjectValue == null)
-                return null;
-
             switch (queryParameter.SerializationMethod)
             {
                 case QuerySerialializationMethod.ToString:
-                    return queryParameter.ObjectValue.ToString();
+                    return queryParameter.SerializeToString();
                 case QuerySerialializationMethod.Serialized:
-                    if (this.RequestSerializer == null)
-                        throw new InvalidOperationException("Cannot serialize query parameter when RequestSerializer is null. Please set RequestSerializer");
-                    return queryParameter.SerializeValue(this.RequestSerializer);
+                    if (this.RequestQueryParamSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
+                    return queryParameter.SerializeValue(this.RequestQueryParamSerializer);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -207,9 +211,9 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.UrlEncoded:
                     return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.ObjectValue));
                 case BodySerializationMethod.Serialized:
-                    if (this.RequestSerializer == null)
-                        throw new InvalidOperationException("Cannot serialize request body when RequestSerializer is null. Please set RequestSerializer");
-                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestSerializer);
+                    if (this.RequestBodySerializer == null)
+                        throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }

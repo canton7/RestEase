@@ -73,8 +73,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal("bar", requestInfo.QueryParams[0].Name);
-            Assert.Equal("the value", requestInfo.QueryParams[0].ObjectValue);
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("bar", queryParam0.Key);
+            Assert.Equal("the value", queryParam0.Value);
             Assert.Equal("boo", requestInfo.Path);
         }
 
@@ -91,8 +93,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync("the value");
 
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal("foo", requestInfo.QueryParams[0].Name);
-            Assert.Equal("the value", requestInfo.QueryParams[0].ObjectValue);
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("foo", queryParam0.Key);
+            Assert.Equal("the value", queryParam0.Value);
         }
 
         [Fact]
@@ -109,62 +113,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, requestInfo.QueryParams.Count);
 
-            Assert.Equal("bar", requestInfo.QueryParams[0].Name);
-            Assert.Equal("foo value", requestInfo.QueryParams[0].ObjectValue);
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("bar", queryParam0.Key);
+            Assert.Equal("foo value", queryParam0.Value);
 
-            Assert.Equal("bar", requestInfo.QueryParams[1].Name);
-            Assert.Equal("bar value", requestInfo.QueryParams[1].ObjectValue);
-        }
-
-        [Fact]
-        public void ExcludesNullQueryParams()
-        {
-            var implementation = this.builder.CreateImplementation<INullableQueryParameters>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(null, null, 0, 0);
-
-            Assert.Equal(4, requestInfo.QueryParams.Count);
-
-            Assert.Equal("foo", requestInfo.QueryParams[0].Name);
-            Assert.Equal(null, requestInfo.QueryParams[0].ObjectValue);
-
-            Assert.Equal("bar", requestInfo.QueryParams[1].Name);
-            Assert.Equal(null, requestInfo.QueryParams[1].ObjectValue);
-
-            Assert.Equal("baz", requestInfo.QueryParams[2].Name);
-            Assert.Equal(0, requestInfo.QueryParams[2].ObjectValue);
-
-            Assert.Equal("yay", requestInfo.QueryParams[3].Name);
-            Assert.Equal(0, requestInfo.QueryParams[3].ObjectValue);
-        }
-
-        [Fact]
-        public void HandlesQueryParamArays()
-        {
-            var implementation = this.builder.CreateImplementation<IArrayQueryParam>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new int[] { 1, 2, 3 });
-
-            Assert.Equal(3, requestInfo.QueryParams.Count);
-
-            Assert.Equal("intArray", requestInfo.QueryParams[0].Name);
-            Assert.Equal(1, requestInfo.QueryParams[0].ObjectValue);
-
-            Assert.Equal("intArray", requestInfo.QueryParams[1].Name);
-            Assert.Equal(2, requestInfo.QueryParams[1].ObjectValue);
-
-            Assert.Equal("intArray", requestInfo.QueryParams[2].Name);
-            Assert.Equal(3, requestInfo.QueryParams[2].ObjectValue);
+            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            Assert.Equal("bar", queryParam1.Key);
+            Assert.Equal("bar value", queryParam1.Value);
         }
 
         [Fact]

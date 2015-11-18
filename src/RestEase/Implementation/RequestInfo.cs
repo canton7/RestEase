@@ -135,10 +135,7 @@ namespace RestEase.Implementation
         /// <param name="values">Values of the name/values pairs</param>
         public void AddQueryCollectionParameter<T>(QuerySerialializationMethod serializationMethod, string name, IEnumerable<T> values)
         {
-            foreach (T value in values)
-            {
-                this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
-            }
+            this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values));
         }
 
         /// <summary>
