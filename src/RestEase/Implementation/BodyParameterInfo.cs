@@ -58,8 +58,6 @@ namespace RestEase.Implementation
         {
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
-            if (this.Value == null)
-                return null;
 
             return serializer.SerializeBody<T>(this.Value);
         }
