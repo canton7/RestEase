@@ -173,9 +173,9 @@ namespace RestEase.Implementation
         {
             switch (queryParameter.SerializationMethod)
             {
-                case QuerySerialializationMethod.ToString:
+                case QuerySerializationMethod.ToString:
                     return queryParameter.SerializeToString();
-                case QuerySerialializationMethod.Serialized:
+                case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
                     return queryParameter.SerializeValue(this.RequestQueryParamSerializer);

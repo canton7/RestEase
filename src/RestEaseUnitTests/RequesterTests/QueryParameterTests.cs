@@ -30,7 +30,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void IgnoresNullQueryParamsWhenUsingToString()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter<object>(QuerySerialializationMethod.ToString, "bar", null);
+            requestInfo.AddQueryParameter<object>(QuerySerializationMethod.ToString, "bar", null);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
@@ -39,7 +39,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void DoesNotIgnoreNullQueryParamsWhenUsingSerializer()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter<object>(QuerySerialializationMethod.Serialized, "bar", null);
+            requestInfo.AddQueryParameter<object>(QuerySerializationMethod.Serialized, "bar", null);
 
             var queryParameterSerializer = new Mock<IRequestQueryParamSerializer>();
             queryParameterSerializer.Setup(x => x.SerializeQueryParam<object>("bar", null))
@@ -57,7 +57,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void IgnoresNullQueryParamArraysWhenUsingToString()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryCollectionParameter<object>(QuerySerialializationMethod.ToString, "foo", null);
+            requestInfo.AddQueryCollectionParameter<object>(QuerySerializationMethod.ToString, "foo", null);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
@@ -66,7 +66,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void IgnoresNullQueryParamArrayValuesWhenUsingToString()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryCollectionParameter<object>(QuerySerialializationMethod.ToString, "foo", new[] { "bar", null, "baz" });
+            requestInfo.AddQueryCollectionParameter<object>(QuerySerializationMethod.ToString, "foo", new[] { "bar", null, "baz" });
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&foo=baz"), uri);
         }
@@ -75,7 +75,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void DoesNotIgnoreNullQueryParamArraysWhenUsingSerializer()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryCollectionParameter<object>(QuerySerialializationMethod.Serialized, "bar", null);
+            requestInfo.AddQueryCollectionParameter<object>(QuerySerializationMethod.Serialized, "bar", null);
 
             var queryParameterSerializer = new Mock<IRequestQueryParamSerializer>();
             queryParameterSerializer.Setup(x => x.SerializeQueryCollectionParam<object>("bar", null))
@@ -93,7 +93,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void DoesNotIgoreNullQueryParamArrayValuesWhenUsingSerializer()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryCollectionParameter<object>(QuerySerialializationMethod.Serialized, "bar", new[] { "baz", null, "yay" });
+            requestInfo.AddQueryCollectionParameter<object>(QuerySerializationMethod.Serialized, "bar", new[] { "baz", null, "yay" });
 
             var queryParameterSerializer = new Mock<IRequestQueryParamSerializer>();
             queryParameterSerializer.Setup(x => x.SerializeQueryCollectionParam<object>("bar", new[] { "baz", null, "yay" }))
@@ -113,7 +113,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             var objectMock = new Mock<HasToString>();
             objectMock.Setup(x => x.ToString()).Returns("BOOM").Verifiable();
-            requestInfo.AddQueryParameter(QuerySerialializationMethod.ToString, "bar", objectMock.Object);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "bar", objectMock.Object);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             objectMock.VerifyAll();
@@ -128,7 +128,7 @@ namespace RestEaseUnitTests.RequesterTests
             var objectMock2 = new Mock<HasToString>();
             objectMock1.Setup(x => x.ToString()).Returns("BOOM1").Verifiable();
             objectMock2.Setup(x => x.ToString()).Returns("BOOM2").Verifiable();
-            requestInfo.AddQueryCollectionParameter(QuerySerialializationMethod.ToString, "bar", new[] { objectMock1.Object, null, objectMock2.Object });
+            requestInfo.AddQueryCollectionParameter(QuerySerializationMethod.ToString, "bar", new[] { objectMock1.Object, null, objectMock2.Object });
             var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOM1&bar=BOOM2"), uri);
@@ -141,7 +141,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ThrowsIfSerializedSerializationMethodUsedButNoRequestQueryParamSerializerSet()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter(QuerySerialializationMethod.Serialized, "bar", "boom");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "bar", "boom");
             this.requester.RequestQueryParamSerializer = null;
             Assert.Throws<InvalidOperationException>(() => this.requester.ConstructUri("/foo", requestInfo));
         }
@@ -151,7 +151,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var obj = new HasToString();
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryParameter(QuerySerialializationMethod.Serialized, "bar", obj);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "bar", obj);
 
             var serializer = new Mock<IRequestQueryParamSerializer>();
             serializer.Setup(x => x.SerializeQueryParam<HasToString>("bar", obj)).Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY") }).Verifiable();
@@ -168,7 +168,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var obj = new HasToString();
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryCollectionParameter(QuerySerialializationMethod.Serialized, "bar", new[] { obj });
+            requestInfo.AddQueryCollectionParameter(QuerySerializationMethod.Serialized, "bar", new[] { obj });
 
             var serializer = new Mock<IRequestQueryParamSerializer>();
             serializer.Setup(x => x.SerializeQueryCollectionParam<HasToString>("bar", new[] { obj }))

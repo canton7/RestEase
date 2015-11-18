@@ -441,7 +441,7 @@ namespace RestEase.Implementation
             foreach (var plainParameter in parameterGrouping.PlainParameters)
             {
                 var method = MakeQueryParameterMethodInfo(plainParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, QuerySerialializationMethod.ToString);
+                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, QuerySerializationMethod.ToString);
             }
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
@@ -571,7 +571,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, addMethodHeaderMethod);
         }
 
-        private void AddQueryParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall, QuerySerialializationMethod serializationMethod)
+        private void AddQueryParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall, QuerySerializationMethod serializationMethod)
         {
             // Equivalent C#:
             // requestInfo.AddQueryParameter(serializationMethod, name, value) (or AddQueryCollectionParameter)

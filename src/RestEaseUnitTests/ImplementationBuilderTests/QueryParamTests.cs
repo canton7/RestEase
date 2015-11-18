@@ -47,7 +47,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface ISerializedQueryParam
         {
             [Get("foo")]
-            Task FooAsync([Query(QuerySerialializationMethod.Serialized)] object foo);
+            Task FooAsync([Query(QuerySerializationMethod.Serialized)] object foo);
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
@@ -135,7 +135,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.BooAsync("yay");
 
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal(QuerySerialializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
         }
 
         [Fact]
@@ -151,7 +151,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync("boom");
 
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal(QuerySerialializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
         }
     }
 }

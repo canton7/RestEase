@@ -12,7 +12,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the method to use to serialize the query parameter
         /// </summary>
-        public QuerySerialializationMethod SerializationMethod { get; protected set; }
+        public QuerySerializationMethod SerializationMethod { get; protected set; }
 
         /// <summary>
         /// Serialize the (typed) value into a collection of name -> value pairs using the given serializer
@@ -43,7 +43,7 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the query value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public QueryParameterInfo(QuerySerialializationMethod serializationMethod, string name, T value)
+        public QueryParameterInfo(QuerySerializationMethod serializationMethod, string name, T value)
         {
             this.name = name;
             this.value = value;
@@ -91,7 +91,7 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the query values</param>
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pair</param>
-        public QueryCollectionParameterInfo(QuerySerialializationMethod serializationMethod, string name, IEnumerable<T> values)
+        public QueryCollectionParameterInfo(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
         {
             this.name = name;
             this.values = values;
