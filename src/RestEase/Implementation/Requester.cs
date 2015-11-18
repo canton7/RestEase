@@ -108,15 +108,6 @@ namespace RestEase.Implementation
                     query.Add(serializedParam.Key, serializedParam.Value);
                 }
             }
-            if (requestInfo.QueryMap != null)
-            { 
-                // ImplementationBuilder asserts that we can iterate the QueryMap type
-                foreach (var queryParam in this.TransformDictionaryToCollectionOfKeysAndValues(requestInfo.QueryMap))
-                {
-                    if (queryParam.Value != null)
-                        query.Add(queryParam.Key, queryParam.Value);
-                }
-            }
             uriBuilder.Query = query.ToString();
 
             return uriBuilder.Uri;

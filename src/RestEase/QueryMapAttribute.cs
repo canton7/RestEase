@@ -8,5 +8,6 @@ namespace RestEase
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = true)]
     public sealed class QueryMapAttribute : Attribute
     {
+        public QuerySerializationMethod SerializationMethod { get; private set; }
     }
 }

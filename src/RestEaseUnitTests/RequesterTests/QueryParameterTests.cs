@@ -190,7 +190,7 @@ namespace RestEaseUnitTests.RequesterTests
             dynamic queryMap = new ExpandoObject();
             queryMap.foo = "bar";
             queryMap.baz = "yay";
-            requestInfo.QueryMap = queryMap;
+            requestInfo.AddQueryMap(QuerySerializationMethod.ToString, queryMap);
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&baz=yay"), uri);
         }
@@ -199,11 +199,11 @@ namespace RestEaseUnitTests.RequesterTests
         public void AddsParamsFromNonGenericQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.QueryMap = new Dictionary<string, object>()
+            requestInfo.AddQueryMap(QuerySerializationMethod.ToString, new Dictionary<string, object>()
             {
                 { "foo", "bar" },
                 { "baz", "yay" },
-            };
+            });
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&baz=yay"), uri);
         }
@@ -212,11 +212,11 @@ namespace RestEaseUnitTests.RequesterTests
         public void IgnoresNullItemsFromQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.QueryMap = new Dictionary<string, object>()
+            requestInfo.AddQueryMap(QuerySerializationMethod.ToString, new Dictionary<string, object>()
             {
                 { "foo", "bar" },
                 { "baz", null },
-            };
+            });
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar"), uri);
         }
@@ -225,10 +225,10 @@ namespace RestEaseUnitTests.RequesterTests
         public void HandlesArraysInQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.QueryMap = new Dictionary<string, object>()
+            requestInfo.AddQueryMap(QuerySerializationMethod.ToString, new Dictionary<string, object>()
             {
                 { "foo", new[] { "bar", "baz" } },
-            };
+            });
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&foo=baz"), uri);
         }

@@ -40,11 +40,6 @@ namespace RestEase.Implementation
             get { return this._queryParams; }
         }
 
-        /// <summary>
-        /// Gets or sets the query map, if specified. Must be an IDictionary or IDictionary{TKey, TValue}
-        /// </summary>
-        public object QueryMap { get; set; }
-
         private readonly List<KeyValuePair<string, string>> _pathParams;
 
         /// <summary>
@@ -136,6 +131,24 @@ namespace RestEase.Implementation
         public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
         {
             this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values));
+        }
+
+        public void AddQueryMap<TKey, TValue>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap)
+        {
+            foreach (var kvp in queryMap)
+            {
+                if (kvp.Key != null)
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.ToString(), kvp.Value));
+            }
+        }
+
+        public void AddQueryMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap) where TValue : IEnumerable<TElement>
+        {
+            foreach (var kvp in queryMap)
+            {
+                if (kvp.Key != null)
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+            }
         }
 
         /// <summary>

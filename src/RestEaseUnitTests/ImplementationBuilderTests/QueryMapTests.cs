@@ -41,46 +41,46 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
-        [Fact]
-        public void AssignsGenericQueryMap()
-        {
-            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
+        //[Fact]
+        //public void AssignsGenericQueryMap()
+        //{
+        //    var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+        //    IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
+        //    this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+        //        .Callback((IRequestInfo r) => requestInfo = r)
+        //        .Returns(Task.FromResult(false));
 
-            // ExpandoObject implements IDictionary<string, object> but not IDictionary
-            dynamic queryMap = new ExpandoObject();
-            queryMap.foo = "bar";
-            queryMap.baz = null;
+        //    // ExpandoObject implements IDictionary<string, object> but not IDictionary
+        //    dynamic queryMap = new ExpandoObject();
+        //    queryMap.foo = "bar";
+        //    queryMap.baz = null;
 
-            implementation.FooAsync(queryMap);
+        //    implementation.FooAsync(queryMap);
 
-            Assert.Equal(queryMap, requestInfo.QueryMap);
-        }
+        //    Assert.Equal(queryMap, requestInfo.QueryMap);
+        //}
 
-        [Fact]
-        public void AssignsNonGenericQueryMap()
-        {
-            var implementation = this.builder.CreateImplementation<IHasNonGenericQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
+        //[Fact]
+        //public void AssignsNonGenericQueryMap()
+        //{
+        //    var implementation = this.builder.CreateImplementation<IHasNonGenericQueryMap>(this.requester.Object);
+        //    IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
+        //    this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+        //        .Callback((IRequestInfo r) => requestInfo = r)
+        //        .Returns(Task.FromResult(false));
 
-            IDictionary queryMap = new Dictionary<string, string>()
-            {
-                { "foo", "bar" },
-                { "baz", null },
-            };
+        //    IDictionary queryMap = new Dictionary<string, string>()
+        //    {
+        //        { "foo", "bar" },
+        //        { "baz", null },
+        //    };
 
-            implementation.FooAsync(queryMap);
+        //    implementation.FooAsync(queryMap);
 
-            Assert.Equal(queryMap, requestInfo.QueryMap);
-        }
+        //    Assert.Equal(queryMap, requestInfo.QueryMap);
+        //}
 
         [Fact]
         public void ThrowsIfInvalidQueryMapType()

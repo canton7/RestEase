@@ -34,7 +34,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetMethod("AddQueryParameter");
         private static readonly MethodInfo addQueryCollectionParameterMethod = typeof(RequestInfo).GetMethod("AddQueryCollectionParameter");
 
-        private static readonly MethodInfo queryMapSetter = typeof(RequestInfo).GetProperty("QueryMap").SetMethod;
+        private static readonly MethodInfo addQueryMapMethod = typeof(RequestInfo).GetMethod("AddQueryMap");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").SetMethod;
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetMethod("AddPropertyHeader");
@@ -427,9 +427,10 @@ namespace RestEase.Implementation
             if (parameterGrouping.QueryMap != null)
             {
                 var queryMap = parameterGrouping.QueryMap.Value;
-                if (!DictionaryIterator.CanIterate(queryMap.Parameter.ParameterType))
+                var method = MakeQueryMapMethodInfo(queryMap.Parameter.ParameterType);
+                if (method == null)
                     throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents). Method: {0}", methodName));
-                this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index);
+                this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index, method, queryMap.Attribute.SerializationMethod);
             }
 
             foreach (var queryParameter in parameterGrouping.QueryParameters)
@@ -475,12 +476,45 @@ namespace RestEase.Implementation
                 return addQueryCollectionParameterMethod.MakeGenericMethod(typeOfT);
         }
 
+        private static MethodInfo MakeQueryMapMethodInfo(Type queryMapType)
+        {
+            var nullableDictionaryTypes = DictionaryTypesOfType(queryMapType);
+            if (nullableDictionaryTypes == null)
+                return null;
+
+            var dictionaryTypes = nullableDictionaryTypes.Value;
+
+            Type typeOfT = null;
+            // Don't want to count string as an IEnumrable<char>...
+            if (dictionaryTypes.Value != typeof(string))
+                typeOfT = CollectionTypeOfType(dictionaryTypes.Value);
+
+            if (typeOfT == null)
+                return addQueryMapMethod.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value);
+            else
+                return addQueryMapMethod.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value, typeOfT);
+        }
+
         private static Type CollectionTypeOfType(Type input)
         {
             foreach (var baseType in EnumerableExtensions.Concat(input, input.GetInterfaces()))
             {
                 if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     return baseType.GetGenericArguments()[0];
+            }
+
+            return null;
+        }
+
+        private static KeyValuePair<Type, Type>? DictionaryTypesOfType(Type input)
+        {
+            foreach (var baseType in EnumerableExtensions.Concat(input, input.GetInterfaces()))
+            {
+                if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                {
+                    var genericArguments = baseType.GetGenericArguments();
+                    return new KeyValuePair<Type, Type>(genericArguments[0], genericArguments[1]);
+                }
             }
 
             return null;
@@ -543,17 +577,20 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
         }
 
-        private void AddQueryMap(ILGenerator methodILGenerator, Type parameterType, short parameterIndex)
+        private void AddQueryMap(ILGenerator methodIlGenerator, Type parameterType, short parameterIndex, MethodInfo method, QuerySerializationMethod serializationMethod)
         {
             // Equivalent C#:
-            // requestInfo.QueryMap = value
+            // requestInfo.AddQueryMap<TKey, TValue>(value) or requestInfo.AddQueryMap<TKey, TValue, TElement>(value)
             // They might possible potentially provide a struct here (although it's unlikely), so we need to box
 
-            methodILGenerator.Emit(OpCodes.Dup);
-            methodILGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the serialization method onto the stack
+            // Stack: [..., requestInfo, requestInfo, serializationMethod]
+            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
             if (parameterType.IsValueType)
-                methodILGenerator.Emit(OpCodes.Box);
-            methodILGenerator.Emit(OpCodes.Callvirt, queryMapSetter);
+                methodIlGenerator.Emit(OpCodes.Box);
+            methodIlGenerator.Emit(OpCodes.Callvirt, method);
         }
 
         private void AddMethodHeader(ILGenerator methodIlGenerator, HeaderAttribute header)
