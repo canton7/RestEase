@@ -32,6 +32,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([QueryMap] IDictionary<string, string> map);
         }
 
+        public interface IHasEnumerableQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] IDictionary<string, string[]> map);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -62,46 +68,36 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal("yay", queryParam1.Value);
         }
 
-        //[Fact]
-        //public void AssignsGenericQueryMap()
-        //{
-        //    var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
-        //    IRequestInfo requestInfo = null;
+        [Fact]
+        public void AssignsEnumerableQueryMapToQueryParams()
+        {
+            var implementation = this.builder.CreateImplementation<IHasEnumerableQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
 
-        //    this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-        //        .Callback((IRequestInfo r) => requestInfo = r)
-        //        .Returns(Task.FromResult(false));
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
 
-        //    // ExpandoObject implements IDictionary<string, object> but not IDictionary
-        //    dynamic queryMap = new ExpandoObject();
-        //    queryMap.foo = "bar";
-        //    queryMap.baz = null;
+            var queryMap = new Dictionary<string, string[]>()
+            {
+                { "foo", new[] {  "bar1", "bar2" } },
+                { "bar", new[] {  "yay1", "yay2" } }
+            };
 
-        //    implementation.FooAsync(queryMap);
+            implementation.FooAsync(queryMap);
 
-        //    Assert.Equal(queryMap, requestInfo.QueryMap);
-        //}
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().ToArray();
+            Assert.Equal("foo", queryParam0[0].Key);
+            Assert.Equal("bar1", queryParam0[0].Value);
+            Assert.Equal("foo", queryParam0[1].Key);
+            Assert.Equal("bar2", queryParam0[1].Value);
 
-        //[Fact]
-        //public void AssignsNonGenericQueryMap()
-        //{
-        //    var implementation = this.builder.CreateImplementation<IHasNonGenericQueryMap>(this.requester.Object);
-        //    IRequestInfo requestInfo = null;
-
-        //    this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-        //        .Callback((IRequestInfo r) => requestInfo = r)
-        //        .Returns(Task.FromResult(false));
-
-        //    IDictionary queryMap = new Dictionary<string, string>()
-        //    {
-        //        { "foo", "bar" },
-        //        { "baz", null },
-        //    };
-
-        //    implementation.FooAsync(queryMap);
-
-        //    Assert.Equal(queryMap, requestInfo.QueryMap);
-        //}
+            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().ToArray();
+            Assert.Equal("bar", queryParam1[0].Key);
+            Assert.Equal("yay1", queryParam1[0].Value);
+            Assert.Equal("bar", queryParam1[1].Key);
+            Assert.Equal("yay2", queryParam1[1].Value);
+        }
 
         [Fact]
         public void ThrowsIfInvalidQueryMapType()
