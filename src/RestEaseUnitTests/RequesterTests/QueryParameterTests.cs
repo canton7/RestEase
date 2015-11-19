@@ -225,7 +225,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void HandlesArraysInQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            requestInfo.AddQueryMap(QuerySerializationMethod.ToString, new Dictionary<string, object>()
+            requestInfo.AddQueryCollectionMap<string, string[], string>(QuerySerializationMethod.ToString, new Dictionary<string, string[]>()
             {
                 { "foo", new[] { "bar", "baz" } },
             });

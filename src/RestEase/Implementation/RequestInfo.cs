@@ -138,11 +138,11 @@ namespace RestEase.Implementation
             foreach (var kvp in queryMap)
             {
                 if (kvp.Key != null)
-                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.ToString(), kvp.Value));
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value));
             }
         }
 
-        public void AddQueryMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap) where TValue : IEnumerable<TElement>
+        public void AddQueryCollectionMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap) where TValue : IEnumerable<TElement>
         {
             foreach (var kvp in queryMap)
             {

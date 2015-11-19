@@ -35,6 +35,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addQueryCollectionParameterMethod = typeof(RequestInfo).GetMethod("AddQueryCollectionParameter");
 
         private static readonly MethodInfo addQueryMapMethod = typeof(RequestInfo).GetMethod("AddQueryMap");
+        private static readonly MethodInfo addQueryCollectionMapMethod = typeof(RequestInfo).GetMethod("AddQueryCollectionMap");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").SetMethod;
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetMethod("AddPropertyHeader");
@@ -492,7 +493,7 @@ namespace RestEase.Implementation
             if (typeOfT == null)
                 return addQueryMapMethod.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value);
             else
-                return addQueryMapMethod.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value, typeOfT);
+                return addQueryCollectionMapMethod.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value, typeOfT);
         }
 
         private static Type CollectionTypeOfType(Type input)

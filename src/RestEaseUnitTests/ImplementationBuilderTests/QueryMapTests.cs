@@ -29,17 +29,38 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasGenericQueryMap
         {
             [Get("foo")]
-            Task FooAsync([QueryMap] IDictionary<string, object> map);
-        }
-
-        public interface IHasNonGenericQueryMap
-        {
-            [Get("foo")]
-            Task FooAsync([QueryMap] IDictionary map);
+            Task FooAsync([QueryMap] IDictionary<string, string> map);
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
+
+        [Fact]
+        public void AddsQueryMapToQueryParams()
+        {
+            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            var queryMap = new Dictionary<string, string>()
+            {
+                { "foo", "bar" },
+                { "bar", "yay" }
+            };
+
+            implementation.FooAsync(queryMap);
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("foo", queryParam0.Key);
+            Assert.Equal("bar", queryParam0.Value);
+
+            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            Assert.Equal("bar", queryParam1.Key);
+            Assert.Equal("yay", queryParam1.Value);
+        }
 
         //[Fact]
         //public void AssignsGenericQueryMap()
