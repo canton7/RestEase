@@ -10,7 +10,7 @@ namespace RestEase.Implementation
     {
         public List<IndexedParameter<PathAttribute>> PathParameters { get; private set; }
         public List<IndexedParameter<QueryAttribute>> QueryParameters { get; private set; }
-        public IndexedParameter<QueryMapAttribute>? QueryMap { get; private set; }
+        public List<IndexedParameter<QueryMapAttribute>> QueryMaps { get; private set; }
         public List<IndexedParameter<HeaderAttribute>> HeaderParameters { get; private set; }
         public List<IndexedParameter> PlainParameters { get; private set; }
         public IndexedParameter<BodyAttribute>? Body { get; private set; }
@@ -20,6 +20,7 @@ namespace RestEase.Implementation
         {
             this.PathParameters = new List<IndexedParameter<PathAttribute>>();
             this.QueryParameters = new List<IndexedParameter<QueryAttribute>>();
+            this.QueryMaps = new List<IndexedParameter<QueryMapAttribute>>();
             this.HeaderParameters = new List<IndexedParameter<HeaderAttribute>>();
             this.PlainParameters = new List<IndexedParameter>();
 
@@ -47,9 +48,7 @@ namespace RestEase.Implementation
                 var queryMapAttribute = parameter.Parameter.GetCustomAttribute<QueryMapAttribute>();
                 if (queryMapAttribute != null)
                 {
-                    if (this.QueryMap.HasValue)
-                        throw new ImplementationCreationException(String.Format("Found more than one parameter with a [QueryMap] attribute for method {0}", methodName));
-                    this.QueryMap = new IndexedParameter<QueryMapAttribute>(parameter.Index, parameter.Parameter, queryMapAttribute);
+                    this.QueryMaps.Add(new IndexedParameter<QueryMapAttribute>(parameter.Index, parameter.Parameter, queryMapAttribute));
                     continue;
                 }
 

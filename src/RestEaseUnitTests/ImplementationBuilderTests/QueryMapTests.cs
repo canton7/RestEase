@@ -106,9 +106,34 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         [Fact]
-        public void ThrowsIfMoreThanOneQueryMap()
+        public void AllowsMoreThanOneQueryMap()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasTwoQueryMaps>(this.requester.Object));
+            var implementation = this.builder.CreateImplementation<IHasTwoQueryMaps>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            var queryMap1 = new Dictionary<string, string>()
+            {
+                { "foo", "bar" }
+            };
+
+            var queryMap2 = new Dictionary<string, string>()
+            {
+                { "foo", "yay" }
+            };
+
+            implementation.FooAsync(queryMap1, queryMap2);
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("foo", queryParam0.Key);
+            Assert.Equal("bar", queryParam0.Value);
+
+            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            Assert.Equal("foo", queryParam1.Key);
+            Assert.Equal("yay", queryParam1.Value);
         }
     }
 }

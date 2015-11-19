@@ -425,9 +425,8 @@ namespace RestEase.Implementation
             }
 
             // If there's a query map, add it
-            if (parameterGrouping.QueryMap != null)
+            foreach (var queryMap in parameterGrouping.QueryMaps)
             {
-                var queryMap = parameterGrouping.QueryMap.Value;
                 var method = MakeQueryMapMethodInfo(queryMap.Parameter.ParameterType);
                 if (method == null)
                     throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents). Method: {0}", methodName));
