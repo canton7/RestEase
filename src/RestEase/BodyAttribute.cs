@@ -17,8 +17,8 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="BodyAttribute"/> class
         /// </summary>
         public BodyAttribute()
+            : this(BodySerializationMethod.Default)
         {
-            this.SerializationMethod = BodySerializationMethod.Serialized;
         }
 
         /// <summary>

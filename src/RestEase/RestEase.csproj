@@ -59,6 +59,7 @@
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
     <Compile Include="Implementation\QueryParameterInfo.cs" />
+    <Compile Include="Implementation\SerializationMethods.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
     <Compile Include="IRequestQueryParamSerializer.cs" />
     <Compile Include="JsonRequestBodySerializer.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="Response.cs" />
     <Compile Include="Implementation\ImplementationCreationException.cs" />
     <Compile Include="RestClient.cs" />
+    <Compile Include="SerializationMethodsAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

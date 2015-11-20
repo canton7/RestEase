@@ -50,6 +50,20 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Query(QuerySerializationMethod.Serialized)] object foo);
         }
 
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasNonOverriddenDefaultQuerySerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([Query] string foo);
+        }
+
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasOverriddenDefaultQuerySerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([Query(QuerySerializationMethod.ToString)] string foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -152,6 +166,38 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, requestInfo.QueryParams.Count);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeader()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNonOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("boom");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodCanBeOverridden()
+        {
+            var implementation = this.builder.CreateImplementation<IHasOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("boom");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
         }
     }
 }

@@ -13,6 +13,11 @@
         /// <summary>
         /// Serialized using the configured IRequestQueryParamSerializer (uses Json.NET by default)
         /// </summary>
-        Serialized
+        Serialized,
+
+        /// <summary>
+        /// Use the default serialization method. You probably don't want to specify this yourself
+        /// </summary>
+        Default,
     }
 }

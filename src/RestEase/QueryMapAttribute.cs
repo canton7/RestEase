@@ -9,7 +9,7 @@ namespace RestEase
     public sealed class QueryMapAttribute : Attribute
     {
         /// <summary>
-        /// Gets the serialization method to use to serialize the value. Defaults to QuerySerializationMethod.ToString
+        /// Gets and sets the serialization method to use to serialize the value. Defaults to QuerySerializationMethod.ToString
         /// </summary>
         public QuerySerializationMethod SerializationMethod { get; set; }
 
@@ -17,8 +17,9 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="QueryMapAttribute"/> class
         /// </summary>
         public QueryMapAttribute()
-            : this(QuerySerializationMethod.ToString)
-        { }
+            : this(QuerySerializationMethod.Default)
+        {
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryMapAttribute"/> with the given serialization method

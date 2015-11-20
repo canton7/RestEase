@@ -243,6 +243,21 @@ ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
 await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
 ```
 
+You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Query = QuerySerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
+
+```csharp
+[SerializationMethods(Query = QuerySerializationMethods.Serialized)]
+public interface ISomeApi
+{
+    [Get("search")]
+    [SerializationMethods(Query = QuerySerializationMethod.ToString)]
+    Task<SearchResult> SearchWithToStringAsync([Query] SearchParams param);
+
+    [Get("search")]
+    Task<SearchResult> SearchWithSerializedAsync([Query] SearchParams param);
+}
+```
+
 
 ### Query Parameters Map
 
@@ -361,6 +376,17 @@ var data = new Dictionary<string, object> {
 // Serialized as: v=1&tids=UA-1234-5&tids=UA-1234-6&cid=d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c&t=event
 await api.CollectAsync(data);
  ```
+
+You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMthod.UrlEncoded)]` on the interface itself:
+
+```csharp
+[SerializationMethods(BodySerializationMethod.UrlEncoded)]
+public interface ISomeApi
+{
+    [Post("collect")]
+    Task CollectAsync([Body] Dictionary<string, object> data);
+}
+```
 
 
 Response Status Codes

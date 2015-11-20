@@ -14,5 +14,10 @@
         /// Serialized using Form URL Encoding. The body must implement IDictionary
         /// </summary>
         UrlEncoded,
+
+        /// <summary>
+        /// Use the default serialization method. You probably don't want to specify this yourself
+        /// </summary>
+        Default,
     }
 }

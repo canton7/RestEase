@@ -22,16 +22,18 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class
         /// </summary>
         public QueryAttribute()
-            : this(null, QuerySerializationMethod.ToString)
-        { }
+            : this(null, QuerySerializationMethod.Default)
+        {
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given name
         /// </summary>
         /// <param name="name">Name of the query parameter</param>
         public QueryAttribute(string name)
-            : this(name, QuerySerializationMethod.ToString)
-        { }
+            : this(name, QuerySerializationMethod.Default)
+        {
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given serialization method
@@ -39,7 +41,8 @@ namespace RestEase
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(QuerySerializationMethod serializationMethod)
             : this(null, serializationMethod)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given name and serialization method

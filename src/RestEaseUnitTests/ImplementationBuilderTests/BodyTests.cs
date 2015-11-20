@@ -30,6 +30,29 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task ValueTypeAsync([Body(BodySerializationMethod.UrlEncoded)] int serialized);
         }
 
+        [SerializationMethods(Body = BodySerializationMethod.UrlEncoded)]
+        public interface IHasNonOverriddenBodySerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([Body] string foo);
+        }
+
+        [SerializationMethods(Body = BodySerializationMethod.UrlEncoded)]
+        public interface IMethodSerializationAttributeOverridesInterface
+        {
+            [Get("foo")]
+            [SerializationMethods(Body = BodySerializationMethod.Serialized)]
+            Task FooAsync([Body] string foo);
+        }
+
+        [SerializationMethods(Body = BodySerializationMethod.UrlEncoded)]
+        public interface IHasOverriddenBodySerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([Body(BodySerializationMethod.Serialized)] string foo);
+        }
+
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -94,6 +117,54 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
             Assert.Equal(3, requestInfo.BodyParameterInfo.ObjectValue);
+        }
+
+        [Fact]
+        public void DefaultBodySerializationMethodIsSpecifiedBySerializationMethodsHeader()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNonOverriddenBodySerializationMethod>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("yay");
+
+            Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodCanBeOverridden()
+        {
+            var implementation = this.builder.CreateImplementation<IHasOverriddenBodySerializationMethod>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("yay");
+
+            Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
+        }
+
+        [Fact]
+        public void MethodSerializationMethodOverridesInterface()
+        {
+            var implementation = this.builder.CreateImplementation<IMethodSerializationAttributeOverridesInterface>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("yay");
+
+            Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
         }
     }
 }

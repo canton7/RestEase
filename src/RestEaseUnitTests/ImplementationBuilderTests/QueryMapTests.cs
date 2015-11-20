@@ -44,6 +44,20 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([QueryMap(QuerySerializationMethod.Serialized)] IDictionary<string, string> map);
         }
 
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasNonOverriddenSerializationMethodsAttribute
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] IDictionary<string, string> map);
+        }
+
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasOverriddenSerializationMethodsAttribute
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap(QuerySerializationMethod.ToString)] IDictionary<string, string> map);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -185,6 +199,36 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
             Assert.Equal("foo", queryParam1.Key);
             Assert.Equal("yay", queryParam1.Value);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsAttribute()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNonOverriddenSerializationMethodsAttribute>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodCanBeOverridden()
+        {
+            var implementation = this.builder.CreateImplementation<IHasOverriddenSerializationMethodsAttribute>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
         }
     }
 }

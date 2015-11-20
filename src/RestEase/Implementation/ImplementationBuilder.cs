@@ -135,6 +135,7 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on interface must not have a colon in the header name", firstHeaderWithColon.Name, firstHeaderWithColon.Value));
 
             var classAllowAnyStatusCodeAttribute = interfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
+            var classSerializationMethodsAttribute = interfaceType.GetCustomAttribute<SerializationMethodsAttribute>();
 
             foreach (var childInterfaceType in interfaceType.GetInterfaces())
             {
@@ -159,7 +160,7 @@ namespace RestEase.Implementation
             this.HandleEvents(interfaceType);
             var propertyHeaders = this.HandleProperties(typeBuilder, interfaceType);
 
-            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, propertyHeaders);
+            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, propertyHeaders);
 
             Type constructedType;
             try
@@ -257,6 +258,7 @@ namespace RestEase.Implementation
             FieldBuilder requesterField,
             FieldInfo classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
+            SerializationMethodsAttribute classSerializationMethodsAttribute,
             List<KeyValuePair<HeaderAttribute, FieldBuilder>> propertyHeaders)
         {
             foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetMethods()))
@@ -270,6 +272,9 @@ namespace RestEase.Implementation
                     throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
 
                 var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
+
+                var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
+                var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
 
                 var parameters = methodInfo.GetParameters();
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
@@ -332,7 +337,7 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
                 }
 
-                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name);
+                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
 
                 this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
 
@@ -415,13 +420,17 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
         }
 
-        private void AddParameters(ILGenerator methodIlGenerator, ParameterGrouping parameterGrouping, string methodName)
+        private void AddParameters(
+            ILGenerator methodIlGenerator,
+            ParameterGrouping parameterGrouping,
+            string methodName,
+            ResolvedSerializationMethods serializationMethods)
         {
             // If there's a body, add it
             if (parameterGrouping.Body != null)
             {
                 var body = parameterGrouping.Body.Value;
-                this.AddBody(methodIlGenerator, body.Attribute.SerializationMethod, body.Parameter.ParameterType, (short)body.Index);
+                this.AddBody(methodIlGenerator, serializationMethods.ResolveBody(body.Attribute.SerializationMethod), body.Parameter.ParameterType, (short)body.Index);
             }
 
             // If there's a query map, add it
@@ -430,13 +439,13 @@ namespace RestEase.Implementation
                 var method = MakeQueryMapMethodInfo(queryMap.Parameter.ParameterType);
                 if (method == null)
                     throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents). Method: {0}", methodName));
-                this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index, method, queryMap.Attribute.SerializationMethod);
+                this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index, method, serializationMethods.ResolveQuery(queryMap.Attribute.SerializationMethod));
             }
 
             foreach (var queryParameter in parameterGrouping.QueryParameters)
             {
                 var method = MakeQueryParameterMethodInfo(queryParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method, queryParameter.Attribute.SerializationMethod);
+                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
             }
 
             foreach (var plainParameter in parameterGrouping.PlainParameters)
