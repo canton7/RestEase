@@ -38,6 +38,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([QueryMap] IDictionary<string, string[]> map);
         }
 
+        public interface IHasSerializedSerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap(QuerySerializationMethod.Serialized)] IDictionary<string, string> map);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -97,6 +103,51 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal("yay1", queryParam1[0].Value);
             Assert.Equal("bar", queryParam1[1].Key);
             Assert.Equal("yay2", queryParam1[1].Value);
+        }
+
+        [Fact]
+        public void RecordsToStringSerializationMethod()
+        {
+            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void RecordsSerializedSerializationMethod()
+        {
+            var implementation = this.builder.CreateImplementation<IHasSerializedSerializationMethod>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void HandlesNullQueryMap()
+        {
+            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(null);
+
+            Assert.Equal(0, requestInfo.QueryParams.Count);
         }
 
         [Fact]

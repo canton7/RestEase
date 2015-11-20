@@ -16,7 +16,7 @@ namespace RestEase
         /// <summary>
         /// Gets the serialization method to use to serialize the value. Defaults to QuerySerializationMethod.ToString
         /// </summary>
-        public QuerySerializationMethod SerializationMethod { get; private set; }
+        public QuerySerializationMethod SerializationMethod { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class
