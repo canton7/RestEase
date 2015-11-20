@@ -40,11 +40,6 @@ namespace RestEase.Implementation
             get { return this._queryParams; }
         }
 
-        /// <summary>
-        /// Gets or sets the query map, if specified. Must be an IDictionary or IDictionary{TKey, TValue}
-        /// </summary>
-        public object QueryMap { get; set; }
-
         private readonly List<KeyValuePair<string, string>> _pathParams;
 
         /// <summary>
@@ -136,6 +131,45 @@ namespace RestEase.Implementation
         public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
         {
             this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values));
+        }
+
+        /// <summary>
+        /// Add a query map to the query parameters list, where the type of value is scalar
+        /// </summary>
+        /// <typeparam name="TKey">Type of key in the query map</typeparam>
+        /// <typeparam name="TValue">Type of value in the query map</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="queryMap">Query map to add</param>
+        public void AddQueryMap<TKey, TValue>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap)
+        {
+            if (queryMap == null)
+                return;
+
+            foreach (var kvp in queryMap)
+            {
+                if (kvp.Key != null)
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+            }
+        }
+
+        /// <summary>
+        /// Add a query map to the query parameters list, where the type of value is enumerable
+        /// </summary>
+        /// <typeparam name="TKey">Type of key in the query map</typeparam>
+        /// <typeparam name="TValue">Type of value in the query map</typeparam>
+        /// <typeparam name="TElement">Type of element in the value</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="queryMap">Query map to add</param>
+        public void AddQueryCollectionMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap) where TValue : IEnumerable<TElement>
+        {
+            if (queryMap == null)
+                return;
+
+            foreach (var kvp in queryMap)
+            {
+                if (kvp.Key != null)
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+            }
         }
 
         /// <summary>

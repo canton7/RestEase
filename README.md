@@ -249,9 +249,11 @@ await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
 Sometimes you have a load of query parameters, or they're generated dynamically, etc.
 In this case, you may want to supply a dictionary of query parameters, rather than specifying a load of method parameters.
 
-To facilitate this, you may decorate a single method parameter with `[QueryMap]`.
-The parameter type must be an `IDictionary` or `IDictionary<TKey, TValue>`.
-Arrays and null values are handled the same as for method parameters.
+To facilitate this, you may decorate one or more method parameters with `[QueryMap]`.
+The parameter type must be an `IDictionary<TKey, TValue>`.
+
+Query maps are handled the same way as other query parameters: serialization, handling of enumerables, null values, etc, behave the same.
+You can control whether values are serialized using a custom serializer or `ToString()` using e.g. `[QueryMap(QuerySerializationMethod.Serialized)]`.
 
 For example:
 
@@ -259,15 +261,15 @@ For example:
 public interface ISomeApi
 {
     [Get("search")]
-    // I've used IDictionary<string, object> here, but you can use whatever type parameters you like,
-    // or any type which implements IDictionary or IDictionary<TKey, TValue>
-    Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, object> filters);
+    // I've used IDictionary<string, string[]> here, but you can use whatever type parameters you like,
+    // or any type which implements IDictionary<TKey, TValue>
+    Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, string[]> filters);
 }
 
 var api = RestClient.For<ISomeApi>("http://api.example.com");
-var filters = new Dictionary<string, object>()
+var filters = new Dictionary<string, string[]>()
 {
-    { "title", "bobby" },
+    { "title", new[] { "bobby" } },
     { "tag", new[] { "c#", "programming" } }
 };
 
@@ -957,7 +959,7 @@ public interface IAuthenticatedEndpoint
 public interface IDevicesEndpoint : IAuthenticatedEndpoint
 {
     [Get("/devices")]
-    Task<IList<Device>> GetAllDevices([QueryMap] IDictionary<string, object> filters);
+    Task<IList<Device>> GetAllDevices([QueryMap] IDictionary<string, string> filters);
 }
 
 public interface IUsersEndpoint : IAuthenticatedEndpoint
