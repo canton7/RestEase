@@ -58,6 +58,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([QueryMap(QuerySerializationMethod.ToString)] IDictionary<string, string> map);
         }
 
+        public interface IHasObjectQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] IDictionary<string, object> map);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -229,6 +235,37 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
 
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void IteratesQueryMapEnumerableObjectValue()
+        {
+            var implementation = this.builder.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new Dictionary<string, object>()
+            {
+                { "foo", "bar" },
+                { "baz", new[] { "a", "b", "c" } }
+            });
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().Single();
+            Assert.Equal("foo", queryParam0.Key);
+            Assert.Equal("bar", queryParam0.Value);
+
+            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().ToArray();
+            Assert.Equal("baz", queryParam1[0].Key);
+            Assert.Equal("a", queryParam1[0].Value);
+
+            Assert.Equal("baz", queryParam1[1].Key);
+            Assert.Equal("b", queryParam1[1].Value);
+
+            Assert.Equal("baz", queryParam1[2].Key);
+            Assert.Equal("c", queryParam1[2].Value);
         }
     }
 }

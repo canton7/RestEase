@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 
@@ -147,8 +148,22 @@ namespace RestEase.Implementation
 
             foreach (var kvp in queryMap)
             {
-                if (kvp.Key != null)
+                if (kvp.Key == null)
+                    continue;
+
+                // Backwards compat: if it's a dictionary of object, see if it's ienumerable.
+                // If it is, treat it as an ienumerable<object> (yay covariance)
+                if (serializationMethod == QuerySerializationMethod.ToString &&
+                    typeof(TValue) == typeof(object) &&
+                    kvp.Value is IEnumerable<object> &&
+                    !(kvp.Value is string))
+                {
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value));
+                }
+                else
+                {
                     this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+                }
             }
         }
 
