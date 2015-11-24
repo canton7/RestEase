@@ -608,7 +608,7 @@ However, you can change this, either by specifying custom `JsonSerializerSetting
 
 ### Custom `JsonSerializerSettings`
 
-If you want to specify your own `JsonSerializerSettings`, you can do this using the appropriate `RestClient.For<T>` overload, for example:
+If you want to specify your own `JsonSerializerSettings`, you can do this by constructing a new `RestClient`, assigning `JsonSerializerSettings`, then calling `For<T>()` to obtain an implementation of your interface, for example:
 
 ```csharp
 var settings = new JsonSerializerSettings()
@@ -625,18 +625,18 @@ var api = new RestClient("http://api.example.com")
 
 ### Custom Serializers and Deserializers
 
-You can completely customize how requests and serializer, and responses deserialized, by providing your own serializer/deserializer implementations:
+You can completely customize how requests are serialized, and responses deserialized, by providing your own serializer/deserializer implementations:
 
  - To control how responses are deserialized, implement [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs)
  - To control how request bodies are serialized, implement [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs)
  - To control how request query parameters are serialized, implement [`IRequestQueryParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestQueryParamSerializer.cs)
 
-You can, of course, provide a custom implementation of only of of these, or all of them, or any number in between.
+You can, of course, provide a custom implementation of only one of these, or all of them, or any number in between.
 
 #### Deserializing responses: `IResponseDeserializer`
 
 This class has a single method, which is called whenever a response is received which needs deserializing.
-It is passed the `HttpResponseMesage` (so you can read headers, etc, if you want) and its `string` content which has already been asynchronously read.
+It is passed the `HttpResponseMessage` (so you can read headers, etc, if you want) and its `string` content which has already been asynchronously read.
 
 For an example, see [`JsonResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonResponseDeserializer.cs).
 
@@ -738,7 +738,8 @@ To tell RestEase to use it, you must create a new `RestClient`, assign its `Requ
 For example:
 
 ```csharp
-// It's highly unlikely that you'll get an API which requires xml-encoded query parameters, but for the sake of an example:
+// It's highly unlikely that you'll get an API which requires xml-encoded query
+// parameters, but for the sake of an example:
 
 public class XmlRequestQueryParamSerializer : IRequestQueryParamSerializer
 {
