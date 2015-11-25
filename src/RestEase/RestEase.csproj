@@ -49,15 +49,21 @@
   <ItemGroup>
     <Compile Include="AllowAnyStatusCodeAttribute.cs" />
     <Compile Include="BodyAttribute.cs" />
+    <Compile Include="BodySerializationMethod.cs" />
     <Compile Include="HeaderAttribute.cs" />
     <Compile Include="Implementation\BodyParameterInfo.cs" />
     <Compile Include="Implementation\DictionaryIterator.cs" />
+    <Compile Include="Implementation\EnumerableExtensions.cs" />
     <Compile Include="Implementation\IndexedParameter.cs" />
     <Compile Include="Implementation\IRequestInfo.cs" />
     <Compile Include="Implementation\ModifyingClientHttpHandler.cs" />
     <Compile Include="Implementation\ParameterGrouping.cs" />
+    <Compile Include="Implementation\QueryParameterInfo.cs" />
+    <Compile Include="Implementation\SerializationMethods.cs" />
     <Compile Include="IRequestBodySerializer.cs" />
+    <Compile Include="IRequestQueryParamSerializer.cs" />
     <Compile Include="JsonRequestBodySerializer.cs" />
+    <Compile Include="JsonRequestQueryParamSerializer.cs" />
     <Compile Include="PathAttribute.cs" />
     <Compile Include="QueryAttribute.cs" />
     <Compile Include="ApiException.cs" />
@@ -67,6 +73,7 @@
     <Compile Include="JsonResponseDeserializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryMapAttribute.cs" />
+    <Compile Include="QuerySerialializationMethod.cs" />
     <Compile Include="RequestAttribute.cs" />
     <Compile Include="Implementation\Requester.cs" />
     <Compile Include="Implementation\RequestInfo.cs" />
@@ -74,6 +81,7 @@
     <Compile Include="Response.cs" />
     <Compile Include="Implementation\ImplementationCreationException.cs" />
     <Compile Include="RestClient.cs" />
+    <Compile Include="SerializationMethodsAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

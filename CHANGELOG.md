@@ -1,3 +1,11 @@
+v1.0.5
+------
+
+ - Allow custom serialization of query parameters and query maps
+ - Add `[SerializationMethods]` attribute, to specify the default serialization method for bodies and query parameters
+ - Move to using a builder pattern for `RestClient`, to make specifying custom serializers/deserializations/configuration easier.
+   The old methods are still present, but are marked as deprecated. Please upgrade to the new methods (suggested by the deprecation messages).
+
 v1.0.4
 ------
 

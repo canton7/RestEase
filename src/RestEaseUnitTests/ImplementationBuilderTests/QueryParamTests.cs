@@ -44,6 +44,26 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync(IEnumerable<int> intArray);
         }
 
+        public interface ISerializedQueryParam
+        {
+            [Get("foo")]
+            Task FooAsync([Query(QuerySerializationMethod.Serialized)] object foo);
+        }
+
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasNonOverriddenDefaultQuerySerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([Query] string foo);
+        }
+
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasOverriddenDefaultQuerySerializationMethod
+        {
+            [Get("foo")]
+            Task FooAsync([Query(QuerySerializationMethod.ToString)] string foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -67,8 +87,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal("bar", requestInfo.QueryParams[0].Key);
-            Assert.Equal("the value", requestInfo.QueryParams[0].Value);
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("bar", queryParam0.Key);
+            Assert.Equal("the value", queryParam0.Value);
             Assert.Equal("boo", requestInfo.Path);
         }
 
@@ -85,8 +107,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync("the value");
 
             Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal("foo", requestInfo.QueryParams[0].Key);
-            Assert.Equal("the value", requestInfo.QueryParams[0].Value);
+
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("foo", queryParam0.Key);
+            Assert.Equal("the value", queryParam0.Value);
         }
 
         [Fact]
@@ -103,62 +127,77 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, requestInfo.QueryParams.Count);
 
-            Assert.Equal("bar", requestInfo.QueryParams[0].Key);
-            Assert.Equal("foo value", requestInfo.QueryParams[0].Value);
+            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal("bar", queryParam0.Key);
+            Assert.Equal("foo value", queryParam0.Value);
 
-            Assert.Equal("bar", requestInfo.QueryParams[1].Key);
-            Assert.Equal("bar value", requestInfo.QueryParams[1].Value);
+            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            Assert.Equal("bar", queryParam1.Key);
+            Assert.Equal("bar value", queryParam1.Value);
         }
 
         [Fact]
-        public void ExcludesNullQueryParams()
+        public void RecordsToStringSerializationMethod()
         {
-            var implementation = this.builder.CreateImplementation<INullableQueryParameters>(this.requester.Object);
+            var implementation = this.builder.CreateImplementation<ISingleParameterWithQueryParamAttributeNoReturn>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
-            implementation.FooAsync(null, null, 0, 0);
+            implementation.BooAsync("yay");
 
-            Assert.Equal(4, requestInfo.QueryParams.Count);
-
-            Assert.Equal("foo", requestInfo.QueryParams[0].Key);
-            Assert.Equal(null, requestInfo.QueryParams[0].Value);
-
-            Assert.Equal("bar", requestInfo.QueryParams[1].Key);
-            Assert.Equal(null, requestInfo.QueryParams[1].Value);
-
-            Assert.Equal("baz", requestInfo.QueryParams[2].Key);
-            Assert.Equal("0", requestInfo.QueryParams[2].Value);
-
-            Assert.Equal("yay", requestInfo.QueryParams[3].Key);
-            Assert.Equal("0", requestInfo.QueryParams[3].Value);
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
         }
 
         [Fact]
-        public void HandlesQueryParamArays()
+        public void RecordsSerializedSerializationMethod()
         {
-            var implementation = this.builder.CreateImplementation<IArrayQueryParam>(this.requester.Object);
+            var implementation = this.builder.CreateImplementation<ISerializedQueryParam>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
-            implementation.FooAsync(new int[] { 1, 2, 3 });
+            implementation.FooAsync("boom");
 
-            Assert.Equal(3, requestInfo.QueryParams.Count);
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+        }
 
-            Assert.Equal("intArray", requestInfo.QueryParams[0].Key);
-            Assert.Equal("1", requestInfo.QueryParams[0].Value);
+        [Fact]
+        public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeader()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNonOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
+            IRequestInfo requestInfo = null;
 
-            Assert.Equal("intArray", requestInfo.QueryParams[1].Key);
-            Assert.Equal("2", requestInfo.QueryParams[1].Value);
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
 
-            Assert.Equal("intArray", requestInfo.QueryParams[2].Key);
-            Assert.Equal("3", requestInfo.QueryParams[2].Value);
+            implementation.FooAsync("boom");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodCanBeOverridden()
+        {
+            var implementation = this.builder.CreateImplementation<IHasOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("boom");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
         }
     }
 }

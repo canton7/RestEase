@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -24,9 +23,14 @@ namespace RestEase.Implementation
         public IResponseDeserializer ResponseDeserializer { get; set; }
 
         /// <summary>
-        /// Gets or sets the serializer used to serialize request bodies, when [Body(BodySerializationMethod.Serialized)] is used
+        /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
         public IRequestBodySerializer RequestBodySerializer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
+        /// </summary>
+        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
@@ -37,6 +41,7 @@ namespace RestEase.Implementation
             this.httpClient = httpClient;
             this.ResponseDeserializer = new JsonResponseDeserializer();
             this.RequestBodySerializer = new JsonRequestBodySerializer();
+            this.RequestQueryParamSerializer = new JsonRequestQueryParamSerializer();
         }
 
         /// <summary>
@@ -98,16 +103,9 @@ namespace RestEase.Implementation
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
-                if (queryParam.Value != null)
-                    query.Add(queryParam.Key, queryParam.Value);
-            }
-            if (requestInfo.QueryMap != null)
-            { 
-                // ImplementationBuilder asserts that we can iterate the QueryMap type
-                foreach (var queryParam in this.TransformDictionaryToCollectionOfKeysAndValues(requestInfo.QueryMap))
+                foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
                 {
-                    if (queryParam.Value != null)
-                        query.Add(queryParam.Key, queryParam.Value);
+                    query.Add(serializedParam.Key, serializedParam.Value);
                 }
             }
             uriBuilder.Query = query.ToString();
@@ -154,6 +152,26 @@ namespace RestEase.Implementation
                 {
                     yield return new KeyValuePair<string, string>(kvp.Key.ToString(), kvp.Value.ToString());
                 }
+            }
+        }
+
+        /// <summary>
+        /// Serializes the value of a query parameter, using an appropriate method
+        /// </summary>
+        /// <param name="queryParameter">Query parameter to serialize</param>
+        /// <returns>Serialized value</returns>
+        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter)
+        {
+            switch (queryParameter.SerializationMethod)
+            {
+                case QuerySerializationMethod.ToString:
+                    return queryParameter.SerializeToString();
+                case QuerySerializationMethod.Serialized:
+                    if (this.RequestQueryParamSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
+                    return queryParameter.SerializeValue(this.RequestQueryParamSerializer);
+                default:
+                    throw new InvalidOperationException("Should never get here");
             }
         }
 

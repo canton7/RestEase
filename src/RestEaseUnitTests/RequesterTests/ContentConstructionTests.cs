@@ -67,19 +67,19 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
-        public void UsesBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
+        public void UsesRequestBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             var body = new object();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, body);
 
-            var bodySerializer = new Mock<IRequestBodySerializer>();
-            this.requester.RequestBodySerializer = bodySerializer.Object;
+            var requestBodySerializer = new Mock<IRequestBodySerializer>();
+            this.requester.RequestBodySerializer = requestBodySerializer.Object;
 
-            bodySerializer.Setup(x => x.SerializeBody(body)).Returns(new StringContent("test")).Verifiable();
+            requestBodySerializer.Setup(x => x.SerializeBody(body)).Returns(new StringContent("test")).Verifiable();
             var content = this.requester.ConstructContent(requestInfo);
 
-            bodySerializer.Verify();
+            requestBodySerializer.Verify();
             Assert.IsType<StringContent>(content);
         }
 

@@ -1,5 +1,8 @@
-RestEase
-========
+![Project Icon](icon.png) RestEase
+==================================
+
+[![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
+[![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
 RestEase is a little type-safe REST API client library for .NET Framework 4.5, which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
 
@@ -7,6 +10,8 @@ Almost every aspect of RestEase can be overridden and customized, leading to a l
 
 To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
 RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
+
+RestEase is built on top of [HttpClient](https://msdn.microsoft.com/en-us/library/system.net.http.httpclient%28v=vs.118%29.aspx) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
 
 RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
 
@@ -19,6 +24,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 5. [Query Parameters](#query-parameters)
   1. [Constant Query Parameters](#constant-query-parameters)
   2. [Variable Query Parameters](#variable-query-parameters)
+    1. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
   3. [Query Parameters Map](#query-parameters-map)
 6. [Path Parameters](#path-parameters)
 7. [Body Content](#body-content)
@@ -34,6 +40,9 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
   1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
   2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
+    1. [Deserializing responses: `IResponseDeserializer`](#deserializing-responses-iresponsedeserializer)
+    2. [Serializing request bodies: `IRequestBodySerializer`](#serializing-request-bodies-irequestbodyserializer)
+    3. [Serializing request parameters: `IRequestQueryParamSerializer`](#serializing-request-parameters-irequestqueryparamserializer)
 12. [Controlling the Requests](#controlling-the-requests)
   1. [`RequestModifier`](#requestmodifier)
   2. [Custom `HttpClient`](#custom-httpclient)
@@ -89,7 +98,7 @@ public interface IGitHubApi
 IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
 
 // Now we can simply call methods on it
-// Sets a GET request to http://api.github.com/users
+// Sends a GET request to http://api.github.com/users
 List<User> users = await api.GetUsersAsync();
 ```
 
@@ -203,18 +212,63 @@ public interface ISomeApi
 
 ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
-// Requests http://somenedpint.com/search?filter=foo&filter=bar&filter=baz
+// Requests http://api.exapmle.com/search?filter=foo&filter=bar&filter=baz
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
 ```
+
+#### Serialization of Variable Query Parameters
+
+By default, query parameter values will be serialized by calling `ToString()` on them.
+This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+
+However, some APIs require that you send e.g. JSON as a query parameter.
+In this case, you can mark the parameter for custom serialization using `QuerySerializationMethod.Serialized`, and further control it by using a [custom serializer](#custom-serializers-and-deserializers).
+
+For example:
+```csharp
+public class SearchParams
+{
+    public string Term { get; set; }
+    public string Mode { get; set; }
+}
+
+public interface ISomeApi
+{
+    [Get("search")]
+    Task<SearchResult> SearchAsync([Query(QuerySerializationMethod.Serialized)] SearchParams param);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+// Requests http://api.example.com/search?params={"Term": "foo", "Mode": "basic"}
+await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
+```
+
+You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Query = QuerySerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
+
+```csharp
+[SerializationMethods(Query = QuerySerializationMethods.Serialized)]
+public interface ISomeApi
+{
+    [Get("search")]
+    [SerializationMethods(Query = QuerySerializationMethod.ToString)]
+    Task<SearchResult> SearchWithToStringAsync([Query] SearchParams param);
+
+    [Get("search")]
+    Task<SearchResult> SearchWithSerializedAsync([Query] SearchParams param);
+}
+```
+
 
 ### Query Parameters Map
 
 Sometimes you have a load of query parameters, or they're generated dynamically, etc.
 In this case, you may want to supply a dictionary of query parameters, rather than specifying a load of method parameters.
 
-To facilitate this, you may decorate a single method parameter with `[QueryMap]`.
-The parameter type must be an `IDictionary` or `IDictionary<TKey, TValue>`.
-Arrays and null values are handled the same as for method parameters.
+To facilitate this, you may decorate one or more method parameters with `[QueryMap]`.
+The parameter type must be an `IDictionary<TKey, TValue>`.
+
+Query maps are handled the same way as other query parameters: serialization, handling of enumerables, null values, etc, behave the same.
+You can control whether values are serialized using a custom serializer or `ToString()` using e.g. `[QueryMap(QuerySerializationMethod.Serialized)]`.
 
 For example:
 
@@ -222,15 +276,15 @@ For example:
 public interface ISomeApi
 {
     [Get("search")]
-    // I've used IDictionary<string, object> here, but you can use whatever type parameters you like,
-    // or any type which implements IDictionary or IDictionary<TKey, TValue>
-    Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, object> filters);
+    // I've used IDictionary<string, string[]> here, but you can use whatever type parameters you like,
+    // or any type which implements IDictionary<TKey, TValue>
+    Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, string[]> filters);
 }
 
 var api = RestClient.For<ISomeApi>("http://api.example.com");
-var filters = new Dictionary<string, object>()
+var filters = new Dictionary<string, string[]>()
 {
-    { "title", "bobby" },
+    { "title", new[] { "bobby" } },
     { "tag", new[] { "c#", "programming" } }
 };
 
@@ -322,6 +376,17 @@ var data = new Dictionary<string, object> {
 // Serialized as: v=1&tids=UA-1234-5&tids=UA-1234-6&cid=d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c&t=event
 await api.CollectAsync(data);
  ```
+
+You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMthod.UrlEncoded)]` on the interface itself:
+
+```csharp
+[SerializationMethods(BodySerializationMethod.UrlEncoded)]
+public interface ISomeApi
+{
+    [Post("collect")]
+    Task CollectAsync([Body] Dictionary<string, object> data);
+}
+```
 
 
 Response Status Codes
@@ -538,12 +603,12 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 Controlling Serialization and Deserialization
 ---------------------------------------------
 
-By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies.
-However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own Deserializer and Serializer.
+By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies and query parameters.
+However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own serializers / deserializers
 
 ### Custom `JsonSerializerSettings`
 
-If you want to specify your own `JsonSerializerSettings`, you can do this using the appropriate `RestClient.For<T>` overload, for example:
+If you want to specify your own `JsonSerializerSettings`, you can do this by constructing a new `RestClient`, assigning `JsonSerializerSettings`, then calling `For<T>()` to obtain an implementation of your interface, for example:
 
 ```csharp
 var settings = new JsonSerializerSettings()
@@ -551,22 +616,33 @@ var settings = new JsonSerializerSettings()
     ContractResolver = new CamelCasePropertyNamesContractResolver(),
     Converters = { new StringEnumConverter() }
 };
-var api = RestClient.For<ISomeApi>("http://api.example.com", settings);
+
+var api = new RestClient("http://api.example.com")
+{
+    JsonSerializerSettings = settings
+}.For<ISomeApi>();
 ```
 
 ### Custom Serializers and Deserializers
 
-If you want to completely customize how responses / requests are deserialized / serialized, then you can provide your own implementations of [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs) or [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs) respectively.
+You can completely customize how requests are serialized, and responses deserialized, by providing your own serializer/deserializer implementations:
 
-When writing an `IRequestBodySerializer` implementation, you may choose to provide some default headers, such as `Content-Type`.
-These will be overidden by any `[Header]` attributes.
+ - To control how responses are deserialized, implement [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs)
+ - To control how request bodies are serialized, implement [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs)
+ - To control how request query parameters are serialized, implement [`IRequestQueryParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestQueryParamSerializer.cs)
 
-For example:
+You can, of course, provide a custom implementation of only one of these, or all of them, or any number in between.
+
+#### Deserializing responses: `IResponseDeserializer`
+
+This class has a single method, which is called whenever a response is received which needs deserializing.
+It is passed the `HttpResponseMessage` (so you can read headers, etc, if you want) and its `string` content which has already been asynchronously read.
+
+For an example, see [`JsonResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonResponseDeserializer.cs).
+
+To tell RestEase to use it, you must create a new `RestClient`, assign its `ResponseDeserializer` property, then call `For<T>()` to get an implementation of your interface.
 
 ```csharp
-// You can define either IResponseDeserializer, or IRequestBodySerializer, or both
-// I'm going to do both as an example
-
 // This API returns XML
 
 public class XmlResponseDeserializer : IResponseDeserializer
@@ -583,10 +659,36 @@ public class XmlResponseDeserializer : IResponseDeserializer
     }
 }
 
+// ...
+
+var api = new RestClient("http://api.example.com")
+{
+    ResponseDeserializer = new XmlResponseDeserializer()
+}.For<ISomeApi>();
+```
+
+#### Serializing request bodies: `IRequestBodySerializer`
+
+This class has a single method, which is called whenever a request body requires serialization (i.e. is decorated with `[Body(BodySerializationMethod.Serialized)]`).
+It returns any `HttpContent` subclass you like, although `StringContent` is likely to be a common choice.
+
+When writing an `IRequestBodySerializer`'s `SerializeBody` implementation, you may choose to provide some default headers, such as `Content-Type`.
+These will be overidden by any `[Header]` attributes.
+
+For an example, see [`JsonRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonRequestBodySerializer.cs).
+
+To tell RestEase to use it, you must create a new `RestClient`, assign its `RequestBodySerializer` property, then call `For<T>()` to get an implementation of your interface.
+
+For example:
+
+```csharp
 public class XmlRequestBodySerializer : IRequestBodySerializer
 {
     public HttpContent SerializeBody<T>(T body)
     {
+        if (body == null)
+            return null;
+
         // Consider caching generated XmlSerializers
         var serializer = new XmlSerializer(typeof(T));
 
@@ -603,7 +705,85 @@ public class XmlRequestBodySerializer : IRequestBodySerializer
 
 // ...
 
-var api = RestClient.For<ISomeApi>("http://api.example.com", new XmlResponseDeserializer(), new XmlRequestBodySerializer());
+var api = new RestClient("http://api.example.com")
+{
+    RequestBodySerializer = new XmlRequestBodySerializer()
+}.For<ISomeApi>();
+```
+
+#### Serializing request parameters: `IRequestQueryParamSerializer`
+
+This class has two methods: one is called whenever a scalar query parameter requires serialization (i.e. is decorated with `[Query(QuerySerializationMethod.Serialized)]`); the other is called whenever a collection of query parameters (that is, the query parameter has type `IEnumerable<T>` for some `T`) requires serialization.
+
+Both of these methods want you to return an `IEnumerable<KeyValuePair<string, string>>`, where each key corresponds to the name of a query name/value pair, and each value corresponds to the value.
+For example:
+
+```csharp
+return new[]
+{
+    new KeyValuePair<string, string>("foo", "bar"),
+    new KeyValuePair<string, string>("foo", "baz"),
+    new KeyValuePair<string, string>("yay", "woo")
+}
+
+// Will get serialized to '...?foo=bar&foo=baz&yay=woo'
+```
+
+It is unlikely that you will return more than one `KeyValuePair` from the method which serializes scalar query parameters, but the flexibility is there.
+
+For an example, see [`JsonRequestQueryParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonRequestQueryParamSerializer.cs).
+
+To tell RestEase to use it, you must create a new `RestClient`, assign its `RequestQueryParamSerializer` property, then call `For<T>()` to get an implementation of your interface.
+
+For example:
+
+```csharp
+// It's highly unlikely that you'll get an API which requires xml-encoded query
+// parameters, but for the sake of an example:
+
+public class XmlRequestQueryParamSerializer : IRequestQueryParamSerializer
+{
+    public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value)
+    {
+        if (value == null)
+            yield break;
+
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
+
+        using (var stringWriter = new StringWriter())
+        {
+            serializer.Serialize(stringWriter, value);
+            yield return new KeyValuePair<string, string>(name, stringWriter.ToString()));
+        }
+    }
+
+    public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values)
+    {
+        if (values == null)
+            yield break;
+
+        // Consider caching generated XmlSerializers
+        var serializer = new XmlSerializer(typeof(T));
+
+        foreach (var value in values)
+        {
+            if (value != null)
+            {
+                using (var stringWriter = new StringWriter())
+                {
+                    serializer.Serialize(stringWriter, value);
+                    yield return new KeyValuePair<string, string>(name, stringWriter.ToString()));
+                }
+            }
+        }
+    }
+}
+
+var api = new RestClient("http://api.example.com")
+{
+    RequestQueryParamSerializer = new XmlRequestQueryParamSerializer()
+}.For<ISomeApi>();
 ```
 
 
@@ -806,7 +986,7 @@ public interface IAuthenticatedEndpoint
 public interface IDevicesEndpoint : IAuthenticatedEndpoint
 {
     [Get("/devices")]
-    Task<IList<Device>> GetAllDevices([QueryMap] IDictionary<string, object> filters);
+    Task<IList<Device>> GetAllDevices([QueryMap] IDictionary<string, string> filters);
 }
 
 public interface IUsersEndpoint : IAuthenticatedEndpoint
@@ -979,9 +1159,10 @@ Here's a brief summary of pros/cons, compared to Refit:
  - Better support for API calls which are expected to fail: `[AllowAnyStatusCode]` and `Response<T>`
  - Easier to customize:
    - Can specify custom response deserializer
-   - Can specify custom request body serializer
+   - Can specify custom request serializer
    - Can customize almost every aspect of setting up and creating the request (through implementing `IRequester`)
  - Supports `[QueryMap]`
+ - Supports custom query parameter serialization
  - Supports arrays of query parameters (and body parameters when serializing a body parameter as UrlEncoded)
  - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
 

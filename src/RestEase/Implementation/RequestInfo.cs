@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -32,20 +31,15 @@ namespace RestEase.Implementation
         /// </summary>
         public bool AllowAnyStatusCode { get; set; }
 
-        private readonly List<KeyValuePair<string, string>> _queryParams;
+        private readonly List<QueryParameterInfo> _queryParams;
 
         /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> QueryParams
+        public IReadOnlyList<QueryParameterInfo> QueryParams
         {
             get { return this._queryParams; }
         }
-
-        /// <summary>
-        /// Gets or sets the query map, if specified. Must be an IDictionary or IDictionary{TKey, TValue}
-        /// </summary>
-        public object QueryMap { get; set; }
 
         private readonly List<KeyValuePair<string, string>> _pathParams;
 
@@ -108,7 +102,7 @@ namespace RestEase.Implementation
             this.Path = path;
             this.CancellationToken = CancellationToken.None;
 
-            this._queryParams = new List<KeyValuePair<string, string>>();
+            this._queryParams = new List<QueryParameterInfo>();
             this._pathParams = new List<KeyValuePair<string, string>>();
             this._methodHeaders = new List<KeyValuePair<string, string>>();
             this._propertyHeaders = new List<KeyValuePair<string, string>>();
@@ -120,23 +114,76 @@ namespace RestEase.Implementation
         /// </summary>
         /// <remarks>value may be an IEnumerable, in which case each value is added separately</remarks>
         /// <typeparam name="T">Type of the value to add</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public void AddQueryParameter<T>(string name, T value)
+        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value)
         {
-            // Don't want to count strings as IEnumerable
-            if (value != null && !(value is string) && value is IEnumerable)
+            this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
+        }
+
+        /// <summary>
+        /// Add a collection of query parameter values under the same name
+        /// </summary>
+        /// <typeparam name="T">Type of the value to add</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="name">Name of the name/values pair</param>
+        /// <param name="values">Values of the name/values pairs</param>
+        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
+        {
+            this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values));
+        }
+
+        /// <summary>
+        /// Add a query map to the query parameters list, where the type of value is scalar
+        /// </summary>
+        /// <typeparam name="TKey">Type of key in the query map</typeparam>
+        /// <typeparam name="TValue">Type of value in the query map</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="queryMap">Query map to add</param>
+        public void AddQueryMap<TKey, TValue>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap)
+        {
+            if (queryMap == null)
+                return;
+
+            foreach (var kvp in queryMap)
             {
-                foreach (var individualValue in (IEnumerable)value)
+                if (kvp.Key == null)
+                    continue;
+
+                // Backwards compat: if it's a dictionary of object, see if it's ienumerable.
+                // If it is, treat it as an ienumerable<object> (yay covariance)
+                if (serializationMethod == QuerySerializationMethod.ToString &&
+                    typeof(TValue) == typeof(object) &&
+                    kvp.Value is IEnumerable<object> &&
+                    !(kvp.Value is string))
                 {
-                    var stringValue = individualValue == null ? null : individualValue.ToString();
-                    this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value));
+                }
+                else
+                {
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value));
                 }
             }
-            else
+        }
+
+        /// <summary>
+        /// Add a query map to the query parameters list, where the type of value is enumerable
+        /// </summary>
+        /// <typeparam name="TKey">Type of key in the query map</typeparam>
+        /// <typeparam name="TValue">Type of value in the query map</typeparam>
+        /// <typeparam name="TElement">Type of element in the value</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="queryMap">Query map to add</param>
+        public void AddQueryCollectionMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap) where TValue : IEnumerable<TElement>
+        {
+            if (queryMap == null)
+                return;
+
+            foreach (var kvp in queryMap)
             {
-                var stringValue = value == null ? null : value.ToString();
-                this._queryParams.Add(new KeyValuePair<string, string>(name, stringValue));
+                if (kvp.Key != null)
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value));
             }
         }
 
