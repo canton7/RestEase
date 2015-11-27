@@ -63,7 +63,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams)
             {
-                sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", pathParam.Value);
+                sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", HttpUtility.UrlEncode(pathParam.Value));
             }
 
             return sb.ToString();
