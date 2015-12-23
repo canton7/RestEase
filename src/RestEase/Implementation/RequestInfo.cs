@@ -36,7 +36,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
-        public IReadOnlyList<QueryParameterInfo> QueryParams
+        public IEnumerable<QueryParameterInfo> QueryParams
         {
             get { return this._queryParams; }
         }
@@ -46,7 +46,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> PathParams
+        public IEnumerable<KeyValuePair<string, string>> PathParams
         {
             get { return this._pathParams; }
         }
@@ -54,14 +54,14 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> ClassHeaders { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> ClassHeaders { get; set; }
 
         private readonly List<KeyValuePair<string, string>> _propertyHeaders;
 
         /// <summary>
         /// Gets the headers which were applied using properties
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> PropertyHeaders
+        public IEnumerable<KeyValuePair<string, string>> PropertyHeaders
         {
             get { return this._propertyHeaders; }
         }
@@ -71,7 +71,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> MethodHeaders
+        public IEnumerable<KeyValuePair<string, string>> MethodHeaders
         {
             get { return this._methodHeaders; }
         }
@@ -81,7 +81,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the headers which were passed to the method as parameters
         /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> HeaderParams
+        public IEnumerable<KeyValuePair<string, string>> HeaderParams
         {
             get { return this._headerParams; }
         }

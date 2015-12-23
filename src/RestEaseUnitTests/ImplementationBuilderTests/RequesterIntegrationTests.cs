@@ -96,7 +96,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
             Assert.Equal("foo", requestInfo.Path);
         }
 
@@ -119,7 +119,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
             Assert.Equal("bar", requestInfo.Path);
         }
 
@@ -142,7 +142,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
             Assert.Equal("bar", requestInfo.Path);
         }
 
@@ -165,7 +165,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
             Assert.Equal("bar", requestInfo.Path);
         }
 
@@ -188,7 +188,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
             Assert.Equal("bar", requestInfo.Path);
         }
 

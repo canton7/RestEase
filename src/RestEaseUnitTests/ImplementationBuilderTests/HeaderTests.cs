@@ -195,13 +195,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("value 1", "value 2");
 
-            Assert.Equal(2, requestInfo.HeaderParams.Count);
+            var headerParams = requestInfo.HeaderParams.ToList();
 
-            Assert.Equal("Param Header 1", requestInfo.HeaderParams[0].Key);
-            Assert.Equal("value 1", requestInfo.HeaderParams[0].Value);
+            Assert.Equal(2, headerParams.Count);
 
-            Assert.Equal("Param Header 2", requestInfo.HeaderParams[1].Key);
-            Assert.Equal("value 2", requestInfo.HeaderParams[1].Value);
+            Assert.Equal("Param Header 1", headerParams[0].Key);
+            Assert.Equal("value 1", headerParams[0].Value);
+
+            Assert.Equal("Param Header 2", headerParams[1].Key);
+            Assert.Equal("value 2", headerParams[1].Value);
         }
 
         [Fact]
@@ -216,10 +218,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("value 1", null);
 
-            Assert.Equal(2, requestInfo.HeaderParams.Count);
+            var headerParams = requestInfo.HeaderParams.ToList();
 
-            Assert.Equal("Param Header 2", requestInfo.HeaderParams[1].Key);
-            Assert.Equal(null, requestInfo.HeaderParams[1].Value);
+            Assert.Equal(2, headerParams.Count);
+
+            Assert.Equal("Param Header 2", headerParams[1].Key);
+            Assert.Equal(null, headerParams[1].Value);
         }
 
         [Fact]
@@ -235,10 +239,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(3);
 
-            Assert.Equal(1, requestInfo.HeaderParams.Count);
+            var headerParams = requestInfo.HeaderParams.ToList();
 
-            Assert.Equal("Param Header", requestInfo.HeaderParams[0].Key);
-            Assert.Equal("3", requestInfo.HeaderParams[0].Value);
+            Assert.Equal(1, headerParams.Count);
+
+            Assert.Equal("Param Header", headerParams[0].Key);
+            Assert.Equal("3", headerParams[0].Value);
         }
 
         [Fact]
@@ -295,9 +301,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync();
 
-            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
-            Assert.Equal("Name", requestInfo.PropertyHeaders[0].Key);
-            Assert.Equal("Value", requestInfo.PropertyHeaders[0].Value);
+            var propertyHeaders = requestInfo.PropertyHeaders.ToList();
+
+            Assert.Equal(1, propertyHeaders.Count);
+            Assert.Equal("Name", propertyHeaders[0].Key);
+            Assert.Equal("Value", propertyHeaders[0].Value);
         }
 
         [Fact]
@@ -312,9 +320,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync();
 
-            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
-            Assert.Equal("Name", requestInfo.PropertyHeaders[0].Key);
-            Assert.Equal("Value", requestInfo.PropertyHeaders[0].Value);
+            var propertyHeaders = requestInfo.PropertyHeaders.ToList();
+
+            Assert.Equal(1, propertyHeaders.Count);
+            Assert.Equal("Name", propertyHeaders[0].Key);
+            Assert.Equal("Value", propertyHeaders[0].Value);
         }
 
         [Fact]
@@ -348,10 +358,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync();
 
-            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
+            var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
-            Assert.Equal("X-API-Key", requestInfo.PropertyHeaders[0].Key);
-            Assert.Equal("Foo Bar", requestInfo.PropertyHeaders[0].Value);
+            Assert.Equal(1, propertyHeaders.Count);
+
+            Assert.Equal("X-API-Key", propertyHeaders[0].Key);
+            Assert.Equal("Foo Bar", propertyHeaders[0].Value);
         }
 
         [Fact]
@@ -383,10 +395,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync();
 
-            Assert.Equal(1, requestInfo.PropertyHeaders.Count);
+            var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
-            Assert.Equal("Authorization", requestInfo.PropertyHeaders[0].Key);
-            Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", requestInfo.PropertyHeaders[0].Value);
+            Assert.Equal(1, propertyHeaders.Count);
+
+            Assert.Equal("Authorization", propertyHeaders[0].Key);
+            Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", propertyHeaders[0].Value);
         }
     }
 }

@@ -15,16 +15,29 @@
     <iconUrl>https://raw.githubusercontent.com/canton7/RestEase/master/icon.png</iconUrl>
 
     <dependencies>
-      <group>
+      <!-- If we don't specify a net45 group, nuget will install the net40 group even on net45 -->
+
+      <group targetFramework="net45">
         <dependency id="Newtonsoft.Json" version="6.0.5"/>
+      </group>
+
+      <group targetFramework="net40">
+        <dependency id="Newtonsoft.Json" version="6.0.5"/>
+        <dependency id="Microsoft.Bcl.Async" version="1.0.168"/>
+        <dependency id="Microsoft.Net.Http" version="2.2.29"/>
       </group>
     </dependencies>
   </metadata>
 
   <files>
-    <file src="..\bin\Release\RestEase.dll" target="lib\net45"/>
-    <file src="..\bin\Release\RestEase.pdb" target="lib\net45"/>
-    <file src="..\bin\Release\RestEase.xml" target="lib\net45"/>
-    <file src="..\bin\Release\RestEase.pdb.srcsrv" target="lib\net45"/>
+    <file src="..\bin\net45\Release\RestEase.dll" target="lib\net45"/>
+    <file src="..\bin\net45\Release\RestEase.pdb" target="lib\net45"/>
+    <file src="..\bin\net45\Release\RestEase.xml" target="lib\net45"/>
+    <file src="..\bin\net45\Release\RestEase.pdb.srcsrv" target="lib\net45"/>
+
+    <file src="..\bin\net40\Release\RestEase.dll" target="lib\net40"/>
+    <file src="..\bin\net40\Release\RestEase.pdb" target="lib\net40"/>
+    <file src="..\bin\net40\Release\RestEase.xml" target="lib\net40"/>
+    <file src="..\bin\net40\Release\RestEase.pdb.srcsrv" target="lib\net40"/>
   </files>
 </package>
