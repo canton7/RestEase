@@ -86,9 +86,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(1, requestInfo.QueryParams.Count());
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            var queryParam0 = requestInfo.QueryParams.First().SerializeToString().First();
             Assert.Equal("bar", queryParam0.Key);
             Assert.Equal("the value", queryParam0.Value);
             Assert.Equal("boo", requestInfo.Path);
@@ -106,9 +106,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("the value");
 
-            Assert.Equal(1, requestInfo.QueryParams.Count);
+            Assert.Equal(1, requestInfo.QueryParams.Count());
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            var queryParam0 = requestInfo.QueryParams.First().SerializeToString().First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("the value", queryParam0.Value);
         }
@@ -125,13 +125,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("foo value", "bar value");
 
-            Assert.Equal(2, requestInfo.QueryParams.Count);
+            var queryParams = requestInfo.QueryParams.ToList();
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            Assert.Equal(2, queryParams.Count);
+
+            var queryParam0 = queryParams[0].SerializeToString().First();
             Assert.Equal("bar", queryParam0.Key);
             Assert.Equal("foo value", queryParam0.Value);
 
-            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            var queryParam1 = queryParams[1].SerializeToString().First();
             Assert.Equal("bar", queryParam1.Key);
             Assert.Equal("bar value", queryParam1.Value);
         }
@@ -148,8 +150,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.BooAsync("yay");
 
-            Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -164,8 +166,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("boom");
 
-            Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -180,8 +182,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("boom");
 
-            Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -196,8 +198,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("boom");
 
-            Assert.Equal(1, requestInfo.QueryParams.Count);
-            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
     }
 }

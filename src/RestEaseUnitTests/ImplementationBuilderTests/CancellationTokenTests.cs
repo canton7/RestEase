@@ -49,7 +49,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(cts.Token, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
             Assert.Equal("baz", requestInfo.Path);
         }
 

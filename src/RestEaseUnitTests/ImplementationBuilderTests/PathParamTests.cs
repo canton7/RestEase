@@ -60,13 +60,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.DifferentParaneterTypesAsync(null, null);
 
-            Assert.Equal(2, requestInfo.PathParams.Count);
+            var pathParams = requestInfo.PathParams.ToList();
 
-            Assert.Equal("foo", requestInfo.PathParams[0].Key);
-            Assert.Equal(null, requestInfo.PathParams[0].Value);
+            Assert.Equal(2, pathParams.Count);
 
-            Assert.Equal("bar", requestInfo.PathParams[1].Key);
-            Assert.Equal(null, requestInfo.PathParams[1].Value);
+            Assert.Equal("foo", pathParams[0].Key);
+            Assert.Equal(null, pathParams[0].Value);
+
+            Assert.Equal("bar", pathParams[1].Key);
+            Assert.Equal(null, pathParams[1].Value);
         }
 
         [Fact]
@@ -81,13 +83,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("foo value", "bar value");
 
-            Assert.Equal(2, requestInfo.PathParams.Count);
+            var pathParams = requestInfo.PathParams.ToList();
 
-            Assert.Equal("foo", requestInfo.PathParams[0].Key);
-            Assert.Equal("foo value", requestInfo.PathParams[0].Value);
+            Assert.Equal(2, pathParams.Count);
 
-            Assert.Equal("bar", requestInfo.PathParams[1].Key);
-            Assert.Equal("bar value", requestInfo.PathParams[1].Value);
+            Assert.Equal("foo", pathParams[0].Key);
+            Assert.Equal("foo value", pathParams[0].Value);
+
+            Assert.Equal("bar", pathParams[1].Key);
+            Assert.Equal("bar value", pathParams[1].Value);
         }
 
         [Fact]

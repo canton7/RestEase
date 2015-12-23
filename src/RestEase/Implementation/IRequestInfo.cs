@@ -33,32 +33,32 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the query parameters to append to the request URI
         /// </summary>
-        IReadOnlyList<QueryParameterInfo> QueryParams { get; }
+        IEnumerable<QueryParameterInfo> QueryParams { get; }
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        IReadOnlyList<KeyValuePair<string, string>> PathParams { get; }
+        IEnumerable<KeyValuePair<string, string>> PathParams { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the interface
         /// </summary>
-        IReadOnlyList<KeyValuePair<string, string>> ClassHeaders { get; }
+        IEnumerable<KeyValuePair<string, string>> ClassHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were applied using properties
         /// </summary>
-        IReadOnlyList<KeyValuePair<string, string>> PropertyHeaders { get; }
+        IEnumerable<KeyValuePair<string, string>> PropertyHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        IReadOnlyList<KeyValuePair<string, string>> MethodHeaders { get; }
+        IEnumerable<KeyValuePair<string, string>> MethodHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were passed to the method as parameters
         /// </summary>
-        IReadOnlyList<KeyValuePair<string, string>> HeaderParams { get; }
+        IEnumerable<KeyValuePair<string, string>> HeaderParams { get; }
 
         /// <summary>
         /// Gets information the [Body] method parameter, if it exists

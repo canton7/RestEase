@@ -85,11 +85,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(queryMap);
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            var queryParam0 = queryParams[0].SerializeToString().First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("bar", queryParam0.Value);
 
-            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            var queryParam1 = queryParams[1].SerializeToString().First();
             Assert.Equal("bar", queryParam1.Key);
             Assert.Equal("yay", queryParam1.Value);
         }
@@ -112,13 +114,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(queryMap);
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().ToArray();
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            var queryParam0 = queryParams[0].SerializeToString().ToArray();
             Assert.Equal("foo", queryParam0[0].Key);
             Assert.Equal("bar1", queryParam0[0].Value);
             Assert.Equal("foo", queryParam0[1].Key);
             Assert.Equal("bar2", queryParam0[1].Value);
 
-            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().ToArray();
+            var queryParam1 = queryParams[1].SerializeToString().ToArray();
             Assert.Equal("bar", queryParam1[0].Key);
             Assert.Equal("yay1", queryParam1[0].Value);
             Assert.Equal("bar", queryParam1[1].Key);
@@ -137,7 +141,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
 
-            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -152,7 +156,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
 
-            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -167,7 +171,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(null);
 
-            Assert.Equal(0, requestInfo.QueryParams.Count);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
         }
 
         [Fact]
@@ -198,11 +202,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(queryMap1, queryMap2);
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().First();
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            var queryParam0 = queryParams[0].SerializeToString().First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("bar", queryParam0.Value);
 
-            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().First();
+            var queryParam1 = queryParams[1].SerializeToString().First();
             Assert.Equal("foo", queryParam1.Key);
             Assert.Equal("yay", queryParam1.Value);
         }
@@ -219,7 +225,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
 
-            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -234,7 +240,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
 
-            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams[0].SerializationMethod);
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
 
         [Fact]
@@ -253,11 +259,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
                 { "baz", new[] { "a", "b", "c" } }
             });
 
-            var queryParam0 = requestInfo.QueryParams[0].SerializeToString().Single();
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            var queryParam0 = queryParams[0].SerializeToString().Single();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("bar", queryParam0.Value);
 
-            var queryParam1 = requestInfo.QueryParams[1].SerializeToString().ToArray();
+            var queryParam1 = queryParams[1].SerializeToString().ToArray();
             Assert.Equal("baz", queryParam1[0].Key);
             Assert.Equal("a", queryParam1[0].Value);
 

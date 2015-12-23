@@ -56,14 +56,14 @@ namespace RestEase.Implementation
         /// <returns>The constructed path, with placeholders substituted for their actual values</returns>
         protected virtual string SubstitutePathParameters(IRequestInfo requestInfo)
         {
-            if (requestInfo.Path == null || requestInfo.PathParams.Count == 0)
+            if (requestInfo.Path == null || !requestInfo.PathParams.Any())
                 return requestInfo.Path;
 
             // We've already done validation to ensure that the parts in the path, and the available values, are present
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams)
             {
-                sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", pathParam.Value);
+                sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", HttpUtility.UrlEncode(pathParam.Value));
             }
 
             return sb.ToString();

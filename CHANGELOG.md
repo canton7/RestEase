@@ -1,3 +1,9 @@
+v1.0.6
+------
+
+ - Support .NET 4.0 (using Microsoft.Net.Http and Microsoft.Bcl.Async as dependencies)
+ - URL Encode path parameters
+
 v1.0.5
 ------
 

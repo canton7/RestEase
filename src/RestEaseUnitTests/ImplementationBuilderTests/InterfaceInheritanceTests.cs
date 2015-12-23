@@ -106,11 +106,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.NotNull(requestInfo);
 
-            Assert.Equal("X-Foo", requestInfo.ClassHeaders[0].Key);
-            Assert.Equal("Baz", requestInfo.ClassHeaders[0].Value);
+            var classHeaders = requestInfo.ClassHeaders.ToList();
 
-            Assert.Equal("X-Foo", requestInfo.ClassHeaders[1].Key);
-            Assert.Equal("Bar", requestInfo.ClassHeaders[1].Value);
+            Assert.Equal("X-Foo", classHeaders[0].Key);
+            Assert.Equal("Baz", classHeaders[0].Value);
+
+            Assert.Equal("X-Foo", classHeaders[1].Key);
+            Assert.Equal("Bar", classHeaders[1].Value);
         }
 
         [Fact]
