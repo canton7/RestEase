@@ -12,6 +12,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 {
     public class AllowAnyStatusCodeTests
     {
+        public interface IHasNoAllowAnyStatusCode
+        {
+            [Get("foo")]
+            Task FooAsync();
+        }
+
         public interface IHasMethodWithAllowAnyStatusCode
         {
             [AllowAnyStatusCode]
@@ -32,6 +38,22 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
+
+        [Fact]
+        public void DefaultsToFalse()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNoAllowAnyStatusCode>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.False(requestInfo.AllowAnyStatusCode);
+        }
 
         [Fact]
         public void RespectsAllowAnyStatusCodeOnMethod()

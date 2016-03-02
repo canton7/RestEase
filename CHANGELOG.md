@@ -1,3 +1,8 @@
+v1.0.7
+------
+
+ - Handle null paths (e.g. `[Post]` or `[Get(null)]`)
+
 v1.0.6
 ------
 
