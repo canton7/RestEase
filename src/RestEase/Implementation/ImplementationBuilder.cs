@@ -413,7 +413,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Call, httpMethodProperties[requestAttribute.Method].GetGetMethod());
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
-            methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path);
+            methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
 
             // Ctor the RequestInfo
             // Stack: [this.requester, requestInfo]
@@ -680,6 +680,9 @@ namespace RestEase.Implementation
 
         private void ValidatePathParams(string path, IEnumerable<string> pathParams, string methodName)
         {
+            if (path == null)
+                path = String.Empty;
+
             // Check that there are no duplicate param names in the attributes
             var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1);
             if (duplicateKey != null)

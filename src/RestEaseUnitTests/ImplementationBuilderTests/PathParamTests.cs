@@ -45,6 +45,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Path] string bar, [Path("bar")] string yay);
         }
 
+        public interface IHasEmptyGetParams
+        {
+            [Get]
+            Task NullParamAsync();
+
+            [Get("")]
+            Task EmptyParamAsync();
+
+            [Get("/")]
+            Task SlashParamAsync();
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -116,6 +128,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public void ThrowsIfDuplicatePathParameters()
         {
             Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicatePathParams>(this.requester.Object));
+        }
+
+        [Fact]
+        public void HandlesNullAndEmptyPaths()
+        {
+            // Do not throw
+            this.builder.CreateImplementation<IHasEmptyGetParams>(this.requester.Object);
         }
     }
 }

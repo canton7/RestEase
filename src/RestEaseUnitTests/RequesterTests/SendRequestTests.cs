@@ -193,6 +193,20 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void AllowsNullPath()
+        {
+            var messageHandler = new MockHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.example.com/base/") };
+            var requester = new PublicRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+
+            messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
+            var response = requester.SendRequestAsync(requestInfo).Result;
+            Assert.Equal("http://api.example.com/base/", messageHandler.Request.RequestUri.ToString());
+        }
+
+        [Fact]
         public void AllowsEmptyPath()
         {
             var messageHandler = new MockHttpMessageHandler();
