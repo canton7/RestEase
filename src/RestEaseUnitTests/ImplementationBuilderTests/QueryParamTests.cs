@@ -58,6 +58,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
+        public interface IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute
+        {
+            [Get("foo")]
+            Task FooAsync(string foo);
+        }
+
+        [SerializationMethods(Query = QuerySerializationMethod.Serialized)]
         public interface IHasOverriddenDefaultQuerySerializationMethod
         {
             [Get("foo")]
@@ -174,6 +181,22 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeader()
         {
             var implementation = this.builder.CreateImplementation<IHasNonOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("boom");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeaderWhenNoQueryAttributeIsPresent()
+        {
+            var implementation = this.builder.CreateImplementation<IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))

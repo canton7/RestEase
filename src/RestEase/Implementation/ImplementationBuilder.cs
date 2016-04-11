@@ -451,7 +451,7 @@ namespace RestEase.Implementation
             foreach (var plainParameter in parameterGrouping.PlainParameters)
             {
                 var method = MakeQueryParameterMethodInfo(plainParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, QuerySerializationMethod.ToString);
+                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
             }
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
