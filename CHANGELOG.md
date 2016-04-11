@@ -1,3 +1,8 @@
+v1.0.8
+------
+
+ - Fix issue where query parameters not decorated with `[Query]` would always be serialized as ToString, regardless of any `[SerializationMethod]` attributes
+
 v1.0.7
 ------
 
