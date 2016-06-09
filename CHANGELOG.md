@@ -1,3 +1,8 @@
+v1.0.10
+-------
+
+ - Do encode '/' in path parameters
+
 v1.0.9
 ------
 
