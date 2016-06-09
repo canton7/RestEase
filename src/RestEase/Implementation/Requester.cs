@@ -63,8 +63,8 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams)
             {
-                // Space needs to be treated separately, and we specifically don't want to escape /'s
-                var value = HttpUtility.UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20").Replace("%2f", "/");
+                // Space needs to be treated separately
+                var value = HttpUtility.UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");
                 sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", value);
             }
 
