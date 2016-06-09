@@ -47,7 +47,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
             requestInfo.AddPathParameter<string>("bar", "a ?b/c");
             var uri = this.requester.SubstitutePathParameters(requestInfo);
-            Assert.Equal("/foo/a%20%3fb/c/baz", uri);
+            Assert.Equal("/foo/a%20%3fb%2fc/baz", uri);
         }
     }
 }
