@@ -1087,6 +1087,12 @@ public class HybridResponseDeserializer : IResponseDeserializer
 var api = RestClient.For<ISomeApi>("http://api.example.com", new HybridResponseDeserializer());
 ```
 
+### Is RestEase thread safe?
+
+Yes.
+It is safe to create implementations of interfaces from multiple threads at the same time (and to create multiple implementations of the same interface), and it is safe to use an implementation from multiple threads at the same time.
+
+
 ### I want to upload a file
 
 Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits of not).

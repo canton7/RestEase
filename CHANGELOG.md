@@ -1,3 +1,9 @@
+v1.0.9
+------
+
+ - Encode space as '%20' rather than '+' in path parameters
+ - Don't encode '/' in path parameters
+
 v1.0.8
 ------
 

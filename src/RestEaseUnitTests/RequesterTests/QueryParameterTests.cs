@@ -232,5 +232,14 @@ namespace RestEaseUnitTests.RequesterTests
             var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&foo=baz"), uri);
         }
+
+        [Fact]
+        public void EncodesUsingQueryEncoding()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "foo", "a ?b/c");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal(new Uri("http://api.example.com/base/foo?foo=a+%3fb%2fc"), uri);
+        }
     }
 }
