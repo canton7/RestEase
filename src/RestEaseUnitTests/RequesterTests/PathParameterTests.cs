@@ -40,14 +40,14 @@ namespace RestEaseUnitTests.RequesterTests
             var uri = this.requester.SubstitutePathParameters(requestInfo);
             Assert.Equal("/foo//baz", uri);
         }
-        
+
         [Fact]
-        public void EncodesPathParams()
+        public void EncodesUsingPathEncoding()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
-            requestInfo.AddPathParameter<string>("bar", "a/b/c");
+            requestInfo.AddPathParameter<string>("bar", "a ?b/c");
             var uri = this.requester.SubstitutePathParameters(requestInfo);
-            Assert.Equal("/foo/a%2fb%2fc/baz", uri);
+            Assert.Equal("/foo/a%20%3fb/c/baz", uri);
         }
     }
 }
