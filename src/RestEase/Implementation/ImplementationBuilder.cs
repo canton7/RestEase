@@ -120,11 +120,20 @@ namespace RestEase.Implementation
 
         private Type BuildImplementationImpl(Type interfaceType)
         {
-            if (!interfaceType.IsInterface)
-                throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name));
+            if (!interfaceType.IsInterface && !interfaceType.IsAbstract)
+                throw new ArgumentException(String.Format("Type {0} is not an interface nor an abstract class", interfaceType.Name));
 
-            var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public);
-            typeBuilder.AddInterfaceImplementation(interfaceType);
+            TypeBuilder typeBuilder;
+            if (interfaceType.IsInterface)
+            {
+                typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType));
+                typeBuilder.AddInterfaceImplementation(interfaceType);
+            }
+            else
+            {
+                typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType),
+                   TypeAttributes.Public, interfaceType);
+            }
 
             var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetCustomAttributes<HeaderAttribute>()).ToArray();
             var firstHeaderWithoutValue = classHeaders.FirstOrDefault(x => x.Value == null);
@@ -269,7 +278,12 @@ namespace RestEase.Implementation
 
                 var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
                 if (requestAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
+                {
+                    if(interfaceType.IsInterface)
+                        throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
+                    else
+                        continue;
+                }
 
                 var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
@@ -350,7 +364,7 @@ namespace RestEase.Implementation
 
         private void HandleEvents(Type interfaceType)
         {
-            if (InterfaceAndChildren(interfaceType, x => x.GetEvents()).Any())
+            if (InterfaceAndChildren(interfaceType, x => x.GetEvents()).Any() && interfaceType.IsInterface)
                 throw new ImplementationCreationException("Interfaces must not have any events");
         }
 
@@ -363,7 +377,13 @@ namespace RestEase.Implementation
             {
                 var headerAttribute = property.GetCustomAttribute<HeaderAttribute>();
                 if (headerAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Property {0} does not have a [Header(\"Name\")] attribute", property.Name));
+                {
+                    if (interfaceType.IsInterface)
+                        throw new ImplementationCreationException(String.Format("Property {0} does not have a [Header(\"Name\")] attribute", property.Name));
+                    else
+                        continue;
+                }
+                    
 
                 // Only allow default value if type is nullable (reference type or Nullable<T>)
                 if (headerAttribute.Value != null && property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
