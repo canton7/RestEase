@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ImplementationBuilderTests\AbstractClassImplementationTests.cs" />
     <Compile Include="ImplementationBuilderTests\AllowAnyStatusCodeTests.cs" />
     <Compile Include="ImplementationBuilderTests\BodyTests.cs" />
     <Compile Include="ImplementationBuilderTests\CancellationTokenTests.cs" />
