@@ -21,8 +21,8 @@ namespace RestEase.Implementation
         public static bool CanIterate(Type dictionaryType)
         {
             return typeof(IDictionary).IsAssignableFrom(dictionaryType) ||
-                (dictionaryType.IsGenericType && dictionaryType.GetGenericTypeDefinition() == typeof(IDictionary<,>)) ||
-                dictionaryType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+                (dictionaryType.GetTypeInfo().IsGenericType && dictionaryType.GetGenericTypeDefinition() == typeof(IDictionary<,>)) ||
+                dictionaryType.GetInterfaces().Any(x => x.GetTypeInfo().IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace RestEase.Implementation
             // dictionary.GetType().GetGenericTypeDefinition() == IDictionary<,>
             foreach (var interfaceType in dictionary.GetType().GetInterfaces())
             {
-                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                if (interfaceType.GetTypeInfo().IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
                     return IterateGeneric(dictionary, interfaceType);
             }
 

@@ -1,0 +1,69 @@
+{
+  "version": "0.0.0",
+  "dependencies": {
+  },
+  "frameworks": {
+    "netstandard1.3": {
+      "buildOptions": {
+        "define": [
+          "NETSTANDARD"
+        ]
+      },
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "Newtonsoft.Json": "9.0.1",
+        "System.Reflection.Emit": "4.0.1",
+        "System.Reflection.TypeExtensions": "4.1.0",
+        "System.Collections.Specialized": "4.0.1",
+        "Microsoft.AspNetCore.WebUtilities": "1.0.0"
+      }
+    },
+    "net45": {
+      "dependencies": {
+        "Newtonsoft.Json": "6.0.6",
+        "Microsoft.Net.Http": "2.2.29"
+      },
+      "frameworkAssemblies": {
+        "System.Web": {
+          "type": "build"
+        }
+      }
+    },
+    "net40": {
+      "dependencies": {
+        "Newtonsoft.Json": "6.0.6",
+        "Microsoft.Bcl.Async": "1.0.168",
+        "Microsoft.Bcl.Build": "1.0.21",
+        "Microsoft.Net.Http": "2.2.29"
+      },
+      "frameworkAssemblies": {
+        "System.Web": {
+          "type": "build"
+        },
+        "mscorlib": {
+          "type": "build"
+        }
+      }
+    }
+  },
+  "buildOptions": {
+    "defines": [],
+    "emitEntryPoint": false
+  },
+  "packOptions": {
+    "title": "RestEase",
+    "owners": [ "Antony Male" ],
+    "authors": [ "Antony Male" ],
+    "licenseUrl": "http://github.com/canton7/RestEase/blob/master/LICENSE.txt",
+    "projectUrl": "http://github.com/canton7/RestEase",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/canton7/RestEase.git"
+    },
+    "description": "Simple but powerful REST library for .NET, inspired by Refit",
+    "copyright": "Copyright 2015 Antony Male",
+    "tags": [ "REST", "JSON" ],
+    "iconUrl": "https://raw.githubusercontent.com/canton7/RestEase/master/icon.png",
+    "requireLicenseAcceptance": false
+  }
+}

@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace RestEase.Implementation
 {
@@ -64,7 +67,7 @@ namespace RestEase.Implementation
             foreach (var pathParam in requestInfo.PathParams)
             {
                 // Space needs to be treated separately
-                var value = HttpUtility.UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");
+                var value = UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");
                 sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", value);
             }
 
@@ -102,7 +105,8 @@ namespace RestEase.Implementation
                 throw new UriFormatException(String.Format("Path {0} is not valid: {1}", path, e.Message));
             }
 
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+#if !NETSTANDARD
+            var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
                 foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
@@ -111,8 +115,28 @@ namespace RestEase.Implementation
                 }
             }
             uriBuilder.Query = query.ToString();
-
+#else
+            foreach (var queryParam in requestInfo.QueryParams)
+            {
+                foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
+                {
+                    uriBuilder.Query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(uriBuilder.Query,
+                        serializedParam.Key, serializedParam.Value);
+                }
+            }
+#endif
             return uriBuilder.Uri;
+        }
+
+        private string UrlEncode(string uri)
+        {
+#if !NETSTANDARD
+            return System.Web.HttpUtility.UrlEncode(uri);
+#else
+            return string.Join("",
+                Regex.Split(System.Net.WebUtility.UrlEncode(uri), @"(%[a-z0-9]{2})",
+                    RegexOptions.ECMAScript | RegexOptions.IgnoreCase).Select((s, i)=> i%2==0? s: s.ToLower()));
+#endif
         }
 
         /// <summary>
