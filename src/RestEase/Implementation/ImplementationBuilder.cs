@@ -68,7 +68,11 @@ namespace RestEase.Implementation
         public ImplementationBuilder()
         {
             var assemblyName = new AssemblyName(RestClient.FactoryAssemblyName);
+#if NET40
             var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+#else
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+#endif
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleBuilderName);
             this.moduleBuilder = moduleBuilder;
         }
@@ -120,13 +124,13 @@ namespace RestEase.Implementation
 
         private Type BuildImplementationImpl(Type interfaceType)
         {
-            if (!interfaceType.IsInterface)
+            if (!interfaceType.GetTypeInfo().IsInterface)
                 throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name));
 
             var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public);
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
-            var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetCustomAttributes<HeaderAttribute>()).ToArray();
+            var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetCustomAttributes<HeaderAttribute>()).ToArray();
             var firstHeaderWithoutValue = classHeaders.FirstOrDefault(x => x.Value == null);
             if (firstHeaderWithoutValue != null)
                 throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on interface must have the form [Header(\"Name\", \"Value\")]", firstHeaderWithoutValue.Name));
@@ -134,12 +138,12 @@ namespace RestEase.Implementation
             if (firstHeaderWithColon != null)
                 throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on interface must not have a colon in the header name", firstHeaderWithColon.Name, firstHeaderWithColon.Value));
 
-            var classAllowAnyStatusCodeAttribute = interfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
-            var classSerializationMethodsAttribute = interfaceType.GetCustomAttribute<SerializationMethodsAttribute>();
+            var classAllowAnyStatusCodeAttribute = interfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>();
+            var classSerializationMethodsAttribute = interfaceType.GetTypeInfo().GetCustomAttribute<SerializationMethodsAttribute>();
 
             foreach (var childInterfaceType in interfaceType.GetInterfaces())
             {
-                if (childInterfaceType.GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
+                if (childInterfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
                     throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", childInterfaceType.Name));
             }
 
@@ -165,7 +169,7 @@ namespace RestEase.Implementation
             Type constructedType;
             try
             {
-                constructedType = typeBuilder.CreateType();
+                constructedType = typeBuilder.CreateTypeInfo().AsType();
             }
             catch (TypeLoadException e)
             {
@@ -178,7 +182,7 @@ namespace RestEase.Implementation
 
         private void AddFriendlierNameForType(StringBuilder sb, Type type)
         {
-            if (type.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
                 sb.Append(type.GetGenericTypeDefinition().FullName.Replace('.', '+'));
                 sb.Append("<>["); // Just so that they can't fool us with carefully-crafted interface names...
@@ -366,7 +370,7 @@ namespace RestEase.Implementation
                     throw new ImplementationCreationException(String.Format("Property {0} does not have a [Header(\"Name\")] attribute", property.Name));
 
                 // Only allow default value if type is nullable (reference type or Nullable<T>)
-                if (headerAttribute.Value != null && property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
+                if (headerAttribute.Value != null && property.PropertyType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
                     throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} (i.e. containing a default value) can only be used if the property type is nullable", headerAttribute.Name, headerAttribute.Value, property.Name));
                 if (headerAttribute.Name.Contains(':'))
                     throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on property {1} must not have a colon in its name", headerAttribute.Name, property.Name));
@@ -508,7 +512,7 @@ namespace RestEase.Implementation
         {
             foreach (var baseType in EnumerableExtensions.Concat(input, input.GetInterfaces()))
             {
-                if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                if (baseType.GetTypeInfo().IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     return baseType.GetGenericArguments()[0];
             }
 
@@ -519,7 +523,7 @@ namespace RestEase.Implementation
         {
             foreach (var baseType in EnumerableExtensions.Concat(input, input.GetInterfaces()))
             {
-                if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                if (baseType.GetTypeInfo().IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
                 {
                     var genericArguments = baseType.GetGenericArguments();
                     return new KeyValuePair<Type, Type>(genericArguments[0], genericArguments[1]);
@@ -537,7 +541,7 @@ namespace RestEase.Implementation
                 // Stack: [Task]
                 methodIlGenerator.Emit(OpCodes.Callvirt, requestVoidAsyncMethod);
             }
-            else if (methodInfo.ReturnType.IsGenericType && methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
+            else if (methodInfo.ReturnType.GetTypeInfo().IsGenericType && methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
             {
                 var typeOfT = methodInfo.ReturnType.GetGenericArguments()[0];
                 // Now, is it a Task<HttpResponseMessage>, a Task<string>, a Task<Response<T>> or a Task<T>?
@@ -551,7 +555,7 @@ namespace RestEase.Implementation
                     // Stack: [Task<string>]
                     methodIlGenerator.Emit(OpCodes.Callvirt, requestRawAsyncMethod);
                 }
-                else if (typeOfT.IsGenericType && typeOfT.GetGenericTypeDefinition() == typeof(Response<>))
+                else if (typeOfT.GetTypeInfo().IsGenericType && typeOfT.GetGenericTypeDefinition() == typeof(Response<>))
                 {
                     // Stack: [Task<Response<T>>]
                     var typedRequestWithResponseAsyncMethod = requestWithResponseAsyncMethod.MakeGenericMethod(typeOfT.GetGenericArguments()[0]);
@@ -597,7 +601,7 @@ namespace RestEase.Implementation
             // Stack: [..., requestInfo, requestInfo, serializationMethod]
             methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
-            if (parameterType.IsValueType)
+            if (parameterType.GetTypeInfo().IsValueType)
                 methodIlGenerator.Emit(OpCodes.Box);
             methodIlGenerator.Emit(OpCodes.Callvirt, method);
         }

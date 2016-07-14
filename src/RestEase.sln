@@ -1,36 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestEase", "RestEase\RestEase.csproj", "{6219B6B7-D110-4F46-B43A-1B41B031F2F3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{462D3718-3818-4883-8E3C-1F256FC78FF1}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestEaseUnitTests", "RestEaseUnitTests\RestEaseUnitTests.csproj", "{34672726-3CDF-418B-B630-39B2CF41ACD4}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "RestEase", "RestEase\RestEase.xproj", "{6219B6B7-D110-4F46-B43A-1B41B031F2F3}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "RestEaseUnitTests", "RestEaseUnitTests\RestEaseUnitTests.xproj", "{34672726-3CDF-418B-B630-39B2CF41ACD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug 4.0|Any CPU = Debug 4.0|Any CPU
-		Debug 4.5|Any CPU = Debug 4.5|Any CPU
-		Release 4.0|Any CPU = Release 4.0|Any CPU
-		Release 4.5|Any CPU = Release 4.5|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Debug 4.0|Any CPU.ActiveCfg = Debug 4.0|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Debug 4.0|Any CPU.Build.0 = Debug 4.0|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Debug 4.5|Any CPU.ActiveCfg = Debug 4.5|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Debug 4.5|Any CPU.Build.0 = Debug 4.5|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Release 4.0|Any CPU.ActiveCfg = Release 4.0|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Release 4.0|Any CPU.Build.0 = Release 4.0|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Release 4.5|Any CPU.ActiveCfg = Release 4.5|Any CPU
-		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Release 4.5|Any CPU.Build.0 = Release 4.5|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Debug 4.0|Any CPU.ActiveCfg = Debug|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Debug 4.0|Any CPU.Build.0 = Debug|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Debug 4.5|Any CPU.ActiveCfg = Debug|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Debug 4.5|Any CPU.Build.0 = Debug|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Release 4.0|Any CPU.ActiveCfg = Release|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Release 4.0|Any CPU.Build.0 = Release|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Release 4.5|Any CPU.ActiveCfg = Release|Any CPU
-		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Release 4.5|Any CPU.Build.0 = Release|Any CPU
+		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6219B6B7-D110-4F46-B43A-1B41B031F2F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34672726-3CDF-418B-B630-39B2CF41ACD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
