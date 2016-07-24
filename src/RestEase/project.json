@@ -48,7 +48,8 @@
   },
   "buildOptions": {
     "defines": [],
-    "emitEntryPoint": false
+    "emitEntryPoint": false,
+    "xmlDoc":  true
   },
   "packOptions": {
     "title": "RestEase",
