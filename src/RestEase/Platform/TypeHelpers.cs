@@ -5,9 +5,9 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
-namespace RestEase.Implementation
+namespace RestEase.Platform
 {
-    internal static class CustomAttributeExtensions
+    internal static class TypeHelpers
     {
 #if NET40
         public static T GetCustomAttribute<T>(this Type type) where T : Attribute
@@ -48,6 +48,16 @@ namespace RestEase.Implementation
         public static Type CreateTypeInfo(this TypeBuilder builder)
         {
             return builder.CreateType();
+        }
+
+        public static AssemblyBuilder DefineDynamicAssembly(AssemblyName assemblyName, AssemblyBuilderAccess access)
+        {
+            return AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, access);
+        }
+#else
+        public static AssemblyBuilder DefineDynamicAssembly(AssemblyName assemblyName, AssemblyBuilderAccess access)
+        {
+            return AssemblyBuilder.DefineDynamicAssembly(assemblyName, access);
         }
 #endif
     }

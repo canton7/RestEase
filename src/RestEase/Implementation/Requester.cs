@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
@@ -105,8 +106,7 @@ namespace RestEase.Implementation
                 throw new UriFormatException(String.Format("Path {0} is not valid: {1}", path, e.Message));
             }
 
-#if !NETSTANDARD
-            var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+            var query = new QueryParamBuilder(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
                 foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
@@ -115,28 +115,13 @@ namespace RestEase.Implementation
                 }
             }
             uriBuilder.Query = query.ToString();
-#else
-            foreach (var queryParam in requestInfo.QueryParams)
-            {
-                foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
-                {
-                    uriBuilder.Query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(uriBuilder.Query,
-                        serializedParam.Key, serializedParam.Value);
-                }
-            }
-#endif
+
             return uriBuilder.Uri;
         }
 
         private string UrlEncode(string uri)
         {
-#if !NETSTANDARD
-            return System.Web.HttpUtility.UrlEncode(uri);
-#else
-            return string.Join("",
-                Regex.Split(System.Net.WebUtility.UrlEncode(uri), @"(%[a-z0-9]{2})",
-                    RegexOptions.ECMAScript | RegexOptions.IgnoreCase).Select((s, i)=> i%2==0? s: s.ToLower()));
-#endif
+            return HttpWebUtility.UrlEncode(uri);
         }
 
         /// <summary>

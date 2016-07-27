@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
@@ -68,11 +69,8 @@ namespace RestEase.Implementation
         public ImplementationBuilder()
         {
             var assemblyName = new AssemblyName(RestClient.FactoryAssemblyName);
-#if NET40
-            var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-#else
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-#endif
+            var assemblyBuilder = TypeHelpers.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleBuilderName);
             this.moduleBuilder = moduleBuilder;
         }
