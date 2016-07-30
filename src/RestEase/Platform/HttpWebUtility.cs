@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RestEase.Implementation;
-
-namespace RestEase.Platform
+﻿namespace RestEase.Platform
 {
+    /// <summary>
+    /// Utility providing cross-platform abstraction over url-related methods
+    /// </summary>
     public static class HttpWebUtility
     {
+        /// <summary>
+        /// Converts a text string into a URL-encoded string.
+        /// </summary>
         public static string UrlEncode(string input)
         {
 #if NET40
