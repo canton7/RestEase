@@ -21,23 +21,12 @@
           "version": "1.0.0-*",
           "type": "platform"
         },
-        "NETStandard.Library": "1.6.0",
         "System.Diagnostics.TraceSource": "4.0.0-*"
       }
     },
     "net451": {
       "dependencies": {
-      },
-      "frameworkAssemblies": {
-        "System": {
-          "type": "build"
-        },
-        "System.Runtime": {
-          "type": "build"
-        },
-        "System.Threading.Tasks": {
-          "type": "build"
-        }
+        "Microsoft.NETCore.Platforms": "1.0.1"
       }
     }
   },

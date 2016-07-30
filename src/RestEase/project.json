@@ -47,14 +47,20 @@
     }
   },
   "buildOptions": {
-    "defines": [],
+    "defines": [
+
+    ],
     "emitEntryPoint": false,
-    "xmlDoc":  true
+    "xmlDoc": true
   },
   "packOptions": {
     "title": "RestEase",
-    "owners": [ "Antony Male" ],
-    "authors": [ "Antony Male" ],
+    "owners": [
+      "Antony Male"
+    ],
+    "authors": [
+      "Antony Male"
+    ],
     "licenseUrl": "http://github.com/canton7/RestEase/blob/master/LICENSE.txt",
     "projectUrl": "http://github.com/canton7/RestEase",
     "repository": {
@@ -63,7 +69,10 @@
     },
     "description": "Simple but powerful REST library for .NET, inspired by Refit",
     "copyright": "Copyright 2015 Antony Male",
-    "tags": [ "REST", "JSON" ],
+    "tags": [
+      "REST",
+      "JSON"
+    ],
     "iconUrl": "https://raw.githubusercontent.com/canton7/RestEase/master/icon.png",
     "requireLicenseAcceptance": false
   }
