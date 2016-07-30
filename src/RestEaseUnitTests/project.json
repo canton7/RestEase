@@ -7,8 +7,7 @@
     "Moq": "4.6.25-*",
     "dotnet-test-xunit": "2.2.0-*",
     "xunit": "2.2.0-*",
-    "xunit.runner.visualstudio": "2.2.0-*",
-    "xunit.runner.console": "2.2.0-*"
+    "xunit.runner.visualstudio": "2.2.0-*"
   },
   "frameworks": {
     "netcoreapp1.0": {
