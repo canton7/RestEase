@@ -18,7 +18,8 @@ namespace RestEase.Platform
 
         public override string ToString()
         {
-            return this.query;
+            // We should use %20 before the ?, and + after it.
+            return this.query.Replace("%20", "+");
         }
 #else
         private readonly System.Collections.Specialized.NameValueCollection query;
