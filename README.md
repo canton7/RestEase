@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
 [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
-RestEase is a little type-safe REST API client library for .NET Framework 4.0 and higher, which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
+RestEase is a little type-safe REST API client library for .NET Framework 4.0 and higher and .NET Core (.NET Platform Standard 1.3), which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
@@ -67,12 +67,18 @@ PM> Install-Package RestEase
 
 Or right-click your project -> Manage NuGet Packages... -> Online -> search for RestEase in the top right.
 
-Symbols are available.
-In Visual Studio, go to Debug -> Options and Settings -> General, and make the following changes:
+I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to RestEase's source when debugging.
+If you haven't yet set up Visual Studio to use SymbolSource, do that now:
 
-1. Turn **off** "Enable Just My Code"
-2. Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
-3. Turn **on** "Enable source server support". You may have to OK a security warning.
+
+1. Go to Tools -> Options -> Debugger -> General.
+2. Uncheck "Enable Just My Code (Managed only)".
+3. Uncheck "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order (see further on) and only use it's own servers.
+4. Check "Enable source server support".
+5. Uncheck "Require source files to exactly match the original version"
+6. Go to Tools -> Options -> Debugger -> Symbols.
+7. Select a folder for the local symbol/source cache. You may experience silent failures in getting symbols if it doesn't exist or is read-only for some reason.
+8. Add `http://srv.symbolsource.org/pdb/Public` under "Symbol file (.pdb) locations".
 
 
 Quick Start
