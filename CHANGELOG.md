@@ -1,3 +1,8 @@
+v1.1.1
+------
+
+ - Avoid dependency on Microsoft.Net.Http on .NET 4.5
+
 v1.1.0
 ------
 

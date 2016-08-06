@@ -20,7 +20,7 @@
     "net45": {
       "dependencies": {
         "Newtonsoft.Json": "6.0.6",
-        "Microsoft.Net.Http": "2.2.29"
+        "System.Net.Http": "4.0.0"
       },
       "frameworkAssemblies": {
         "System.Web": {
@@ -32,7 +32,6 @@
       "dependencies": {
         "Newtonsoft.Json": "6.0.6",
         "Microsoft.Bcl.Async": "1.0.168",
-        "Microsoft.Bcl.Build": "1.0.21",
         "Microsoft.Net.Http": "2.2.29"
       },
       "frameworkAssemblies": {
