@@ -1,20 +1,14 @@
-ASSEMBLY_INFO = 'src/RestEase/Properties/AssemblyInfo.cs'
-NUSPEC = 'NuGet/RestEase.nuspec'
-SLN = 'src/RestEase.sln'
-CSPROJ = 'src/RestEase/RestEase.csproj'
-TESTS_CSPROJ = 'src/RestEaseUnitTests/RestEaseUnitTests.csproj'
-MSBUILD = %q{C:\Program Files (x86)\MSBuild\12.0\Bin\MSBuild.exe}
+require 'json'
 
-GITLINK_REMOTE = 'https://github.com/canton7/RestEase'
+RESTEASE_DIR = 'src/RestEase'
+TESTS_DIR = 'src/RestEaseUnitTests'
+
+ASSEMBLY_INFO = File.join(RESTEASE_DIR, 'Properties/AssemblyInfo.cs')
+RESTEASE_JSON = File.join(RESTEASE_DIR, 'project.json')
 
 desc "Create NuGet package"
 task :package do
-  local_hash = `git rev-parse HEAD`.chomp
-  sh "NuGet/GitLink.exe . -c \"Release 4.0\" -s #{local_hash} -u #{GITLINK_REMOTE} -f src/RestEase.sln -ignore RestEaseUnitTests"
-  sh "NuGet/GitLink.exe . -c \"Release 4.5\" -s #{local_hash} -u #{GITLINK_REMOTE} -f src/RestEase.sln -ignore RestEaseUnitTests"
-  Dir.chdir(File.dirname(NUSPEC)) do
-    sh "nuget.exe pack #{File.basename(NUSPEC)}"
-  end
+  sh 'dotnet', 'pack', '--no-build', '--configuration=Release', '--output=NuGet', RESTEASE_DIR
 end
 
 desc "Bump version number"
@@ -28,13 +22,17 @@ task :version, [:version] do |t, args|
   content[/^\[assembly: AssemblyFileVersion\(\"(.+?)\"\)\]/, 1] = version
   File.open(ASSEMBLY_INFO, 'w'){ |f| f.write(content) }
 
-  content = IO.read(NUSPEC)
-  content[/<version>(.+?)<\/version>/, 1] = args[:version]
-  File.open(NUSPEC, 'w'){ |f| f.write(content) }
+  content = JSON.parse(File.read(RESTEASE_JSON))
+  content['version'] = args[:version]
+  File.open(RESTEASE_JSON, 'w'){ |f| f.write(JSON.pretty_generate(content)) }
 end
 
 desc "Build the project for release"
 task :build do
-  sh MSBUILD, SLN, "/t:Clean;Rebuild", "/p:Configuration=Release 4.0", "/verbosity:normal"
-  sh MSBUILD, SLN, "/t:Clean;Rebuild", "/p:Configuration=Release 4.5", "/verbosity:normal"
+  sh 'dotnet', 'build', '--configuration=Release', RESTEASE_DIR
+end
+
+desc "Run tests"
+task :test do
+  sh 'dotnet', 'test', TESTS_DIR
 end

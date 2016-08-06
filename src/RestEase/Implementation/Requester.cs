@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
@@ -64,7 +68,7 @@ namespace RestEase.Implementation
             foreach (var pathParam in requestInfo.PathParams)
             {
                 // Space needs to be treated separately
-                var value = HttpUtility.UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");
+                var value = UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");
                 sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", value);
             }
 
@@ -102,7 +106,7 @@ namespace RestEase.Implementation
                 throw new UriFormatException(String.Format("Path {0} is not valid: {1}", path, e.Message));
             }
 
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            var query = new QueryParamBuilder(uriBuilder.Query);
             foreach (var queryParam in requestInfo.QueryParams)
             {
                 foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
@@ -113,6 +117,11 @@ namespace RestEase.Implementation
             uriBuilder.Query = query.ToString();
 
             return uriBuilder.Uri;
+        }
+
+        private string UrlEncode(string uri)
+        {
+            return HttpWebUtility.UrlEncode(uri);
         }
 
         /// <summary>
