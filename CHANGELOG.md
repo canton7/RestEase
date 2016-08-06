@@ -1,3 +1,8 @@
+v1.1.0
+------
+
+ - Add support for .NET Core (.NET Standard 1.3) - thanks to [Fazouane Marouane](https://github.com/fazouane-marouane)
+
 v1.0.11
 -------
 
