@@ -1,3 +1,8 @@
+v1.1.2
+------
+
+ - Avoid dependency on System.Net.Http NuGet package on .NET 4.5
+
 v1.1.1
 ------
 
