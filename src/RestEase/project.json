@@ -19,13 +19,11 @@
     },
     "net45": {
       "dependencies": {
-        "Newtonsoft.Json": "6.0.6",
-        "System.Net.Http": "4.0.0"
+        "Newtonsoft.Json": "6.0.6"
       },
       "frameworkAssemblies": {
-        "System.Web": {
-          "type": "build"
-        }
+        "System.Web": "4.0.0.0",
+        "System.Net.Http": "4.0.0.0"
       }
     },
     "net40": {
@@ -35,19 +33,11 @@
         "Microsoft.Net.Http": "2.2.29"
       },
       "frameworkAssemblies": {
-        "System.Web": {
-          "type": "build"
-        },
-        "mscorlib": {
-          "type": "build"
-        }
+        "System.Web": "4.0.0.0"
       }
     }
   },
   "buildOptions": {
-    "defines": [
-
-    ],
     "emitEntryPoint": false,
     "xmlDoc": true
   },
