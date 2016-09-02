@@ -695,7 +695,7 @@ namespace RestEase.Implementation
             pathPartsSet.SymmetricExceptWith(pathParams);
             var firstInvalid = pathPartsSet.FirstOrDefault();
             if (firstInvalid != null)
-                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [Path(\"{0}\")] for parameter {0}. Method: {1}", firstInvalid, methodName));
+                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [Path(\"{0}\")] for path parameter '{0}'. Method: {1}", firstInvalid, methodName));
         }
 
         private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, IEnumerable<T>> selector)
