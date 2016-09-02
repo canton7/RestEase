@@ -26,6 +26,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Query] string foo);
         }
 
+        public interface IQueryParamWithUndecoratedParameter
+        {
+            [Get("foo")]
+            Task FooAsync(string foo);
+        }
+
         public interface ITwoQueryParametersWithTheSameName
         {
             [Get("foo")]
@@ -105,6 +111,25 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public void QueryParamWithImplicitNameCallsCorrectly()
         {
             var implementation = this.builder.CreateImplementation<IQueryParamWithImplicitName>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("the value");
+
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+
+            var queryParam0 = requestInfo.QueryParams.First().SerializeToString().First();
+            Assert.Equal("foo", queryParam0.Key);
+            Assert.Equal("the value", queryParam0.Value);
+        }
+
+        [Fact]
+        public void QueryParamWithUndecoratedParameterCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<IQueryParamWithUndecoratedParameter>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))

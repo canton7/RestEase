@@ -57,6 +57,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task SlashParamAsync();
         }
 
+        public interface IHasBothPathAndQueryParams
+        {
+            [Get("/test/{foo}/test2")]
+            Task FooAsync([Path] string foo, [Query("bar")] string bar);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -135,6 +141,33 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             // Do not throw
             this.builder.CreateImplementation<IHasEmptyGetParams>(this.requester.Object);
+        }
+
+        [Fact]
+        public void HandlesBothGetAndQueryParams()
+        {
+            var implementation = this.builder.CreateImplementation<IHasBothPathAndQueryParams>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("foovalue", "barvalue");
+
+            var pathParams = requestInfo.PathParams.ToList();
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Equal(1, pathParams.Count);
+
+            Assert.Equal("foo", pathParams[0].Key);
+            Assert.Equal("foovalue", pathParams[0].Value);
+
+            Assert.Equal(1, queryParams.Count);
+
+            var queryParam = queryParams[0].SerializeToString().First();
+            Assert.Equal("bar", queryParam.Key);
+            Assert.Equal("barvalue", queryParam.Value);
         }
     }
 }
