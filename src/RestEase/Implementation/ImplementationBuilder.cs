@@ -440,7 +440,7 @@ namespace RestEase.Implementation
             {
                 var method = MakeQueryMapMethodInfo(queryMap.Parameter.ParameterType);
                 if (method == null)
-                    throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents). Method: {0}", methodName));
+                    throw new ImplementationCreationException(String.Format("Method '{0}': [QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents)", methodName));
                 this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index, method, serializationMethods.ResolveQuery(queryMap.Attribute.SerializationMethod));
             }
 
@@ -465,9 +465,9 @@ namespace RestEase.Implementation
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
             {
                 if (headerParameter.Attribute.Value != null)
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] for method {2} must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", headerParameter.Attribute.Name, headerParameter.Attribute.Value, methodName));
+                    throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\", \"{2}\")] must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", methodName, headerParameter.Attribute.Name, headerParameter.Attribute.Value));
                 if (headerParameter.Attribute.Name.Contains(':'))
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have a colon in its name", headerParameter.Attribute.Name, methodName));
+                    throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\")] must not have a colon in its name", methodName, headerParameter.Attribute.Name));
                 var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
                 this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
             }
@@ -568,7 +568,7 @@ namespace RestEase.Implementation
             }
             else
             {
-                throw new ImplementationCreationException(String.Format("Method {0} has a return type that is not Task<T> or Task", methodInfo.Name));
+                throw new ImplementationCreationException(String.Format("Method '{0}': must have a return type of Task<T> or Task", methodInfo.Name));
             }
         }
 
@@ -688,14 +688,14 @@ namespace RestEase.Implementation
             // Check that there are no duplicate param names in the attributes
             var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1);
             if (duplicateKey != null)
-                throw new ImplementationCreationException(String.Format("Found more than one path parameter for key {0}. Method: {1}", duplicateKey, methodName));
+                throw new ImplementationCreationException(String.Format("Mathod '{0}': found more than one path parameter for key {1}.", methodName, duplicateKey));
 
             // Check that each placeholder has a matching attribute, and vice versa
             var pathPartsSet = new HashSet<string>(pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value));
             pathPartsSet.SymmetricExceptWith(pathParams);
             var firstInvalid = pathPartsSet.FirstOrDefault();
             if (firstInvalid != null)
-                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [Path(\"{0}\")] for path parameter '{0}'. Method: {1}", firstInvalid, methodName));
+                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find both a placeholder {{{1}}} and a [Path(\"{1}\")] for path parameter '{1}'.", methodName, firstInvalid));
         }
 
         private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, IEnumerable<T>> selector)
