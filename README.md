@@ -26,6 +26,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
   2. [Variable Query Parameters](#variable-query-parameters)
     1. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
   3. [Query Parameters Map](#query-parameters-map)
+  4. [Raw Query String Parameters](#raw-query-string-parameters)
 6. [Path Parameters](#path-parameters)
 7. [Body Content](#body-content)
   1. [URL Encoded Bodies](#url-encoded-bodies)
@@ -296,6 +297,29 @@ var filters = new Dictionary<string, string[]>()
 
 // Requests http://api.example.com/search?title=bobby&tag=c%23&tag=programming
 var searchResults = await api.SearchBlogPostsAsync(filters);
+```
+
+### Raw Query String Parameters
+
+In rare cases, you may have generated a query string by other means, and want to give this to RestEase.
+To do this, provide a single parameter decorated with `[RawQueryString]`.
+
+This parameter can be of any type, and `.ToString()` will be called on it to turn it into a string.
+Its value will be prepended, verbatim, to the query string: you are responsible for any escaping.
+It must not begin or end with "&" or "?".
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("search")]
+    Task<SearchResult> SearchAsync([RawQueryString] string customFilter);
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com");
+var filter = "filter=foo"
+var searchResults = await api.SearchAsync(filter);
 ```
 
 

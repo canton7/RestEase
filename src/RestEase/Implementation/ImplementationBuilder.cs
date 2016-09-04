@@ -37,6 +37,7 @@ namespace RestEase.Implementation
 
         private static readonly MethodInfo addQueryMapMethod = typeof(RequestInfo).GetMethod("AddQueryMap");
         private static readonly MethodInfo addQueryCollectionMapMethod = typeof(RequestInfo).GetMethod("AddQueryCollectionMap");
+        private static readonly MethodInfo addRawQueryParameterMethod = typeof(RequestInfo).GetMethod("AddRawQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").GetSetMethod();
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetMethod("AddPropertyHeader");
@@ -456,6 +457,13 @@ namespace RestEase.Implementation
                 this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
             }
 
+            if (parameterGrouping.RawQueryString != null)
+            {
+                var parameter = parameterGrouping.RawQueryString.Value;
+                var method = addRawQueryParameterMethod.MakeGenericMethod(parameter.Parameter.ParameterType);
+                this.AddRawQueryParam(methodIlGenerator, (short)parameter.Index, method);
+            }
+
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
                 var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
@@ -638,6 +646,20 @@ namespace RestEase.Implementation
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
+        }
+
+        private void AddRawQueryParam(ILGenerator methodIlGenerator, short parameterIndex, MethodInfo methodInfo)
+        {
+            // Equivalent C#:
+            // requestInfo.AddRawQueryParameter(value)
+
+            // Stakc: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Call AddRawQueryParameter
+            methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
         private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodInfo)

@@ -106,7 +106,17 @@ namespace RestEase.Implementation
                 throw new UriFormatException(String.Format("Path {0} is not valid: {1}", path, e.Message));
             }
 
-            var query = new QueryParamBuilder(uriBuilder.Query);
+            string initialQueryString = uriBuilder.Query;
+            if (requestInfo.RawQueryParameter != null)
+            {
+                var rawQueryParameter = requestInfo.RawQueryParameter.SerializeToString();
+                if (String.IsNullOrEmpty(initialQueryString))
+                    initialQueryString = "?" + rawQueryParameter;
+                else
+                    initialQueryString += "&" + rawQueryParameter;
+            }
+
+            var query = new QueryParamBuilder(initialQueryString);
             foreach (var queryParam in requestInfo.QueryParams)
             {
                 foreach (var serializedParam in this.SerializeQueryParameter(queryParam))

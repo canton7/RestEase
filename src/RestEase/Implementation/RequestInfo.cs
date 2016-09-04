@@ -41,6 +41,11 @@ namespace RestEase.Implementation
             get { return this._queryParams; }
         }
 
+        /// <summary>
+        /// Gets the raw query parameter provider
+        /// </summary>
+        public RawQueryParameterInfo RawQueryParameter { get; private set; }
+
         private readonly List<KeyValuePair<string, string>> _pathParams;
 
         /// <summary>
@@ -185,6 +190,16 @@ namespace RestEase.Implementation
                 if (kvp.Key != null)
                     this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value));
             }
+        }
+
+        /// <summary>
+        /// Add a raw query parameter, which provides a string which is inserted verbatim into the query string
+        /// </summary>
+        /// <typeparam name="T">Type of the raw query parmaeter</typeparam>
+        /// <param name="value">Raw query parameter</param>
+        public void AddRawQueryParameter<T>(T value)
+        {
+            this.RawQueryParameter = new RawQueryParameterInfo<T>(value);
         }
 
         /// <summary>
