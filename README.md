@@ -225,6 +225,22 @@ ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
 ```
 
+If you specify a key that is `null`, i.e. `[Query(null)]`, then the name of the key is not used, and the value is inserted into the query string.
+If you specify a key that is emptystring, then then query key will be left empty.
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo")]
+    Task FooAsync([Query(null)] string nullParam, [Query("")] string emptyParam);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo?onitsown&=nokey
+await api.FooAsync("onitsown", "nokey");
+```
+
 #### Serialization of Variable Query Parameters
 
 By default, query parameter values will be serialized by calling `ToString()` on them.

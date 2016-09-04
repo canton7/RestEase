@@ -1,6 +1,6 @@
 ﻿
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace RestEase.Platform
 {
@@ -21,7 +21,15 @@ namespace RestEase.Platform
             var query = initialQuery;
             foreach (var kvp in parameters)
             {
-                query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(query, kvp.Key, kvp.Value);
+                if (kvp.Key == null)
+                {
+                    char separator = String.IsNullOrWhiteSpace(query) ? '?' : '&';
+                    query += separator + System.Net.WebUtility.UrlEncode(kvp.Value).Replace("?", "%3f");
+                }
+                else
+                {
+                    query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(query, kvp.Key, kvp.Value);
+                }
             }
             // We should use %20 before the ?, and + after it.
             return query.Replace("%20", "+");

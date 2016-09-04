@@ -282,5 +282,16 @@ namespace RestEaseUnitTests.RequesterTests
             var uri = this.requester.ConstructUri("a?b=c", requestInfo);
             Assert.Equal("http://api.example.com/base/a?b=c&foo=bar&baz=woo", uri.ToString(), ignoreCase: true);
         }
+
+        [Fact]
+        public void EncodesNullQueryKeys()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "&ba r=");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "?yay?");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, String.Empty, "?baz");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://api.example.com/base/foo?%26ba+r%3d&%3fyay%3f&=%3fbaz", uri.ToString(), ignoreCase: true);
+        }
     }
 }

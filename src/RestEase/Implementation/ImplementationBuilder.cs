@@ -447,7 +447,7 @@ namespace RestEase.Implementation
             foreach (var queryParameter in parameterGrouping.QueryParameters)
             {
                 var method = MakeQueryParameterMethodInfo(queryParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
+                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.HasName ? queryParameter.Attribute.Name : queryParameter.Parameter.Name, (short)queryParameter.Index, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
             }
 
             foreach (var plainParameter in parameterGrouping.PlainParameters)
@@ -638,7 +638,10 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, serializationMethod, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            if (name == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, serializationMethod, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);

@@ -14,6 +14,11 @@ namespace RestEase
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets a value indicating whether the user has set the name attribute
+        /// </summary>
+        public bool HasName { get; }
+
+        /// <summary>
         /// Gets the serialization method to use to serialize the value. Defaults to QuerySerializationMethod.ToString
         /// </summary>
         public QuerySerializationMethod SerializationMethod { get; set; }
@@ -22,7 +27,7 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class
         /// </summary>
         public QueryAttribute()
-            : this(null, QuerySerializationMethod.Default)
+            : this(null, false, QuerySerializationMethod.Default)
         {
         }
 
@@ -31,7 +36,7 @@ namespace RestEase
         /// </summary>
         /// <param name="name">Name of the query parameter</param>
         public QueryAttribute(string name)
-            : this(name, QuerySerializationMethod.Default)
+            : this(name, true, QuerySerializationMethod.Default)
         {
         }
 
@@ -40,7 +45,7 @@ namespace RestEase
         /// </summary>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(QuerySerializationMethod serializationMethod)
-            : this(null, serializationMethod)
+            : this(null, false, serializationMethod)
         {
         }
 
@@ -50,8 +55,14 @@ namespace RestEase
         /// <param name="name">Name of the query parameter</param>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(string name, QuerySerializationMethod serializationMethod)
+            : this(name, true, serializationMethod)
+        {
+        }
+
+        private QueryAttribute(string name, bool hasName, QuerySerializationMethod serializationMethod)
         {
             this.Name = name;
+            this.HasName = hasName;
             this.SerializationMethod = serializationMethod;
         }
     }

@@ -77,6 +77,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Query(QuerySerializationMethod.ToString)] string foo);
         }
 
+        public interface IHasNullQueryKey
+        {
+            [Get("foo")]
+            Task FooAsync([Query(null)] string rawQuery);
+        }
+
+        public interface IHasEmptystringQueryKey
+        {
+            [Get("foo")]
+            Task FooAsync([Query("")] string rawQuery);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -110,14 +122,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void QueryParamWithImplicitNameCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<IQueryParamWithImplicitName>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("the value");
+            var requestInfo = Request<IQueryParamWithImplicitName>(x => x.FooAsync("the value"));
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
 
@@ -129,14 +134,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void QueryParamWithUndecoratedParameterCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<IQueryParamWithUndecoratedParameter>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("the value");
+            var requestInfo = Request<IQueryParamWithUndecoratedParameter>(x => x.FooAsync("the value"));
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
 
@@ -148,14 +146,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesMultipleQueryParamsWithTheSameName()
         {
-            var implementation = this.builder.CreateImplementation<ITwoQueryParametersWithTheSameName>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("foo value", "bar value");
+            var requestInfo = Request<ITwoQueryParametersWithTheSameName>(x => x.FooAsync("foo value", "bar value"));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -173,14 +164,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void RecordsToStringSerializationMethod()
         {
-            var implementation = this.builder.CreateImplementation<ISingleParameterWithQueryParamAttributeNoReturn>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.BooAsync("yay");
+            var requestInfo = Request<ISingleParameterWithQueryParamAttributeNoReturn>(x => x.BooAsync("yay"));
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
@@ -189,14 +173,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void RecordsSerializedSerializationMethod()
         {
-            var implementation = this.builder.CreateImplementation<ISerializedQueryParam>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("boom");
+            var requestInfo = Request<ISerializedQueryParam>(x => x.FooAsync("boom"));
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
@@ -205,14 +182,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeader()
         {
-            var implementation = this.builder.CreateImplementation<IHasNonOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("boom");
+            var requestInfo = Request<IHasNonOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
@@ -221,14 +191,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeaderWhenNoQueryAttributeIsPresent()
         {
-            var implementation = this.builder.CreateImplementation<IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("boom");
+            var requestInfo = Request<IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute>(x => x.FooAsync("boom"));
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
@@ -237,17 +200,47 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultQuerySerializationMethodCanBeOverridden()
         {
-            var implementation = this.builder.CreateImplementation<IHasOverriddenDefaultQuerySerializationMethod>(this.requester.Object);
+            var requestInfo = Request<IHasOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
+
+            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
+        }
+
+        [Fact]
+        public void SerializesNullQueryKeys()
+        {
+            var requestInfo = Request<IHasNullQueryKey>(x => x.FooAsync("boom"));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Equal(1, queryParams.Count);
+            Assert.Equal(null, queryParams[0].SerializeToString().First().Key);
+        }
+
+        [Fact]
+        public void SerializesEmptystringQueryKeys()
+        {
+            var requestInfo = Request<IHasEmptystringQueryKey>(x => x.FooAsync("boom"));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Equal(1, queryParams.Count);
+            Assert.Equal(String.Empty, queryParams[0].SerializeToString().First().Key);
+        }
+
+        private IRequestInfo Request<T>(Func<T, Task> selector)
+        {
+            var implementation = this.builder.CreateImplementation<T>(this.requester.Object);
+
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
-            implementation.FooAsync("boom");
+            selector(implementation);
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
-            Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
+            return requestInfo;
         }
     }
 }
