@@ -27,7 +27,9 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     1. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
   3. [Query Parameters Map](#query-parameters-map)
   4. [Raw Query String Parameters](#raw-query-string-parameters)
-6. [Path Parameters](#path-parameters)
+6. [Path Placeholders](#path-placeholders)
+  1. [Path Parameters](#path-parameters)
+  2. [Path Properties](#path-properties)
 7. [Body Content](#body-content)
   1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
@@ -323,10 +325,15 @@ var searchResults = await api.SearchAsync(filter);
 ```
 
 
-Path Parameters
----------------
+Path Placeholders
+-----------------
 
 Sometimes you also want to be able to control some parts of the path itself, rather than just the query parameters.
+
+
+### Path Parameters
+
+Path parameters are the most common means of controlling a part of the path.
 This is done using placeholders in the path, and corresponding method parameters decorated with `[Path]`.
 
 For example:
@@ -356,6 +363,43 @@ public interface ISomeApi
 ```
 
 Every placeholder must have a corresponding parameter, and every parameter must relate to a placeholder.
+
+### Path Properties
+
+Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
+In this case, you can specify a `[Path]` property.
+These work in the same way as path parameters, but they're on the level of the entire API.
+
+Properties must have both a getter and a setter.
+If the placeholder of the path property isn't given (i.e. you use `[Path]` instead of `[Path("placeholder")]`), then the name of the property will be used.
+
+Unlike with path parameters, you don't *need* to have the placeholder present in every path.
+If you have both a path parameter and a path property with the same name, the path parameter is used.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Path("accountId")]
+    int AccountId { get; set; }
+
+    [Get("{accountId}/profile")]
+    Task<Profile> GetProfileAsync();
+
+    [Delete("{accountId})]
+    Task DeleteAsync([Path("accountId")] int accountId);
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com/user");
+api.AccountId = 3;
+
+// Requests /user/3/profile
+var profile = await api.GetProfileAsync();
+
+// Requests /user/4/profile
+await api.DeleteAsync(4);
+```
 
 
 Body Content
@@ -1009,8 +1053,12 @@ public interface IAuthenticatedEndpoint
 {
     [Header("X-Api-Token")]
     string ApiToken { get; set; }
+ 
     [Header("X-Api-Username")]
     string ApiUsername { get; set; }
+
+    [Path("userId")]
+    int UserId { get; set; }
 }
 
 public interface IDevicesEndpoint : IAuthenticatedEndpoint
@@ -1021,8 +1069,8 @@ public interface IDevicesEndpoint : IAuthenticatedEndpoint
 
 public interface IUsersEndpoint : IAuthenticatedEndpoint
 {
-    [Get("/user")]
-    Task<User> FetchUserAsync(int userid)
+    [Get("/user/{userId}")]
+    Task<User> FetchUserAsync();
 }
 ```
 

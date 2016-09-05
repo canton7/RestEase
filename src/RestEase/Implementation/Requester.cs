@@ -49,23 +49,25 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Takes the Path and PathParams from the given IRequestInfo, and constructs a path with placeholders substituted
+        /// Takes the Path, PathParams, and PathProperties from the given IRequestInfo, and constructs a path with placeholders substituted
         /// for their desired values.
         /// </summary>
         /// <remarks>
         /// Note that this method assumes that valdation has occurred. That is, there won't by any
         /// placeholders with no value, or values without a placeholder.
         /// </remarks>
-        /// <param name="requestInfo">IRequestInfo to get Path and PathParams from</param>
+        /// <param name="requestInfo">IRequestInfo to get Path, PathParams, and PathProperties from</param>
         /// <returns>The constructed path, with placeholders substituted for their actual values</returns>
         protected virtual string SubstitutePathParameters(IRequestInfo requestInfo)
         {
-            if (requestInfo.Path == null || !requestInfo.PathParams.Any())
+            if (requestInfo.Path == null || (!requestInfo.PathParams.Any() && !requestInfo.PathProperties.Any()))
                 return requestInfo.Path;
 
             // We've already done validation to ensure that the parts in the path, and the available values, are present
+            // Substitute the path params, then the path properties. That way, the properties are used only if
+            // there are no matching path params.
             var sb = new StringBuilder(requestInfo.Path);
-            foreach (var pathParam in requestInfo.PathParams)
+            foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
                 // Space needs to be treated separately
                 var value = UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");

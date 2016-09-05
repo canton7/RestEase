@@ -56,6 +56,16 @@ namespace RestEase.Implementation
             get { return this._pathParams; }
         }
 
+        private readonly List<KeyValuePair<string, string>> _pathProperties;
+
+        /// <summary>
+        /// Gets the values from headers which should be substituted into placeholders in the Path
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, string>> PathProperties
+        {
+            get { return this._pathProperties; }
+        }
+
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
         /// </summary>
@@ -109,6 +119,7 @@ namespace RestEase.Implementation
 
             this._queryParams = new List<QueryParameterInfo>();
             this._pathParams = new List<KeyValuePair<string, string>>();
+            this._pathProperties = new List<KeyValuePair<string, string>>();
             this._methodHeaders = new List<KeyValuePair<string, string>>();
             this._propertyHeaders = new List<KeyValuePair<string, string>>();
             this._headerParams = new List<KeyValuePair<string, string>>();
@@ -210,10 +221,18 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the name/value pair</param>
         public void AddPathParameter<T>(string name, T value)
         {
-            string stringValue = null;
-            if (value != null)
-                stringValue = value.ToString();
-            this._pathParams.Add(new KeyValuePair<string, string>(name, stringValue));
+            this._pathParams.Add(new KeyValuePair<string, string>(name, value?.ToString()));
+        }
+
+        /// <summary>
+        /// Add a path parameter from a property: a [Path] method parameter which is used to substitute a placeholder in the path
+        /// </summary>
+        /// <typeparam name="T">Type of the value of the path parameter</typeparam>
+        /// <param name="name">Name of the name/value pair</param>
+        /// <param name="value">Value of the name/value pair</param>
+        public void AddPathProperty<T>(string name, T value)
+        {
+            this._pathProperties.Add(new KeyValuePair<string, string>(name, value?.ToString()));
         }
 
         /// <summary>

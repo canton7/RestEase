@@ -5,7 +5,7 @@ namespace RestEase
     /// <summary>
     /// Marks a parameter as able to substitute a placeholder in this method's path
     /// </summary>
-    [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class PathAttribute : Attribute
     {
         /// <summary>
