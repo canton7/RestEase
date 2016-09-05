@@ -1,66 +1,38 @@
 ﻿
+using System.Collections.Generic;
+using System.Linq;
+
 namespace RestEase.Platform
 {
     /// <summary>
     /// Cross-platform query parameter build utility class
     /// </summary>
-    public class QueryParamBuilder
+    public static class QueryParamBuilder
     {
+        /// <summary>
+        /// Build a query string out of the given parameters
+        /// </summary>
+        /// <param name="initialQuery">Initial raw query string</param>
+        /// <param name="parameters">Key/value pairs to add</param>
+        /// <returns>Constructed query string</returns>
+        public static string Build(string initialQuery, IEnumerable<KeyValuePair<string, string>> parameters)
+        {
 #if NETSTANDARD
-        private string query;
-
-        /// <summary>
-        /// Instantiates a new instance of the <see cref="QueryParamBuilder"/> class
-        /// </summary>
-        /// <param name="query">Initial query</param>
-        public QueryParamBuilder(string query)
-        {
-            this.query = query;
-        }
-
-        /// <summary>
-        /// Add a new name/value pair to the query string
-        /// </summary>
-        public void Add(string name, string value)
-        {
-            this.query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(this.query, name, value);
-        }
-
-        /// <summary>
-        /// Generate the encoded query string
-        /// </summary>
-        public override string ToString()
-        {
+            var query = initialQuery;
+            foreach (var kvp in parameters)
+            {
+                query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(query, kvp.Key, kvp.Value);
+            }
             // We should use %20 before the ?, and + after it.
-            return this.query.Replace("%20", "+");
-        }
+            return query.Replace("%20", "+");
 #else
-        private readonly System.Collections.Specialized.NameValueCollection query;
-
-        /// <summary>
-        /// Instantiates a new instance of the <see cref="QueryParamBuilder"/> class
-        /// </summary>
-        /// <param name="query">Initial query</param>
-        public QueryParamBuilder(string query)
-        {
-            this.query = System.Web.HttpUtility.ParseQueryString(query);
-        }
-
-        /// <summary>
-        /// Add a new name/value pair to the query string
-        /// </summary>
-        public void Add(string name, string value)
-        {
-            this.query.Add(name, value);
-        }
-
-        /// <summary>
-        /// Generate the encoded query string
-        /// </summary>
-        public override string ToString()
-        {
-            return this.query.ToString();
-        }
+            var query = System.Web.HttpUtility.ParseQueryString(initialQuery);
+            foreach (var kvp in parameters)
+            {
+                query.Add(kvp.Key, kvp.Value);
+            }
+            return query.ToString();
 #endif
+        }
     }
 }

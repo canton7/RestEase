@@ -116,15 +116,8 @@ namespace RestEase.Implementation
                     initialQueryString += "&" + rawQueryParameter;
             }
 
-            var query = new QueryParamBuilder(initialQueryString);
-            foreach (var queryParam in requestInfo.QueryParams)
-            {
-                foreach (var serializedParam in this.SerializeQueryParameter(queryParam))
-                {
-                    query.Add(serializedParam.Key, serializedParam.Value);
-                }
-            }
-            uriBuilder.Query = query.ToString();
+            var queryParams = requestInfo.QueryParams.SelectMany(x => this.SerializeQueryParameter(x));
+            uriBuilder.Query = QueryParamBuilder.Build(initialQueryString, queryParams);
 
             return uriBuilder.Uri;
         }
