@@ -183,6 +183,19 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void DoesNotThrowIfRequestQueryParamSerializerReturnsNull()
+        {
+            var serializer = new Mock<IRequestQueryParamSerializer>();
+            serializer.Setup(x => x.SerializeQueryParam("name", "value")).Returns((IEnumerable<KeyValuePair<string, string>>)null);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "name", "value");
+            this.requester.RequestQueryParamSerializer = serializer.Object;
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
+        }
+
+        [Fact]
         public void AddsParamsFromGenericQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);

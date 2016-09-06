@@ -185,7 +185,8 @@ namespace RestEase.Implementation
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
-                    return queryParameter.SerializeValue(this.RequestQueryParamSerializer);
+                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer);
+                    return result ?? Enumerable.Empty<KeyValuePair<string, string>>();
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
