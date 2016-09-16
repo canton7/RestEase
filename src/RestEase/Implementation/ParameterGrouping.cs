@@ -11,6 +11,7 @@ namespace RestEase.Implementation
     {
         public List<IndexedParameter<PathAttribute>> PathParameters { get; private set; }
         public List<IndexedParameter<QueryAttribute>> QueryParameters { get; private set; }
+        public IndexedParameter<RawQueryStringAttribute>? RawQueryString { get; private set; }
         public List<IndexedParameter<QueryMapAttribute>> QueryMaps { get; private set; }
         public List<IndexedParameter<HeaderAttribute>> HeaderParameters { get; private set; }
         public List<IndexedParameter> PlainParameters { get; private set; }
@@ -41,7 +42,7 @@ namespace RestEase.Implementation
                 if (bodyAttribute != null)
                 {
                     if (this.Body.HasValue)
-                        throw new ImplementationCreationException(String.Format("Found more than one parameter with a [Body] attribute for method {0}", methodName));
+                        throw new ImplementationCreationException(String.Format("Method '{0}': found more than one parameter with a [Body] attribute", methodName));
                     this.Body = new IndexedParameter<BodyAttribute>(parameter.Index, parameter.Parameter, bodyAttribute);
                     continue;
                 }
@@ -57,6 +58,15 @@ namespace RestEase.Implementation
                 if (queryParamAttribute != null)
                 {
                     this.QueryParameters.Add(new IndexedParameter<QueryAttribute>(parameter.Index, parameter.Parameter, queryParamAttribute));
+                    continue;
+                }
+
+                var rawQueryStringAttribute = parameter.Parameter.GetCustomAttribute<RawQueryStringAttribute>();
+                if (rawQueryStringAttribute != null)
+                {
+                    if (this.RawQueryString.HasValue)
+                        throw new ImplementationCreationException(String.Format("Method '{0}': found more than one parameter with a [RawQueryString] attribute", methodName));
+                    this.RawQueryString = new IndexedParameter<RawQueryStringAttribute>(parameter.Index, parameter.Parameter, rawQueryStringAttribute);
                     continue;
                 }
 

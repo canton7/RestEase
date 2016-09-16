@@ -183,6 +183,19 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void DoesNotThrowIfRequestQueryParamSerializerReturnsNull()
+        {
+            var serializer = new Mock<IRequestQueryParamSerializer>();
+            serializer.Setup(x => x.SerializeQueryParam("name", "value")).Returns((IEnumerable<KeyValuePair<string, string>>)null);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "name", "value");
+            this.requester.RequestQueryParamSerializer = serializer.Object;
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
+        }
+
+        [Fact]
         public void AddsParamsFromGenericQueryMap()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
@@ -240,6 +253,45 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "fo o", "a ?b/c");
             var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?fo+o=a+%3fb%2fc", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void AddsRawQueryStringOnItsOwn()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
+            var uri = this.requester.ConstructUri("a", requestInfo);
+            Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void PrependsRawQueryStringWithQueryParams()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "a", "&b");
+            var uri = this.requester.ConstructUri("a", requestInfo);
+            Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo&a=%26b", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void AddsRawQueryStringToPreexistingQueryString()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
+            var uri = this.requester.ConstructUri("a?b=c", requestInfo);
+            Assert.Equal("http://api.example.com/base/a?b=c&foo=bar&baz=woo", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void EncodesNullQueryKeys()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "&ba r=");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "?yay?");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, String.Empty, "?baz");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://api.example.com/base/foo?%26ba+r%3d&%3fyay%3f&=%3fbaz", uri.ToString(), ignoreCase: true);
         }
     }
 }

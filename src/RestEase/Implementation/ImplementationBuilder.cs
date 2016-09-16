@@ -37,7 +37,9 @@ namespace RestEase.Implementation
 
         private static readonly MethodInfo addQueryMapMethod = typeof(RequestInfo).GetMethod("AddQueryMap");
         private static readonly MethodInfo addQueryCollectionMapMethod = typeof(RequestInfo).GetMethod("AddQueryCollectionMap");
+        private static readonly MethodInfo addRawQueryParameterMethod = typeof(RequestInfo).GetMethod("AddRawQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetMethod("AddPathParameter");
+        private static readonly MethodInfo addPathPropertyMethod = typeof(RequestInfo).GetMethod("AddPathProperty");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetProperty("ClassHeaders").GetSetMethod();
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetMethod("AddPropertyHeader");
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetMethod("AddMethodHeader");
@@ -160,9 +162,9 @@ namespace RestEase.Implementation
             }
 
             this.HandleEvents(interfaceType);
-            var propertyHeaders = this.HandleProperties(typeBuilder, interfaceType);
+            var properties = this.HandleProperties(typeBuilder, interfaceType);
 
-            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, propertyHeaders);
+            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties);
 
             Type constructedType;
             try
@@ -261,7 +263,7 @@ namespace RestEase.Implementation
             FieldInfo classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
             SerializationMethodsAttribute classSerializationMethodsAttribute,
-            List<KeyValuePair<HeaderAttribute, FieldBuilder>> propertyHeaders)
+            PropertyGrouping properties)
         {
             foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetMethods()))
             {
@@ -281,7 +283,7 @@ namespace RestEase.Implementation
                 var parameters = methodInfo.GetParameters();
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
 
-                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name), methodInfo.Name);
+                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();
@@ -306,17 +308,28 @@ namespace RestEase.Implementation
                 }
 
                 // If there are any property headers, add them
-                foreach (var propertyHeader in propertyHeaders)
+                foreach (var propertyHeader in properties.Headers)
                 {
-                    var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.Value.FieldType);
+                    var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField.FieldType);
                     methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Key.Name);
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Name);
                     methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                    methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.Value);
-                    if (propertyHeader.Key.Value == null)
+                    methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.BackingField);
+                    if (propertyHeader.Attribute.Value == null)
                         methodIlGenerator.Emit(OpCodes.Ldnull);
                     else
-                        methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Key.Value);
+                        methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
+                    methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+                }
+
+                // If there are path properties, add them
+                foreach (var pathProperty in properties.Path)
+                {
+                    var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
+                    methodIlGenerator.Emit(OpCodes.Dup);
+                    methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
+                    methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                    methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
                     methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
                 }
 
@@ -356,30 +369,17 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException("Interfaces must not have any events");
         }
 
-        private List<KeyValuePair<HeaderAttribute, FieldBuilder>> HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
+        private PropertyGrouping HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
         {
-            var propertyHeaderFields = new List<KeyValuePair<HeaderAttribute, FieldBuilder>>();
+            var grouping = new PropertyGrouping(InterfaceAndChildren(interfaceType, x => x.GetProperties()));
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
 
-            foreach (var property in InterfaceAndChildren(interfaceType, x => x.GetProperties()))
+            foreach (var property in grouping.AllProperties)
             {
-                var headerAttribute = property.GetCustomAttribute<HeaderAttribute>();
-                if (headerAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Property {0} does not have a [Header(\"Name\")] attribute", property.Name));
-
-                // Only allow default value if type is nullable (reference type or Nullable<T>)
-                if (headerAttribute.Value != null && property.PropertyType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} (i.e. containing a default value) can only be used if the property type is nullable", headerAttribute.Name, headerAttribute.Value, property.Name));
-                if (headerAttribute.Name.Contains(':'))
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on property {1} must not have a colon in its name", headerAttribute.Name, property.Name));
-
-                if (!property.CanRead || !property.CanWrite)
-                    throw new ImplementationCreationException(String.Format("Property {0} must have both a getter and a setter", property.Name));
-
-                var propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.None, property.PropertyType, null);
-                var getter = typeBuilder.DefineMethod(property.GetGetMethod().Name, attributes, property.PropertyType, Type.EmptyTypes);
-                var setter = typeBuilder.DefineMethod(property.GetSetMethod().Name, attributes, null, new Type[] { property.PropertyType });
-                var backingField = typeBuilder.DefineField("bk_" + property.Name, property.PropertyType, FieldAttributes.Private);
+                var propertyBuilder = typeBuilder.DefineProperty(property.PropertyInfo.Name, PropertyAttributes.None, property.PropertyInfo.PropertyType, null);
+                var getter = typeBuilder.DefineMethod(property.PropertyInfo.GetGetMethod().Name, attributes, property.PropertyInfo.PropertyType, Type.EmptyTypes);
+                var setter = typeBuilder.DefineMethod(property.PropertyInfo.GetSetMethod().Name, attributes, null, new Type[] { property.PropertyInfo.PropertyType });
+                var backingField = typeBuilder.DefineField("bk_" + property.PropertyInfo.Name, property.PropertyInfo.PropertyType, FieldAttributes.Private);
 
                 var getterIlGenerator = getter.GetILGenerator();
                 getterIlGenerator.Emit(OpCodes.Ldarg_0);
@@ -394,10 +394,10 @@ namespace RestEase.Implementation
                 setterIlGenerator.Emit(OpCodes.Ret);
                 propertyBuilder.SetSetMethod(setter);
 
-                propertyHeaderFields.Add(new KeyValuePair<HeaderAttribute, FieldBuilder>(headerAttribute, backingField));
+                property.BackingField = backingField;
             }
 
-            return propertyHeaderFields;
+            return grouping;
         }
 
         private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
@@ -440,20 +440,27 @@ namespace RestEase.Implementation
             {
                 var method = MakeQueryMapMethodInfo(queryMap.Parameter.ParameterType);
                 if (method == null)
-                    throw new ImplementationCreationException(String.Format("[QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents). Method: {0}", methodName));
+                    throw new ImplementationCreationException(String.Format("Method '{0}': [QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents)", methodName));
                 this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index, method, serializationMethods.ResolveQuery(queryMap.Attribute.SerializationMethod));
             }
 
             foreach (var queryParameter in parameterGrouping.QueryParameters)
             {
                 var method = MakeQueryParameterMethodInfo(queryParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.Name ?? queryParameter.Parameter.Name, (short)queryParameter.Index, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
+                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.HasName ? queryParameter.Attribute.Name : queryParameter.Parameter.Name, (short)queryParameter.Index, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
             }
 
             foreach (var plainParameter in parameterGrouping.PlainParameters)
             {
                 var method = MakeQueryParameterMethodInfo(plainParameter.Parameter.ParameterType);
                 this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
+            }
+
+            if (parameterGrouping.RawQueryString != null)
+            {
+                var parameter = parameterGrouping.RawQueryString.Value;
+                var method = addRawQueryParameterMethod.MakeGenericMethod(parameter.Parameter.ParameterType);
+                this.AddRawQueryParam(methodIlGenerator, (short)parameter.Index, method);
             }
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
@@ -465,9 +472,9 @@ namespace RestEase.Implementation
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
             {
                 if (headerParameter.Attribute.Value != null)
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] for method {2} must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", headerParameter.Attribute.Name, headerParameter.Attribute.Value, methodName));
+                    throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\", \"{2}\")] must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", methodName, headerParameter.Attribute.Name, headerParameter.Attribute.Value));
                 if (headerParameter.Attribute.Name.Contains(':'))
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have a colon in its name", headerParameter.Attribute.Name, methodName));
+                    throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\")] must not have a colon in its name", methodName, headerParameter.Attribute.Name));
                 var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
                 this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
             }
@@ -568,7 +575,7 @@ namespace RestEase.Implementation
             }
             else
             {
-                throw new ImplementationCreationException(String.Format("Method {0} has a return type that is not Task<T> or Task", methodInfo.Name));
+                throw new ImplementationCreationException(String.Format("Method '{0}': must have a return type of Task<T> or Task", methodInfo.Name));
             }
         }
 
@@ -631,7 +638,10 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, serializationMethod, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            if (name == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, serializationMethod, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
@@ -640,13 +650,27 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
         }
 
+        private void AddRawQueryParam(ILGenerator methodIlGenerator, short parameterIndex, MethodInfo methodInfo)
+        {
+            // Equivalent C#:
+            // requestInfo.AddRawQueryParameter(value)
+
+            // Stakc: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Call AddRawQueryParameter
+            methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
+        }
+
         private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodInfo)
         {
             // Equivalent C#:
             // requestInfo.AddPathParameter("name", value);
             // where 'value' is the parameter at index parameterIndex
 
-            // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
+            // Duplicate the requestInfo.
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
             // Load the name onto the stack
@@ -680,7 +704,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, method);
         }
 
-        private void ValidatePathParams(string path, IEnumerable<string> pathParams, string methodName)
+        private void ValidatePathParams(string path, IEnumerable<string> pathParams, IEnumerable<string> propertyParams, string methodName)
         {
             if (path == null)
                 path = String.Empty;
@@ -688,14 +712,20 @@ namespace RestEase.Implementation
             // Check that there are no duplicate param names in the attributes
             var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1);
             if (duplicateKey != null)
-                throw new ImplementationCreationException(String.Format("Found more than one path parameter for key {0}. Method: {1}", duplicateKey, methodName));
+                throw new ImplementationCreationException(String.Format("Mathod '{0}': found more than one path parameter for key {1}.", methodName, duplicateKey));
 
             // Check that each placeholder has a matching attribute, and vice versa
-            var pathPartsSet = new HashSet<string>(pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value));
-            pathPartsSet.SymmetricExceptWith(pathParams);
-            var firstInvalid = pathPartsSet.FirstOrDefault();
-            if (firstInvalid != null)
-                throw new ImplementationCreationException(String.Format("Unable to find both a placeholder {{{0}}} and a [Path(\"{0}\")] for parameter {0}. Method: {1}", firstInvalid, methodName));
+            // We allow a property param to fill in for a missing path param, but we allow them to duplicate
+            // each other (the path param takes precedence), and allow a property param which doesn't have a placeholder.
+            var placeholders = pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value).ToList();
+
+            var firstMissingParam = placeholders.Except(pathParams.Concat(propertyParams)).FirstOrDefault();
+            if (firstMissingParam != null)
+                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find a [Path(\"{1}\")] property for the path parameter '{1}'.", methodName, firstMissingParam));
+
+            var firstMissingPlaceholder = pathParams.Except(placeholders).FirstOrDefault();
+            if (firstMissingPlaceholder != null)
+                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find to find a placeholder {{{1}}} for the path parameter '{1}'.", methodName, firstMissingPlaceholder));
         }
 
         private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, IEnumerable<T>> selector)

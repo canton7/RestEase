@@ -36,9 +36,19 @@ namespace RestEase.Implementation
         IEnumerable<QueryParameterInfo> QueryParams { get; }
 
         /// <summary>
+        /// Gets the raw query parameter provider
+        /// </summary>
+        RawQueryParameterInfo RawQueryParameter { get; }
+
+        /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
         IEnumerable<KeyValuePair<string, string>> PathParams { get; }
+
+        /// <summary>
+        /// Gets the values from headers which should be substituted into placeholders in the Path
+        /// </summary>
+        IEnumerable<KeyValuePair<string, string>> PathProperties { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the interface

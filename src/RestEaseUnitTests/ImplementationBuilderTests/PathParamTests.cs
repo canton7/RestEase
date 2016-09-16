@@ -57,20 +57,46 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task SlashParamAsync();
         }
 
+        public interface IHasBothPathAndQueryParams
+        {
+            [Get("/test/{foo}/test2")]
+            Task FooAsync([Path] string foo, [Query("bar")] string bar);
+        }
+
+        public interface IHasPathProperty
+        {
+            [Path("foo")]
+            string Foo { get; set; }
+
+            [Get("{foo}")]
+            Task FooAsync();
+        }
+
+        public interface IHasPathPropertyWithNoName
+        {
+            [Path]
+            string Foo { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasBothPathPropertyAndPathParam
+        {
+            [Path("foo")]
+            string Foo { get; set; }
+
+            [Get("{foo}")]
+            Task FooAsync([Path] string foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
         [Fact]
         public void HandlesNullPathParams()
         {
-            var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.DifferentParaneterTypesAsync(null, null);
+            var requestInfo = Request<IPathParams>(x => x.DifferentParaneterTypesAsync(null, null));
 
             var pathParams = requestInfo.PathParams.ToList();
 
@@ -86,14 +112,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void NullPathParamsAreRenderedAsEmpty()
         {
-            var implementation = this.builder.CreateImplementation<IPathParams>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("foo value", "bar value");
+            var requestInfo = Request<IPathParams>(x => x.FooAsync("foo value", "bar value"));
 
             var pathParams = requestInfo.PathParams.ToList();
 
@@ -135,6 +154,83 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             // Do not throw
             this.builder.CreateImplementation<IHasEmptyGetParams>(this.requester.Object);
+        }
+
+        [Fact]
+        public void HandlesBothGetAndQueryParams()
+        {
+            var requestInfo = Request<IHasBothPathAndQueryParams>(x => x.FooAsync("foovalue", "barvalue"));
+
+            var pathParams = requestInfo.PathParams.ToList();
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Equal(1, pathParams.Count);
+
+            Assert.Equal("foo", pathParams[0].Key);
+            Assert.Equal("foovalue", pathParams[0].Value);
+
+            Assert.Equal(1, queryParams.Count);
+
+            var queryParam = queryParams[0].SerializeToString().First();
+            Assert.Equal("bar", queryParam.Key);
+            Assert.Equal("barvalue", queryParam.Value);
+        }
+
+        [Fact]
+        public void HandlesPathProperty()
+        {
+            var requestInfo = Request<IHasPathProperty>(x =>
+            {
+                x.Foo = "bar";
+                return x.FooAsync();
+            });
+
+            var pathProperties = requestInfo.PathProperties.ToList();
+
+            Assert.Equal(1, pathProperties.Count);
+            Assert.Equal("foo", pathProperties[0].Key);
+            Assert.Equal("bar", pathProperties[0].Value);
+        }
+
+        [Fact]
+        public void DoesNotThrowIfPathPropertyAndParamHaveTheSameName()
+        {
+            Request<IHasBothPathPropertyAndPathParam>(x =>
+            {
+                x.Foo = "bar";
+                return x.FooAsync("yay");
+            });
+        }
+
+        [Fact]
+        public void HandlesPathPropertyWithNoName()
+        {
+            var requestInfo = Request<IHasPathPropertyWithNoName>(x =>
+            {
+                x.Foo = "bar";
+                return x.FooAsync();
+            });
+
+            var pathProperties = requestInfo.PathProperties.ToList();
+
+            Assert.Equal(1, pathProperties.Count);
+            Assert.Equal("Foo", pathProperties[0].Key);
+            Assert.Equal("bar", pathProperties[0].Value);
+        }
+
+        private IRequestInfo Request<T>(Func<T, Task> selector)
+        {
+            var implementation = this.builder.CreateImplementation<T>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            selector(implementation);
+
+            return requestInfo;
         }
     }
 }

@@ -1,3 +1,11 @@
+v1.2.0
+------
+
+ - Add support for path properties - path compoments which are the same for every request (#16)
+ - Add support for raw, unencoded query parameters (#17)
+ - Support query parameters without a key
+ - Improve some error messages
+
 v1.1.2
 ------
 
