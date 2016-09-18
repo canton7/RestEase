@@ -1,7 +1,11 @@
 {
   "version": "0.0.0",
+  "copyright": "Copyright 2015-2016 Antony Male",
   "dependencies": {
   },
+  "authors": [
+    "Antony Male"
+  ],
   "frameworks": {
     "netstandard1.3": {
       "buildOptions": {
@@ -43,20 +47,16 @@
   },
   "packOptions": {
     "title": "RestEase",
+    "summary": "Easy-to-use typesafe REST API client library, which is simple and customisable. Inspired by Refit",
     "owners": [
       "Antony Male"
     ],
-    "authors": [
-      "Antony Male"
-    ],
-    "licenseUrl": "http://github.com/canton7/RestEase/blob/master/LICENSE.txt",
-    "projectUrl": "http://github.com/canton7/RestEase",
+    "licenseUrl": "https://github.com/canton7/RestEase/blob/master/LICENSE.txt",
+    "projectUrl": "https://github.com/canton7/RestEase",
     "repository": {
       "type": "git",
       "url": "https://github.com/canton7/RestEase.git"
     },
-    "description": "Simple but powerful REST library for .NET, inspired by Refit",
-    "copyright": "Copyright 2015 Antony Male",
     "tags": [
       "REST",
       "JSON"
