@@ -1,6 +1,7 @@
 {
   "version": "0.0.0",
   "copyright": "Copyright 2015-2016 Antony Male",
+  "description": "Easy-to-use typesafe REST API client library, which is simple and customisable. Inspired by Refit",
   "dependencies": {
   },
   "authors": [
@@ -47,7 +48,6 @@
   },
   "packOptions": {
     "title": "RestEase",
-    "summary": "Easy-to-use typesafe REST API client library, which is simple and customisable. Inspired by Refit",
     "owners": [
       "Antony Male"
     ],
