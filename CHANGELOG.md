@@ -1,5 +1,5 @@
-v1.2.1
-------
+v1.2.1, v1.2.2
+--------------
 
  - Fix metadata fields in NuGet package (no functional changes)
 
