@@ -131,5 +131,22 @@ namespace RestEaseUnitTests.RequesterTests
             Assert.True(uri.IsAbsoluteUri);
             Assert.Equal(new Uri("http://api.com/foo/bar"), uri);
         }
+
+        [Fact]
+        public void ThrowsWithNullBaseAddressAndNullPath()
+        {
+            var requester = new PublicRequester(new HttpClient() { BaseAddress = null });
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            Assert.Throws<UriFormatException>(() => requester.ConstructUri(null, requestInfo));
+        }
+
+        [Fact]
+        public void AllowsNullBaseAddressAndNonNullPath()
+        {
+            var requester = new PublicRequester(new HttpClient() { BaseAddress = null });
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            var uri = requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://foo/", uri.ToString());
+        }
     }
 }

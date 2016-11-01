@@ -88,24 +88,30 @@ namespace RestEase.Implementation
             UriBuilder uriBuilder;
             try
             {
-                var trimmedPath = path.TrimStart('/');
+                var trimmedPath = (path ?? String.Empty).TrimStart('/');
                 // Here, a leading slash will strip the path from baseAddress
                 var uri = new Uri(trimmedPath, UriKind.RelativeOrAbsolute);
                 if (!uri.IsAbsoluteUri)
                 {
-                    var baseAddress = this.httpClient.BaseAddress.ToString();
-                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
-                    // the last path component (assuming we *have* a relative path)
-                    if (!baseAddress.EndsWith("/") && !String.IsNullOrWhiteSpace(trimmedPath))
-                        baseAddress += '/';
-                    uri = new Uri(new Uri(baseAddress), uri);
+                    var baseAddress = this.httpClient.BaseAddress?.ToString();
+                    if (!String.IsNullOrWhiteSpace(baseAddress))
+                    {
+                        // Need to make sure it ends with a trailing slash, or appending our relative path will strip
+                        // the last path component (assuming we *have* a relative path)
+                        if (!baseAddress.EndsWith("/") && !String.IsNullOrWhiteSpace(trimmedPath))
+                            baseAddress += '/';
+                        uri = new Uri(new Uri(baseAddress), uri);
+                    }
                 }
-                uriBuilder = new UriBuilder(uri);
+
+                // If it's still relative, 'new UriBuilder(Uri)' won't accept it, but 'new UriBuilder(string)' will
+                // (by prepending 'http://').
+                uriBuilder = uri.IsAbsoluteUri ? new UriBuilder(uri) : new UriBuilder(uri.ToString());
             }
             catch (UriFormatException e)
             {
                 // The original exception doesn't actually include the path - which is not helpful to the user
-                throw new UriFormatException(String.Format("Path {0} is not valid: {1}", path, e.Message));
+                throw new UriFormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
             string initialQueryString = uriBuilder.Query;
