@@ -44,25 +44,48 @@ namespace RestEase
             get { return !String.IsNullOrWhiteSpace(this.Content); }
         }
 
-        internal ApiException(
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>
+        /// </summary>
+        /// <param name="response"><see cref="HttpResponseMessage"/> provided by the <see cref="HttpClient"/></param>
+        /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
+        public ApiException(HttpResponseMessage response, string contentString)
+            : this(response.StatusCode, response.ReasonPhrase, response.Headers, response.Content?.Headers, contentString)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ApiException"/> class with the given components
+        /// </summary>
+        /// <param name="statusCode"><see cref="HttpStatusCode"/> returned by the endpoint</param>
+        /// <param name="reasonPhrase"><see cref="HttpResponseMessage.ReasonPhrase"/> provided by <see cref="HttpClient"/></param>
+        /// <param name="headers"><see cref="HttpResponseHeaders"/>s associated with the response</param>
+        /// <param name="contentHeaders"><see cref="HttpContentHeaders"/> associated with the response content, if there is a response content</param>
+        /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
+        public ApiException(
             HttpStatusCode statusCode,
             string reasonPhrase,
             HttpResponseHeaders headers,
             HttpContentHeaders contentHeaders,
-            string content)
+            string contentString)
             : base(String.Format("Response status code does not indicate success: {0} ({1}).", (int)statusCode, reasonPhrase))
         {
             this.StatusCode = statusCode;
             this.ReasonPhrase = reasonPhrase;
             this.Headers = headers;
             this.ContentHeaders = contentHeaders;
-            this.Content = content;
+            this.Content = contentString;
         }
 
-        internal static async Task<ApiException> CreateAsync(HttpResponseMessage response)
+        /// <summary>
+        /// Create a new <see cref="ApiException"/>, by reading the response asynchronously content as a string
+        /// </summary>
+        /// <param name="response">Response received from the <see cref="HttpClient"/></param>
+        /// <returns>A new <see cref="ApiException"/> created from the <see cref="HttpResponseMessage"/></returns>
+        public static async Task<ApiException> CreateAsync(HttpResponseMessage response)
         {
             if (response.Content == null)
-                return new ApiException(response.StatusCode, response.ReasonPhrase, response.Headers, null, null);
+                return new ApiException(response, null);
 
             HttpContentHeaders contentHeaders = null;
             string contentString = null;
@@ -78,7 +101,7 @@ namespace RestEase
             catch
             { } // Don't want to hide the original exception with a new one
 
-            return new ApiException(response.StatusCode, response.ReasonPhrase, response.Headers, contentHeaders, contentString);
+            return new ApiException(response, contentString);
         }
     }
 }
