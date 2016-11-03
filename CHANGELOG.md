@@ -1,3 +1,9 @@
+v1.2.3
+------
+
+ - Allow null BaseAddress on HttpClient
+ - Make ApiException constructor public, to allow easier unit testing of RestEase consumers
+
 v1.2.1, v1.2.2
 --------------
 
