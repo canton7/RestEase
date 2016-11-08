@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using RestEase.Platform;
 
@@ -66,15 +61,19 @@ namespace RestEase.Implementation
             // We've already done validation to ensure that the parts in the path, and the available values, are present
             // Substitute the path params, then the path properties. That way, the properties are used only if
             // there are no matching path params.
-            var sb = new StringBuilder(requestInfo.Path);
-            foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
+            var values = requestInfo.PathParams.ToDictionary(v => v.Key, v => v.Value);
+            foreach (var value in requestInfo.PathProperties)
             {
-                // Space needs to be treated separately
-                var value = UrlEncode(pathParam.Value ?? String.Empty).Replace("+", "%20");
-                sb.Replace("{" + (pathParam.Key ?? String.Empty) + "}", value);
+                if (!values.ContainsKey(value.Key))
+                {
+                    values.Add(value.Key, value.Value);
+                }
             }
 
-            return sb.ToString();
+            var format = new NamedFormat(requestInfo.Path);
+            return format.ReplaceWith(values)
+                         .WithTransform(s => UrlEncode(s).Replace("+", "%20"))
+                         .StringValue();
         }
 
         /// <summary>

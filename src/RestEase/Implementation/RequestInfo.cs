@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 
@@ -46,22 +45,22 @@ namespace RestEase.Implementation
         /// </summary>
         public RawQueryParameterInfo RawQueryParameter { get; private set; }
 
-        private readonly List<KeyValuePair<string, string>> _pathParams;
+        private readonly List<KeyValuePair<string, object>> _pathParams;
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> PathParams
+        public IEnumerable<KeyValuePair<string, object>> PathParams
         {
             get { return this._pathParams; }
         }
 
-        private readonly List<KeyValuePair<string, string>> _pathProperties;
+        private readonly List<KeyValuePair<string, object>> _pathProperties;
 
         /// <summary>
         /// Gets the values from headers which should be substituted into placeholders in the Path
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> PathProperties
+        public IEnumerable<KeyValuePair<string, object>> PathProperties
         {
             get { return this._pathProperties; }
         }
@@ -118,8 +117,8 @@ namespace RestEase.Implementation
             this.CancellationToken = CancellationToken.None;
 
             this._queryParams = new List<QueryParameterInfo>();
-            this._pathParams = new List<KeyValuePair<string, string>>();
-            this._pathProperties = new List<KeyValuePair<string, string>>();
+            this._pathParams = new List<KeyValuePair<string, object>>();
+            this._pathProperties = new List<KeyValuePair<string, object>>();
             this._methodHeaders = new List<KeyValuePair<string, string>>();
             this._propertyHeaders = new List<KeyValuePair<string, string>>();
             this._headerParams = new List<KeyValuePair<string, string>>();
@@ -221,7 +220,7 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the name/value pair</param>
         public void AddPathParameter<T>(string name, T value)
         {
-            this._pathParams.Add(new KeyValuePair<string, string>(name, value?.ToString()));
+            this._pathParams.Add(new KeyValuePair<string, object>(name, value));
         }
 
         /// <summary>
@@ -232,7 +231,7 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the name/value pair</param>
         public void AddPathProperty<T>(string name, T value)
         {
-            this._pathProperties.Add(new KeyValuePair<string, string>(name, value?.ToString()));
+            this._pathProperties.Add(new KeyValuePair<string, object>(name, value));
         }
 
         /// <summary>
