@@ -68,5 +68,27 @@ namespace RestEaseUnitTests.RequesterTests
             var uri = this.requester.SubstitutePathParameters(requestInfo);
             Assert.Equal("/foo/woo/baz", uri, ignoreCase: true);
         }
+
+        [Fact]
+        public void FormatsPathParam()
+        {
+            var guid = Guid.NewGuid();
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar:N}/baz");
+            requestInfo.AddPathParameter("bar", guid);
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("/foo/" + guid.ToString("N") + "/baz", uri, ignoreCase: true);
+        }
+
+        [Fact]
+        public void FormatsPathProperty()
+        {
+            var guid = Guid.NewGuid();
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar:N}/baz");
+            requestInfo.AddPathProperty("bar", guid);
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("/foo/" + guid.ToString("N") + "/baz", uri, ignoreCase: true);
+        }
     }
 }
