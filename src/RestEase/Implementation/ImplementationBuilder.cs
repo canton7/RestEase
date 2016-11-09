@@ -330,6 +330,10 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
                     methodIlGenerator.Emit(OpCodes.Ldarg_0);
                     methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
+                    if (pathProperty.Attribute.Format == null)
+                        methodIlGenerator.Emit(OpCodes.Ldnull);
+                    else
+                        methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
                     methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
                 }
 
@@ -466,7 +470,7 @@ namespace RestEase.Implementation
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
                 var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
-                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, method);
+                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, pathParameter.Attribute.Format, method);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -664,7 +668,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodInfo)
+        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, string format, MethodInfo methodInfo)
         {
             // Equivalent C#:
             // requestInfo.AddPathParameter("name", value);
@@ -679,6 +683,12 @@ namespace RestEase.Implementation
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Load the format onto ths tack
+            // Stack: [..., requestInfo, requestInfo, name, value, format]
+            if (format == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, format);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
