@@ -134,9 +134,14 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value)
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value, string format = null)
         {
-            this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
+            this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value, format));
         }
 
         /// <summary>
@@ -146,9 +151,14 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pairs</param>
-        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string format = null)
         {
-            this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values));
+            this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values, format));
         }
 
         /// <summary>
@@ -175,11 +185,11 @@ namespace RestEase.Implementation
                     kvp.Value is IEnumerable<object> &&
                     !(kvp.Value is string))
                 {
-                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value, format: null));
                 }
                 else
                 {
-                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
                 }
             }
         }
@@ -200,7 +210,7 @@ namespace RestEase.Implementation
             foreach (var kvp in queryMap)
             {
                 if (kvp.Key != null)
-                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
             }
         }
 
