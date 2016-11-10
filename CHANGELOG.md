@@ -1,3 +1,9 @@
+v1.3.0
+------
+
+ - **BREAKING CHANGE**: Add a `RequestQueryParamSerializerInfo` parameter to methods on `IRequestQueryParamSerializer`
+ - Add support for specifying `IFormattable` format strings for query parameters, path parameters, and path properties (#21)
+
 v1.2.3
 ------
 
