@@ -36,6 +36,7 @@ namespace RestEase.Implementation
     {
         private readonly string name;
         private readonly T value;
+        private readonly string format;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryParameterInfo{T}"/> class
@@ -43,11 +44,17 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the query value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public QueryParameterInfo(QuerySerializationMethod serializationMethod, string name, T value)
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public QueryParameterInfo(QuerySerializationMethod serializationMethod, string name, T value, string format)
         {
+            this.SerializationMethod = serializationMethod;
             this.name = name;
             this.value = value;
-            this.SerializationMethod = serializationMethod;
+            this.format = format;
         }
 
         /// <summary>
@@ -60,7 +67,7 @@ namespace RestEase.Implementation
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
 
-            return serializer.SerializeQueryParam<T>(this.name, this.value);
+            return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(this.format));
         }
 
         /// <summary>
@@ -72,7 +79,14 @@ namespace RestEase.Implementation
             if (this.value == null)
                 return Enumerable.Empty<KeyValuePair<string, string>>();
 
-            return new[] { new KeyValuePair<string, string>(this.name, this.value.ToString()) };
+            string stringValue;
+            var formattable = this.value as IFormattable;
+            if (formattable != null)
+                stringValue = formattable.ToString(this.format, null);
+            else
+                stringValue = this.value.ToString();
+
+            return new[] { new KeyValuePair<string, string>(this.name, stringValue) };
         }
     }
 
@@ -84,6 +98,7 @@ namespace RestEase.Implementation
     {
         private readonly string name;
         private readonly IEnumerable<T> values;
+        private readonly string format;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryCollectionParameterInfo{T}"/> class
@@ -91,11 +106,17 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the query values</param>
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pair</param>
-        public QueryCollectionParameterInfo(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public QueryCollectionParameterInfo(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string format)
         {
+            this.SerializationMethod = serializationMethod;
             this.name = name;
             this.values = values;
-            this.SerializationMethod = serializationMethod;
+            this.format = format;
         }
 
         /// <summary>
@@ -108,7 +129,7 @@ namespace RestEase.Implementation
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
 
-            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values);
+            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(this.format));
         }
 
         /// <summary>
@@ -122,8 +143,17 @@ namespace RestEase.Implementation
 
             foreach (var value in this.values)
             {
-                if (value != null)
-                    yield return new KeyValuePair<string, string>(this.name, value.ToString());
+                if (value == null)
+                    continue;
+
+                string stringValue;
+                var formattable = value as IFormattable;
+                if (formattable != null)
+                    stringValue = formattable.ToString(this.format, null);
+                else
+                    stringValue = value.ToString();
+
+                yield return new KeyValuePair<string, string>(this.name, stringValue);
             }
         }
     }

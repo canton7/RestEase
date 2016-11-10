@@ -24,12 +24,15 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 5. [Query Parameters](#query-parameters)
   1. [Constant Query Parameters](#constant-query-parameters)
   2. [Variable Query Parameters](#variable-query-parameters)
-    1. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
+    1. [Formatting Variable Query Parameters](#formatting-variable-query-parameters)
+    2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
   3. [Query Parameters Map](#query-parameters-map)
   4. [Raw Query String Parameters](#raw-query-string-parameters)
 6. [Path Placeholders](#path-placeholders)
   1. [Path Parameters](#path-parameters)
+    1. [Formatting Path Parameters](#formatting-path-parameters)
   2. [Path Properties](#path-properties)
+    1. [Formatting Path Properties](#formatting-path-properties)
 7. [Body Content](#body-content)
   1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
@@ -241,12 +244,36 @@ ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 await api.FooAsync("onitsown", "nokey");
 ```
 
-#### Serialization of Variable Query Parameters
+#### Formatting Variable Query Parameters
 
 By default, query parameter values will be serialized by calling `ToString()` on them.
 This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
-However, some APIs require that you send e.g. JSON as a query parameter.
+However, you can also specify a string format to use.
+If the type implements `IFormattable`, then your string format is passed to the `IFormattable.ToString()` method.
+(`null` is passed for the IFormatProvider argument, meaning that the current thread's culture is used if applicable).
+
+You specify a format using the `Format` property of the `[Query]` attribute, for example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo")]
+    Task FooAsync([Query(Format = "X2")] int param);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo?param=FE
+await api.FooAsync(254);
+```
+
+If you use a [custom serializer](#custom-serializers-and-deserializers), then the format is passed to that serializer, and you can use it as you like.
+
+
+#### Serialization of Variable Query Parameters
+
+Sometimes calling `ToString()` is not enough: some APIs require that you send e.g. JSON as a query parameter.
 In this case, you can mark the parameter for custom serialization using `QuerySerializationMethod.Serialized`, and further control it by using a [custom serializer](#custom-serializers-and-deserializers).
 
 For example:
@@ -380,6 +407,30 @@ public interface ISomeApi
 
 Every placeholder must have a corresponding parameter, and every parameter must relate to a placeholder.
 
+#### Formatting Path Parameters
+
+As with `[Query]`, path parameter values will be serialized by calling `ToString()` on them.
+This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+
+However, you can also specify a string format to use.
+If the type implements `IFormattable`, then your string format is passed to the `IFormattable.ToString()` method.
+(`null` is passed for the IFormatProvider argument, meaning that the current thread's culture is used if applicable).
+
+You specify a format using the `Format` property of the `[Path]` attribute, for example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo/{bar}")]
+    Task FooAsync([Path("bar", Format = "D2")] int param);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo/01
+await api.FooAsync(1);
+```
+
 ### Path Properties
 
 Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
@@ -415,6 +466,29 @@ var profile = await api.GetProfileAsync();
 
 // Requests /user/4/profile
 await api.DeleteAsync(4);
+```
+
+#### Formatting Path Properties
+
+As with Path Parameters, you can specify a string format to use if the value implements `IFormattable`.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Path("accountId", Format = "N")]
+    Guid AccoutnId { get; set; }
+
+    [Get("{accountId}/profile")]
+    Task<Profile> GetProfileAsync()
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com/user");
+api.AccountId = someGuid;
+
+// Requests e.g. /user/00000000000000000000000000000000 /profile
+var profile = await api.GetProfileAsync();
 ```
 
 
@@ -833,7 +907,7 @@ For example:
 
 public class XmlRequestQueryParamSerializer : IRequestQueryParamSerializer
 {
-    public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value)
+    public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
     {
         if (value == null)
             yield break;
@@ -848,7 +922,7 @@ public class XmlRequestQueryParamSerializer : IRequestQueryParamSerializer
         }
     }
 
-    public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values)
+    public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
     {
         if (values == null)
             yield break;
@@ -875,6 +949,9 @@ var api = new RestClient("http://api.example.com")
     RequestQueryParamSerializer = new XmlRequestQueryParamSerializer()
 }.For<ISomeApi>();
 ```
+
+If you specified a `Format` property on the `[Query]` attribute, this will be available as `info.Format`.
+By default, this is `null`.
 
 
 Controlling the Requests

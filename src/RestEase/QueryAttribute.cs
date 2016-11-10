@@ -24,6 +24,13 @@ namespace RestEase
         public QuerySerializationMethod SerializationMethod { get; set; }
 
         /// <summary>
+        /// Gets or sets a format string to be passed to the custom serializer (if serializationMethod is
+        /// <see cref="QuerySerializationMethod.Serialized"/>), or to the value's ToString() method (if serializationMethod
+        /// is <see cref="QuerySerializationMethod.ToString"/> and value implements <see cref="IFormattable"/>)
+        /// </summary>
+        public string Format { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class
         /// </summary>
         public QueryAttribute()

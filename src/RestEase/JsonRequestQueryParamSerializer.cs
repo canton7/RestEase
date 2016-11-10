@@ -12,7 +12,6 @@ namespace RestEase
         /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
-
         /// <summary>
         /// Serialize a query parameter whose value is scalar (not a collection), into a collection of name -> value pairs
         /// </summary>
@@ -23,8 +22,9 @@ namespace RestEase
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <param name="name">Name of the query parameter</param>
         /// <param name="value">Value of the query parameter</param>
+        /// <param name="info">Extra information which may be useful</param>
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
-        public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value)
+        public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
         {
             if (value == null)
                 yield break;
@@ -42,8 +42,9 @@ namespace RestEase
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <param name="name">Name of the query parameter</param>
         /// <param name="values">Values of the query parmaeter</param>
+        /// <param name="info">Extra information which may be useful</param>
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
-        public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values)
+        public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
         {
             if (values == null)
                 yield break;

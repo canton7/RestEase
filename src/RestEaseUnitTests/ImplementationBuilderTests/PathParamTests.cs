@@ -90,6 +90,21 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Path] string foo);
         }
 
+        public interface IHasFormattedPathProperty
+        {
+            [Path("foo", Format = "X")]
+            int Foo { get; set; }
+
+            [Get("path/{foo}")]
+            Task FooAsync();
+        }
+
+        public interface IHasFormattedPathParam
+        {
+            [Get("path/{foo}")]
+            Task FooAsync([Path(Format = "D2")] int foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -102,11 +117,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, pathParams.Count);
 
-            Assert.Equal("foo", pathParams[0].Key);
-            Assert.Equal(null, pathParams[0].Value);
+            var serialized0 = pathParams[0].SerializeToString();
+            Assert.Equal("foo", serialized0.Key);
+            Assert.Equal(null, serialized0.Value);
 
-            Assert.Equal("bar", pathParams[1].Key);
-            Assert.Equal(null, pathParams[1].Value);
+            var serialized1 = pathParams[1].SerializeToString();
+            Assert.Equal("bar", serialized1.Key);
+            Assert.Equal(null, serialized1.Value);
         }
 
         [Fact]
@@ -118,11 +135,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, pathParams.Count);
 
-            Assert.Equal("foo", pathParams[0].Key);
-            Assert.Equal("foo value", pathParams[0].Value);
+            var serialized0 = pathParams[0].SerializeToString();
+            Assert.Equal("foo", serialized0.Key);
+            Assert.Equal("foo value", serialized0.Value);
 
-            Assert.Equal("bar", pathParams[1].Key);
-            Assert.Equal("bar value", pathParams[1].Value);
+            var serialized1 = pathParams[1].SerializeToString();
+            Assert.Equal("bar", serialized1.Key);
+            Assert.Equal("bar value", serialized1.Value);
         }
 
         [Fact]
@@ -166,8 +185,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, pathParams.Count);
 
-            Assert.Equal("foo", pathParams[0].Key);
-            Assert.Equal("foovalue", pathParams[0].Value);
+            var serialized = pathParams[0].SerializeToString();
+            Assert.Equal("foo", serialized.Key);
+            Assert.Equal("foovalue", serialized.Value);
 
             Assert.Equal(1, queryParams.Count);
 
@@ -188,8 +208,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var pathProperties = requestInfo.PathProperties.ToList();
 
             Assert.Equal(1, pathProperties.Count);
-            Assert.Equal("foo", pathProperties[0].Key);
-            Assert.Equal("bar", pathProperties[0].Value);
+
+            var serialized = pathProperties[0].SerializeToString();
+            Assert.Equal("foo", serialized.Key);
+            Assert.Equal("bar", serialized.Value);
         }
 
         [Fact]
@@ -214,8 +236,43 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var pathProperties = requestInfo.PathProperties.ToList();
 
             Assert.Equal(1, pathProperties.Count);
-            Assert.Equal("Foo", pathProperties[0].Key);
-            Assert.Equal("bar", pathProperties[0].Value);
+
+            var serialized = pathProperties[0].SerializeToString();
+            Assert.Equal("Foo", serialized.Key);
+            Assert.Equal("bar", serialized.Value);
+        }
+
+        [Fact]
+        public void HandlesFormattedPathProperties()
+        {
+            var requestInfo = Request<IHasFormattedPathProperty>(x =>
+            {
+                x.Foo = 10;
+                return x.FooAsync();
+            });
+
+            var pathProperties = requestInfo.PathProperties.ToList();
+            Assert.Equal(1, pathProperties.Count);
+
+            var serialized = pathProperties[0].SerializeToString();
+            Assert.Equal("foo", serialized.Key);
+            Assert.Equal("A", serialized.Value);
+        }
+
+        [Fact]
+        public void HandlesFormattedPathParams()
+        {
+            var requestInfo = Request<IHasFormattedPathParam>(x =>
+            {
+                return x.FooAsync(2);
+            });
+
+            var pathParams = requestInfo.PathParams.ToList();
+            Assert.Equal(1, pathParams.Count);
+
+            var serialized = pathParams[0].SerializeToString();
+            Assert.Equal("foo", serialized.Key);
+            Assert.Equal("02", serialized.Value);
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

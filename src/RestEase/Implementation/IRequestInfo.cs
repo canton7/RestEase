@@ -43,12 +43,12 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        IEnumerable<KeyValuePair<string, string>> PathParams { get; }
+        IEnumerable<PathParameterInfo> PathParams { get; }
 
         /// <summary>
         /// Gets the values from headers which should be substituted into placeholders in the Path
         /// </summary>
-        IEnumerable<KeyValuePair<string, string>> PathProperties { get; }
+        IEnumerable<PathParameterInfo> PathProperties { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the interface

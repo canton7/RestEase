@@ -14,6 +14,11 @@ namespace RestEase
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets or sets the format string to pass to the value's ToString() method, if the value implements <see cref="IFormattable"/>
+        /// </summary>
+        public string Format { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="PathAttribute"/> class
         /// </summary>
         public PathAttribute()
