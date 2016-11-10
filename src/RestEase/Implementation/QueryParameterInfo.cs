@@ -67,7 +67,7 @@ namespace RestEase.Implementation
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
 
-            return serializer.SerializeQueryParam<T>(this.name, this.value, this.format);
+            return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(this.format));
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace RestEase.Implementation
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
 
-            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, this.format);
+            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(this.format));
         }
 
         /// <summary>
