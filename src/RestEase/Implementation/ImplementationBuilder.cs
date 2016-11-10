@@ -330,6 +330,10 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
                     methodIlGenerator.Emit(OpCodes.Ldarg_0);
                     methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
+                    if (pathProperty.Attribute.Format == null)
+                        methodIlGenerator.Emit(OpCodes.Ldnull);
+                    else
+                        methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
                     methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
                 }
 
@@ -447,13 +451,13 @@ namespace RestEase.Implementation
             foreach (var queryParameter in parameterGrouping.QueryParameters)
             {
                 var method = MakeQueryParameterMethodInfo(queryParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.HasName ? queryParameter.Attribute.Name : queryParameter.Parameter.Name, (short)queryParameter.Index, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
+                this.AddQueryParam(methodIlGenerator, queryParameter.Attribute.HasName ? queryParameter.Attribute.Name : queryParameter.Parameter.Name, (short)queryParameter.Index, queryParameter.Attribute.Format, method, serializationMethods.ResolveQuery(queryParameter.Attribute.SerializationMethod));
             }
 
             foreach (var plainParameter in parameterGrouping.PlainParameters)
             {
                 var method = MakeQueryParameterMethodInfo(plainParameter.Parameter.ParameterType);
-                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
+                this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, null, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
             }
 
             if (parameterGrouping.RawQueryString != null)
@@ -466,7 +470,7 @@ namespace RestEase.Implementation
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
                 var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
-                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, method);
+                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, pathParameter.Attribute.Format, method);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -626,10 +630,10 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, addMethodHeaderMethod);
         }
 
-        private void AddQueryParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodToCall, QuerySerializationMethod serializationMethod)
+        private void AddQueryParam(ILGenerator methodIlGenerator, string name, short parameterIndex, string format, MethodInfo methodToCall, QuerySerializationMethod serializationMethod)
         {
             // Equivalent C#:
-            // requestInfo.AddQueryParameter(serializationMethod, name, value) (or AddQueryCollectionParameter)
+            // requestInfo.AddQueryParameter(serializationMethod, name, value, format) (or AddQueryCollectionParameter)
 
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
@@ -645,6 +649,12 @@ namespace RestEase.Implementation
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, serializationMethod, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Load the format onto the stack
+            // Stack: [..., requestInfo, requestInfo, serializationMethod, name, value, format]
+            if (format == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, format);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodToCall);
@@ -664,7 +674,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo methodInfo)
+        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, string format, MethodInfo methodInfo)
         {
             // Equivalent C#:
             // requestInfo.AddPathParameter("name", value);
@@ -679,6 +689,12 @@ namespace RestEase.Implementation
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Load the format onto ths tack
+            // Stack: [..., requestInfo, requestInfo, name, value, format]
+            if (format == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, format);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);

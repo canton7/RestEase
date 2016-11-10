@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -46,22 +47,22 @@ namespace RestEase.Implementation
         /// </summary>
         public RawQueryParameterInfo RawQueryParameter { get; private set; }
 
-        private readonly List<KeyValuePair<string, string>> _pathParams;
+        private readonly List<PathParameterInfo> _pathParams;
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> PathParams
+        public IEnumerable<PathParameterInfo> PathParams
         {
             get { return this._pathParams; }
         }
 
-        private readonly List<KeyValuePair<string, string>> _pathProperties;
+        private readonly List<PathParameterInfo> _pathProperties;
 
         /// <summary>
         /// Gets the values from headers which should be substituted into placeholders in the Path
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> PathProperties
+        public IEnumerable<PathParameterInfo> PathProperties
         {
             get { return this._pathProperties; }
         }
@@ -118,8 +119,8 @@ namespace RestEase.Implementation
             this.CancellationToken = CancellationToken.None;
 
             this._queryParams = new List<QueryParameterInfo>();
-            this._pathParams = new List<KeyValuePair<string, string>>();
-            this._pathProperties = new List<KeyValuePair<string, string>>();
+            this._pathParams = new List<PathParameterInfo>();
+            this._pathProperties = new List<PathParameterInfo>();
             this._methodHeaders = new List<KeyValuePair<string, string>>();
             this._propertyHeaders = new List<KeyValuePair<string, string>>();
             this._headerParams = new List<KeyValuePair<string, string>>();
@@ -133,9 +134,14 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value)
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value, string format = null)
         {
-            this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value));
+            this._queryParams.Add(new QueryParameterInfo<T>(serializationMethod, name, value, format));
         }
 
         /// <summary>
@@ -145,9 +151,14 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pairs</param>
-        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values)
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string format = null)
         {
-            this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values));
+            this._queryParams.Add(new QueryCollectionParameterInfo<T>(serializationMethod, name, values, format));
         }
 
         /// <summary>
@@ -174,11 +185,11 @@ namespace RestEase.Implementation
                     kvp.Value is IEnumerable<object> &&
                     !(kvp.Value is string))
                 {
-                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value, format: null));
                 }
                 else
                 {
-                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
                 }
             }
         }
@@ -199,7 +210,7 @@ namespace RestEase.Implementation
             foreach (var kvp in queryMap)
             {
                 if (kvp.Key != null)
-                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
             }
         }
 
@@ -219,9 +230,10 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public void AddPathParameter<T>(string name, T value)
+        /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
+        public void AddPathParameter<T>(string name, T value, string format = null)
         {
-            this._pathParams.Add(new KeyValuePair<string, string>(name, value?.ToString()));
+            this._pathParams.Add(new PathParameterInfo(name, value, format));
         }
 
         /// <summary>
@@ -230,9 +242,10 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        public void AddPathProperty<T>(string name, T value)
+        /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
+        public void AddPathProperty<T>(string name, T value, string format = null)
         {
-            this._pathProperties.Add(new KeyValuePair<string, string>(name, value?.ToString()));
+            this._pathProperties.Add(new PathParameterInfo(name, value, format));
         }
 
         /// <summary>

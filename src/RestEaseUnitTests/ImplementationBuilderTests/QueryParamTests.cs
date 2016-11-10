@@ -89,6 +89,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Query("")] string rawQuery);
         }
 
+        public interface IHasFormat
+        {
+            [Get("foo")]
+            Task FooAsync([Query(Format = "X")] int foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -226,6 +232,16 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, queryParams.Count);
             Assert.Equal(String.Empty, queryParams[0].SerializeToString().First().Key);
+        }
+
+        [Fact]
+        public void HandlesFormattedQueryParams()
+        {
+            var requestInfo = Request<IHasFormat>(x => x.FooAsync(11));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Equal("B", queryParams[0].SerializeToString().First().Value);
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

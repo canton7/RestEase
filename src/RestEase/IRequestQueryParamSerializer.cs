@@ -17,8 +17,9 @@ namespace RestEase
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <param name="name">Name of the query parameter</param>
         /// <param name="value">Value of the query parameter</param>
+        /// <param name="format">Format string specified using <see cref="QueryAttribute.Format"/></param>
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
-        IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value);
+        IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, string format);
 
         /// <summary>
         /// Serialize a query parameter whose value is a collection, into a collection of name -> value pairs
@@ -30,7 +31,8 @@ namespace RestEase
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <param name="name">Name of the query parameter</param>
         /// <param name="values">Values of the query parmaeter</param>
+        /// <param name="format">Format string specified using <see cref="QueryAttribute.Format"/></param>
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
-        IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values);
+        IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, string format);
     }
 }
