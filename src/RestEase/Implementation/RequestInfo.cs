@@ -233,7 +233,7 @@ namespace RestEase.Implementation
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
         public void AddPathParameter<T>(string name, T value, string format = null)
         {
-            this._pathParams.Add(new PathParameterInfo<T>(name, value, format));
+            this._pathParams.Add(new PathParameterInfo(name, value, format));
         }
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace RestEase.Implementation
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
         public void AddPathProperty<T>(string name, T value, string format = null)
         {
-            this._pathProperties.Add(new PathParameterInfo<T>(name, value, format));
+            this._pathProperties.Add(new PathParameterInfo(name, value, format));
         }
 
         /// <summary>
