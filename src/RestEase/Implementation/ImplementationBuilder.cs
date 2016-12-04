@@ -62,7 +62,7 @@ namespace RestEase.Implementation
 
         private readonly ModuleBuilder moduleBuilder;
 
-        private readonly object implementationBuildLockObject = new object();
+        private readonly object implementationBuilderLockObject = new object();
         private readonly ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>> creatorCache = new ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>>();
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace RestEase.Implementation
 
             if (!this.creatorCache.TryGetValue(key, out creator))
             {
-                lock (this.implementationBuildLockObject)
+                lock (this.implementationBuilderLockObject)
                 {
                     // Two threads can fail the TryGetValue and acquire this lock in order. The first one will create the type.
                     // Therefore the second one has to check for this...
