@@ -271,6 +271,12 @@ namespace RestEase.Implementation
                 if (methodInfo.IsSpecialName)
                     continue;
 
+                var parameters = methodInfo.GetParameters();
+                var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
+
+                var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+                var methodIlGenerator = methodBuilder.GetILGenerator();
+
                 var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
                 if (requestAttribute == null)
                     throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
@@ -280,84 +286,16 @@ namespace RestEase.Implementation
                 var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
                 var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
 
-                var parameters = methodInfo.GetParameters();
-                var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
-
                 this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
-                var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
-                var methodIlGenerator = methodBuilder.GetILGenerator();
-
                 this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
-
-                // If there's a cancellationtoken, add that
-                if (parameterGrouping.CancellationToken.HasValue)
-                {
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameterGrouping.CancellationToken.Value.Index);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
-                }
-
-                // If there are any class headers, add them
-                if (classHeadersField != null)
-                {
-                    // requestInfo.ClassHeaders = classHeaders
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
-                }
-
-                // If there are any property headers, add them
-                foreach (var propertyHeader in properties.Headers)
-                {
-                    var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField.FieldType);
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Name);
-                    methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                    methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.BackingField);
-                    if (propertyHeader.Attribute.Value == null)
-                        methodIlGenerator.Emit(OpCodes.Ldnull);
-                    else
-                        methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
-                }
-
-                // If there are path properties, add them
-                foreach (var pathProperty in properties.Path)
-                {
-                    var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
-                    methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                    methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
-                    if (pathProperty.Attribute.Format == null)
-                        methodIlGenerator.Emit(OpCodes.Ldnull);
-                    else
-                        methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
-                }
-
-                // If there are any method headers, add them
-                var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
-
-                foreach (var methodHeader in methodHeaders)
-                {
-                    if (methodHeader.Name.Contains(':'))
-                        throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
-                    this.AddMethodHeader(methodIlGenerator, methodHeader);
-                }
-
-                // If we want to allow any status code, set that
-                var resolvedAllowAnyStatusAttribute = allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute;
-                if (resolvedAllowAnyStatusAttribute != null && resolvedAllowAnyStatusAttribute.AllowAnyStatusCode)
-                {
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
-                }
-
+                this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
+                this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
+                this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
+                this.AddPathProperties(methodIlGenerator, properties.Path);
+                this.AddMethodHeaders(methodIlGenerator, methodInfo);
+                this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
                 this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
-
                 this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
 
                 // Finally, return
@@ -424,6 +362,82 @@ namespace RestEase.Implementation
             // Ctor the RequestInfo
             // Stack: [this.requester, requestInfo]
             methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
+        }
+
+        private void AddCancellationTokenIfNeeded(ILGenerator methodIlGenerator, IndexedParameter? cancellationToken)
+        {
+            if (cancellationToken.HasValue)
+            {
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldarg, (short)cancellationToken.Value.Index);
+                methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
+            }
+        }
+
+        private void AddClassHeadersIfNeeded(ILGenerator methodIlGenerator, FieldInfo classHeadersField)
+        {
+            if (classHeadersField != null)
+            {
+                // requestInfo.ClassHeaders = classHeaders
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
+                methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
+            }
+        }
+
+        private void AddPropertyHeaders(ILGenerator methodIlGenerator, List<AttributedProperty<HeaderAttribute>> headers)
+        {
+            foreach (var propertyHeader in headers)
+            {
+                var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField.FieldType);
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Name);
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.BackingField);
+                if (propertyHeader.Attribute.Value == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
+                methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+            }
+        }
+
+        private void AddPathProperties(ILGenerator methodIlGenerator, List<AttributedProperty<PathAttribute>> path)
+        {
+            foreach (var pathProperty in path)
+            {
+                var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
+                if (pathProperty.Attribute.Format == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
+                methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+            }
+        }
+
+        private void AddMethodHeaders(ILGenerator methodIlGenerator, MethodInfo methodInfo)
+        {
+            var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
+            foreach (var methodHeader in methodHeaders)
+            {
+                if (methodHeader.Name.Contains(':'))
+                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
+                this.AddMethodHeader(methodIlGenerator, methodHeader);
+            }
+        }
+
+        private void AddAllowAnyStatusCodeIfNecessary(ILGenerator methodIlGenerator, AllowAnyStatusCodeAttribute resolvedAllowAnyStatusCodeAttribute)
+        {
+            if (resolvedAllowAnyStatusCodeAttribute != null && resolvedAllowAnyStatusCodeAttribute.AllowAnyStatusCode)
+            {
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
+                methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
+            }
         }
 
         private void AddParameters(
