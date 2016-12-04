@@ -56,6 +56,8 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 14. [Interface Accessibility](#interface-accessibility)
 15. [Using Generic Interfaces](#using-generic-interfaces)
 16. [Interface Inheritance](#interface-inheritance)
+  1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
+  2. [IDisposable](#idisposable)
 17. [FAQs](#faqs)
 18. [Comparison to Refit](#comparison-to-refit)
 
@@ -1136,6 +1138,8 @@ var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.examp
 Interface Inheritance
 ---------------------
 
+### Sharing common properties and methods
+
 You're allowed to use interface inheritance to share common properties and methods between different APIs.
 However, you are not allowed to put any attributes (`[Header]` or `[AllowAnyStatusCode]`) onto the child interfaces being inherited, just onto the parent-most interface.
 
@@ -1166,6 +1170,12 @@ public interface IUsersEndpoint : IAuthenticatedEndpoint
     Task<User> FetchUserAsync();
 }
 ```
+
+### IDisposable
+
+If your interface implements `IDisposable`, then RestEase will generate a `Dispose()` method which disposes the underlying `HttpClient`.
+Do this if you want to be able to dispose the `HttpClient`.
+
 
 FAQs
 ----

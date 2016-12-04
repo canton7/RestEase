@@ -386,5 +386,13 @@ namespace RestEase.Implementation
             var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return responseString;
         }
+
+        /// <summary>
+        /// Disposes the underlying <see cref="HttpClient"/>
+        /// </summary>
+        public void Dispose()
+        {
+            this.httpClient.Dispose();
+        }
     }
 }

@@ -49,6 +49,8 @@ namespace RestEase.Implementation
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetConstructor(new[] { typeof(string), typeof(string) });
 
+        private static readonly MethodInfo disposeMethod = typeof(IDisposable).GetMethod("Dispose");
+
         private static readonly Dictionary<HttpMethod, PropertyInfo> httpMethodProperties = new Dictionary<HttpMethod, PropertyInfo>()
         {
             { HttpMethod.Delete, typeof(HttpMethod).GetProperty("Delete") },
@@ -277,31 +279,38 @@ namespace RestEase.Implementation
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();
 
-                var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
-                if (requestAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
+                if (methodInfo == disposeMethod)
+                {
+                    this.AddDisposeMethod(methodIlGenerator, requesterField);
+                }
+                else
+                {
+                    var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
+                    if (requestAttribute == null)
+                        throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
 
-                var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
+                    var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
-                var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
-                var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
+                    var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
+                    var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
 
-                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
+                    this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
-                this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
-                this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
-                this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
-                this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
-                this.AddPathProperties(methodIlGenerator, properties.Path);
-                this.AddMethodHeaders(methodIlGenerator, methodInfo);
-                this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
-                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
-                this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
+                    this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
+                    this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
+                    this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
+                    this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
+                    this.AddPathProperties(methodIlGenerator, properties.Path);
+                    this.AddMethodHeaders(methodIlGenerator, methodInfo);
+                    this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
+                    this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
+                    this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
 
-                // Finally, return
-                methodIlGenerator.Emit(OpCodes.Ret);
+                    // Finally, return
+                    methodIlGenerator.Emit(OpCodes.Ret);
 
-                typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+                    typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
+                }
             }
         }
 
@@ -340,6 +349,14 @@ namespace RestEase.Implementation
             }
 
             return grouping;
+        }
+
+        private void AddDisposeMethod(ILGenerator methodIlGenerator, FieldBuilder requesterField)
+        {
+            methodIlGenerator.Emit(OpCodes.Ldarg_0);
+            methodIlGenerator.Emit(OpCodes.Ldfld, requesterField);
+            methodIlGenerator.Emit(OpCodes.Callvirt, disposeMethod);
+            methodIlGenerator.Emit(OpCodes.Ret);
         }
 
         private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
