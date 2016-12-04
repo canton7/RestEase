@@ -1352,10 +1352,11 @@ Here's a brief summary of pros/cons, compared to Refit:
  - Supports custom query parameter serialization
  - Supports arrays of query parameters (and body parameters when serializing a body parameter as UrlEncoded)
  - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
+ - Supports formatting `IFormattable` path and query params
+ - Allows `HttpClient` to be disposed
 
 ### Cons
 
  - Interfaces need to be public, or you need to add `[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]` to your `AssemblyInfo.cs`
- - Only supports .NET Framework
  - No `IObservable` support
  - Slightly more work done at runtime (but not very much more)
