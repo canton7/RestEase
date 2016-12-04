@@ -127,7 +127,7 @@ namespace RestEase.Implementation
             if (!interfaceType.GetTypeInfo().IsInterface)
                 throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name));
 
-            var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public);
+            var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public | TypeAttributes.Sealed);
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
             var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetCustomAttributes<HeaderAttribute>()).ToArray();
