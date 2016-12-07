@@ -288,8 +288,9 @@ namespace RestEase.Implementation
         /// Given an IRequestInfo, construct a HttpRequestMessage, send it, check the response for success, then return it
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to construct the request from</param>
+        /// <param name="readBody">True to pass HttpCompletionOption.ResponseContentRead, meaning that the body is read here</param>
         /// <returns>Resulting HttpResponseMessage</returns>
-        protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo)
+        protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
         {
             var path = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
             var message = new HttpRequestMessage()
@@ -302,10 +303,15 @@ namespace RestEase.Implementation
             // Do this after setting the content, as doing so may set headers which we want to remove / override
             this.ApplyHeaders(requestInfo, message);
 
-            // We're always going to want the content - we're a REST requesting library, and if there's a response we're always
-            // going to parse it out before returning. If we use HttpCompletionOptions.ResponseContentRead, then our
-            // CancellationToken will abort either the initial fetch *or* the read phases, which is what we want.
-            var response = await this.httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead, requestInfo.CancellationToken).ConfigureAwait(false);
+            // If we're deserializing, we're always going to want the content, since we're always going to deserialize it.
+            // Therefore use HttpCompletionOption.ResponseContentRead so that the content gets read at this point, meaning
+            // that it can be cancelled by our CancellationToken.
+            // However if we're returning a HttpResponseMessage, that's probably because the user wants to read it themselves.
+            // They might want to only fetch the first bit, or stream it into a file, or get process on it. In this case,
+            // we'll want HttpCompletionOption.ResponseHeadersRead.
+
+            var completionOption = readBody ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead;
+            var response = await this.httpClient.SendAsync(message, completionOption, requestInfo.CancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
                 throw await ApiException.CreateAsync(response).ConfigureAwait(false);
@@ -334,7 +340,8 @@ namespace RestEase.Implementation
         /// <returns>Task which completes when the request completed</returns>
         public virtual async Task RequestVoidAsync(IRequestInfo requestInfo)
         {
-            await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            // We're not going to return the body (unless there's an ApiException), so there's no point in fetching it
+            await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -345,7 +352,7 @@ namespace RestEase.Implementation
         /// <returns>Task resulting in the deserialized response</returns>
         public virtual async Task<T> RequestAsync<T>(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             T deserializedResponse = this.Deserialize<T>(content, response);
             return deserializedResponse;
@@ -358,7 +365,7 @@ namespace RestEase.Implementation
         /// <returns>Task containing the result of the request</returns>
         public virtual async Task<HttpResponseMessage> RequestWithResponseMessageAsync(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            var response = await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
             return response;
         }
 
@@ -370,7 +377,7 @@ namespace RestEase.Implementation
         /// <returns>Task containing a Response{T}, which contains the raw HttpResponseMessage, and its deserialized content</returns>
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new Response<T>(content, response, () => this.Deserialize<T>(content, response));
         }
@@ -382,7 +389,7 @@ namespace RestEase.Implementation
         /// <returns>Task containing the raw string body of the response</returns>
         public virtual async Task<string> RequestRawAsync(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo).ConfigureAwait(false);
+            var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return responseString;
         }

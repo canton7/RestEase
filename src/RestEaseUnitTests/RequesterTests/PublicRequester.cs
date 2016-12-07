@@ -34,9 +34,9 @@ namespace RestEaseUnitTests.RequesterTests
             base.ApplyHeaders(requestInfo, requestMessage);
         }
 
-        public new Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo)
+        public new Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
         {
-            return base.SendRequestAsync(requestInfo);
+            return base.SendRequestAsync(requestInfo, readBody);
         }
     }
 }

@@ -142,6 +142,9 @@ Your interface methods may return one of the following types:
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
 
+If you return a `Task<HttpResponseMessage>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc).
+If however you return a `Task<T>`, `Task<string>`, or `Task<Response<T>>`, then `HttpCompletionOption.ResponseContentRead` is used, meaning that any `CancellationToken` that you pass will cancel the body download.
+If you return a `Task`, then the response body isn't fetched, unless an `ApiException` is thrown.
 
 Query Parameters
 ----------------

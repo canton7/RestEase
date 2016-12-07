@@ -24,7 +24,7 @@ namespace RestEaseUnitTests.RequesterTests
             public Task<HttpResponseMessage> ResponseMessage;
             public IRequestInfo RequestInfo;
 
-            protected override Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo)
+            protected override Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
             {
                 this.RequestInfo = requestInfo;
                 return this.ResponseMessage;
@@ -142,7 +142,7 @@ namespace RestEaseUnitTests.RequesterTests
             var responseMessage = new HttpResponseMessage();
             messageHandler.ResponseMessage = Task.FromResult(responseMessage);
 
-            var response = requester.SendRequestAsync(requestInfo).Result;
+            var response = requester.SendRequestAsync(requestInfo, true).Result;
 
             Assert.Equal("http://api.com/foo", messageHandler.Request.RequestUri.ToString());
             Assert.Equal(responseMessage, response);
@@ -164,7 +164,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             messageHandler.ResponseMessage = Task.FromResult(responseMessage);
 
-            var aggregateException = Assert.Throws<AggregateException>(() => requester.SendRequestAsync(requestInfo).Wait());
+            var aggregateException = Assert.Throws<AggregateException>(() => requester.SendRequestAsync(requestInfo, true).Wait());
             var e = Assert.IsType<ApiException>(aggregateException.InnerException);
 
             Assert.Equal(HttpStatusCode.NotFound, e.StatusCode);
@@ -188,7 +188,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             messageHandler.ResponseMessage = Task.FromResult(responseMessage);
 
-            var response = requester.SendRequestAsync(requestInfo).Result;
+            var response = requester.SendRequestAsync(requestInfo, true).Result;
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -202,7 +202,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
 
             messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
-            var response = requester.SendRequestAsync(requestInfo).Result;
+            var response = requester.SendRequestAsync(requestInfo, true).Result;
             Assert.Equal("http://api.example.com/base/", messageHandler.Request.RequestUri.ToString());
         }
 
@@ -217,7 +217,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
 
-            var response = requester.SendRequestAsync(requestInfo).Result;
+            var response = requester.SendRequestAsync(requestInfo, true).Result;
             Assert.Equal("http://api.example.com/base", messageHandler.Request.RequestUri.ToString());
         }
 
@@ -232,7 +232,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
 
-            var response = requester.SendRequestAsync(requestInfo).Result;
+            var response = requester.SendRequestAsync(requestInfo, true).Result;
             Assert.Equal("http://api.example.com/base/foo", messageHandler.Request.RequestUri.ToString());
         }
     }
