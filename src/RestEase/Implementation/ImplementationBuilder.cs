@@ -59,7 +59,8 @@ namespace RestEase.Implementation
             { HttpMethod.Options, typeof(HttpMethod).GetProperty("Options") },
             { HttpMethod.Post, typeof(HttpMethod).GetProperty("Post") },
             { HttpMethod.Put, typeof(HttpMethod).GetProperty("Put") },
-            { HttpMethod.Trace, typeof(HttpMethod).GetProperty("Trace") }
+            { HttpMethod.Trace, typeof(HttpMethod).GetProperty("Trace") },
+            { PatchAttribute.PatchMethod, typeof(PatchAttribute).GetProperty("PatchMethod", BindingFlags.Static | BindingFlags.NonPublic) },
         };
 
         private readonly ModuleBuilder moduleBuilder;
@@ -371,7 +372,7 @@ namespace RestEase.Implementation
             // Start loading the ctor params for RequestInfo onto the stack
             // 1. HttpMethod
             // Stack: [this.requester, HttpMethod]
-            methodIlGenerator.Emit(OpCodes.Call, httpMethodProperties[requestAttribute.Method].GetGetMethod());
+            methodIlGenerator.Emit(OpCodes.Call, httpMethodProperties[requestAttribute.Method].GetGetMethod(nonPublic: true));
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
             methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
