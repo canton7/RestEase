@@ -72,7 +72,7 @@ namespace RestEase.Implementation
                 var serialized = pathParam.SerializeToString();
 
                 // Space needs to be treated separately
-                var value = UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20");
+                var value = pathParam.UrlEncode ? UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
                 sb.Replace("{" + (serialized.Key ?? String.Empty) + "}", value);
             }
 

@@ -433,6 +433,7 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Ldnull);
                 else
                     methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
+                methodIlGenerator.Emit(pathProperty.Attribute.UrlEncode ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
                 methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
             }
         }
@@ -501,8 +502,7 @@ namespace RestEase.Implementation
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
-                var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
-                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, pathParameter.Attribute.Format, method);
+                this.AddPathParam(methodIlGenerator, pathParameter);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -706,10 +706,12 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, string format, MethodInfo methodInfo)
+        private void AddPathParam(ILGenerator methodIlGenerator, IndexedParameter<PathAttribute> pathParameter)
         {
+            var methodInfo = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
+
             // Equivalent C#:
-            // requestInfo.AddPathParameter("name", value);
+            // requestInfo.AddPathParameter("name", value, format, urlEncode);
             // where 'value' is the parameter at index parameterIndex
 
             // Duplicate the requestInfo.
@@ -717,16 +719,19 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Dup);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
-            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
-            // Load the format onto ths tack
+            methodIlGenerator.Emit(OpCodes.Ldarg, (short)pathParameter.Index);
+            // Load the format onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value, format]
-            if (format == null)
+            if (pathParameter.Attribute.Format == null)
                 methodIlGenerator.Emit(OpCodes.Ldnull);
             else
-                methodIlGenerator.Emit(OpCodes.Ldstr, format);
+                methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Format);
+            // Load urlEncode onto the stack
+            // Stack: [..., requestInfo, requestInfo, name, value, format, urlEncode]
+            methodIlGenerator.Emit(pathParameter.Attribute.UrlEncode ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);

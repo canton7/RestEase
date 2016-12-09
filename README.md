@@ -31,8 +31,10 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 6. [Path Placeholders](#path-placeholders)
   1. [Path Parameters](#path-parameters)
     1. [Formatting Path Parameters](#formatting-path-parameters)
+    2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
   2. [Path Properties](#path-properties)
     1. [Formatting Path Properties](#formatting-path-properties)
+    2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
 7. [Body Content](#body-content)
   1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
@@ -436,6 +438,24 @@ ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
 await api.FooAsync(1);
 ```
 
+#### URL Encoding in Path Parameters
+
+By default, path parameters are URL-encoded, which means things like `/` are escaped.
+If you don't want this, for example you want to specify a literal section of the URL, this can be disabled using the `UrlEncode` property of the `[Path]` attribute, for example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo/{bar}")]
+    Task FooAsync([Path(UrlEncode = false)] string bar);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo/bar/baz
+await api.FooAsync("bar/baz");
+```
+
 ### Path Properties
 
 Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
@@ -483,7 +503,7 @@ For example:
 public interface ISomeApi
 {
     [Path("accountId", Format = "N")]
-    Guid AccoutnId { get; set; }
+    Guid AccountId { get; set; }
 
     [Get("{accountId}/profile")]
     Task<Profile> GetProfileAsync()
@@ -496,6 +516,28 @@ api.AccountId = someGuid;
 var profile = await api.GetProfileAsync();
 ```
 
+#### URL Encoding in Path Properties
+
+As with path parameters, you can disable URL encoding for path properties.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Path("pathPart", UrlEncode = false)]
+    Guid PathPart { get; set; }
+
+    [Get("{pathPart}/profile")]
+    Task GetAsync();
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com");
+api.PathPart = "users/abc";
+
+// Requests http://api.example.com/users/abc/profile
+await api.GetAsync();
+```
 
 Body Content
 ------------
@@ -1210,6 +1252,7 @@ Sometimes your API responses will contain absolute URLs, for example a "next pag
 Therefore you'll want a way to request a resource using an absolute URL which overrides the base URL you specified.
 
 Thankfully this is easy: if you give an absolute URL to e.g. `[Get("http://api.example.com/foo")]`, then the base URL will be ignored.
+You will also need to disable URL encoding.
 
 ```csharp
 public interface ISomeApi
@@ -1218,7 +1261,7 @@ public interface ISomeApi
     Task<UsersResponse> FetchUsersAsync();
 
     [Get("{url}")]
-    Task<UsersResponse> FetchUsersByUrlAsync([Path] string url);
+    Task<UsersResponse> FetchUsersByUrlAsync([Path(UrlEncode = false)] string url);
 }
 
 ISomeApi api = RestClient.For<ISomeApi("http://api.example.com");
