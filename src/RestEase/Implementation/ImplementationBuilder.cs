@@ -48,6 +48,9 @@ namespace RestEase.Implementation
         private static readonly ConstructorInfo listOfKvpOfStringNCtor = typeof(List<KeyValuePair<string, string>>).GetConstructor(new[] { typeof(int) });
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetConstructor(new[] { typeof(string), typeof(string) });
+        private static readonly ConstructorInfo httpMethodCtor = typeof(HttpMethod).GetConstructor(new[] { typeof(string) });
+
+        private static readonly MethodInfo disposeMethod = typeof(IDisposable).GetMethod("Dispose");
 
         private static readonly Dictionary<HttpMethod, PropertyInfo> httpMethodProperties = new Dictionary<HttpMethod, PropertyInfo>()
         {
@@ -57,12 +60,13 @@ namespace RestEase.Implementation
             { HttpMethod.Options, typeof(HttpMethod).GetProperty("Options") },
             { HttpMethod.Post, typeof(HttpMethod).GetProperty("Post") },
             { HttpMethod.Put, typeof(HttpMethod).GetProperty("Put") },
-            { HttpMethod.Trace, typeof(HttpMethod).GetProperty("Trace") }
+            { HttpMethod.Trace, typeof(HttpMethod).GetProperty("Trace") },
+            { PatchAttribute.PatchMethod, typeof(PatchAttribute).GetProperty("PatchMethod") },
         };
 
         private readonly ModuleBuilder moduleBuilder;
 
-        private readonly object implementationBuildLockObject = new object();
+        private readonly object implementationBuilderLockObject = new object();
         private readonly ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>> creatorCache = new ConcurrentDictionary<RuntimeTypeHandle, Func<IRequester, object>>();
 
         /// <summary>
@@ -97,7 +101,7 @@ namespace RestEase.Implementation
 
             if (!this.creatorCache.TryGetValue(key, out creator))
             {
-                lock (this.implementationBuildLockObject)
+                lock (this.implementationBuilderLockObject)
                 {
                     // Two threads can fail the TryGetValue and acquire this lock in order. The first one will create the type.
                     // Therefore the second one has to check for this...
@@ -127,7 +131,7 @@ namespace RestEase.Implementation
             if (!interfaceType.GetTypeInfo().IsInterface)
                 throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name));
 
-            var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public);
+            var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public | TypeAttributes.Sealed);
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
             var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetCustomAttributes<HeaderAttribute>()).ToArray();
@@ -271,99 +275,44 @@ namespace RestEase.Implementation
                 if (methodInfo.IsSpecialName)
                     continue;
 
-                var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
-                if (requestAttribute == null)
-                    throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
-
-                var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
-
-                var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
-                var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
-
                 var parameters = methodInfo.GetParameters();
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
-
-                this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
                 var methodIlGenerator = methodBuilder.GetILGenerator();
 
-                this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
-
-                // If there's a cancellationtoken, add that
-                if (parameterGrouping.CancellationToken.HasValue)
+                if (methodInfo == disposeMethod)
                 {
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldarg, (short)parameterGrouping.CancellationToken.Value.Index);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
+                    this.AddDisposeMethod(methodIlGenerator, requesterField);
                 }
-
-                // If there are any class headers, add them
-                if (classHeadersField != null)
+                else
                 {
-                    // requestInfo.ClassHeaders = classHeaders
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
+                    var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
+                    if (requestAttribute == null)
+                        throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
+
+                    var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
+
+                    var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
+                    var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
+
+                    this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
+
+                    this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
+                    this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
+                    this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
+                    this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
+                    this.AddPathProperties(methodIlGenerator, properties.Path);
+                    this.AddMethodHeaders(methodIlGenerator, methodInfo);
+                    this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
+                    this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
+                    this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
+
+                    // Finally, return
+                    methodIlGenerator.Emit(OpCodes.Ret);
+
+                    typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
                 }
-
-                // If there are any property headers, add them
-                foreach (var propertyHeader in properties.Headers)
-                {
-                    var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField.FieldType);
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Name);
-                    methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                    methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.BackingField);
-                    if (propertyHeader.Attribute.Value == null)
-                        methodIlGenerator.Emit(OpCodes.Ldnull);
-                    else
-                        methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
-                }
-
-                // If there are path properties, add them
-                foreach (var pathProperty in properties.Path)
-                {
-                    var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
-                    methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                    methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
-                    if (pathProperty.Attribute.Format == null)
-                        methodIlGenerator.Emit(OpCodes.Ldnull);
-                    else
-                        methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
-                }
-
-                // If there are any method headers, add them
-                var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
-
-                foreach (var methodHeader in methodHeaders)
-                {
-                    if (methodHeader.Name.Contains(':'))
-                        throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
-                    this.AddMethodHeader(methodIlGenerator, methodHeader);
-                }
-
-                // If we want to allow any status code, set that
-                var resolvedAllowAnyStatusAttribute = allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute;
-                if (resolvedAllowAnyStatusAttribute != null && resolvedAllowAnyStatusAttribute.AllowAnyStatusCode)
-                {
-                    methodIlGenerator.Emit(OpCodes.Dup);
-                    methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
-                    methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
-                }
-
-                this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
-
-                this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
-
-                // Finally, return
-                methodIlGenerator.Emit(OpCodes.Ret);
-
-                typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             }
         }
 
@@ -404,6 +353,14 @@ namespace RestEase.Implementation
             return grouping;
         }
 
+        private void AddDisposeMethod(ILGenerator methodIlGenerator, FieldBuilder requesterField)
+        {
+            methodIlGenerator.Emit(OpCodes.Ldarg_0);
+            methodIlGenerator.Emit(OpCodes.Ldfld, requesterField);
+            methodIlGenerator.Emit(OpCodes.Callvirt, disposeMethod);
+            methodIlGenerator.Emit(OpCodes.Ret);
+        }
+
         private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
         {
             // Load 'this' onto the stack
@@ -416,7 +373,18 @@ namespace RestEase.Implementation
             // Start loading the ctor params for RequestInfo onto the stack
             // 1. HttpMethod
             // Stack: [this.requester, HttpMethod]
-            methodIlGenerator.Emit(OpCodes.Call, httpMethodProperties[requestAttribute.Method].GetGetMethod());
+            // For the standard HTTP methods, we can get a static instance. For others, we'll need to construct the HttpMethod
+            // ourselves
+            PropertyInfo cachedPropertyInfo;
+            if (httpMethodProperties.TryGetValue(requestAttribute.Method, out cachedPropertyInfo))
+            {
+                methodIlGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetGetMethod(nonPublic: true));
+            }
+            else
+            {
+                methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Method.Method);
+                methodIlGenerator.Emit(OpCodes.Newobj, httpMethodCtor);
+            }
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
             methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
@@ -424,6 +392,83 @@ namespace RestEase.Implementation
             // Ctor the RequestInfo
             // Stack: [this.requester, requestInfo]
             methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
+        }
+
+        private void AddCancellationTokenIfNeeded(ILGenerator methodIlGenerator, IndexedParameter? cancellationToken)
+        {
+            if (cancellationToken.HasValue)
+            {
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldarg, (short)cancellationToken.Value.Index);
+                methodIlGenerator.Emit(OpCodes.Callvirt, cancellationTokenSetter);
+            }
+        }
+
+        private void AddClassHeadersIfNeeded(ILGenerator methodIlGenerator, FieldInfo classHeadersField)
+        {
+            if (classHeadersField != null)
+            {
+                // requestInfo.ClassHeaders = classHeaders
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldsfld, classHeadersField);
+                methodIlGenerator.Emit(OpCodes.Callvirt, setClassHeadersMethod);
+            }
+        }
+
+        private void AddPropertyHeaders(ILGenerator methodIlGenerator, List<AttributedProperty<HeaderAttribute>> headers)
+        {
+            foreach (var propertyHeader in headers)
+            {
+                var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField.FieldType);
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Name);
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                methodIlGenerator.Emit(OpCodes.Ldfld, propertyHeader.BackingField);
+                if (propertyHeader.Attribute.Value == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
+                methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+            }
+        }
+
+        private void AddPathProperties(ILGenerator methodIlGenerator, List<AttributedProperty<PathAttribute>> path)
+        {
+            foreach (var pathProperty in path)
+            {
+                var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
+                if (pathProperty.Attribute.Format == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
+                methodIlGenerator.Emit(pathProperty.Attribute.UrlEncode ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+                methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+            }
+        }
+
+        private void AddMethodHeaders(ILGenerator methodIlGenerator, MethodInfo methodInfo)
+        {
+            var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
+            foreach (var methodHeader in methodHeaders)
+            {
+                if (methodHeader.Name.Contains(':'))
+                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
+                this.AddMethodHeader(methodIlGenerator, methodHeader);
+            }
+        }
+
+        private void AddAllowAnyStatusCodeIfNecessary(ILGenerator methodIlGenerator, AllowAnyStatusCodeAttribute resolvedAllowAnyStatusCodeAttribute)
+        {
+            if (resolvedAllowAnyStatusCodeAttribute != null && resolvedAllowAnyStatusCodeAttribute.AllowAnyStatusCode)
+            {
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
+                methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
+            }
         }
 
         private void AddParameters(
@@ -469,8 +514,7 @@ namespace RestEase.Implementation
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
-                var method = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
-                this.AddPathParam(methodIlGenerator, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name, (short)pathParameter.Index, pathParameter.Attribute.Format, method);
+                this.AddPathParam(methodIlGenerator, pathParameter);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -674,10 +718,12 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, string name, short parameterIndex, string format, MethodInfo methodInfo)
+        private void AddPathParam(ILGenerator methodIlGenerator, IndexedParameter<PathAttribute> pathParameter)
         {
+            var methodInfo = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
+
             // Equivalent C#:
-            // requestInfo.AddPathParameter("name", value);
+            // requestInfo.AddPathParameter("name", value, format, urlEncode);
             // where 'value' is the parameter at index parameterIndex
 
             // Duplicate the requestInfo.
@@ -685,16 +731,19 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Dup);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
-            methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
-            // Load the format onto ths tack
+            methodIlGenerator.Emit(OpCodes.Ldarg, (short)pathParameter.Index);
+            // Load the format onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value, format]
-            if (format == null)
+            if (pathParameter.Attribute.Format == null)
                 methodIlGenerator.Emit(OpCodes.Ldnull);
             else
-                methodIlGenerator.Emit(OpCodes.Ldstr, format);
+                methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Format);
+            // Load urlEncode onto the stack
+            // Stack: [..., requestInfo, requestInfo, name, value, format, urlEncode]
+            methodIlGenerator.Emit(pathParameter.Attribute.UrlEncode ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);

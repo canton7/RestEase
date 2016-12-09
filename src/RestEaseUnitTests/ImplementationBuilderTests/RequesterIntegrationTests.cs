@@ -66,6 +66,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             [Trace("foo")]
             Task TraceAsync();
+
+            [Patch("foo")]
+            Task PatchAsync();
         }
 
         public interface IHasEmptyPath
@@ -228,6 +231,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.TraceAsync();
             Assert.Equal(HttpMethod.Trace, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
+
+            implementation.TraceAsync();
+            Assert.Equal(new HttpMethod("TRACE"), requestInfo.Method);
             Assert.Equal("foo", requestInfo.Path);
         }
 

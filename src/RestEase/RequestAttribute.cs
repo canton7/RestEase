@@ -4,7 +4,7 @@ using System.Net.Http;
 namespace RestEase
 {
     /// <summary>
-    /// Base class for all request attributes
+    /// Base class for all request attributes, or for custom HTTP methods which aren't represented by subclasses
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     public class RequestAttribute : Attribute
@@ -33,9 +33,35 @@ namespace RestEase
         /// </summary>
         /// <param name="method">HttpMethod to use</param>
         /// <param name="path">Relative path to use</param>
-        public RequestAttribute(HttpMethod method, string path) : this(method)
+        public RequestAttribute(HttpMethod method, string path)
+            : this(method)
         {
             this.Path = path;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod.
+        /// </summary>
+        /// <remarks>
+        /// Use this if there isn't a <see cref="RequestAttribute"/> subclass for the HTTP method you want to use
+        /// </remarks>
+        /// <param name="httpMethod">HTTP Method to use, e.g. "PATCH"</param>
+        public RequestAttribute(string httpMethod)
+            : this(new HttpMethod(httpMethod))
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod and relative path.
+        /// </summary>
+        /// <remarks>
+        /// Use this if there isn't a <see cref="RequestAttribute"/> subclass for the HTTP method you want to use
+        /// </remarks>
+        /// <param name="httpMethod">HTTP Method to use, e.g. "PATCH"</param>
+        /// <param name="path">Relative path to use</param>
+        public RequestAttribute(string httpMethod, string path)
+            : this (new HttpMethod(httpMethod), path)
+        {
         }
     }
 
@@ -163,5 +189,28 @@ namespace RestEase
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public TraceAttribute(string path) : base(HttpMethod.Trace, path) { }
+    }
+
+    /// <summary>
+    /// Patch request
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    public sealed class PatchAttribute : RequestAttribute
+    {
+        /// <summary>
+        /// Gets a static instance of <see cref="HttpMethod"/> corresponding to a PATCH request
+        /// </summary>
+        public static HttpMethod PatchMethod { get; } = new HttpMethod("PATCH");
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="PatchAttribute"/> class
+        /// </summary>
+        public PatchAttribute() : base(PatchMethod) { }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="PatchAttribute"/> class, with the given relativ epath
+        /// </summary>
+        /// <param name="path">Relative path to use</param>
+        public PatchAttribute(string path) : base(PatchMethod, path) { }
     }
 }

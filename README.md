@@ -31,8 +31,10 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 6. [Path Placeholders](#path-placeholders)
   1. [Path Parameters](#path-parameters)
     1. [Formatting Path Parameters](#formatting-path-parameters)
+    2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
   2. [Path Properties](#path-properties)
     1. [Formatting Path Properties](#formatting-path-properties)
+    2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
 7. [Body Content](#body-content)
   1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
@@ -56,6 +58,8 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 14. [Interface Accessibility](#interface-accessibility)
 15. [Using Generic Interfaces](#using-generic-interfaces)
 16. [Interface Inheritance](#interface-inheritance)
+  1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
+  2. [IDisposable](#idisposable)
 17. [FAQs](#faqs)
 18. [Comparison to Refit](#comparison-to-refit)
 
@@ -120,7 +124,7 @@ Request Types
 
 See the `[Get("path")]` attribute used above?
 That's how you mark that method as being a GET request.
-There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Post("path")]`, `[Delete("path")]`, etc.
+There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path)")]`, `[Patch("path")]`.
 Use whichever one you need to.
 
 The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`.
@@ -140,6 +144,9 @@ Your interface methods may return one of the following types:
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
 
+If you return a `Task<HttpResponseMessage>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc).
+If however you return a `Task<T>`, `Task<string>`, or `Task<Response<T>>`, then `HttpCompletionOption.ResponseContentRead` is used, meaning that any `CancellationToken` that you pass will cancel the body download.
+If you return a `Task`, then the response body isn't fetched, unless an `ApiException` is thrown.
 
 Query Parameters
 ----------------
@@ -431,6 +438,24 @@ ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
 await api.FooAsync(1);
 ```
 
+#### URL Encoding in Path Parameters
+
+By default, path parameters are URL-encoded, which means things like `/` are escaped.
+If you don't want this, for example you want to specify a literal section of the URL, this can be disabled using the `UrlEncode` property of the `[Path]` attribute, for example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo/{bar}")]
+    Task FooAsync([Path(UrlEncode = false)] string bar);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo/bar/baz
+await api.FooAsync("bar/baz");
+```
+
 ### Path Properties
 
 Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
@@ -478,7 +503,7 @@ For example:
 public interface ISomeApi
 {
     [Path("accountId", Format = "N")]
-    Guid AccoutnId { get; set; }
+    Guid AccountId { get; set; }
 
     [Get("{accountId}/profile")]
     Task<Profile> GetProfileAsync()
@@ -491,6 +516,28 @@ api.AccountId = someGuid;
 var profile = await api.GetProfileAsync();
 ```
 
+#### URL Encoding in Path Properties
+
+As with path parameters, you can disable URL encoding for path properties.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Path("pathPart", UrlEncode = false)]
+    Guid PathPart { get; set; }
+
+    [Get("{pathPart}/profile")]
+    Task GetAsync();
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com");
+api.PathPart = "users/abc";
+
+// Requests http://api.example.com/users/abc/profile
+await api.GetAsync();
+```
 
 Body Content
 ------------
@@ -1136,6 +1183,8 @@ var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.examp
 Interface Inheritance
 ---------------------
 
+### Sharing common properties and methods
+
 You're allowed to use interface inheritance to share common properties and methods between different APIs.
 However, you are not allowed to put any attributes (`[Header]` or `[AllowAnyStatusCode]`) onto the child interfaces being inherited, just onto the parent-most interface.
 
@@ -1167,6 +1216,12 @@ public interface IUsersEndpoint : IAuthenticatedEndpoint
 }
 ```
 
+### IDisposable
+
+If your interface implements `IDisposable`, then RestEase will generate a `Dispose()` method which disposes the underlying `HttpClient`.
+Do this if you want to be able to dispose the `HttpClient`.
+
+
 FAQs
 ----
 
@@ -1197,6 +1252,7 @@ Sometimes your API responses will contain absolute URLs, for example a "next pag
 Therefore you'll want a way to request a resource using an absolute URL which overrides the base URL you specified.
 
 Thankfully this is easy: if you give an absolute URL to e.g. `[Get("http://api.example.com/foo")]`, then the base URL will be ignored.
+You will also need to disable URL encoding.
 
 ```csharp
 public interface ISomeApi
@@ -1205,7 +1261,7 @@ public interface ISomeApi
     Task<UsersResponse> FetchUsersAsync();
 
     [Get("{url}")]
-    Task<UsersResponse> FetchUsersByUrlAsync([Path] string url);
+    Task<UsersResponse> FetchUsersByUrlAsync([Path(UrlEncode = false)] string url);
 }
 
 ISomeApi api = RestClient.For<ISomeApi("http://api.example.com");
@@ -1342,10 +1398,11 @@ Here's a brief summary of pros/cons, compared to Refit:
  - Supports custom query parameter serialization
  - Supports arrays of query parameters (and body parameters when serializing a body parameter as UrlEncoded)
  - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
+ - Supports formatting `IFormattable` path and query params
+ - Allows `HttpClient` to be disposed
 
 ### Cons
 
  - Interfaces need to be public, or you need to add `[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]` to your `AssemblyInfo.cs`
- - Only supports .NET Framework
  - No `IObservable` support
  - Slightly more work done at runtime (but not very much more)

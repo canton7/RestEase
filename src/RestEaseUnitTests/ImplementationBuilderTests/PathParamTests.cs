@@ -105,6 +105,21 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Path(Format = "D2")] int foo);
         }
 
+        public interface IHasPathPropertyWithNoUrlEncoding
+        {
+            [Path("foo", UrlEncode = false)]
+            string Foo { get; set; }
+
+            [Get("path/{foo}")]
+            Task FooAsync();
+        }
+
+        public interface IHasPathParamWithNoUrlEncoding
+        {
+            [Get("path/{foo}")]
+            Task FooAsync([Path(UrlEncode = false)] string foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -273,6 +288,32 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var serialized = pathParams[0].SerializeToString();
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("02", serialized.Value);
+        }
+
+        [Fact]
+        public void HandlesPathPropertiesWithNoUrlEncoding()
+        {
+            var requestInfo = Request<IHasPathPropertyWithNoUrlEncoding>(x =>
+            {
+                x.Foo = "a/b+c";
+                return x.FooAsync();
+            });
+
+            var pathProperties = requestInfo.PathProperties.ToList();
+            Assert.Equal(1, pathProperties.Count);
+
+            Assert.False(pathProperties[0].UrlEncode);
+        }
+
+        [Fact]
+        public void HandlesPathParamsWithNoUrlEncoding()
+        {
+            var requestInfo = Request<IHasPathParamWithNoUrlEncoding>(x => x.FooAsync("a/b+c"));
+
+            var pathParams = requestInfo.PathParams.ToList();
+            Assert.Equal(1, pathParams.Count);
+
+            Assert.False(pathParams[0].UrlEncode);
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

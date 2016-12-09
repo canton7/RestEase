@@ -1,13 +1,14 @@
 ﻿using RestEase.Implementation;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System;
 
 namespace RestEase
 {
     /// <summary>
     /// Called by the generated REST API implementation, this knows how to invoke the API and return a suitable response
     /// </summary>
-    public interface IRequester
+    public interface IRequester : IDisposable
     {
         /// <summary>
         /// Invoked when the API interface method being called returns a Task

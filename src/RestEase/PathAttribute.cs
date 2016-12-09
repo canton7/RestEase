@@ -19,6 +19,11 @@ namespace RestEase
         public string Format { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether this path parameter should be URL-encoded. Defaults to true.
+        /// </summary>
+        public bool UrlEncode { get; set; } = true;
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="PathAttribute"/> class
         /// </summary>
         public PathAttribute()

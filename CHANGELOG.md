@@ -1,3 +1,12 @@
+v1.3.1
+------
+
+ - If you make your interface `IDisposable`, disposing it will dispose the underlying `HttpClient`
+ - If your method return type is `Task<HttpResponseMessage>`, use `HttpCompletionOption.ResponseHeadersRead` instead of `HttpCompletionOption.ResponseContentRead`, allowing you to control if and when the content is read.
+ - Add support for the HTTP Patch method
+ - Add `[Path(UrlEncode = false)]`, allowing URL encoding to be turned off for individual path parameters
+ - Remove the dependency on all of NetStandard.Library (for .NET Core targets)
+
 v1.3.0
 ------
 

@@ -217,12 +217,13 @@ namespace RestEase.Implementation
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
-        public void AddPathParameter<T>(string name, T value, string format = null)
+        /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
+        public void AddPathParameter<T>(string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathParams == null)
                 this._pathParams = new List<PathParameterInfo>();
 
-            this._pathParams.Add(new PathParameterInfo(name, value, format));
+            this._pathParams.Add(new PathParameterInfo(name, value, format, urlEncode));
         }
 
         /// <summary>
@@ -232,12 +233,13 @@ namespace RestEase.Implementation
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
-        public void AddPathProperty<T>(string name, T value, string format = null)
+        /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
+        public void AddPathProperty<T>(string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathProperties == null)
                 this._pathProperties = new List<PathParameterInfo>();
 
-            this._pathProperties.Add(new PathParameterInfo(name, value, format));
+            this._pathProperties.Add(new PathParameterInfo(name, value, format, urlEncode));
         }
 
         /// <summary>
