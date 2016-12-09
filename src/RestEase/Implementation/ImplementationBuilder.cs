@@ -48,6 +48,7 @@ namespace RestEase.Implementation
         private static readonly ConstructorInfo listOfKvpOfStringNCtor = typeof(List<KeyValuePair<string, string>>).GetConstructor(new[] { typeof(int) });
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetConstructor(new[] { typeof(string), typeof(string) });
+        private static readonly ConstructorInfo httpMethodCtor = typeof(HttpMethod).GetConstructor(new[] { typeof(string) });
 
         private static readonly MethodInfo disposeMethod = typeof(IDisposable).GetMethod("Dispose");
 
@@ -60,7 +61,7 @@ namespace RestEase.Implementation
             { HttpMethod.Post, typeof(HttpMethod).GetProperty("Post") },
             { HttpMethod.Put, typeof(HttpMethod).GetProperty("Put") },
             { HttpMethod.Trace, typeof(HttpMethod).GetProperty("Trace") },
-            { PatchAttribute.PatchMethod, typeof(PatchAttribute).GetProperty("PatchMethod", BindingFlags.Static | BindingFlags.NonPublic) },
+            { PatchAttribute.PatchMethod, typeof(PatchAttribute).GetProperty("PatchMethod") },
         };
 
         private readonly ModuleBuilder moduleBuilder;
@@ -372,7 +373,18 @@ namespace RestEase.Implementation
             // Start loading the ctor params for RequestInfo onto the stack
             // 1. HttpMethod
             // Stack: [this.requester, HttpMethod]
-            methodIlGenerator.Emit(OpCodes.Call, httpMethodProperties[requestAttribute.Method].GetGetMethod(nonPublic: true));
+            // For the standard HTTP methods, we can get a static instance. For others, we'll need to construct the HttpMethod
+            // ourselves
+            PropertyInfo cachedPropertyInfo;
+            if (httpMethodProperties.TryGetValue(requestAttribute.Method, out cachedPropertyInfo))
+            {
+                methodIlGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetGetMethod(nonPublic: true));
+            }
+            else
+            {
+                methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Method.Method);
+                methodIlGenerator.Emit(OpCodes.Newobj, httpMethodCtor);
+            }
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
             methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
