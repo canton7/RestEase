@@ -1,3 +1,8 @@
+v1.3.2
+------
+
+ - Add support for netstandard1.1
+
 v1.3.1
 ------
 
