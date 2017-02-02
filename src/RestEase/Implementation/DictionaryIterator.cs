@@ -12,7 +12,11 @@ namespace RestEase.Implementation
     /// </summary>
     public static class DictionaryIterator
     {
+#if NETSTANDARD
+        private static readonly MethodInfo iterateGenericTypedMethod = typeof(DictionaryIterator).GetTypeInfo().GetDeclaredMethod("IterateGenericTyped");
+#else
         private static readonly MethodInfo iterateGenericTypedMethod = typeof(DictionaryIterator).GetMethod("IterateGenericTyped", BindingFlags.NonPublic | BindingFlags.Static);
+#endif
 
         /// <summary>
         /// Returns true if we're capable of iterating the supplied type
@@ -21,9 +25,10 @@ namespace RestEase.Implementation
         /// <returns>True if we're capable of iterating it</returns>
         public static bool CanIterate(Type dictionaryType)
         {
-            return typeof(IDictionary).IsAssignableFrom(dictionaryType) ||
-                (dictionaryType.GetTypeInfo().IsGenericType && dictionaryType.GetGenericTypeDefinition() == typeof(IDictionary<,>)) ||
-                dictionaryType.GetInterfaces().Any(x => x.GetTypeInfo().IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+            var dictionaryTypeInfo = dictionaryType.GetTypeInfo();
+            return typeof(IDictionary).GetTypeInfo().IsAssignableFrom(dictionaryTypeInfo) ||
+                (dictionaryTypeInfo.IsGenericType && dictionaryType.GetGenericTypeDefinition() == typeof(IDictionary<,>)) ||
+                dictionaryTypeInfo.GetInterfaces().Any(x => x.GetTypeInfo().IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
         }
 
         /// <summary>
@@ -41,9 +46,10 @@ namespace RestEase.Implementation
 
             // 'dictionary' cannot be an interface, so we're safe skipping to see whether
             // dictionary.GetType().GetGenericTypeDefinition() == IDictionary<,>
-            foreach (var interfaceType in dictionary.GetType().GetInterfaces())
+            foreach (var interfaceType in dictionary.GetType().GetTypeInfo().GetInterfaces())
             {
-                if (interfaceType.GetTypeInfo().IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                var interfaceTypeInfo = interfaceType.GetTypeInfo();
+                if (interfaceTypeInfo.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
                     return IterateGeneric(dictionary, interfaceType);
             }
 
@@ -60,7 +66,7 @@ namespace RestEase.Implementation
 
         private static IEnumerable<KeyValuePair<object, object>> IterateGeneric(object dictionary, Type dictionaryType)
         {
-            var genericArguments = dictionaryType.GetGenericArguments();
+            var genericArguments = dictionaryType.GetTypeInfo().GetGenericArguments();
             var keyType = genericArguments[0];
             var valueType = genericArguments[1];
 

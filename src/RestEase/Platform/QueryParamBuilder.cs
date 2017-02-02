@@ -28,7 +28,7 @@ namespace RestEase.Platform
                 }
                 else
                 {
-                    query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(query, kvp.Key, kvp.Value);
+                    query = QueryHelpers.AddQueryString(query, kvp.Key, kvp.Value);
                 }
             }
             // We should use %20 before the ?, and + after it.

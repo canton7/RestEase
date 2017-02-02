@@ -8,7 +8,7 @@
   "dependencies": {
   },
   "frameworks": {
-    "netstandard1.3": {
+    "netstandard1.1": {
       "buildOptions": {
         "define": [
           "NETSTANDARD"
@@ -17,10 +17,11 @@
       "dependencies": {
         "System.Net.Http": "4.1.0",
         "System.Collections.Concurrent": "4.0.12",
+        "System.Reflection": "4.1.0",
         "System.Reflection.Emit": "4.0.1",
-        "System.Reflection.TypeExtensions": "4.1.0",
-        "Newtonsoft.Json": "9.0.1",
-        "Microsoft.AspNetCore.WebUtilities": "1.0.0"
+        "Microsoft.Extensions.Primitives": "1.0.0",
+        "System.Text.Encodings.Web": "4.0.0",
+        "Newtonsoft.Json": "9.0.1"
       }
     },
     "net45": {

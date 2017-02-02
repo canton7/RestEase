@@ -28,7 +28,7 @@ namespace RestEase.Implementation
                     // Only allow default value if type is nullable (reference type or Nullable<T>)
                     if (headerAttribute.Value != null && property.PropertyType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
                         throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} (i.e. containing a default value) can only be used if the property type is nullable", headerAttribute.Name, headerAttribute.Value, property.Name));
-                    if (headerAttribute.Name.Contains(':'))
+                    if (headerAttribute.Name.Contains(":"))
                         throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on property {1} must not have a colon in its name", headerAttribute.Name, property.Name));
 
                     this.Headers.Add(new AttributedProperty<HeaderAttribute>(headerAttribute, property));

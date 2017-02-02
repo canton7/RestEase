@@ -120,7 +120,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ThrowsIfUriIsUnparsable()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "http://base.com/");
-            Assert.Throws<UriFormatException>(() => this.requester.ConstructUri("http://api.com:80:80/foo", requestInfo));
+            Assert.Throws<FormatException>(() => this.requester.ConstructUri("http://api.com:80:80/foo", requestInfo));
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requester = new PublicRequester(new HttpClient() { BaseAddress = null });
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
-            Assert.Throws<UriFormatException>(() => requester.ConstructUri(null, requestInfo));
+            Assert.Throws<FormatException>(() => requester.ConstructUri(null, requestInfo));
         }
 
         [Fact]
