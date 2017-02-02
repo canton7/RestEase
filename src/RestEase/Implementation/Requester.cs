@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using RestEase.Platform;
+using System.Reflection;
 
 namespace RestEase.Implementation
 {
@@ -110,10 +111,10 @@ namespace RestEase.Implementation
                 // (by prepending 'http://').
                 uriBuilder = uri.IsAbsoluteUri ? new UriBuilder(uri) : new UriBuilder(uri.ToString());
             }
-            catch (UriFormatException e)
+            catch (FormatException e)
             {
                 // The original exception doesn't actually include the path - which is not helpful to the user
-                throw new UriFormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
+                throw new FormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
             string initialQueryString = uriBuilder.Query;
