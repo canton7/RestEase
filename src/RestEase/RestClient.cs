@@ -53,10 +53,19 @@ namespace RestEase
             if (baseUrl == null)
                 throw new ArgumentNullException("baseUrl");
 
-            this.httpClient = new HttpClient()
-            {
-                BaseAddress = new Uri(baseUrl)
-            };
+            this.httpClient = this.Initialize(new HttpClientHandler(), new Uri(baseUrl));
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
+        /// </summary>
+        /// <param name="baseUrl">Base URL of the API</param>
+        public RestClient(Uri baseUrl)
+        {
+            if (baseUrl == null)
+                throw new ArgumentNullException("baseUrl");
+
+            this.httpClient = this.Initialize(new HttpClientHandler(), baseUrl);
         }
 
         /// <summary>
@@ -71,9 +80,29 @@ namespace RestEase
             if (requestModifier == null)
                 throw new ArgumentNullException("requestModifier");
 
-            this.httpClient = new HttpClient(new ModifyingClientHttpHandler(requestModifier))
+            this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), new Uri(baseUrl));
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// </summary>
+        /// <param name="baseUrl">Base URL of the API</param>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        public RestClient(Uri baseUrl, RequestModifier requestModifier)
+        {
+            if (baseUrl == null)
+                throw new ArgumentNullException("baseUrl");
+            if (requestModifier == null)
+                throw new ArgumentNullException("requestModifier");
+
+            this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
+        }
+
+        private HttpClient Initialize(HttpMessageHandler messageHandler, Uri baseUrl)
+        {
+            return new HttpClient(messageHandler)
             {
-                BaseAddress = new Uri(baseUrl)
+                BaseAddress = baseUrl,
             };
         }
 
@@ -139,6 +168,17 @@ namespace RestEase
         }
 
         /// <summary>
+        /// Shortcut to create a client using the given url
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">Base URL</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(Uri baseUrl)
+        {
+            return new RestClient(baseUrl).For<T>();
+        }
+
+        /// <summary>
         /// Shortcut to create a client using the given HttpClient
         /// </summary>
         /// <typeparam name="T">Interface representing the API</typeparam>
@@ -157,6 +197,18 @@ namespace RestEase
         /// <param name="requestModifier">Delegate called on every request</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(string baseUrl, RequestModifier requestModifier)
+        {
+            return new RestClient(baseUrl, requestModifier).For<T>();
+        }
+
+        /// <summary>
+        /// Shortcut to create a client using the given URL and request interceptor
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">Base URL</param>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(Uri baseUrl, RequestModifier requestModifier)
         {
             return new RestClient(baseUrl, requestModifier).For<T>();
         }
