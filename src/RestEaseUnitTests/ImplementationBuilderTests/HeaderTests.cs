@@ -140,6 +140,16 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync();
         }
 
+        public interface IHasNullHeaderValues
+        {
+            [Header("foo", null)]
+            string Foo { get; set; }
+
+            [Header("bar", null)]
+            [Get("Foo")]
+            Task FooAsync([Header("baz")] string header);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = new ImplementationBuilder();
 
@@ -280,7 +290,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void ThrowsIfHeaderParamHasValue()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasHeaderParamWithValue>(this.requester.Object)); ;
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasHeaderParamWithValue>(this.requester.Object));
         }
 
         [Fact]
@@ -401,6 +411,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal("Authorization", propertyHeaders[0].Key);
             Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", propertyHeaders[0].Value);
+        }
+
+        [Fact]
+        public void HandlesNullHeaderValues()
+        {
+            this.builder.CreateImplementation<IHasNullHeaderValues>(this.requester.Object);
         }
     }
 }

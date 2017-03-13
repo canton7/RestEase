@@ -1,3 +1,9 @@
+v1.3.3
+------
+
+ - Don't crash if a `[Header]` attribute on a method is used to remove one specified on the interface / on a property (#29)
+ - Add `RestClient` overloads which take a `Uri` (#27)
+
 v1.3.2
 ------
 
