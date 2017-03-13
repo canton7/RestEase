@@ -254,7 +254,7 @@ namespace RestEase.Implementation
             {
                 staticCtorIlGenerator.Emit(OpCodes.Dup);
                 staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Name);
-                staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Value);
+                staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Value); // This value can never be null - we assert that earlier
                 staticCtorIlGenerator.Emit(OpCodes.Newobj, kvpOfStringCtor);
                 staticCtorIlGenerator.Emit(OpCodes.Callvirt, listOfKvpOfStringAdd);
             }
@@ -672,7 +672,10 @@ namespace RestEase.Implementation
             // Stack: [..., requestInfo, requestInfo, "name"]
             methodIlGenerator.Emit(OpCodes.Ldstr, header.Name);
             // Stack: [..., requestInfo, requestInfo, "name", "value"]
-            methodIlGenerator.Emit(OpCodes.Ldstr, header.Value);
+            if (header.Value == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, header.Value);
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, addMethodHeaderMethod);
         }
