@@ -152,7 +152,7 @@ namespace RestEase.Implementation
             if (DictionaryIterator.CanIterate(body.GetType()))
                 return this.TransformDictionaryToCollectionOfKeysAndValues(body);
             else
-                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary or IDictionary<TKey, TValue>");
+                throw new ArgumentException("BodySerializationMethod is UrlEncoded, but body does not implement IDictionary or IDictionary<TKey, TValue>", nameof(body));
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace RestEase.Implementation
                 {
                     foreach (var individualValue in (IEnumerable)kvp.Value)
                     {
-                        var stringValue = individualValue == null ? null : individualValue.ToString();
+                        var stringValue = individualValue?.ToString();
                         yield return new KeyValuePair<string, string>(kvp.Key.ToString(), stringValue);
                     }
                 }
@@ -211,16 +211,13 @@ namespace RestEase.Implementation
             if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.ObjectValue == null)
                 return null;
 
-            var httpContentValue = requestInfo.BodyParameterInfo.ObjectValue as HttpContent;
-            if (httpContentValue != null)
+            if (requestInfo.BodyParameterInfo.ObjectValue is HttpContent httpContentValue)
                 return httpContentValue;
 
-            var streamValue = requestInfo.BodyParameterInfo.ObjectValue as Stream;
-            if (streamValue != null)
+            if (requestInfo.BodyParameterInfo.ObjectValue is Stream streamValue)
                 return new StreamContent(streamValue);
 
-            var stringValue = requestInfo.BodyParameterInfo.ObjectValue as string;
-            if (stringValue != null)
+            if (requestInfo.BodyParameterInfo.ObjectValue is string stringValue)
                 return new StringContent(stringValue);
 
             switch (requestInfo.BodyParameterInfo.SerializationMethod)

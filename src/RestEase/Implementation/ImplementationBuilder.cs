@@ -90,16 +90,15 @@ namespace RestEase.Implementation
         public T CreateImplementation<T>(IRequester requester)
         {
             if (requester == null)
-                throw new ArgumentNullException("requester");
+                throw new ArgumentNullException(nameof(requester));
 
             // We have to be careful here. The common case is going to be fetching an existing creator. However in the case
             // that one doesn't yet exist, we can't try and create two of the same type at the same time.
             // We have a lock around creating all types, as that's simpler and probably won't be noticable in practice.
 
-            Func<IRequester, object> creator;
             var key = typeof(T).TypeHandle;
 
-            if (!this.creatorCache.TryGetValue(key, out creator))
+            if (!this.creatorCache.TryGetValue(key, out Func<IRequester, object> creator))
             {
                 lock (this.implementationBuilderLockObject)
                 {
@@ -131,7 +130,7 @@ namespace RestEase.Implementation
             var interfaceTypeInfo = interfaceType.GetTypeInfo();
 
             if (!interfaceTypeInfo.IsInterface)
-                throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name));
+                throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name), nameof(interfaceType));
 
             var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public | TypeAttributes.Sealed);
             typeBuilder.AddInterfaceImplementation(interfaceType);
