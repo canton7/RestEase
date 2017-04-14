@@ -34,5 +34,7 @@ end
 
 desc "Run tests"
 task :test do
-  sh 'dotnet', 'test', TESTS_DIR
+  Dir.chdir(TESTS_DIR) do
+    sh 'dotnet', 'xunit'
+  end
 end
