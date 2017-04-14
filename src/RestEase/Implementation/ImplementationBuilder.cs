@@ -28,8 +28,8 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseAsync");
         private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestRawAsync");
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string) });
-        private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").GetSetMethod();
-        private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").GetSetMethod();
+        private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").SetMethod;
+        private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
         
         // These two methods have the same signature, which is very useful...
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryParameter");
@@ -40,7 +40,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addRawQueryParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddRawQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPathParameter");
         private static readonly MethodInfo addPathPropertyMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPathProperty");
-        private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetTypeInfo().GetProperty("ClassHeaders").GetSetMethod();
+        private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetTypeInfo().GetProperty("ClassHeaders").SetMethod;
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPropertyHeader");
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddMethodHeader");
         private static readonly MethodInfo addHeaderParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddHeaderParameter");
@@ -75,7 +75,7 @@ namespace RestEase.Implementation
         public ImplementationBuilder()
         {
             var assemblyName = new AssemblyName(RestClient.FactoryAssemblyName);
-            var assemblyBuilder = TypeHelpers.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleBuilderName);
             this.moduleBuilder = moduleBuilder;
@@ -333,8 +333,8 @@ namespace RestEase.Implementation
             foreach (var property in grouping.AllProperties)
             {
                 var propertyBuilder = typeBuilder.DefineProperty(property.PropertyInfo.Name, PropertyAttributes.None, property.PropertyInfo.PropertyType, null);
-                var getter = typeBuilder.DefineMethod(property.PropertyInfo.GetGetMethod().Name, attributes, property.PropertyInfo.PropertyType, new Type[0]);
-                var setter = typeBuilder.DefineMethod(property.PropertyInfo.GetSetMethod().Name, attributes, null, new Type[] { property.PropertyInfo.PropertyType });
+                var getter = typeBuilder.DefineMethod(property.PropertyInfo.GetMethod.Name, attributes, property.PropertyInfo.PropertyType, new Type[0]);
+                var setter = typeBuilder.DefineMethod(property.PropertyInfo.SetMethod.Name, attributes, null, new Type[] { property.PropertyInfo.PropertyType });
                 var backingField = typeBuilder.DefineField("bk_" + property.PropertyInfo.Name, property.PropertyInfo.PropertyType, FieldAttributes.Private);
 
                 var getterIlGenerator = getter.GetILGenerator();
@@ -381,7 +381,7 @@ namespace RestEase.Implementation
             PropertyInfo cachedPropertyInfo;
             if (httpMethodProperties.TryGetValue(requestAttribute.Method, out cachedPropertyInfo))
             {
-                methodIlGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetGetMethod());
+                methodIlGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetMethod);
             }
             else
             {

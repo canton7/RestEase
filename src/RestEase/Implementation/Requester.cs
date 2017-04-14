@@ -135,7 +135,7 @@ namespace RestEase.Implementation
 
         private string UrlEncode(string uri)
         {
-            return HttpWebUtility.UrlEncode(uri);
+            return WebUtility.UrlEncode(uri);
         }
 
         /// <summary>
