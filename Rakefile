@@ -1,10 +1,16 @@
 require 'json'
 
+RESTEASE_SLN = 'src/RestEase.sln'
 RESTEASE_DIR = 'src/RestEase'
 TESTS_DIR = 'src/RestEaseUnitTests'
 
 RESTEASE_CSPROJ = File.join(RESTEASE_DIR, 'RestEase.csproj')
 NUGET_DIR = File.join(File.dirname(__FILE__), 'NuGet')
+
+desc "Restore NuGet packages"
+task :restore do
+  sh 'dotnet', 'restore', RESTEASE_SLN
+end
 
 desc "Create NuGet package"
 task :package do
