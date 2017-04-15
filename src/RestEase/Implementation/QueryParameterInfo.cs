@@ -65,7 +65,7 @@ namespace RestEase.Implementation
         public override IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer)
         {
             if (serializer == null)
-                throw new ArgumentNullException("serializer");
+                throw new ArgumentNullException(nameof(serializer));
 
             return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(this.format));
         }
@@ -127,7 +127,7 @@ namespace RestEase.Implementation
         public override IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer)
         {
             if (serializer == null)
-                throw new ArgumentNullException("serializer");
+                throw new ArgumentNullException(nameof(serializer));
 
             return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(this.format));
         }
