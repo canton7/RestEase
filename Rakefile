@@ -8,7 +8,7 @@ NUGET_DIR = File.join(File.dirname(__FILE__), 'NuGet')
 
 desc "Create NuGet package"
 task :package do
-  sh 'dotnet', 'pack', '--no-build', '--configuration=Release', "--output=\"#{NUGET_DIR}\"", RESTEASE_DIR
+  sh 'dotnet', 'pack', '--no-build', '--configuration=Release', "--output=\"#{NUGET_DIR}\"", '--include-symbols', RESTEASE_DIR
 end
 
 desc "Bump version number"
