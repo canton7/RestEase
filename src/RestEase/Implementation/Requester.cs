@@ -313,7 +313,7 @@ namespace RestEase.Implementation
             var response = await this.httpClient.SendAsync(message, completionOption, requestInfo.CancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
-                throw await ApiException.CreateAsync(response).ConfigureAwait(false);
+                throw await ApiException.CreateAsync(message, response).ConfigureAwait(false);
 
             return response;
         }
