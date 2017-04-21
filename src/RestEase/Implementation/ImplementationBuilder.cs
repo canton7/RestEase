@@ -377,8 +377,7 @@ namespace RestEase.Implementation
             // Stack: [this.requester, HttpMethod]
             // For the standard HTTP methods, we can get a static instance. For others, we'll need to construct the HttpMethod
             // ourselves
-            PropertyInfo cachedPropertyInfo;
-            if (httpMethodProperties.TryGetValue(requestAttribute.Method, out cachedPropertyInfo))
+            if (httpMethodProperties.TryGetValue(requestAttribute.Method, out PropertyInfo cachedPropertyInfo))
             {
                 methodIlGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetMethod);
             }

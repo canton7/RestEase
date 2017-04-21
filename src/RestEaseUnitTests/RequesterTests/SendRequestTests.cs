@@ -49,9 +49,10 @@ namespace RestEaseUnitTests.RequesterTests
         [Fact]
         public void RequestVoidAsyncSendsRequest()
         {
-            var requester = new RequesterWithStubbedSendRequestAsync(null);
-            requester.ResponseMessage = Task.FromResult(new HttpResponseMessage());
-
+            var requester = new RequesterWithStubbedSendRequestAsync(null)
+            {
+                ResponseMessage = Task.FromResult(new HttpResponseMessage())
+            };
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requester.RequestVoidAsync(requestInfo).Wait();
 
@@ -75,8 +76,10 @@ namespace RestEaseUnitTests.RequesterTests
                 .Returns("hello")
                 .Verifiable();
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.CancellationToken = cancellationToken;
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
+            {
+                CancellationToken = cancellationToken
+            };
             var result = requester.RequestAsync<string>(requestInfo).Result;
 
             responseDeserializer.Verify();
@@ -116,8 +119,10 @@ namespace RestEaseUnitTests.RequesterTests
                 .Returns("hello")
                 .Verifiable();
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.CancellationToken = cancellationToken;
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
+            {
+                CancellationToken = cancellationToken
+            };
             var result = requester.RequestWithResponseAsync<string>(requestInfo).Result;
 
             var deserializedContent = result.GetContent();
@@ -182,12 +187,14 @@ namespace RestEaseUnitTests.RequesterTests
             var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
             var requester = new PublicRequester(httpClient);
 
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AllowAnyStatusCode = true;
-
-            var responseMessage = new HttpResponseMessage();
-            responseMessage.StatusCode = HttpStatusCode.NotFound;
-
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
+            {
+                AllowAnyStatusCode = true
+            };
+            var responseMessage = new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.NotFound
+            };
             messageHandler.ResponseMessage = Task.FromResult(responseMessage);
 
             var response = requester.SendRequestAsync(requestInfo, true).Result;
