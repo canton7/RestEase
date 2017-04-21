@@ -19,6 +19,10 @@ namespace RestEase.Platform
         {
 #if NETSTANDARD
             var query = initialQuery;
+            // This needs to start with a ?, otherwise QueryHelpers.AddQueryString gets confused
+            if (query?.Length > 0 && query[0] != '?')
+                query = "?" + query;
+
             foreach (var kvp in parameters)
             {
                 if (kvp.Key == null)

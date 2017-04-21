@@ -122,13 +122,14 @@ namespace RestEase.Implementation
             {
                 var rawQueryParameter = requestInfo.RawQueryParameter.SerializeToString();
                 if (String.IsNullOrEmpty(initialQueryString))
-                    initialQueryString = "?" + rawQueryParameter;
+                    initialQueryString = rawQueryParameter;
                 else
                     initialQueryString += "&" + rawQueryParameter;
             }
 
             var queryParams = requestInfo.QueryParams.SelectMany(x => this.SerializeQueryParameter(x));
-            uriBuilder.Query = QueryParamBuilder.Build(initialQueryString, queryParams);
+            // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'
+            uriBuilder.Query = QueryParamBuilder.Build(initialQueryString, queryParams).TrimStart('?');
 
             return uriBuilder.Uri;
         }
