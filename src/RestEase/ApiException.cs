@@ -12,29 +12,39 @@ namespace RestEase
     public class ApiException : Exception
     {
         /// <summary>
+        /// Gets the method used to make the request which failed
+        /// </summary>
+        public HttpMethod RequestMethod { get; }
+
+        /// <summary>
+        /// Gets the URI to which the request which failed wras made
+        /// </summary>
+        public Uri RequestUri { get; }
+
+        /// <summary>
         /// Gets the HTTP status code received
         /// </summary>
-        public HttpStatusCode StatusCode { get; private set; }
+        public HttpStatusCode StatusCode { get; }
 
         /// <summary>
         /// Gets the ReasonPhrase associated with the response
         /// </summary>
-        public string ReasonPhrase { get; private set; }
+        public string ReasonPhrase { get; }
 
         /// <summary>
         /// Gets the headers associated with the response
         /// </summary>
-        public HttpResponseHeaders Headers { get; private set; }
+        public HttpResponseHeaders Headers { get; }
 
         /// <summary>
         /// Gets the content headers associated with the response
         /// </summary>
-        public HttpContentHeaders ContentHeaders { get; private set; }
+        public HttpContentHeaders ContentHeaders { get; }
 
         /// <summary>
         /// Gets the content associated with the response, if any
         /// </summary>
-        public string Content { get; private set; }
+        public string Content { get; }
 
         /// <summary>
         /// Gets a value indicating whether any content is associated with the response
@@ -47,29 +57,42 @@ namespace RestEase
         /// <summary>
         /// Initialises a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>
         /// </summary>
+        /// <param name="request">Request which triggered the exception</param>
         /// <param name="response"><see cref="HttpResponseMessage"/> provided by the <see cref="HttpClient"/></param>
         /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
-        public ApiException(HttpResponseMessage response, string contentString)
-            : this(response.StatusCode, response.ReasonPhrase, response.Headers, response.Content?.Headers, contentString)
+        public ApiException(HttpRequestMessage request, HttpResponseMessage response, string contentString)
+            : this(request.Method,
+                  request.RequestUri,
+                  response.StatusCode,
+                  response.ReasonPhrase,
+                  response.Headers,
+                  response.Content?.Headers,
+                  contentString)
         {
         }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ApiException"/> class with the given components
         /// </summary>
+        /// <param name="requestMethod"><see cref="HttpMethod"/> used to make the request which failed</param>
+        /// <param name="requestUri"><see cref="Uri"/> to which the request which failed was made</param>
         /// <param name="statusCode"><see cref="HttpStatusCode"/> returned by the endpoint</param>
         /// <param name="reasonPhrase"><see cref="HttpResponseMessage.ReasonPhrase"/> provided by <see cref="HttpClient"/></param>
         /// <param name="headers"><see cref="HttpResponseHeaders"/>s associated with the response</param>
         /// <param name="contentHeaders"><see cref="HttpContentHeaders"/> associated with the response content, if there is a response content</param>
         /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
         public ApiException(
+            HttpMethod requestMethod,
+            Uri requestUri,
             HttpStatusCode statusCode,
             string reasonPhrase,
             HttpResponseHeaders headers,
             HttpContentHeaders contentHeaders,
             string contentString)
-            : base(String.Format("Response status code does not indicate success: {0} ({1}).", (int)statusCode, reasonPhrase))
+            : base($"{requestMethod} \"{requestUri}\" failed because response status code does not indicate success: {(int)statusCode} ({reasonPhrase}).")
         {
+            this.RequestMethod = requestMethod;
+            this.RequestUri = requestUri;
             this.StatusCode = statusCode;
             this.ReasonPhrase = reasonPhrase;
             this.Headers = headers;
@@ -80,12 +103,13 @@ namespace RestEase
         /// <summary>
         /// Create a new <see cref="ApiException"/>, by reading the response asynchronously content as a string
         /// </summary>
+        /// <param name="request">Request which triggered the exception</param>
         /// <param name="response">Response received from the <see cref="HttpClient"/></param>
         /// <returns>A new <see cref="ApiException"/> created from the <see cref="HttpResponseMessage"/></returns>
-        public static async Task<ApiException> CreateAsync(HttpResponseMessage response)
+        public static async Task<ApiException> CreateAsync(HttpRequestMessage request, HttpResponseMessage response)
         {
             if (response.Content == null)
-                return new ApiException(response, null);
+                return new ApiException(request, response, null);
 
             HttpContentHeaders contentHeaders = null;
             string contentString = null;
@@ -101,7 +125,7 @@ namespace RestEase
             catch
             { } // Don't want to hide the original exception with a new one
 
-            return new ApiException(response, contentString);
+            return new ApiException(request, response, contentString);
         }
     }
 }

@@ -19,10 +19,7 @@ namespace RestEase.Implementation
         /// <param name="requestModifier">Delegate to use to modify requests</param>
         public ModifyingClientHttpHandler(RequestModifier requestModifier)
         {
-            if (requestModifier == null)
-                throw new ArgumentNullException("requestInterceptor");
-
-            this.requestModifier = requestModifier;
+            this.requestModifier = requestModifier ?? throw new ArgumentNullException(nameof(requestModifier));
         }
 
         /// <summary>

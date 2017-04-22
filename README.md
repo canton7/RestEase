@@ -22,44 +22,44 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 3. [Request Types](#request-types)
 4. [Return Types](#return-types)
 5. [Query Parameters](#query-parameters)
-  1. [Constant Query Parameters](#constant-query-parameters)
-  2. [Variable Query Parameters](#variable-query-parameters)
-    1. [Formatting Variable Query Parameters](#formatting-variable-query-parameters)
-    2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
-  3. [Query Parameters Map](#query-parameters-map)
-  4. [Raw Query String Parameters](#raw-query-string-parameters)
+    1. [Constant Query Parameters](#constant-query-parameters)
+    2. [Variable Query Parameters](#variable-query-parameters)
+        1. [Formatting Variable Query Parameters](#formatting-variable-query-parameters)
+        2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
+    3. [Query Parameters Map](#query-parameters-map)
+    4. [Raw Query String Parameters](#raw-query-string-parameters)
 6. [Path Placeholders](#path-placeholders)
-  1. [Path Parameters](#path-parameters)
-    1. [Formatting Path Parameters](#formatting-path-parameters)
-    2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
-  2. [Path Properties](#path-properties)
-    1. [Formatting Path Properties](#formatting-path-properties)
-    2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
+    1. [Path Parameters](#path-parameters)
+        1. [Formatting Path Parameters](#formatting-path-parameters)
+        2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
+    2. [Path Properties](#path-properties)
+        1. [Formatting Path Properties](#formatting-path-properties)
+        2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
 7. [Body Content](#body-content)
-  1. [URL Encoded Bodies](#url-encoded-bodies)
+    1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
 9. [Cancelling Requests](#cancelling-requests)
 10. [Headers](#headers)
-  1. [Constant Interface Headers](#constant-interface-headers)
-  2. [Variable Interface Headers](#variable-interface-headers)
-  3. [Constant Method Headers](#constant-method-headers)
-  4. [Variable Method Headers](#variable-method-headers)
-  5. [Redefining Headers](#redefining-headers)
+    1. [Constant Interface Headers](#constant-interface-headers)
+    2. [Variable Interface Headers](#variable-interface-headers)
+    3. [Constant Method Headers](#constant-method-headers)
+    4. [Variable Method Headers](#variable-method-headers)
+    5. [Redefining Headers](#redefining-headers)
 11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
-  1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
-  2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
-    1. [Deserializing responses: `IResponseDeserializer`](#deserializing-responses-iresponsedeserializer)
-    2. [Serializing request bodies: `IRequestBodySerializer`](#serializing-request-bodies-irequestbodyserializer)
-    3. [Serializing request parameters: `IRequestQueryParamSerializer`](#serializing-request-parameters-irequestqueryparamserializer)
+    1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
+    2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
+        1. [Deserializing responses: `IResponseDeserializer`](#deserializing-responses-iresponsedeserializer)
+        2. [Serializing request bodies: `IRequestBodySerializer`](#serializing-request-bodies-irequestbodyserializer)
+        3. [Serializing request parameters: `IRequestQueryParamSerializer`](#serializing-request-parameters-irequestqueryparamserializer)
 12. [Controlling the Requests](#controlling-the-requests)
-  1. [`RequestModifier`](#requestmodifier)
-  2. [Custom `HttpClient`](#custom-httpclient)
+    1. [`RequestModifier`](#requestmodifier)
+    2. [Custom `HttpClient`](#custom-httpclient)
 13. [Customizing RestEase](#customizing-restease)
 14. [Interface Accessibility](#interface-accessibility)
 15. [Using Generic Interfaces](#using-generic-interfaces)
 16. [Interface Inheritance](#interface-inheritance)
-  1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
-  2. [IDisposable](#idisposable)
+    1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
+    2. [IDisposable](#idisposable)
 17. [FAQs](#faqs)
 18. [Comparison to Refit](#comparison-to-refit)
 
@@ -98,24 +98,52 @@ To start, first create an public interface which represents the endpoint you wis
 Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#interface-accessibility).
 
 ```csharp
-// Define an interface representing the API
-public interface IGitHubApi
+using System;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using RestEase;
+
+namespace RestEaseSampleApplication
 {
-    // All interface methods must return a Task or Task<T>. We'll discuss what sort of T in more detail below.
+    // We receive a JSON response, so define a class to deserialize the json into
+    public class User
+    {
+        public string Name { get; set; }
+        public string Blog { get; set; }
 
-    // The [Get] attribute marks this method as a GET request
-    // The "users" is a relative path the a base URL, which we'll provide later
-    [Get("users")]
-    Task<List<User>> GetUsersAsync();
+        // This is deserialized using Json.NET, so use attributes as necessary
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
+    }
+
+    // Define an interface representing the API
+    // GitHub requires a User-Agent header, so specify one
+    [Header("User-Agent", "RestEase")]
+    public interface IGitHubApi
+    {
+        // The [Get] attribute marks this method as a GET request
+        // The "users" is a relative path the a base URL, which we'll provide later
+        // "{userId}" is a placeholder in the URL: the value from the "userId" method parameter is used
+        [Get("users/{userId}")]
+        Task<User> GetUserAsync([Path] string userId);
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create an implementation of that interface
+            // We'll pass in the base URL for the API
+            IGitHubApi api = RestClient.For<IGitHubApi>("https://api.github.com");
+
+            // Now we can simply call methods on it
+            // Normally you'd await the request, but this is a console app
+            User user = api.GetUserAsync("canton7").Result;
+            Console.WriteLine($"Name: {user.Name}. Blog: {user.Blog}. CreatedAt: {user.CreatedAt}");
+            Console.ReadLine();
+        }
+    }
 }
-
-// Create an implementation of that interface
-// We'll pass in the base URL for the API
-IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
-
-// Now we can simply call methods on it
-// Sends a GET request to http://api.github.com/users
-List<User> users = await api.GetUsersAsync();
 ```
 
 

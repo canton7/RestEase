@@ -57,7 +57,7 @@ namespace RestEase.Implementation
         public override HttpContent SerializeValue(IRequestBodySerializer serializer)
         {
             if (serializer == null)
-                throw new ArgumentNullException("serializer");
+                throw new ArgumentNullException(nameof(serializer));
 
             return serializer.SerializeBody<T>(this.Value);
         }

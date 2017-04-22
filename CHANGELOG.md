@@ -1,3 +1,10 @@
+v1.4.0
+------
+
+ - **BREAKING CHANGE**: Remove support for .NET 4.0. Microsoft.Bcl.Async does not work well with csproj-based .NET Core projects
+ - Add information about the request to ApiException (#30)
+ - Work around an issue when running on Mono which caused a double '??' in URLs (#35)
+
 v1.3.3
 ------
 

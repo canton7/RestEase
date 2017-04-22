@@ -39,7 +39,7 @@ namespace RestEase.Implementation
         public static IEnumerable<KeyValuePair<object, object>> Iterate(object dictionary)
         {
             if (dictionary == null)
-                throw new ArgumentNullException("dictionary");
+                throw new ArgumentNullException(nameof(dictionary));
 
             if (dictionary is IDictionary)
                 return IterateNonGeneric((IDictionary)dictionary);
@@ -53,7 +53,7 @@ namespace RestEase.Implementation
                     return IterateGeneric(dictionary, interfaceType);
             }
 
-            throw new ArgumentException("Dictionary does not implement IDictionary or IDictionary<TKey, TValue>");
+            throw new ArgumentException("Dictionary does not implement IDictionary or IDictionary<TKey, TValue>", nameof(dictionary));
         }
 
         private static IEnumerable<KeyValuePair<object, object>> IterateNonGeneric(IDictionary dictionary)

@@ -51,7 +51,7 @@ namespace RestEase
         public RestClient(string baseUrl)
         {
             if (baseUrl == null)
-                throw new ArgumentNullException("baseUrl");
+                throw new ArgumentNullException(nameof(baseUrl));
 
             this.httpClient = this.Initialize(new HttpClientHandler(), new Uri(baseUrl));
         }
@@ -63,7 +63,7 @@ namespace RestEase
         public RestClient(Uri baseUrl)
         {
             if (baseUrl == null)
-                throw new ArgumentNullException("baseUrl");
+                throw new ArgumentNullException(nameof(baseUrl));
 
             this.httpClient = this.Initialize(new HttpClientHandler(), baseUrl);
         }
@@ -76,9 +76,9 @@ namespace RestEase
         public RestClient(string baseUrl, RequestModifier requestModifier)
         {
             if (baseUrl == null)
-                throw new ArgumentNullException("baseUrl");
+                throw new ArgumentNullException(nameof(baseUrl));
             if (requestModifier == null)
-                throw new ArgumentNullException("requestModifier");
+                throw new ArgumentNullException(nameof(requestModifier));
 
             this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), new Uri(baseUrl));
         }
@@ -91,9 +91,9 @@ namespace RestEase
         public RestClient(Uri baseUrl, RequestModifier requestModifier)
         {
             if (baseUrl == null)
-                throw new ArgumentNullException("baseUrl");
+                throw new ArgumentNullException(nameof(baseUrl));
             if (requestModifier == null)
-                throw new ArgumentNullException("requestModifier");
+                throw new ArgumentNullException(nameof(requestModifier));
 
             this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
         }
@@ -112,10 +112,7 @@ namespace RestEase
         /// <param name="httpClient">HttpClient to use</param>
         public RestClient(HttpClient httpClient)
         {
-            if (httpClient == null)
-                throw new ArgumentNullException("httpClient");
-
-            this.httpClient = httpClient;
+            this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 
         /// <summary>
