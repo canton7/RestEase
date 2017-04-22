@@ -98,24 +98,52 @@ To start, first create an public interface which represents the endpoint you wis
 Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#interface-accessibility).
 
 ```csharp
-// Define an interface representing the API
-public interface IGitHubApi
+using System;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using RestEase;
+
+namespace RestEaseSampleApplication
 {
-    // All interface methods must return a Task or Task<T>. We'll discuss what sort of T in more detail below.
+    // We receive a JSON response, so define a class to deserialize the json into
+    public class User
+    {
+        public string Name { get; set; }
+        public string Blog { get; set; }
 
-    // The [Get] attribute marks this method as a GET request
-    // The "users" is a relative path the a base URL, which we'll provide later
-    [Get("users")]
-    Task<List<User>> GetUsersAsync();
+        // This is deserialized using Json.NET, so use attributes as necessary
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
+    }
+
+    // Define an interface representing the API
+    // GitHub requires a User-Agent header, so specify one
+    [Header("User-Agent", "RestEase")]
+    public interface IGitHubApi
+    {
+        // The [Get] attribute marks this method as a GET request
+        // The "users" is a relative path the a base URL, which we'll provide later
+        // "{userId}" is a placeholder in the URL: the value from the "userId" method parameter is used
+        [Get("users/{userId}")]
+        Task<User> GetUserAsync([Path] string userId);
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create an implementation of that interface
+            // We'll pass in the base URL for the API
+            IGitHubApi api = RestClient.For<IGitHubApi>("https://api.github.com");
+
+            // Now we can simply call methods on it
+            // Normally you'd await the request, but this is a console app
+            User user = api.GetUserAsync("canton7").Result;
+            Console.WriteLine($"Name: {user.Name}. Blog: {user.Blog}. CreatedAt: {user.CreatedAt}");
+            Console.ReadLine();
+        }
+    }
 }
-
-// Create an implementation of that interface
-// We'll pass in the base URL for the API
-IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com");
-
-// Now we can simply call methods on it
-// Sends a GET request to http://api.github.com/users
-List<User> users = await api.GetUsersAsync();
 ```
 
 
