@@ -5,6 +5,7 @@
     <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>RestEase</AssemblyName>
+    <AssemblyTitle>RestEase</AssemblyTitle>
     <OutputType>Library</OutputType>
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
@@ -14,6 +15,8 @@
     <PackageLicenseUrl>http://github.com/canton7/RestEase/blob/master/LICENSE.txt</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/canton7/RestEase.git</RepositoryUrl>
+    <Authors>Antony Male</Authors>
+    <Description>Easy-to-use typesafe REST API client library, which is simple and customisable.</Description>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
 
