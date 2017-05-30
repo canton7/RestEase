@@ -104,13 +104,13 @@ namespace RestEase.Implementation
             // We have a lock around creating all types, as that's simpler and probably won't be noticable in practice.
 
             if (TypeCreatorRegistry<T>.Creator == null)
-            {
+            { 
                 lock (this.implementationBuilderLockObject)
                 {
                     // Two threads can fail the null test and acquire this lock in order. The first one will create the type.
                     // Therefore the second one has to check for this...
                     if (TypeCreatorRegistry<T>.Creator == null)
-                    { 
+                    {
                         var implementationType = this.BuildImplementationImpl(typeof(T));
                         var creator = this.BuildCreator<T>(implementationType);
                         TypeCreatorRegistry<T>.Creator = creator;
@@ -121,6 +121,22 @@ namespace RestEase.Implementation
             T implementation = TypeCreatorRegistry<T>.Creator(requester);
             return implementation;
         }
+
+        /// <summary>
+        /// Create an implementation of the given interface, using the given requester
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="requester">Requester to be used by the generated implementation</param>
+        /// <returns>An implementation of the given interface</returns>
+        public object CreateImplementation(IRequester requester, Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            var methodInfo = createImplementationMethod.MakeGenericMethod(type);
+            return methodInfo.Invoke(this, new object[] { requester });
+        }
+
         private Func<IRequester, T> BuildCreator<T>(Type implementationType)
         {
             var requesterParam = Expression.Parameter(typeof(IRequester));

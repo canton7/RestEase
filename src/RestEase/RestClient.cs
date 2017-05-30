@@ -116,9 +116,26 @@ namespace RestEase
         /// <summary>
         /// Create an implementation for the given API interface
         /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <returns>An implementation which can be used to make REST requests</returns>
+        public object For(Type type)
+        {
+            var requester = this.CreateRequester();
+            return ImplementationBuilder.Instance.CreateImplementation(requester, type);
+        }
+
+        /// <summary>
+        /// Create an implementation for the given API interface
+        /// </summary>
         /// <typeparam name="T">Type of interface to implement</typeparam>
         /// <returns>An implementation which can be used to make REST requests</returns>
         public T For<T>()
+        {
+            var requester = this.CreateRequester();
+            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
+        }
+
+        private Requester CreateRequester()
         {
             var requester = new Requester(this.httpClient);
 
@@ -137,7 +154,7 @@ namespace RestEase
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
+            return requester;
         }
 
         /// <summary>
