@@ -118,10 +118,20 @@ namespace RestEase
         /// <summary>
         /// Create an implementation for the given API interface
         /// </summary>
-        /// <typeparam name="T">Type of interfae to implement</typeparam>
+        /// <typeparam name="T">Type of interface to implement</typeparam>
         /// <returns>An implementation which can be used to make REST requests</returns>
         public T For<T>()
         {
+            return (T)For(typeof(T));
+        }
+
+        /// <summary>
+        /// Create an implementation for the given API interface
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <returns>An implementation which can be used to make REST requests</returns>
+        public object For(Type type)
+    {
             var requester = new Requester(this.httpClient);
 
             if (this.RequestBodySerializer != null)
@@ -139,7 +149,7 @@ namespace RestEase
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            return implementationBuilder.CreateImplementation<T>(requester);
+            return implementationBuilder.CreateImplementation(type, requester);
         }
 
         /// <summary>
@@ -291,6 +301,74 @@ namespace RestEase
         public static T For<T>(HttpClient httpClient, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
         {
             return new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
+        }
+        
+        /// <summary>
+        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="requester">IRequester to use</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, IRequester requester)
+        {
+            return implementationBuilder.CreateImplementation(type, requester);
+        }
+
+        /// <summary>
+        /// Shortcut to create a client using the given url
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="baseUrl">Base URL</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, string baseUrl)
+        {
+            return new RestClient(baseUrl).For(type);
+        }
+
+        /// <summary>
+        /// Shortcut to create a client using the given url
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="baseUrl">Base URL</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, Uri baseUrl)
+        {
+            return new RestClient(baseUrl).For(type);
+        }
+
+        /// <summary>
+        /// Shortcut to create a client using the given HttpClient
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="httpClient">HttpClient to use to make requests</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, HttpClient httpClient)
+        {
+            return new RestClient(httpClient).For(type);
+        }
+
+        /// <summary>
+        /// Shortcut to create a client using the given URL and request interceptor
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="baseUrl">Base URL</param>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, string baseUrl, RequestModifier requestModifier)
+        {
+            return new RestClient(baseUrl, requestModifier).For(type);
+        }
+
+        /// <summary>
+        /// Shortcut to create a client using the given URL and request interceptor
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="baseUrl">Base URL</param>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, Uri baseUrl, RequestModifier requestModifier)
+        {
+            return new RestClient(baseUrl, requestModifier).For(type);
         }
     }
 }

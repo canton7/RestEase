@@ -89,6 +89,17 @@ namespace RestEase.Implementation
         /// <returns>An implementation of the given interface</returns>
         public T CreateImplementation<T>(IRequester requester)
         {
+            return (T)CreateImplementation(typeof(T), requester);
+        }
+
+        /// <summary>
+        /// Create an implementation of the given interface, using the given requester
+        /// </summary>
+        /// <param name="type">Type of interface to implement</param>
+        /// <param name="requester">Requester to be used by the generated implementation</param>
+        /// <returns>An implementation of the given interface</returns>
+        public object CreateImplementation(Type type, IRequester requester)
+        {
             if (requester == null)
                 throw new ArgumentNullException(nameof(requester));
 
@@ -96,7 +107,7 @@ namespace RestEase.Implementation
             // that one doesn't yet exist, we can't try and create two of the same type at the same time.
             // We have a lock around creating all types, as that's simpler and probably won't be noticable in practice.
 
-            var key = typeof(T).TypeHandle;
+            var key = type.TypeHandle;
 
             if (!this.creatorCache.TryGetValue(key, out Func<IRequester, object> creator))
             {
@@ -106,16 +117,14 @@ namespace RestEase.Implementation
                     // Therefore the second one has to check for this...
                     if (!this.creatorCache.TryGetValue(key, out creator))
                     {
-                        var implementationType = this.BuildImplementationImpl(typeof(T));
+                        var implementationType = this.BuildImplementationImpl(type);
                         creator = this.BuildCreator(implementationType);
                         this.creatorCache.TryAdd(key, creator);
                     }
                 }
             }
 
-            T implementation = (T)creator(requester);
-
-            return implementation;
+            return creator(requester);
         }
 
         private Func<IRequester, object> BuildCreator(Type implementationType)
