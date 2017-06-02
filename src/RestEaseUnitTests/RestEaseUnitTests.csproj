@@ -17,7 +17,7 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\RestEase\RestEase.csproj" />
   </ItemGroup>

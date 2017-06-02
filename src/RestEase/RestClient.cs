@@ -15,8 +15,6 @@ namespace RestEase
         /// </summary>
         public const string FactoryAssemblyName = "RestEaseFactory";
 
-        private static readonly ImplementationBuilder implementationBuilder = new ImplementationBuilder();
-
         private readonly HttpClient httpClient;
 
         /// <summary>
@@ -118,7 +116,7 @@ namespace RestEase
         /// <summary>
         /// Create an implementation for the given API interface
         /// </summary>
-        /// <typeparam name="T">Type of interfae to implement</typeparam>
+        /// <typeparam name="T">Type of interface to implement</typeparam>
         /// <returns>An implementation which can be used to make REST requests</returns>
         public T For<T>()
         {
@@ -139,7 +137,7 @@ namespace RestEase
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            return implementationBuilder.CreateImplementation<T>(requester);
+            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
         }
 
         /// <summary>
@@ -150,7 +148,7 @@ namespace RestEase
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(IRequester requester)
         {
-            return implementationBuilder.CreateImplementation<T>(requester);
+            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
         }
 
         /// <summary>

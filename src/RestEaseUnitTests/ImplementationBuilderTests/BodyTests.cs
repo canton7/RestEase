@@ -54,7 +54,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationBuilder builder = new ImplementationBuilder();
+        private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
         [Fact]
         public void ThrowsIfTwoBodies()
