@@ -233,7 +233,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(2, headerParams.Count);
 
             Assert.Equal("Param Header 2", headerParams[1].Key);
-            Assert.Equal(null, headerParams[1].Value);
+            Assert.Null(headerParams[1].Value);
         }
 
         [Fact]
