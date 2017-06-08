@@ -11,25 +11,25 @@ namespace RestEase.Implementation
     {
         public List<AttributedProperty<HeaderAttribute>> Headers { get; } = new List<AttributedProperty<HeaderAttribute>>();
         public List<AttributedProperty<PathAttribute>> Path { get; } = new List<AttributedProperty<PathAttribute>>();
+        public PropertyInfo Requester { get; private set; }
 
-        public IEnumerable<IAttributedProperty> AllProperties
+        public IEnumerable<IAttributedProperty> AllPropertiesWithStorage
             => this.Headers.Concat<IAttributedProperty>(this.Path);
 
         public PropertyGrouping(IEnumerable<PropertyInfo> properties)
         {
             foreach (var property in properties)
             {
-                if (!property.CanRead || !property.CanWrite)
-                    throw new ImplementationCreationException(String.Format("Property {0} must have both a getter and a setter", property.Name));
-
                 var headerAttribute = property.GetCustomAttribute<HeaderAttribute>();
                 if (headerAttribute != null)
                 {
+                    AssertHasGetterAndSetter(property);
+
                     // Only allow default value if type is nullable (reference type or Nullable<T>)
                     if (headerAttribute.Value != null && property.PropertyType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
-                        throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on property {2} (i.e. containing a default value) can only be used if the property type is nullable", headerAttribute.Name, headerAttribute.Value, property.Name));
+                        throw new ImplementationCreationException($"[Header(\"{headerAttribute.Name}\", \"{headerAttribute.Value}\")] on property {property.Name} (i.e. containing a default value) can only be used if the property type is nullable");
                     if (headerAttribute.Name.Contains(":"))
-                        throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on property {1} must not have a colon in its name", headerAttribute.Name, property.Name));
+                        throw new ImplementationCreationException($"[Header(\"{headerAttribute.Name}\")] on property {property.Name} must not have a colon in its name");
 
                     this.Headers.Add(new AttributedProperty<HeaderAttribute>(headerAttribute, property));
                     continue;
@@ -38,6 +38,8 @@ namespace RestEase.Implementation
                 var pathAttribute = property.GetCustomAttribute<PathAttribute>();
                 if (pathAttribute != null)
                 {
+                    AssertHasGetterAndSetter(property);
+
                     if (pathAttribute.Name == null)
                         pathAttribute.Name = property.Name;
 
@@ -45,8 +47,27 @@ namespace RestEase.Implementation
                     continue;
                 }
 
-                throw new ImplementationCreationException(String.Format("Property {0} does not have an attribute", property.Name));
+                if (property.PropertyType == typeof(IRequester))
+                {
+                    if (!property.CanRead)
+                        throw new ImplementationCreationException($"Property {property.Name} must have a getter");
+                    if (property.CanWrite)
+                        throw new ImplementationCreationException($"Property {property.Name} must not have a setter");
+                    if (this.Requester != null)
+                        throw new ImplementationCreationException($"Property {property.Name}: there must not be more than one property of type {nameof(IRequester)}");
+
+                    this.Requester = property;
+                    continue;
+                }
+
+                throw new ImplementationCreationException($"Property {property.Name} does not have an attribute");
             }
+        }
+
+        private static void AssertHasGetterAndSetter(PropertyInfo property)
+        {
+            if (!property.CanRead || !property.CanWrite)
+                throw new ImplementationCreationException($"Property {property.Name} must have both a getter and a setter");
         }
     }
 }

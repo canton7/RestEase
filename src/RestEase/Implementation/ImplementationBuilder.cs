@@ -186,7 +186,7 @@ namespace RestEase.Implementation
             }
 
             this.HandleEvents(interfaceType);
-            var properties = this.HandleProperties(typeBuilder, interfaceType);
+            var properties = this.HandleProperties(typeBuilder, interfaceType, requesterField);
 
             this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties);
 
@@ -343,12 +343,12 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException("Interfaces must not have any events");
         }
 
-        private PropertyGrouping HandleProperties(TypeBuilder typeBuilder, Type interfaceType)
+        private PropertyGrouping HandleProperties(TypeBuilder typeBuilder, Type interfaceType, FieldBuilder requesterField)
         {
             var grouping = new PropertyGrouping(InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetProperties()));
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
 
-            foreach (var property in grouping.AllProperties)
+            foreach (var property in grouping.AllPropertiesWithStorage)
             {
                 var propertyBuilder = typeBuilder.DefineProperty(property.PropertyInfo.Name, PropertyAttributes.None, property.PropertyInfo.PropertyType, null);
                 var getter = typeBuilder.DefineMethod(property.PropertyInfo.GetMethod.Name, attributes, property.PropertyInfo.PropertyType, new Type[0]);
@@ -369,6 +369,18 @@ namespace RestEase.Implementation
                 propertyBuilder.SetSetMethod(setter);
 
                 property.BackingField = backingField;
+            }
+
+            if (grouping.Requester != null)
+            {
+                var propertyBuilder = typeBuilder.DefineProperty(grouping.Requester.Name, PropertyAttributes.None, grouping.Requester.PropertyType, null);
+                var getter = typeBuilder.DefineMethod(grouping.Requester.GetMethod.Name, attributes, grouping.Requester.PropertyType, new Type[0]);
+                var getterIlGenerator = getter.GetILGenerator();
+                getterIlGenerator.Emit(OpCodes.Ldarg_0);
+                getterIlGenerator.Emit(OpCodes.Ldfld, requesterField);
+                getterIlGenerator.Emit(OpCodes.Ret);
+                propertyBuilder.SetGetMethod(getter);
+
             }
 
             return grouping;

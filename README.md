@@ -60,8 +60,11 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 16. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-17. [FAQs](#faqs)
-18. [Comparison to Refit](#comparison-to-refit)
+17. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+    1. [Wrapping Other Methods](#wrapping-other-methods)
+    2. [Using `IRequester` Directly](#using-irequester-directly)
+18. [FAQs](#faqs)
+19. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -1250,6 +1253,84 @@ If your interface implements `IDisposable`, then RestEase will generate a `Dispo
 Do this if you want to be able to dispose the `HttpClient`.
 
 
+Advanced Functionality Using Extension Methods
+----------------------------------------------
+
+Sometimes you'll have cases where you want to do something that's more complex than can be achieved using RestEase alone (e.g. uploading multipart form data), but you still want to provide a nice interface to consumers.
+One option is to write extension methods on your interface.
+There are two ways of doing this.
+
+### Wrapping other methods
+
+The easiest thing to do is to put a method on your interface which won't be called by your code, but which can be wrapped by your extension method.
+This approach is unit testable.
+
+```csharp
+public interface ISomeApi
+{
+    // Method which is only used by SomeApiExtensions
+    [Post("upload")]
+    Task UploadAsync(HttpContent content);
+}
+
+public static class SomeApiExtensions
+{
+    public static Task UploadAsync(this ISomeApi api, byte[] imageData, string token)
+    {
+        var content = new MultipartFormDataContent();
+
+        var imageContent = new ByteArrayContent(imageData);
+        imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+        content.Add(imageContent);
+
+        var tokenContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("token", token)
+        });
+        content.Add(tokenContent);
+
+        return api.UploadAsync(content);
+    }
+}
+```
+
+### Using `IRequester` directly
+
+Alternatively, you can put a property of type `IRequester` on your interface, then write an extension method which uses the `IRequester`.
+Note that this approach is not unit testable.
+
+```csharp
+public interface ISomeApi
+{
+    IRequester Requester { get; }
+}
+
+public static class SomeApiExtensions
+{
+    public static Task UploadAsync(this ISomeApi api, byte[] imageData, string token)
+    {
+        var content = new MultipartFormDataContent();
+
+        var imageContent = new ByteArrayContent(imageData);
+        imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+        content.Add(imageContent);
+
+        var tokenContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("token", token)
+        });
+        content.Add(tokenContent);
+
+        var requestInfo = new RequestInfo(HttpMethod.Post, "upload");
+        requestInfo.SetBodyParameterInfo(BodySerializationMethod.Default, content);
+        return api.Requester.RequestVoidAsync(requestInfo);
+    }
+}
+```
+
+`IRequester` and `RequestInfo` are not documented in this README.
+Read the doc comments.
+
 FAQs
 ----
 
@@ -1399,6 +1480,8 @@ using (var fileStream = File.OpenRead("somefile.txt"))
 ```
 
 Obviously, set the headers you need - don't just copy me blindly.
+
+You can use [extension methods](#advanced-functionality-using-extension-methods) to make this more palatable for consumers.
 
 Comparison to Refit
 -------------------
