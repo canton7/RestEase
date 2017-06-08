@@ -73,7 +73,7 @@ namespace RestEase.Implementation
                 var serialized = pathParam.SerializeToString();
 
                 // Space needs to be treated separately
-                var value = pathParam.UrlEncode ? UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
+                var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
                 sb.Replace("{" + (serialized.Key ?? String.Empty) + "}", value);
             }
 
@@ -117,26 +117,64 @@ namespace RestEase.Implementation
                 throw new FormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
-            string initialQueryString = uriBuilder.Query;
-            if (requestInfo.RawQueryParameter != null)
-            {
-                var rawQueryParameter = requestInfo.RawQueryParameter.SerializeToString();
-                if (String.IsNullOrEmpty(initialQueryString))
-                    initialQueryString = rawQueryParameter;
-                else
-                    initialQueryString += "&" + rawQueryParameter;
-            }
+            string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString() ?? string.Empty;
+            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams);
 
-            var queryParams = requestInfo.QueryParams.SelectMany(x => this.SerializeQueryParameter(x));
-            // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'
-            uriBuilder.Query = QueryParamBuilder.Build(initialQueryString, queryParams).TrimStart('?');
+            // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
+            uriBuilder.Query = query.TrimStart('?');
 
             return uriBuilder.Uri;
         }
 
-        private string UrlEncode(string uri)
+        /// <summary>
+        /// Build up a query string from the initial query string, raw query parameter, and any query params (which need to be combined)
+        /// </summary>
+        /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
+        /// <param name="rawQueryParameter">The raw query parameter, if any</param>
+        /// <param name="queryParams">The query parameters which need serializing (or an empty collection)</param>
+        /// <returns></returns>
+        protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams)
         {
-            return WebUtility.UrlEncode(uri);
+            // Implementation copied from FormUrlEncodedContent
+
+            var sb = new StringBuilder();
+
+            void AppendQueryString(string query)
+            {
+                if (sb.Length > 0)
+                    sb.Append('&');
+                sb.Append(query);
+            }
+
+            string Encode(string data)
+            {
+                if (string.IsNullOrEmpty(data))
+                    return string.Empty;
+                return Uri.EscapeDataString(data).Replace("%20", "+");
+            }
+
+            if (!String.IsNullOrEmpty(initialQueryString))
+                AppendQueryString(initialQueryString.Replace("%20", "+"));
+            if (!String.IsNullOrEmpty(rawQueryParameter))
+                AppendQueryString(rawQueryParameter);
+
+            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x));
+
+            foreach (var kvp in serializedQueryParams)
+            {
+                if (kvp.Key == null)
+                {
+                    AppendQueryString(Encode(kvp.Value));
+                }
+                else
+                {
+                    AppendQueryString(Encode(kvp.Key));
+                    sb.Append('=');
+                    sb.Append(Encode(kvp.Value));
+                }
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>

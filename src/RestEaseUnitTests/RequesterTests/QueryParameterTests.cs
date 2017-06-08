@@ -228,7 +228,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             serializer.VerifyAll();
         }
-            
+
 
         [Fact]
         public void DoesNotThrowIfRequestQueryParamSerializerReturnsNull()
@@ -340,6 +340,16 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, String.Empty, "?baz");
             var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?%26ba+r%3d&%3fyay%3f&=%3fbaz", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void HandlesUnicodeCharacters()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "key", "héllo");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://api.example.com/base/foo?key=héllo", uri.ToString(), ignoreCase: true);
+            Assert.Equal("http://api.example.com/base/foo?key=h%C3%A9llo", uri.AbsoluteUri.ToString(), ignoreCase: true);
         }
     }
 }
