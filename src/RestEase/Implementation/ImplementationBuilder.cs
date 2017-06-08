@@ -54,7 +54,6 @@ namespace RestEase.Implementation
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetTypeInfo().GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetTypeInfo().GetConstructor(new[] { typeof(string), typeof(string) });
         private static readonly ConstructorInfo httpMethodCtor = typeof(HttpMethod).GetTypeInfo().GetConstructor(new[] { typeof(string) });
-        private static readonly MethodInfo createImplementationMethod = typeof(ImplementationBuilder).GetTypeInfo().GetMethods().First(x => x.Name == "CreateImplementation" && x.IsGenericMethod);
 
         private static readonly MethodInfo disposeMethod = typeof(IDisposable).GetTypeInfo().GetMethod("Dispose");
 
@@ -120,21 +119,6 @@ namespace RestEase.Implementation
 
             T implementation = TypeCreatorRegistry<T>.Creator(requester);
             return implementation;
-        }
-
-        /// <summary>
-        /// Create an implementation of the given interface, using the given requester
-        /// </summary>
-        /// <param name="type">Type of interface to implement</param>
-        /// <param name="requester">Requester to be used by the generated implementation</param>
-        /// <returns>An implementation of the given interface</returns>
-        public object CreateImplementation(IRequester requester, Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            var methodInfo = createImplementationMethod.MakeGenericMethod(type);
-            return methodInfo.Invoke(this, new object[] { requester });
         }
 
         private Func<IRequester, T> BuildCreator<T>(Type implementationType)

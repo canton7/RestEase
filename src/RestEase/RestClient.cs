@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
 using RestEase.Implementation;
+using RestEase.Platform;
 using System;
+using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 
 namespace RestEase
 {
@@ -10,6 +13,8 @@ namespace RestEase
     /// </summary>
     public class RestClient
     {
+        private static readonly MethodInfo forGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && !x.IsStatic && x.GetParameters().Length == 0 && x.IsGenericMethod);
+
         /// <summary>
         /// Name of the assembly in which interface implementations are built. Use in [assembly: InternalsVisibleTo(RestEase.FactoryAssemblyName)] to allow clients to be generated for internal interface types
         /// </summary>
@@ -120,8 +125,8 @@ namespace RestEase
         /// <returns>An implementation which can be used to make REST requests</returns>
         public object For(Type type)
         {
-            var requester = this.CreateRequester();
-            return ImplementationBuilder.Instance.CreateImplementation(requester, type);
+            var method = forGenericMethodInfo.MakeGenericMethod(type);
+            return method.Invoke(this, new object[0]);
         }
 
         /// <summary>
