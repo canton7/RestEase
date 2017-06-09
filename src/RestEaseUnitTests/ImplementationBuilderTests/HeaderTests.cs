@@ -151,7 +151,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationBuilder builder = new ImplementationBuilder();
+        private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
         [Fact]
         public void HandlesClassHeaders()
@@ -233,7 +233,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(2, headerParams.Count);
 
             Assert.Equal("Param Header 2", headerParams[1].Key);
-            Assert.Equal(null, headerParams[1].Value);
+            Assert.Null(headerParams[1].Value);
         }
 
         [Fact]

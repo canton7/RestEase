@@ -121,7 +121,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationBuilder builder = new ImplementationBuilder();
+        private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
         [Fact]
         public void HandlesNullPathParams()
@@ -134,11 +134,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var serialized0 = pathParams[0].SerializeToString();
             Assert.Equal("foo", serialized0.Key);
-            Assert.Equal(null, serialized0.Value);
+            Assert.Null(serialized0.Value);
 
             var serialized1 = pathParams[1].SerializeToString();
             Assert.Equal("bar", serialized1.Key);
-            Assert.Equal(null, serialized1.Value);
+            Assert.Null(serialized1.Value);
         }
 
         [Fact]

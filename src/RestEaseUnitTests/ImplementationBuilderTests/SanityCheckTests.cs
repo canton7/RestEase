@@ -46,6 +46,22 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             bool SomeProperty { get; }
         }
 
+        public interface IRequesterPropertyWithoutGetter
+        {
+            IRequester Requester { set; }
+        }
+
+        public interface IRequesterPropertyWithSetter
+        {
+            IRequester Requester { get; set; }
+        }
+
+        public interface ITwoRequesterProperties
+        {
+            IRequester Requester1 { get; }
+            IRequester Requester2 { get; }
+        }
+
         public interface IGenericApi<T>
         {
             [Get("foo")]
@@ -53,7 +69,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationBuilder builder = new ImplementationBuilder();
+        private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
         [Fact]
         public void ThrowsIfMethodWithoutAttribute()
@@ -84,6 +100,24 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public void ThrowsIfInterfaceHasProperties()
         {
             Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasProperties>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfRequesterHasNoGetter()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IRequesterPropertyWithoutGetter>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfRequesterHasSetter()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IRequesterPropertyWithSetter>(this.requester.Object));
+        }
+
+        [Fact]
+        public void ThrowsIfTwoRequesters()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
         }
 
         [Fact]

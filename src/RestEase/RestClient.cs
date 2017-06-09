@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
 using RestEase.Implementation;
+using RestEase.Platform;
 using System;
+using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 
 namespace RestEase
 {
@@ -10,12 +13,12 @@ namespace RestEase
     /// </summary>
     public class RestClient
     {
+        private static readonly MethodInfo forGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && !x.IsStatic && x.GetParameters().Length == 0 && x.IsGenericMethod);
+
         /// <summary>
         /// Name of the assembly in which interface implementations are built. Use in [assembly: InternalsVisibleTo(RestEase.FactoryAssemblyName)] to allow clients to be generated for internal interface types
         /// </summary>
         public const string FactoryAssemblyName = "RestEaseFactory";
-
-        private static readonly ImplementationBuilder implementationBuilder = new ImplementationBuilder();
 
         private readonly HttpClient httpClient;
 
@@ -118,9 +121,26 @@ namespace RestEase
         /// <summary>
         /// Create an implementation for the given API interface
         /// </summary>
-        /// <typeparam name="T">Type of interfae to implement</typeparam>
+        /// <param name="type">Type of interface to implement</param>
+        /// <returns>An implementation which can be used to make REST requests</returns>
+        public object For(Type type)
+        {
+            var method = forGenericMethodInfo.MakeGenericMethod(type);
+            return method.Invoke(this, new object[0]);
+        }
+
+        /// <summary>
+        /// Create an implementation for the given API interface
+        /// </summary>
+        /// <typeparam name="T">Type of interface to implement</typeparam>
         /// <returns>An implementation which can be used to make REST requests</returns>
         public T For<T>()
+        {
+            var requester = this.CreateRequester();
+            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
+        }
+
+        private Requester CreateRequester()
         {
             var requester = new Requester(this.httpClient);
 
@@ -139,7 +159,7 @@ namespace RestEase
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            return implementationBuilder.CreateImplementation<T>(requester);
+            return requester;
         }
 
         /// <summary>
@@ -150,7 +170,7 @@ namespace RestEase
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(IRequester requester)
         {
-            return implementationBuilder.CreateImplementation<T>(requester);
+            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
         }
 
         /// <summary>

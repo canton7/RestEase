@@ -17,7 +17,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync();
         }
 
-        private readonly ImplementationBuilder builder = new ImplementationBuilder();
+        private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
         [Fact]
         public void DisposingDisposableImplementationDisposesRequester()

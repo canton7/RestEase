@@ -1,3 +1,10 @@
+v1.4.1
+------
+
+ - Fix bug where unicode characters were incorrectly double-encoded (#46)
+ - Add support for `IRequester` properties (#38)
+ - Add non-generic `RestClient.For(Type type)` overload (#43)
+
 v1.4.0
 ------
 
