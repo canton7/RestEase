@@ -13,7 +13,8 @@ namespace RestEase
     /// </summary>
     public class RestClient
     {
-        private static readonly MethodInfo forGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && !x.IsStatic && x.GetParameters().Length == 0 && x.IsGenericMethod);
+        private static readonly MethodInfo forInstanceGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && !x.IsStatic && x.GetParameters().Length == 0 && x.IsGenericMethod);
+        private static readonly MethodInfo forStaticGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && x.IsStatic && x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(IRequester) && x.IsGenericMethod);
 
         /// <summary>
         /// Name of the assembly in which interface implementations are built. Use in [assembly: InternalsVisibleTo(RestEase.FactoryAssemblyName)] to allow clients to be generated for internal interface types
@@ -125,7 +126,10 @@ namespace RestEase
         /// <returns>An implementation which can be used to make REST requests</returns>
         public object For(Type type)
         {
-            var method = forGenericMethodInfo.MakeGenericMethod(type);
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            var method = forInstanceGenericMethodInfo.MakeGenericMethod(type);
             return method.Invoke(this, new object[0]);
         }
 
@@ -160,6 +164,21 @@ namespace RestEase
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
             return requester;
+        }
+
+        /// <summary>
+        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// </summary>
+        /// <param name="type">Interface representing the API</param>
+        /// <param name="requester">IRequester to use</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, IRequester requester)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            var method = forStaticGenericMethodInfo.MakeGenericMethod(type);
+            return method.Invoke(null, new object[] { requester });
         }
 
         /// <summary>
