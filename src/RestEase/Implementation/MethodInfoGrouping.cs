@@ -8,14 +8,12 @@ namespace RestEase.Implementation
 {
     internal class MethodInfoFieldReference
     {
-        public int Id { get; }
-        public MethodBuilder GeneratorMethod { get; }
+        public MethodInfo MethodInfo { get; }
         public FieldBuilder BackingField { get; }
 
-        public MethodInfoFieldReference(int id, MethodBuilder generatorMethod, FieldBuilder backingField)
+        public MethodInfoFieldReference(MethodInfo methodInfo, FieldBuilder backingField)
         {
-            this.Id = id;
-            this.GeneratorMethod = generatorMethod;
+            this.MethodInfo = methodInfo;
             this.BackingField = backingField;
         }
     }

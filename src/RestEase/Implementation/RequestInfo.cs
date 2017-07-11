@@ -91,12 +91,10 @@ namespace RestEase.Implementation
         /// </summary>
         public BodyParameterInfo BodyParameterInfo { get; private set; }
 
-        private Lazy<MethodInfo> methodInfo;
-
         /// <summary>
         /// Gets the MethodInfo of the interface method which was invoked
         /// </summary>
-        public MethodInfo MethodInfo => this.methodInfo?.Value;
+        public MethodInfo MethodInfo { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RequestInfo"/> class
@@ -308,15 +306,6 @@ namespace RestEase.Implementation
         public void SetBodyParameterInfo<T>(BodySerializationMethod serializationMethod, T value)
         {
             this.BodyParameterInfo = new BodyParameterInfo<T>(serializationMethod, value);
-        }
-
-        /// <summary>
-        /// Sets a Lazy containing the MethodInfo of the method which was invoked
-        /// </summary>
-        /// <param name="methodInfo">Lazy which will yield the MethoInfo of the method which was invoked</param>
-        public void SetMethodInfo(Lazy<MethodInfo> methodInfo)
-        {
-            this.methodInfo = methodInfo;
         }
     }
 }

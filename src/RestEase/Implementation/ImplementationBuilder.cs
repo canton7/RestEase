@@ -50,14 +50,13 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddMethodHeader");
         private static readonly MethodInfo addHeaderParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddHeaderParameter");
         private static readonly MethodInfo setBodyParameterInfoMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("SetBodyParameterInfo");
-        private static readonly MethodInfo setMethodInfoMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("SetMethodInfo");
+        private static readonly MethodInfo setMethodInfoMethod = typeof(RequestInfo).GetTypeInfo().GetProperty("MethodInfo").SetMethod;
         private static readonly ConstructorInfo listOfKvpOfStringNCtor = typeof(List<KeyValuePair<string, string>>).GetTypeInfo().GetConstructor(new[] { typeof(int) });
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetTypeInfo().GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetTypeInfo().GetConstructor(new[] { typeof(string), typeof(string) });
         private static readonly ConstructorInfo httpMethodCtor = typeof(HttpMethod).GetTypeInfo().GetConstructor(new[] { typeof(string) });
-        private static readonly MethodInfo implementationHelpersGetMethodMethod = typeof(ImplementationHelpers).GetTypeInfo().GetMethod("GetMethod");
-        private static readonly ConstructorInfo lazyOfMethodInfoCtor = typeof(Lazy<MethodInfo>).GetTypeInfo().GetConstructor(new[] { typeof(Func<MethodInfo>) });
-        private static readonly ConstructorInfo funcOfMethodInfoCtor = typeof(Func<MethodInfo>).GetTypeInfo().GetConstructor(new[] { typeof(object), typeof(IntPtr) });
+        private static readonly MethodInfo getMethodFromHandleMethod = typeof(MethodBase).GetTypeInfo().GetMethods().Single(x => x.Name == "GetMethodFromHandle" && x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(RuntimeMethodHandle));
+        private static readonly MethodInfo getMethodFromHandleWithDeclaringTypeMethod = typeof(MethodBase).GetTypeInfo().GetMethods().Single(x => x.Name == "GetMethodFromHandle" && x.GetParameters().Length == 2 && x.GetParameters()[0].ParameterType == typeof(RuntimeMethodHandle) && x.GetParameters()[1].ParameterType == typeof(RuntimeTypeHandle));
 
         private static readonly MethodInfo disposeMethod = typeof(IDisposable).GetTypeInfo().GetMethod("Dispose");
 
@@ -274,10 +273,17 @@ namespace RestEase.Implementation
 
             foreach (var field in methodInfoGrouping.Fields)
             {
-                staticCtorIlGenerator.Emit(OpCodes.Ldnull);
-                staticCtorIlGenerator.Emit(OpCodes.Ldftn, field.GeneratorMethod);
-                staticCtorIlGenerator.Emit(OpCodes.Newobj, funcOfMethodInfoCtor);
-                staticCtorIlGenerator.Emit(OpCodes.Newobj, lazyOfMethodInfoCtor);
+                staticCtorIlGenerator.Emit(OpCodes.Ldtoken, field.MethodInfo);
+                if (field.MethodInfo.DeclaringType.GetTypeInfo().IsGenericType)
+                {
+                    staticCtorIlGenerator.Emit(OpCodes.Ldtoken, field.MethodInfo.DeclaringType);
+                    staticCtorIlGenerator.Emit(OpCodes.Call, getMethodFromHandleWithDeclaringTypeMethod);
+                }
+                else
+                {
+                    staticCtorIlGenerator.Emit(OpCodes.Call, getMethodFromHandleMethod);
+                }
+                staticCtorIlGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));
                 staticCtorIlGenerator.Emit(OpCodes.Stsfld, field.BackingField);
             }
 
@@ -326,11 +332,11 @@ namespace RestEase.Implementation
 
                     this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
-                    var methodInfoField = this.CreateMethodInfoFieldAndGenerator(typeBuilder, methodInfo, i);
-                    methodInfoGrouping.Fields.Add(methodInfoField);
+                    var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + i, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
+                    methodInfoGrouping.Fields.Add(new MethodInfoFieldReference(methodInfo, methodInfoFieldBuilder));
 
                     this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
-                    this.AddMethodInfo(methodIlGenerator, methodInfoField);
+                    this.AddMethodInfo(methodIlGenerator, methodInfoFieldBuilder);
                     this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
                     this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
@@ -407,34 +413,6 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ret);
         }
 
-        private MethodInfoFieldReference CreateMethodInfoFieldAndGenerator(TypeBuilder typeBuilder, MethodInfo methodInfo, int id)
-        {
-            // Equivalent to 'new Lazy<MethodInfo>(() => ImplementationHelpers.GetMethod(typeHandle, name, parameters))';
-
-            // Generate the method which is passed ot the Lazy
-            var parameters = methodInfo.GetParameters();
-
-            var generatorMethodBuilder = typeBuilder.DefineMethod("MethodInfoGetImpl<>_" + id, MethodAttributes.Private | MethodAttributes.Static, typeof(MethodInfo), new Type[0]);
-            var generatorIlGenerator = generatorMethodBuilder.GetILGenerator();
-            generatorIlGenerator.Emit(OpCodes.Ldtoken, methodInfo.DeclaringType);
-            generatorIlGenerator.Emit(OpCodes.Ldstr, methodInfo.Name);
-            generatorIlGenerator.Emit(OpCodes.Ldc_I4, parameters.Length);
-            generatorIlGenerator.Emit(OpCodes.Newarr, typeof(RuntimeTypeHandle));
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                generatorIlGenerator.Emit(OpCodes.Dup);
-                generatorIlGenerator.Emit(OpCodes.Ldc_I4, i);
-                generatorIlGenerator.Emit(OpCodes.Ldtoken, parameters[i].ParameterType);
-                generatorIlGenerator.Emit(OpCodes.Stelem, typeof(RuntimeTypeHandle));
-            }
-            generatorIlGenerator.Emit(OpCodes.Call, implementationHelpersGetMethodMethod);
-            generatorIlGenerator.Emit(OpCodes.Ret);
-
-            var fieldBuilder = typeBuilder.DefineField("methodInfoLazy<>_" + id, typeof(Lazy<MethodInfo>), FieldAttributes.Private | FieldAttributes.Static);
-
-            return new MethodInfoFieldReference(id, generatorMethodBuilder, fieldBuilder);
-        }
-
         private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
         {
             // Load 'this' onto the stack
@@ -467,10 +445,10 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
         }
 
-        private void AddMethodInfo(ILGenerator methodIlGenerator, MethodInfoFieldReference methodInfoField)
+        private void AddMethodInfo(ILGenerator methodIlGenerator, FieldBuilder methodInfoField)
         {
             methodIlGenerator.Emit(OpCodes.Dup);
-            methodIlGenerator.Emit(OpCodes.Ldsfld, methodInfoField.BackingField);
+            methodIlGenerator.Emit(OpCodes.Ldsfld, methodInfoField);
             methodIlGenerator.Emit(OpCodes.Callvirt, setMethodInfoMethod);
         }
 
