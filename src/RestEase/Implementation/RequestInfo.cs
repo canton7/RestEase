@@ -94,17 +94,28 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the MethodInfo of the interface method which was invoked
         /// </summary>
-        public MethodInfo MethodInfo { get; set; }
+        public MethodInfo MethodInfo { get; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RequestInfo"/> class
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
-        public RequestInfo(HttpMethod method, string path)
+        public RequestInfo(HttpMethod method, string path) : this(method, path, null)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RequestInfo"/> class
+        /// </summary>
+        /// <param name="method">HttpMethod to use when making the request</param>
+        /// <param name="path">Relative path to request</param>
+        /// <param name="methodInfo">MethodInfo for the method which was invoked</param>
+        public RequestInfo(HttpMethod method, string path, MethodInfo methodInfo)
         {
             this.Method = method;
             this.Path = path;
+            this.MethodInfo = methodInfo;
         }
 
         /// <summary>

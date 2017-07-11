@@ -32,7 +32,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestWithResponseMessageAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseMessageAsync");
         private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseAsync");
         private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestRawAsync");
-        private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string) });
+        private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(MethodInfo) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
         
@@ -50,7 +50,6 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddMethodHeader");
         private static readonly MethodInfo addHeaderParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddHeaderParameter");
         private static readonly MethodInfo setBodyParameterInfoMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("SetBodyParameterInfo");
-        private static readonly MethodInfo setMethodInfoMethod = typeof(RequestInfo).GetTypeInfo().GetProperty("MethodInfo").SetMethod;
         private static readonly ConstructorInfo listOfKvpOfStringNCtor = typeof(List<KeyValuePair<string, string>>).GetTypeInfo().GetConstructor(new[] { typeof(int) });
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetTypeInfo().GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetTypeInfo().GetConstructor(new[] { typeof(string), typeof(string) });
@@ -335,8 +334,7 @@ namespace RestEase.Implementation
                     var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + i, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
                     methodInfoGrouping.Fields.Add(new MethodInfoFieldReference(methodInfo, methodInfoFieldBuilder));
 
-                    this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
-                    this.AddMethodInfo(methodIlGenerator, methodInfoFieldBuilder);
+                    this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute, methodInfoFieldBuilder);
                     this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
                     this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
@@ -413,7 +411,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ret);
         }
 
-        private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
+        private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute, FieldBuilder methodInfoField)
         {
             // Load 'this' onto the stack
             // Stack: [this]
@@ -439,17 +437,12 @@ namespace RestEase.Implementation
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
             methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
+            // 3. The MethodInfo
+            methodIlGenerator.Emit(OpCodes.Ldsfld, methodInfoField);
 
             // Ctor the RequestInfo
             // Stack: [this.requester, requestInfo]
             methodIlGenerator.Emit(OpCodes.Newobj, requestInfoCtor);
-        }
-
-        private void AddMethodInfo(ILGenerator methodIlGenerator, FieldBuilder methodInfoField)
-        {
-            methodIlGenerator.Emit(OpCodes.Dup);
-            methodIlGenerator.Emit(OpCodes.Ldsfld, methodInfoField);
-            methodIlGenerator.Emit(OpCodes.Callvirt, setMethodInfoMethod);
         }
 
         private void AddCancellationTokenIfNeeded(ILGenerator methodIlGenerator, IndexedParameter? cancellationToken)
