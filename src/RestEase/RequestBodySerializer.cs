@@ -1,12 +1,13 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
+
 namespace RestEase
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     /// <summary>
     /// Helper which knows how to serialize a request body
     /// </summary>
-    [Obsolete("Use RequestBodySerializer instead")]
-    public interface IRequestBodySerializer
+    public abstract class RequestBodySerializer : IRequestBodySerializer
+#pragma warning restore CS0618 // Type or member is obsolete
     {
         /// <summary>
         /// Serialize the given request body
@@ -14,6 +15,6 @@ namespace RestEase
         /// <param name="body">Body to serialize</param>
         /// <typeparam name="T">Type of the body to serialize</typeparam>
         /// <returns>HttpContent to assign to the request</returns>
-        HttpContent SerializeBody<T>(T body);
+        public abstract HttpContent SerializeBody<T>(T body);
     }
 }

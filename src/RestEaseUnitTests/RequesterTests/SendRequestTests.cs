@@ -68,7 +68,7 @@ namespace RestEaseUnitTests.RequesterTests
                 Content = new StringContent("content"),
             };
             requester.ResponseMessage = Task.FromResult(responseMessage);
-            var responseDeserializer = new Mock<IResponseDeserializer>();
+            var responseDeserializer = new Mock<ResponseDeserializer>();
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
@@ -111,7 +111,7 @@ namespace RestEaseUnitTests.RequesterTests
                 Content = new StringContent("content"),
             };
             requester.ResponseMessage = Task.FromResult(responseMessage);
-            var responseDeserializer = new Mock<IResponseDeserializer>();
+            var responseDeserializer = new Mock<ResponseDeserializer>();
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 

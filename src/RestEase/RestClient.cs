@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace RestEase
 {
@@ -24,29 +25,44 @@ namespace RestEase
         private readonly HttpClient httpClient;
 
         /// <summary>
-        /// Gets or sets the deserializer used to deserialize responses
-        /// </summary>
-        /// <remarks>
-        /// Defaults to <see cref="JsonResponseDeserializer"/>
-        /// </remarks>
-        public IResponseDeserializer ResponseDeserializer { get; set; }
-
-        /// <summary>
         /// Gets or sets the JsonSerializerSettings to use with all non-overridden serializers / deserializers
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
+#pragma warning disable CS0618 // Type or member is obsolete
+        /// <summary>
+        /// Gets or sets the deserializer used to deserialize responses
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <see cref="JsonResponseDeserializer"/>.
+        /// 
+        /// This has the type <see cref="IResponseDeserializer"/> for backwards-compatibility reasons. You should assign
+        /// an instance of <see cref="ResponseDeserializer"/>
+        /// </remarks>
+        public IResponseDeserializer ResponseDeserializer { get; set; }
+
         /// <summary>
         /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
-        /// <remarks>Defaults to <see cref="JsonRequestBodySerializer"/></remarks>
+        /// <remarks>
+        /// Defaults to <see cref="JsonRequestBodySerializer"/>.
+        /// 
+        /// This has the type <see cref="IRequestBodySerializer"/> for backwards-compatibility reasons. You should assign
+        /// an instance of <see cref="RequestBodySerializer"/>.
+        /// </remarks>
         public IRequestBodySerializer RequestBodySerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
-        /// <remarks>Defaults to <see cref="JsonRequestQueryParamSerializer"/></remarks>
+        /// <remarks>
+        /// Defaults to <see cref="JsonRequestQueryParamSerializer"/>.
+        /// 
+        /// This has the type <see cref="IRequestQueryParamSerializer"/> for backwards-compatibility reasons. You should assign
+        /// an instance of <see cref="RequestQueryParamSerializer"/>.
+        /// </remarks>
         public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
@@ -148,18 +164,24 @@ namespace RestEase
         {
             var requester = new Requester(this.httpClient);
 
-            if (this.RequestBodySerializer != null)
-                requester.RequestBodySerializer = this.RequestBodySerializer;
+            if (this.RequestBodySerializer is RequestBodySerializer requestBodySerializer)
+                requester.RequestBodySerializer = requestBodySerializer;
+            else if (this.RequestBodySerializer != null)
+                requester.RequestBodySerializer = new RequestBodySerializerWrapper(this.RequestBodySerializer);
             else if (this.JsonSerializerSettings != null)
                 requester.RequestBodySerializer = new JsonRequestBodySerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            if (this.RequestQueryParamSerializer != null)
-                requester.RequestQueryParamSerializer = this.RequestQueryParamSerializer;
+            if (this.RequestQueryParamSerializer is RequestQueryParamSerializer requestQueryParamSerializer)
+                requester.RequestQueryParamSerializer = requestQueryParamSerializer;
+            else if (this.RequestQueryParamSerializer != null)
+                requester.RequestQueryParamSerializer = new RequestQueryParamSerializerWrapper(this.RequestQueryParamSerializer);
             else if (this.JsonSerializerSettings != null)
                 requester.RequestQueryParamSerializer = new JsonRequestQueryParamSerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            if (this.ResponseDeserializer != null)
-                requester.ResponseDeserializer = this.ResponseDeserializer;
+            if (this.ResponseDeserializer is ResponseDeserializer responseDeserializer)
+                requester.ResponseDeserializer = responseDeserializer;
+            else if (this.ResponseDeserializer != null)
+                requester.ResponseDeserializer = new ResponseDeserializerWrapper(this.ResponseDeserializer);
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
@@ -285,7 +307,7 @@ namespace RestEase
         /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
-        public static T For<T>(string baseUrl, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(string baseUrl, ResponseDeserializer responseDeserializer = null, RequestBodySerializer requestBodySerializer = null)
         {
             return new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
@@ -300,7 +322,7 @@ namespace RestEase
         /// <param name="requestBodySerializer">Serializer to use when serializing request bodiess, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
-        public static T For<T>(string baseUrl, RequestModifier requestModifier, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(string baseUrl, RequestModifier requestModifier, ResponseDeserializer responseDeserializer = null, RequestBodySerializer requestBodySerializer = null)
         {
             return new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
@@ -327,9 +349,48 @@ namespace RestEase
         /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
-        public static T For<T>(HttpClient httpClient, IResponseDeserializer responseDeserializer = null, IRequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(HttpClient httpClient, ResponseDeserializer responseDeserializer = null, RequestBodySerializer requestBodySerializer = null)
         {
             return new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        private class RequestBodySerializerWrapper : RequestBodySerializer
+        {
+            private readonly IRequestBodySerializer serializer;
+
+            public RequestBodySerializerWrapper(IRequestBodySerializer serializer) =>
+
+                this.serializer = serializer;
+
+            public override HttpContent SerializeBody<T>(T body) =>
+                this.serializer.SerializeBody(body);
+        }
+
+        private class RequestQueryParamSerializerWrapper : RequestQueryParamSerializer
+        {
+            private readonly IRequestQueryParamSerializer serializer;
+
+            public RequestQueryParamSerializerWrapper(IRequestQueryParamSerializer serializer) =>
+                this.serializer = serializer;
+
+            public override IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info) =>
+                this.serializer.SerializeQueryCollectionParam(name, values, info);
+
+            public override IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info) =>
+                this.serializer.SerializeQueryParam(name, value, info);
+        }
+
+        private class ResponseDeserializerWrapper : ResponseDeserializer
+        {
+            private readonly IResponseDeserializer deserializer;
+
+            public ResponseDeserializerWrapper(IResponseDeserializer deserializer) =>
+                this.deserializer = deserializer;
+
+            public override T Deserialize<T>(string content, HttpResponseMessage response) =>
+                this.deserializer.Deserialize<T>(content, response);
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

@@ -19,7 +19,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer);
+        public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer);
 
         /// <summary>
         /// Serialize the value into a collection of name -> value pairs using its ToString method
@@ -62,7 +62,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
@@ -124,7 +124,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(IRequestQueryParamSerializer serializer)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));

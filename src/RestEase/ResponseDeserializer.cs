@@ -1,18 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 
 namespace RestEase
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     /// <summary>
-    /// Default implementation of IResponseDeserializer, using Json.NET
+    /// Helper capable of deserializing a response, to return to the caller
     /// </summary>
-    public class JsonResponseDeserializer : ResponseDeserializer
+    public abstract class ResponseDeserializer : IResponseDeserializer
+#pragma warning restore CS0618 // Type or member is obsolete
     {
-        /// <summary>
-        /// Gets or sets the serializer settings to pass to JsonConvert.DeserializeObject{T}
-        /// </summary>
-        public JsonSerializerSettings JsonSerializerSettings { get; set; }
-
         /// <summary>
         /// Read the response string from the response, deserialize, and return a deserialized object
         /// </summary>
@@ -20,9 +19,6 @@ namespace RestEase
         /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage. Consider calling response.Content.ReadAsStringAsync() to retrieve a string</param>
         /// <returns>Deserialized response</returns>
-        public override T Deserialize<T>(string content, HttpResponseMessage response)
-        {
-            return JsonConvert.DeserializeObject<T>(content, this.JsonSerializerSettings);
-        }
+        public abstract T Deserialize<T>(string content, HttpResponseMessage response);
     }
 }

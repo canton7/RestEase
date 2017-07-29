@@ -73,7 +73,7 @@ namespace RestEaseUnitTests.RequesterTests
             var body = new object();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, body);
 
-            var requestBodySerializer = new Mock<IRequestBodySerializer>();
+            var requestBodySerializer = new Mock<RequestBodySerializer>();
             this.requester.RequestBodySerializer = requestBodySerializer.Object;
 
             requestBodySerializer.Setup(x => x.SerializeBody(body)).Returns(new StringContent("test")).Verifiable();

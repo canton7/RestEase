@@ -6,7 +6,7 @@ namespace RestEase
     /// <summary>
     /// Default IRequestBodySerializer, using Json.NET
     /// </summary>
-    public class JsonRequestBodySerializer : IRequestBodySerializer
+    public class JsonRequestBodySerializer : RequestBodySerializer
     {
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
@@ -19,7 +19,7 @@ namespace RestEase
         /// <param name="body">Body to serialize</param>
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <returns>HttpContent to assign to the request</returns>
-        public HttpContent SerializeBody<T>(T body)
+        public override HttpContent SerializeBody<T>(T body)
         {
             if (body == null)
                 return null;

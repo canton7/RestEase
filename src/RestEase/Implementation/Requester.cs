@@ -25,17 +25,17 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the deserializer used to deserialize responses
         /// </summary>
-        public IResponseDeserializer ResponseDeserializer { get; set; }
+        public ResponseDeserializer ResponseDeserializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
-        public IRequestBodySerializer RequestBodySerializer { get; set; }
+        public RequestBodySerializer RequestBodySerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
-        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+        public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
