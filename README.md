@@ -889,7 +889,7 @@ To tell RestEase to use it, you must create a new `RestClient`, assign its `Resp
 
 public class XmlResponseDeserializer : ResponseDeserializer
 {
-    public override T Deserialize<T>(string content, HttpResponseMessage response)
+    public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
     {
         // Consider caching generated XmlSerializers
         var serializer = new XmlSerializer(typeof(T));
@@ -926,7 +926,7 @@ For example:
 ```csharp
 public class XmlRequestBodySerializer : RequestBodySerializer
 {
-    public override HttpContent SerializeBody<T>(T body)
+    public override HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
     {
         if (body == null)
             return null;

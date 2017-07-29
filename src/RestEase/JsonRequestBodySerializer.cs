@@ -13,13 +13,8 @@ namespace RestEase
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
-        /// <summary>
-        /// Serialize the given request body
-        /// </summary>
-        /// <param name="body">Body to serialize</param>
-        /// <typeparam name="T">Type of the value to serialize</typeparam>
-        /// <returns>HttpContent to assign to the request</returns>
-        public override HttpContent SerializeBody<T>(T body)
+        /// <inheritdoc/>
+        public override HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
         {
             if (body == null)
                 return null;

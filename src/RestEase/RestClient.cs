@@ -363,7 +363,7 @@ namespace RestEase
 
                 this.serializer = serializer;
 
-            public override HttpContent SerializeBody<T>(T body) =>
+            public override HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info) =>
                 this.serializer.SerializeBody(body);
         }
 
@@ -388,7 +388,7 @@ namespace RestEase
             public ResponseDeserializerWrapper(IResponseDeserializer deserializer) =>
                 this.deserializer = deserializer;
 
-            public override T Deserialize<T>(string content, HttpResponseMessage response) =>
+            public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) =>
                 this.deserializer.Deserialize<T>(content, response);
         }
 #pragma warning restore CS0618 // Type or member is obsolete

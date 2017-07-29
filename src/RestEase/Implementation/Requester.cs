@@ -118,7 +118,7 @@ namespace RestEase.Implementation
             }
 
             string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString() ?? string.Empty;
-            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams);
+            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams, requestInfo);
 
             // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
             uriBuilder.Query = query.TrimStart('?');
@@ -132,8 +132,9 @@ namespace RestEase.Implementation
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
         /// <param name="rawQueryParameter">The raw query parameter, if any</param>
         /// <param name="queryParams">The query parameters which need serializing (or an empty collection)</param>
-        /// <returns></returns>
-        protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams)
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <returns>Query params combined into a query string</returns>
+        protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams, IRequestInfo requestInfo)
         {
             // Implementation copied from FormUrlEncodedContent
 
@@ -158,7 +159,7 @@ namespace RestEase.Implementation
             if (!String.IsNullOrEmpty(rawQueryParameter))
                 AppendQueryString(rawQueryParameter);
 
-            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x));
+            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
             foreach (var kvp in serializedQueryParams)
             {
@@ -223,8 +224,9 @@ namespace RestEase.Implementation
         /// Serializes the value of a query parameter, using an appropriate method
         /// </summary>
         /// <param name="queryParameter">Query parameter to serialize</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter)
+        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter, IRequestInfo requestInfo)
         {
             switch (queryParameter.SerializationMethod)
             {
@@ -233,7 +235,7 @@ namespace RestEase.Implementation
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
-                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer);
+                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo);
                     return result ?? Enumerable.Empty<KeyValuePair<string, string>>();
                 default:
                     throw new InvalidOperationException("Should never get here");
@@ -266,7 +268,7 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer);
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -362,12 +364,13 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of object to deserialize into</typeparam>
         /// <param name="content">String content read from the response</param>
         /// <param name="response">Response to deserialize from</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>A task containing the deserialized response</returns>
-        protected virtual T Deserialize<T>(string content, HttpResponseMessage response)
+        protected virtual T Deserialize<T>(string content, HttpResponseMessage response, IRequestInfo requestInfo)
         {
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
-            return this.ResponseDeserializer.Deserialize<T>(content, response);
+            return this.ResponseDeserializer.Deserialize<T>(content, response, new ResponseDeserializerInfo(requestInfo));
         }
 
         /// <summary>
@@ -391,7 +394,7 @@ namespace RestEase.Implementation
         {
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            T deserializedResponse = this.Deserialize<T>(content, response);
+            T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
             return deserializedResponse;
         }
 
@@ -416,7 +419,7 @@ namespace RestEase.Implementation
         {
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new Response<T>(content, response, () => this.Deserialize<T>(content, response));
+            return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
         }
 
         /// <summary>

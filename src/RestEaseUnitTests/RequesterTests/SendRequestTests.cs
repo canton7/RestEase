@@ -72,7 +72,7 @@ namespace RestEaseUnitTests.RequesterTests
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage))
+            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage, It.IsAny<ResponseDeserializerInfo>()))
                 .Returns("hello")
                 .Verifiable();
 
@@ -115,7 +115,7 @@ namespace RestEaseUnitTests.RequesterTests
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage))
+            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage, It.IsAny<ResponseDeserializerInfo>()))
                 .Returns("hello")
                 .Verifiable();
 

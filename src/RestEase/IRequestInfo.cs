@@ -2,8 +2,9 @@
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
+using RestEase.Implementation;
 
-namespace RestEase.Implementation
+namespace RestEase
 {
     /// <summary>
     /// Class containing information to construct a request from.

@@ -18,8 +18,9 @@ namespace RestEase.Implementation
         /// Serialize the (typed) value into a collection of name -> value pairs using the given serializer
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer);
+        public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo);
 
         /// <summary>
         /// Serialize the value into a collection of name -> value pairs using its ToString method
@@ -61,13 +62,16 @@ namespace RestEase.Implementation
         /// Serialize the (typed) value into a collection of name -> value pairs using the given serializer
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
+            if (requestInfo == null)
+                throw new ArgumentNullException(nameof(requestInfo));
 
-            return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(this.format));
+            return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(requestInfo, this.format));
         }
 
         /// <summary>
@@ -123,13 +127,14 @@ namespace RestEase.Implementation
         /// Serialize the (typed) value into a collection of name -> value pairs using the given serializer
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
 
-            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(this.format));
+            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(requestInfo, this.format));
         }
 
         /// <summary>
