@@ -65,6 +65,14 @@ namespace RestEase
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
+        /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
+        /// </summary>
+        /// <remarks>
+        /// Defaults to null, in which case the current culture is used.
+        /// </remarks>
+        public IFormatProvider FormatProvider { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">Base URL of the API</param>
@@ -184,6 +192,8 @@ namespace RestEase
                 requester.ResponseDeserializer = new ResponseDeserializerWrapper(this.ResponseDeserializer);
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
+
+            requester.FormatProvider = this.FormatProvider;
 
             return requester;
         }

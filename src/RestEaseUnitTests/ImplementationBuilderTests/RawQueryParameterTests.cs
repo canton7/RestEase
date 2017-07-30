@@ -6,17 +6,21 @@ using Moq;
 using RestEase;
 using RestEase.Implementation;
 using Xunit;
+using System.Globalization;
 
 namespace RestEaseUnitTests.ImplementationBuilderTests
 {
     public class RawQueryParameterTests
     {
-        public class HasToString
+        public class HasToString : IFormattable
         {
-            public override string ToString()
+            public string ToString(string format, IFormatProvider formatProvider)
             {
+                3.ToString(formatProvider); // Just call this
                 return "HasToString";
             }
+
+            public override string ToString() => "HasToString";
         }
 
         public interface ISimpleRawQueryString
@@ -53,7 +57,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync("&test=test2");
 
             Assert.NotNull(requestInfo.RawQueryParameter);
-            Assert.Equal("&test=test2", requestInfo.RawQueryParameter.SerializeToString());
+            Assert.Equal("&test=test2", requestInfo.RawQueryParameter.SerializeToString(null));
         }
 
         [Fact]
@@ -75,7 +79,26 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync(new HasToString());
 
             Assert.NotNull(requestInfo.RawQueryParameter);
-            Assert.Equal("HasToString", requestInfo.RawQueryParameter.SerializeToString());
+            Assert.Equal("HasToString", requestInfo.RawQueryParameter.SerializeToString(null));
+        }
+
+        [Fact]
+        public void SerializeToStringUsesGivenFormatProvider()
+        {
+            var implementation = this.builder.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(new HasToString());
+
+            var formatProvider = new Mock<IFormatProvider>();
+
+            requestInfo.RawQueryParameter.SerializeToString(formatProvider.Object);
+
+            formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
         }
     }
 }

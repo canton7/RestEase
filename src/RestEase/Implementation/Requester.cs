@@ -38,6 +38,14 @@ namespace RestEase.Implementation
         public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
 
         /// <summary>
+        /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
+        /// </summary>
+        /// <remarks>
+        /// Defaults to null, in which case the current culture is used.
+        /// </remarks>
+        public IFormatProvider FormatProvider { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
         /// </summary>
         /// <param name="httpClient">HttpClient to use to make requests</param>
@@ -70,7 +78,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
-                var serialized = pathParam.SerializeToString();
+                var serialized = pathParam.SerializeToString(this.FormatProvider);
 
                 // Space needs to be treated separately
                 var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
@@ -117,7 +125,7 @@ namespace RestEase.Implementation
                 throw new FormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
-            string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString() ?? string.Empty;
+            string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString(this.FormatProvider) ?? string.Empty;
             var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams, requestInfo);
 
             // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
@@ -169,7 +177,7 @@ namespace RestEase.Implementation
                 }
                 else
                 {
-                    AppendQueryString(Encode(kvp.Key));
+                    AppendQueryString(Encode(this.ToStringHelper(kvp.Key)));
                     sb.Append('=');
                     sb.Append(Encode(kvp.Value));
                 }
@@ -209,13 +217,13 @@ namespace RestEase.Implementation
                 {
                     foreach (var individualValue in (IEnumerable)kvp.Value)
                     {
-                        var stringValue = individualValue?.ToString();
-                        yield return new KeyValuePair<string, string>(kvp.Key.ToString(), stringValue);
+                        var stringValue = this.ToStringHelper(individualValue);
+                        yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), stringValue);
                     }
                 }
                 else if (kvp.Value != null)
                 {
-                    yield return new KeyValuePair<string, string>(kvp.Key.ToString(), kvp.Value.ToString());
+                    yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), this.ToStringHelper(kvp.Value));
                 }
             }
         }
@@ -231,7 +239,7 @@ namespace RestEase.Implementation
             switch (queryParameter.SerializationMethod)
             {
                 case QuerySerializationMethod.ToString:
-                    return queryParameter.SerializeToString();
+                    return queryParameter.SerializeToString(this.FormatProvider);
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
@@ -321,6 +329,20 @@ namespace RestEase.Implementation
                 if (!added)
                     throw new ArgumentException(String.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content?", headersGroup.Key));
             }
+        }
+
+        /// <summary>
+        /// Serializes an item to a string using <see cref="FormatProvider"/> if the object implements <see cref="IFormattable"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the value being serialized</typeparam>
+        /// <param name="value">Value being serialized</param>
+        /// <returns>Serialized value</returns>
+        protected string ToStringHelper<T>(T value)
+        {
+            if (this.FormatProvider != null && value is IFormattable formattable)
+                return formattable.ToString(null, this.FormatProvider);
+            else
+                return value?.ToString();
         }
 
         /// <summary>

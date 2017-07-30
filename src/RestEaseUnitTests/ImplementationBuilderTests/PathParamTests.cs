@@ -3,6 +3,7 @@ using RestEase;
 using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -132,11 +133,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, pathParams.Count);
 
-            var serialized0 = pathParams[0].SerializeToString();
+            var serialized0 = pathParams[0].SerializeToString(null);
             Assert.Equal("foo", serialized0.Key);
             Assert.Null(serialized0.Value);
 
-            var serialized1 = pathParams[1].SerializeToString();
+            var serialized1 = pathParams[1].SerializeToString(null);
             Assert.Equal("bar", serialized1.Key);
             Assert.Null(serialized1.Value);
         }
@@ -150,11 +151,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, pathParams.Count);
 
-            var serialized0 = pathParams[0].SerializeToString();
+            var serialized0 = pathParams[0].SerializeToString(null);
             Assert.Equal("foo", serialized0.Key);
             Assert.Equal("foo value", serialized0.Value);
 
-            var serialized1 = pathParams[1].SerializeToString();
+            var serialized1 = pathParams[1].SerializeToString(null);
             Assert.Equal("bar", serialized1.Key);
             Assert.Equal("bar value", serialized1.Value);
         }
@@ -200,13 +201,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, pathParams.Count);
 
-            var serialized = pathParams[0].SerializeToString();
+            var serialized = pathParams[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("foovalue", serialized.Value);
 
             Assert.Equal(1, queryParams.Count);
 
-            var queryParam = queryParams[0].SerializeToString().First();
+            var queryParam = queryParams[0].SerializeToString(null).First();
             Assert.Equal("bar", queryParam.Key);
             Assert.Equal("barvalue", queryParam.Value);
         }
@@ -224,7 +225,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, pathProperties.Count);
 
-            var serialized = pathProperties[0].SerializeToString();
+            var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("bar", serialized.Value);
         }
@@ -252,7 +253,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, pathProperties.Count);
 
-            var serialized = pathProperties[0].SerializeToString();
+            var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("Foo", serialized.Key);
             Assert.Equal("bar", serialized.Value);
         }
@@ -269,7 +270,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var pathProperties = requestInfo.PathProperties.ToList();
             Assert.Equal(1, pathProperties.Count);
 
-            var serialized = pathProperties[0].SerializeToString();
+            var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("A", serialized.Value);
         }
@@ -285,7 +286,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var pathParams = requestInfo.PathParams.ToList();
             Assert.Equal(1, pathParams.Count);
 
-            var serialized = pathParams[0].SerializeToString();
+            var serialized = pathParams[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("02", serialized.Value);
         }
@@ -314,6 +315,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(1, pathParams.Count);
 
             Assert.False(pathParams[0].UrlEncode);
+        }
+
+        [Fact]
+        public void SerializeToStringUsesGivenFormatProvider()
+        {
+            var requestInfo = Request<IHasFormattedPathParam>(x => x.FooAsync(3));
+            var formatProvider = new Mock<IFormatProvider>();
+
+            var param = requestInfo.PathParams.First();
+            param.SerializeToString(formatProvider.Object);
+
+            formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

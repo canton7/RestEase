@@ -25,8 +25,9 @@ namespace RestEase.Implementation
         /// <summary>
         /// Serialize the value into a collection of name -> value pairs using its ToString method
         /// </summary>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public abstract IEnumerable<KeyValuePair<string, string>> SerializeToString();
+        public abstract IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider);
     }
 
     /// <summary>
@@ -58,12 +59,7 @@ namespace RestEase.Implementation
             this.format = format;
         }
 
-        /// <summary>
-        /// Serialize the (typed) value into a collection of name -> value pairs using the given serializer
-        /// </summary>
-        /// <param name="serializer">Serializer to use</param>
-        /// <param name="requestInfo">RequestInfo representing the request</param>
-        /// <returns>Serialized value</returns>
+        /// <inheritdoc/>
         public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
@@ -74,18 +70,15 @@ namespace RestEase.Implementation
             return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(requestInfo, this.format));
         }
 
-        /// <summary>
-        /// Serialize the value into a collection of name -> value pairs using its ToString method
-        /// </summary>
-        /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeToString()
+        /// <inheritdoc/>
+        public override IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider)
         {
             if (this.value == null)
                 return Enumerable.Empty<KeyValuePair<string, string>>();
 
             string stringValue;
             if (this.value is IFormattable formattable)
-                stringValue = formattable.ToString(this.format, null);
+                stringValue = formattable.ToString(this.format, formatProvider);
             else
                 stringValue = this.value.ToString();
 
@@ -122,12 +115,7 @@ namespace RestEase.Implementation
             this.format = format;
         }
 
-        /// <summary>
-        /// Serialize the (typed) value into a collection of name -> value pairs using the given serializer
-        /// </summary>
-        /// <param name="serializer">Serializer to use</param>
-        /// <param name="requestInfo">RequestInfo representing the request</param>
-        /// <returns>Serialized value</returns>
+        /// <inheritdoc/>
         public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
@@ -136,11 +124,8 @@ namespace RestEase.Implementation
             return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(requestInfo, this.format));
         }
 
-        /// <summary>
-        /// Serialize the value into a collection of name -> value pairs using its ToString method
-        /// </summary>
-        /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeToString()
+        /// <inheritdoc/>
+        public override IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider)
         {
             if (this.values == null)
                 yield break;
@@ -152,7 +137,7 @@ namespace RestEase.Implementation
 
                 string stringValue;
                 if (value is IFormattable formattable)
-                    stringValue = formattable.ToString(this.format, null);
+                    stringValue = formattable.ToString(this.format, formatProvider);
                 else
                     stringValue = value.ToString();
 

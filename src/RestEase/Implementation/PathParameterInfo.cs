@@ -35,13 +35,14 @@ namespace RestEase.Implementation
         /// <summary>
         /// Serialize the value into a collection of name -> value pairs using its ToString method
         /// </summary>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public KeyValuePair<string, string> SerializeToString()
+        public KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
         {
             string stringValue;
 
             if (this.value is IFormattable formattable)
-                stringValue = formattable.ToString(this.format, null);
+                stringValue = formattable.ToString(this.format, formatProvider);
             else
                 stringValue = this.value?.ToString();
 

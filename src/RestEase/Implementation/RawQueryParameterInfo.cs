@@ -10,8 +10,9 @@ namespace RestEase.Implementation
         /// <summary>
         /// Serialize the value into a string
         /// </summary>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public abstract string SerializeToString();
+        public abstract string SerializeToString(IFormatProvider formatProvider);
     }
 
     /// <summary>
@@ -31,16 +32,15 @@ namespace RestEase.Implementation
             this.value = value;
         }
 
-        /// <summary>
-        /// Serialize the value into a string
-        /// </summary>
-        /// <returns>Serialized value</returns>
-        public override string SerializeToString()
+        /// <inheritdoc/>
+        public override string SerializeToString(IFormatProvider formatProvider)
         {
-            if (this.value == null)
-                return String.Empty;
-
-            return this.value.ToString();
+            if (formatProvider != null && this.value is IFormattable formattable)
+                return formattable.ToString(null, formatProvider);
+            else if (this.value != null)
+                return this.value.ToString();
+            else
+                return string.Empty;
         }
     }
 }
