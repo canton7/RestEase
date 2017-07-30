@@ -9,16 +9,11 @@ namespace RestEase
     /// </summary>
     public abstract class RequestBodySerializer : IRequestBodySerializer
     {
-        /// <summary>
-        /// Serialize the given request body
-        /// </summary>
-        /// <param name="body">Body to serialize</param>
-        /// <typeparam name="T">Type of the body to serialize</typeparam>
-        /// <returns>HttpContent to assign to the request</returns>
-        [Obsolete("Override SerializeBody<T>(T body, RequestBodySerializerInfo info) instead")]
-        public virtual HttpContent SerializeBody<T>(T body)
+        [Obsolete("Override SerializeBody<T>(T body, RequestBodySerializerInfo info) instead", error: true)]
+        HttpContent IRequestBodySerializer.SerializeBody<T>(T body)
         {
-            throw new NotImplementedException("You must override and implement SerializeBody<T>(T body, RequestBodySerializerInfo info)");
+            // This exists only so that we can assign instances of ResponseDeserializer to the IResponseDeserializer in RestClient
+            throw new InvalidOperationException("This should never be called");
         }
 
         /// <summary>
@@ -30,8 +25,7 @@ namespace RestEase
         /// <returns>HttpContent to assign to the request</returns>
         public virtual HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
         {
-            // By default, call the legacy SerializeBody<T>(T body) method
-            return this.SerializeBody(body);
+            throw new NotImplementedException("You must override and implement SerializeBody<T>(T body, RequestBodySerializerInfo info)");
         }
     }
 #pragma warning restore CS0618 // Type or member is obsolete
