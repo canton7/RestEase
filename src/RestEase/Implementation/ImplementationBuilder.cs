@@ -171,8 +171,7 @@ namespace RestEase.Implementation
             if (classHeaders.Length > 0)
                 classHeadersField = typeBuilder.DefineField("classHeaders", typeof(List<KeyValuePair<string, string>>), FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.InitOnly);
 
-            MethodInfoGrouping methodInfoGrouping;
-            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties, out methodInfoGrouping);
+            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties, out MethodInfoGrouping methodInfoGrouping);
 
             this.AddStaticCtor(typeBuilder, classHeaders, classHeadersField, methodInfoGrouping);
 

@@ -84,8 +84,7 @@ namespace RestEase.Implementation
                 return Enumerable.Empty<KeyValuePair<string, string>>();
 
             string stringValue;
-            var formattable = this.value as IFormattable;
-            if (formattable != null)
+            if (this.value is IFormattable formattable)
                 stringValue = formattable.ToString(this.format, null);
             else
                 stringValue = this.value.ToString();
@@ -152,8 +151,7 @@ namespace RestEase.Implementation
                     continue;
 
                 string stringValue;
-                var formattable = value as IFormattable;
-                if (formattable != null)
+                if (value is IFormattable formattable)
                     stringValue = formattable.ToString(this.format, null);
                 else
                     stringValue = value.ToString();

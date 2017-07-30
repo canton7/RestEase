@@ -40,8 +40,7 @@ namespace RestEase.Implementation
         {
             string stringValue;
 
-            var formattable = this.value as IFormattable;
-            if (formattable != null)
+            if (this.value is IFormattable formattable)
                 stringValue = formattable.ToString(this.format, null);
             else
                 stringValue = this.value?.ToString();
