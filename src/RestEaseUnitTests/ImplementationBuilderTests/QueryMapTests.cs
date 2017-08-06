@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,11 +88,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            var queryParam0 = queryParams[0].SerializeToString().First();
+            var queryParam0 = queryParams[0].SerializeToString(null).First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("bar", queryParam0.Value);
 
-            var queryParam1 = queryParams[1].SerializeToString().First();
+            var queryParam1 = queryParams[1].SerializeToString(null).First();
             Assert.Equal("bar", queryParam1.Key);
             Assert.Equal("yay", queryParam1.Value);
         }
@@ -116,13 +117,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            var queryParam0 = queryParams[0].SerializeToString().ToArray();
+            var queryParam0 = queryParams[0].SerializeToString(null).ToArray();
             Assert.Equal("foo", queryParam0[0].Key);
             Assert.Equal("bar1", queryParam0[0].Value);
             Assert.Equal("foo", queryParam0[1].Key);
             Assert.Equal("bar2", queryParam0[1].Value);
 
-            var queryParam1 = queryParams[1].SerializeToString().ToArray();
+            var queryParam1 = queryParams[1].SerializeToString(null).ToArray();
             Assert.Equal("bar", queryParam1[0].Key);
             Assert.Equal("yay1", queryParam1[0].Value);
             Assert.Equal("bar", queryParam1[1].Key);
@@ -204,11 +205,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            var queryParam0 = queryParams[0].SerializeToString().First();
+            var queryParam0 = queryParams[0].SerializeToString(null).First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("bar", queryParam0.Value);
 
-            var queryParam1 = queryParams[1].SerializeToString().First();
+            var queryParam1 = queryParams[1].SerializeToString(null).First();
             Assert.Equal("foo", queryParam1.Key);
             Assert.Equal("yay", queryParam1.Value);
         }
@@ -261,11 +262,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            var queryParam0 = queryParams[0].SerializeToString().Single();
+            var queryParam0 = queryParams[0].SerializeToString(null).Single();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("bar", queryParam0.Value);
 
-            var queryParam1 = queryParams[1].SerializeToString().ToArray();
+            var queryParam1 = queryParams[1].SerializeToString(null).ToArray();
             Assert.Equal("baz", queryParam1[0].Key);
             Assert.Equal("a", queryParam1[0].Value);
 
@@ -274,6 +275,30 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal("baz", queryParam1[2].Key);
             Assert.Equal("c", queryParam1[2].Value);
+        }
+
+        [Fact]
+        public void SerializeToStringUsesGivenFormatProvider()
+        {
+            var implementation = this.builder.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            var queryMap = new Dictionary<string, object>()
+            {
+                { "foo", 3.3 }
+            };
+            implementation.FooAsync(queryMap);
+
+            var formatProvider = new Mock<IFormatProvider>();
+
+            var param = requestInfo.QueryParams.First();
+            param.SerializeToString(formatProvider.Object);
+
+            formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
         }
     }
 }

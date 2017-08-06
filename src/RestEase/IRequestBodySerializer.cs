@@ -1,9 +1,11 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 namespace RestEase
 {
     /// <summary>
     /// Helper which knows how to serialize a request body
     /// </summary>
+    [Obsolete("Use RequestBodySerializer instead")]
     public interface IRequestBodySerializer
     {
         /// <summary>

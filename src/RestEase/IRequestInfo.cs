@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
+using RestEase.Implementation;
 
-namespace RestEase.Implementation
+namespace RestEase
 {
     /// <summary>
     /// Class containing information to construct a request from.
@@ -74,5 +76,10 @@ namespace RestEase.Implementation
         /// Gets information the [Body] method parameter, if it exists
         /// </summary>
         BodyParameterInfo BodyParameterInfo { get; }
+
+        /// <summary>
+        /// Gets the MethodInfo of the interface method which was invoked
+        /// </summary>
+        MethodInfo MethodInfo { get; }
     }
 }

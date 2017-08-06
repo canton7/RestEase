@@ -1,10 +1,12 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 
 namespace RestEase
 {
     /// <summary>
     /// Helper capable of deserializing a response, to return to the caller
     /// </summary>
+    [Obsolete("Use ResponseDeserializer instead")]
     public interface IResponseDeserializer
     {
         /// <summary>

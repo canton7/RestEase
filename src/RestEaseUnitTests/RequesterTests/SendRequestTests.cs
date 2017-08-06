@@ -68,11 +68,11 @@ namespace RestEaseUnitTests.RequesterTests
                 Content = new StringContent("content"),
             };
             requester.ResponseMessage = Task.FromResult(responseMessage);
-            var responseDeserializer = new Mock<IResponseDeserializer>();
+            var responseDeserializer = new Mock<ResponseDeserializer>();
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage))
+            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage, It.IsAny<ResponseDeserializerInfo>()))
                 .Returns("hello")
                 .Verifiable();
 
@@ -111,11 +111,11 @@ namespace RestEaseUnitTests.RequesterTests
                 Content = new StringContent("content"),
             };
             requester.ResponseMessage = Task.FromResult(responseMessage);
-            var responseDeserializer = new Mock<IResponseDeserializer>();
+            var responseDeserializer = new Mock<ResponseDeserializer>();
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage))
+            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage, It.IsAny<ResponseDeserializerInfo>()))
                 .Returns("hello")
                 .Verifiable();
 

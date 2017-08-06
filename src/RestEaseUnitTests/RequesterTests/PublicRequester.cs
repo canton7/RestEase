@@ -1,4 +1,5 @@
-﻿using RestEase.Implementation;
+﻿using RestEase;
+using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;

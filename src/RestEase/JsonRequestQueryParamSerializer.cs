@@ -6,7 +6,7 @@ namespace RestEase
     /// <summary>
     /// Default IRequestParamSerializer, using Json.NET
     /// </summary>
-    public class JsonRequestQueryParamSerializer : IRequestQueryParamSerializer
+    public class JsonRequestQueryParamSerializer : RequestQueryParamSerializer
     {
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
@@ -24,7 +24,7 @@ namespace RestEase
         /// <param name="value">Value of the query parameter</param>
         /// <param name="info">Extra information which may be useful</param>
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
-        public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
         {
             if (value == null)
                 yield break;
@@ -44,7 +44,7 @@ namespace RestEase
         /// <param name="values">Values of the query parmaeter</param>
         /// <param name="info">Extra information which may be useful</param>
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
-        public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
+        public override IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
         {
             if (values == null)
                 yield break;

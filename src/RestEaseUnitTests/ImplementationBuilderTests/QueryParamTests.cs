@@ -3,6 +3,7 @@ using RestEase;
 using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -119,7 +120,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Equal(1, requestInfo.QueryParams.Count());
 
-            var queryParam0 = requestInfo.QueryParams.First().SerializeToString().First();
+            var queryParam0 = requestInfo.QueryParams.First().SerializeToString(null).First();
             Assert.Equal("bar", queryParam0.Key);
             Assert.Equal("the value", queryParam0.Value);
             Assert.Equal("boo", requestInfo.Path);
@@ -132,7 +133,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
 
-            var queryParam0 = requestInfo.QueryParams.First().SerializeToString().First();
+            var queryParam0 = requestInfo.QueryParams.First().SerializeToString(null).First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("the value", queryParam0.Value);
         }
@@ -144,7 +145,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(1, requestInfo.QueryParams.Count());
 
-            var queryParam0 = requestInfo.QueryParams.First().SerializeToString().First();
+            var queryParam0 = requestInfo.QueryParams.First().SerializeToString(null).First();
             Assert.Equal("foo", queryParam0.Key);
             Assert.Equal("the value", queryParam0.Value);
         }
@@ -158,11 +159,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, queryParams.Count);
 
-            var queryParam0 = queryParams[0].SerializeToString().First();
+            var queryParam0 = queryParams[0].SerializeToString(null).First();
             Assert.Equal("bar", queryParam0.Key);
             Assert.Equal("foo value", queryParam0.Value);
 
-            var queryParam1 = queryParams[1].SerializeToString().First();
+            var queryParam1 = queryParams[1].SerializeToString(null).First();
             Assert.Equal("bar", queryParam1.Key);
             Assert.Equal("bar value", queryParam1.Value);
         }
@@ -220,7 +221,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var queryParams = requestInfo.QueryParams.ToList();
 
             Assert.Equal(1, queryParams.Count);
-            Assert.Equal(null, queryParams[0].SerializeToString().First().Key);
+            Assert.Equal(null, queryParams[0].SerializeToString(null).First().Key);
         }
 
         [Fact]
@@ -231,7 +232,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var queryParams = requestInfo.QueryParams.ToList();
 
             Assert.Equal(1, queryParams.Count);
-            Assert.Equal(String.Empty, queryParams[0].SerializeToString().First().Key);
+            Assert.Equal(String.Empty, queryParams[0].SerializeToString(null).First().Key);
         }
 
         [Fact]
@@ -241,7 +242,19 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            Assert.Equal("B", queryParams[0].SerializeToString().First().Value);
+            Assert.Equal("B", queryParams[0].SerializeToString(null).First().Value);
+        }
+
+        [Fact]
+        public void SerializeToStringUsesGivenFormatProvider()
+        {
+            var requestInfo = Request<IHasFormat>(x => x.FooAsync(3));
+            var formatProvider = new Mock<IFormatProvider>();
+
+            var param = requestInfo.QueryParams.First();
+            param.SerializeToString(formatProvider.Object);
+
+            formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

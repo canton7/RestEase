@@ -22,8 +22,9 @@ namespace RestEase.Implementation
         /// Serialize the (typed) value using the given serializer
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        public abstract HttpContent SerializeValue(IRequestBodySerializer serializer);
+        public abstract HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo);
     }
 
     /// <summary>
@@ -53,13 +54,14 @@ namespace RestEase.Implementation
         /// Serialize the (typed) value using the given serializer
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        public override HttpContent SerializeValue(IRequestBodySerializer serializer)
+        public override HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
 
-            return serializer.SerializeBody<T>(this.Value);
+            return serializer.SerializeBody<T>(this.Value, new RequestBodySerializerInfo(requestInfo));
         }
     }
 }

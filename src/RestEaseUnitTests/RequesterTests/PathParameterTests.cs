@@ -45,9 +45,9 @@ namespace RestEaseUnitTests.RequesterTests
         public void EncodesUsingPathEncoding()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
-            requestInfo.AddPathParameter<string>("bar", "a ?b/c");
+            requestInfo.AddPathParameter<string>("bar", "a ?b/cé");
             var uri = this.requester.SubstitutePathParameters(requestInfo);
-            Assert.Equal("/foo/a%20%3fb%2fc/baz", uri, ignoreCase: true);
+            Assert.Equal("/foo/a%20%3fb%2fc%c3%a9/baz", uri, ignoreCase: true);
         }
 
         [Fact]

@@ -32,7 +32,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestWithResponseMessageAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseMessageAsync");
         private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseAsync");
         private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestRawAsync");
-        private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string) });
+        private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(MethodInfo) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
         
@@ -54,6 +54,8 @@ namespace RestEase.Implementation
         private static readonly MethodInfo listOfKvpOfStringAdd = typeof(List<KeyValuePair<string, string>>).GetTypeInfo().GetMethod("Add");
         private static readonly ConstructorInfo kvpOfStringCtor = typeof(KeyValuePair<string, string>).GetTypeInfo().GetConstructor(new[] { typeof(string), typeof(string) });
         private static readonly ConstructorInfo httpMethodCtor = typeof(HttpMethod).GetTypeInfo().GetConstructor(new[] { typeof(string) });
+        private static readonly MethodInfo getMethodFromHandleMethod = typeof(MethodBase).GetTypeInfo().GetMethods().Single(x => x.Name == "GetMethodFromHandle" && x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(RuntimeMethodHandle));
+        private static readonly MethodInfo getMethodFromHandleWithDeclaringTypeMethod = typeof(MethodBase).GetTypeInfo().GetMethods().Single(x => x.Name == "GetMethodFromHandle" && x.GetParameters().Length == 2 && x.GetParameters()[0].ParameterType == typeof(RuntimeMethodHandle) && x.GetParameters()[1].ParameterType == typeof(RuntimeTypeHandle));
 
         private static readonly MethodInfo disposeMethod = typeof(IDisposable).GetTypeInfo().GetMethod("Dispose");
 
@@ -160,19 +162,18 @@ namespace RestEase.Implementation
 
             this.AddInstanceCtor(typeBuilder, requesterField);
 
+            this.HandleEvents(interfaceType);
+            var properties = this.HandleProperties(typeBuilder, interfaceType, requesterField);
+
             // If there are any class headers, define a static readonly field which contains them
             // Also define a static constructor to initialise it
             FieldBuilder classHeadersField = null;
             if (classHeaders.Length > 0)
-            {
                 classHeadersField = typeBuilder.DefineField("classHeaders", typeof(List<KeyValuePair<string, string>>), FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.InitOnly);
-                this.AddStaticCtor(typeBuilder, classHeaders, classHeadersField);
-            }
 
-            this.HandleEvents(interfaceType);
-            var properties = this.HandleProperties(typeBuilder, interfaceType, requesterField);
+            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties, out MethodInfoGrouping methodInfoGrouping);
 
-            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties);
+            this.AddStaticCtor(typeBuilder, classHeaders, classHeadersField, methodInfoGrouping);
 
             Type constructedType;
             try
@@ -233,35 +234,57 @@ namespace RestEase.Implementation
             ctorIlGenerator.Emit(OpCodes.Ret);
         }
 
-        private void AddStaticCtor(TypeBuilder typeBuilder, HeaderAttribute[] classHeaders, FieldBuilder classHeadersField)
+        private void AddStaticCtor(TypeBuilder typeBuilder, HeaderAttribute[] classHeaders, FieldBuilder classHeadersField, MethodInfoGrouping methodInfoGrouping)
         {
             // static Name()
             // {
             //     classHeaders = new List<KeyValuePair<string>>(n);
             //     classHeaders.Add(new KeyValuePair<string, string>("name", "value"));
             //     ...
+            //     methodInfoBackingField = new Lazy<MethodInfo>(methodInfoMethod);
+            //     ...
             // }
 
             var staticCtorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Static, CallingConventions.Standard, new Type[0]);
             var staticCtorIlGenerator = staticCtorBuilder.GetILGenerator();
 
-            // Load the list size onto the stack
-            // Stack: [list size]
-            staticCtorIlGenerator.Emit(OpCodes.Ldc_I4, classHeaders.Length);
-            // Ctor the list
-            // Stack: [list]
-            staticCtorIlGenerator.Emit(OpCodes.Newobj, listOfKvpOfStringNCtor);
-            // Load each class header into the list
-            foreach (var classHeader in classHeaders)
+            if (classHeadersField != null)
             {
-                staticCtorIlGenerator.Emit(OpCodes.Dup);
-                staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Name);
-                staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Value); // This value can never be null - we assert that earlier
-                staticCtorIlGenerator.Emit(OpCodes.Newobj, kvpOfStringCtor);
-                staticCtorIlGenerator.Emit(OpCodes.Callvirt, listOfKvpOfStringAdd);
+                // Load the list size onto the stack
+                // Stack: [list size]
+                staticCtorIlGenerator.Emit(OpCodes.Ldc_I4, classHeaders.Length);
+                // Ctor the list
+                // Stack: [list]
+                staticCtorIlGenerator.Emit(OpCodes.Newobj, listOfKvpOfStringNCtor);
+                // Load each class header into the list
+                foreach (var classHeader in classHeaders)
+                {
+                    staticCtorIlGenerator.Emit(OpCodes.Dup);
+                    staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Name);
+                    staticCtorIlGenerator.Emit(OpCodes.Ldstr, classHeader.Value); // This value can never be null - we assert that earlier
+                    staticCtorIlGenerator.Emit(OpCodes.Newobj, kvpOfStringCtor);
+                    staticCtorIlGenerator.Emit(OpCodes.Callvirt, listOfKvpOfStringAdd);
+                }
+                // Finally, store the list in its static field
+                staticCtorIlGenerator.Emit(OpCodes.Stsfld, classHeadersField);
             }
-            // Finally, store the list in its static field
-            staticCtorIlGenerator.Emit(OpCodes.Stsfld, classHeadersField);
+
+            foreach (var field in methodInfoGrouping.Fields)
+            {
+                staticCtorIlGenerator.Emit(OpCodes.Ldtoken, field.MethodInfo);
+                if (field.MethodInfo.DeclaringType.GetTypeInfo().IsGenericType)
+                {
+                    staticCtorIlGenerator.Emit(OpCodes.Ldtoken, field.MethodInfo.DeclaringType);
+                    staticCtorIlGenerator.Emit(OpCodes.Call, getMethodFromHandleWithDeclaringTypeMethod);
+                }
+                else
+                {
+                    staticCtorIlGenerator.Emit(OpCodes.Call, getMethodFromHandleMethod);
+                }
+                staticCtorIlGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));
+                staticCtorIlGenerator.Emit(OpCodes.Stsfld, field.BackingField);
+            }
+
             staticCtorIlGenerator.Emit(OpCodes.Ret);
         }
 
@@ -272,8 +295,12 @@ namespace RestEase.Implementation
             FieldInfo classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
             SerializationMethodsAttribute classSerializationMethodsAttribute,
-            PropertyGrouping properties)
+            PropertyGrouping properties, 
+            out MethodInfoGrouping methodInfoGrouping)
         {
+            int i = 0;
+            methodInfoGrouping = new MethodInfoGrouping();
+
             foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetMethods()))
             {
                 // Exclude property getter / setters, etc
@@ -303,7 +330,10 @@ namespace RestEase.Implementation
 
                     this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
-                    this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute);
+                    var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + i, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
+                    methodInfoGrouping.Fields.Add(new MethodInfoFieldReference(methodInfo, methodInfoFieldBuilder));
+
+                    this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute, methodInfoFieldBuilder);
                     this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
                     this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
@@ -318,6 +348,8 @@ namespace RestEase.Implementation
 
                     typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
                 }
+
+                i++;
             }
         }
 
@@ -378,7 +410,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Ret);
         }
 
-        private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute)
+        private void AddRequestInfoCreation(ILGenerator methodIlGenerator, FieldBuilder requesterField, RequestAttribute requestAttribute, FieldBuilder methodInfoField)
         {
             // Load 'this' onto the stack
             // Stack: [this]
@@ -404,6 +436,8 @@ namespace RestEase.Implementation
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
             methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
+            // 3. The MethodInfo
+            methodIlGenerator.Emit(OpCodes.Ldsfld, methodInfoField);
 
             // Ctor the RequestInfo
             // Stack: [this.requester, requestInfo]

@@ -48,9 +48,9 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
-        1. [Deserializing responses: `IResponseDeserializer`](#deserializing-responses-iresponsedeserializer)
-        2. [Serializing request bodies: `IRequestBodySerializer`](#serializing-request-bodies-irequestbodyserializer)
-        3. [Serializing request parameters: `IRequestQueryParamSerializer`](#serializing-request-parameters-irequestqueryparamserializer)
+        1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
+        2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
+        3. [Serializing request parameters: `RequestQueryParamSerializer`](serializing-request-parameters-requestqueryparamserializer)
 12. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
@@ -869,13 +869,13 @@ var api = new RestClient("http://api.example.com")
 
 You can completely customize how requests are serialized, and responses deserialized, by providing your own serializer/deserializer implementations:
 
- - To control how responses are deserialized, implement [`IResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IResponseDeserializer.cs)
- - To control how request bodies are serialized, implement [`IRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestBodySerializer.cs)
- - To control how request query parameters are serialized, implement [`IRequestQueryParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequestQueryParamSerializer.cs)
+ - To control how responses are deserialized, subclass [`ResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/ResponseDeserializer.cs)
+ - To control how request bodies are serialized, subclass [`RequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/RequestBodySerializer.cs)
+ - To control how request query parameters are serialized, subclass [`RequestQueryParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/RequestQueryParamSerializer.cs)
 
 You can, of course, provide a custom implementation of only one of these, or all of them, or any number in between.
 
-#### Deserializing responses: `IResponseDeserializer`
+#### Deserializing responses: `ResponseDeserializer`
 
 This class has a single method, which is called whenever a response is received which needs deserializing.
 It is passed the `HttpResponseMessage` (so you can read headers, etc, if you want) and its `string` content which has already been asynchronously read.
@@ -887,9 +887,9 @@ To tell RestEase to use it, you must create a new `RestClient`, assign its `Resp
 ```csharp
 // This API returns XML
 
-public class XmlResponseDeserializer : IResponseDeserializer
+public class XmlResponseDeserializer : ResponseDeserializer
 {
-    public T Deserialize<T>(string content, HttpResponseMessage response)
+    public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
     {
         // Consider caching generated XmlSerializers
         var serializer = new XmlSerializer(typeof(T));
@@ -909,12 +909,12 @@ var api = new RestClient("http://api.example.com")
 }.For<ISomeApi>();
 ```
 
-#### Serializing request bodies: `IRequestBodySerializer`
+#### Serializing request bodies: `RequestBodySerializer`
 
 This class has a single method, which is called whenever a request body requires serialization (i.e. is decorated with `[Body(BodySerializationMethod.Serialized)]`).
 It returns any `HttpContent` subclass you like, although `StringContent` is likely to be a common choice.
 
-When writing an `IRequestBodySerializer`'s `SerializeBody` implementation, you may choose to provide some default headers, such as `Content-Type`.
+When writing an `RequestBodySerializer`'s `SerializeBody` implementation, you may choose to provide some default headers, such as `Content-Type`.
 These will be overidden by any `[Header]` attributes.
 
 For an example, see [`JsonRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonRequestBodySerializer.cs).
@@ -924,9 +924,9 @@ To tell RestEase to use it, you must create a new `RestClient`, assign its `Requ
 For example:
 
 ```csharp
-public class XmlRequestBodySerializer : IRequestBodySerializer
+public class XmlRequestBodySerializer : RequestBodySerializer
 {
-    public HttpContent SerializeBody<T>(T body)
+    public override HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
     {
         if (body == null)
             return null;
@@ -953,7 +953,7 @@ var api = new RestClient("http://api.example.com")
 }.For<ISomeApi>();
 ```
 
-#### Serializing request parameters: `IRequestQueryParamSerializer`
+#### Serializing request parameters: `RequestQueryParamSerializer`
 
 This class has two methods: one is called whenever a scalar query parameter requires serialization (i.e. is decorated with `[Query(QuerySerializationMethod.Serialized)]`); the other is called whenever a collection of query parameters (that is, the query parameter has type `IEnumerable<T>` for some `T`) requires serialization.
 
@@ -983,9 +983,9 @@ For example:
 // It's highly unlikely that you'll get an API which requires xml-encoded query
 // parameters, but for the sake of an example:
 
-public class XmlRequestQueryParamSerializer : IRequestQueryParamSerializer
+public class XmlRequestQueryParamSerializer : RequestQueryParamSerializer
 {
-    public IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
+    public override IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
     {
         if (value == null)
             yield break;
@@ -1000,7 +1000,7 @@ public class XmlRequestQueryParamSerializer : IRequestQueryParamSerializer
         }
     }
 
-    public IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
+    public override IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
     {
         if (values == null)
             yield break;
@@ -1388,7 +1388,7 @@ In this case, you'll want to auto-detect what sort of response you got, and dese
 To do this, use a custom deserializer, which can do this detection.
 
 ```csharp
-public class HybridResponseDeserializer : IResponseDeserializer
+public class HybridResponseDeserializer : ResponseDeserializer
 {
     private T DeserializeXml<T>(string content)
     {
@@ -1406,7 +1406,7 @@ public class HybridResponseDeserializer : IResponseDeserializer
         return JsonConvert.Deserialize<T>(content);
     }
 
-    public T Deserialize<T>(string content, HttpResponseMessage response)
+    public override T Deserialize<T>(string content, HttpResponseMessage response)
     {
         switch (response.Content.Headers.ContentType.MediaType)
         {

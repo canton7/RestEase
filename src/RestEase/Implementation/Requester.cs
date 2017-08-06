@@ -25,17 +25,25 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the deserializer used to deserialize responses
         /// </summary>
-        public IResponseDeserializer ResponseDeserializer { get; set; }
+        public ResponseDeserializer ResponseDeserializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
-        public IRequestBodySerializer RequestBodySerializer { get; set; }
+        public RequestBodySerializer RequestBodySerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
-        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+        public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
+        /// </summary>
+        /// <remarks>
+        /// Defaults to null, in which case the current culture is used.
+        /// </remarks>
+        public IFormatProvider FormatProvider { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
@@ -70,7 +78,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
-                var serialized = pathParam.SerializeToString();
+                var serialized = pathParam.SerializeToString(this.FormatProvider);
 
                 // Space needs to be treated separately
                 var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
@@ -117,8 +125,8 @@ namespace RestEase.Implementation
                 throw new FormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
-            string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString() ?? string.Empty;
-            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams);
+            string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString(this.FormatProvider) ?? string.Empty;
+            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams, requestInfo);
 
             // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
             uriBuilder.Query = query.TrimStart('?');
@@ -132,8 +140,9 @@ namespace RestEase.Implementation
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
         /// <param name="rawQueryParameter">The raw query parameter, if any</param>
         /// <param name="queryParams">The query parameters which need serializing (or an empty collection)</param>
-        /// <returns></returns>
-        protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams)
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <returns>Query params combined into a query string</returns>
+        protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams, IRequestInfo requestInfo)
         {
             // Implementation copied from FormUrlEncodedContent
 
@@ -158,7 +167,7 @@ namespace RestEase.Implementation
             if (!String.IsNullOrEmpty(rawQueryParameter))
                 AppendQueryString(rawQueryParameter);
 
-            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x));
+            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
             foreach (var kvp in serializedQueryParams)
             {
@@ -168,7 +177,7 @@ namespace RestEase.Implementation
                 }
                 else
                 {
-                    AppendQueryString(Encode(kvp.Key));
+                    AppendQueryString(Encode(this.ToStringHelper(kvp.Key)));
                     sb.Append('=');
                     sb.Append(Encode(kvp.Value));
                 }
@@ -208,13 +217,13 @@ namespace RestEase.Implementation
                 {
                     foreach (var individualValue in (IEnumerable)kvp.Value)
                     {
-                        var stringValue = individualValue?.ToString();
-                        yield return new KeyValuePair<string, string>(kvp.Key.ToString(), stringValue);
+                        var stringValue = this.ToStringHelper(individualValue);
+                        yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), stringValue);
                     }
                 }
                 else if (kvp.Value != null)
                 {
-                    yield return new KeyValuePair<string, string>(kvp.Key.ToString(), kvp.Value.ToString());
+                    yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), this.ToStringHelper(kvp.Value));
                 }
             }
         }
@@ -223,17 +232,18 @@ namespace RestEase.Implementation
         /// Serializes the value of a query parameter, using an appropriate method
         /// </summary>
         /// <param name="queryParameter">Query parameter to serialize</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter)
+        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter, IRequestInfo requestInfo)
         {
             switch (queryParameter.SerializationMethod)
             {
                 case QuerySerializationMethod.ToString:
-                    return queryParameter.SerializeToString();
+                    return queryParameter.SerializeToString(this.FormatProvider);
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
-                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer);
+                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo);
                     return result ?? Enumerable.Empty<KeyValuePair<string, string>>();
                 default:
                     throw new InvalidOperationException("Should never get here");
@@ -266,7 +276,7 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer);
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -322,6 +332,20 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
+        /// Serializes an item to a string using <see cref="FormatProvider"/> if the object implements <see cref="IFormattable"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the value being serialized</typeparam>
+        /// <param name="value">Value being serialized</param>
+        /// <returns>Serialized value</returns>
+        protected string ToStringHelper<T>(T value)
+        {
+            if (this.FormatProvider != null && value is IFormattable formattable)
+                return formattable.ToString(null, this.FormatProvider);
+            else
+                return value?.ToString();
+        }
+
+        /// <summary>
         /// Given an IRequestInfo, construct a HttpRequestMessage, send it, check the response for success, then return it
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to construct the request from</param>
@@ -362,12 +386,13 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of object to deserialize into</typeparam>
         /// <param name="content">String content read from the response</param>
         /// <param name="response">Response to deserialize from</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>A task containing the deserialized response</returns>
-        protected virtual T Deserialize<T>(string content, HttpResponseMessage response)
+        protected virtual T Deserialize<T>(string content, HttpResponseMessage response, IRequestInfo requestInfo)
         {
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
-            return this.ResponseDeserializer.Deserialize<T>(content, response);
+            return this.ResponseDeserializer.Deserialize<T>(content, response, new ResponseDeserializerInfo(requestInfo));
         }
 
         /// <summary>
@@ -391,7 +416,7 @@ namespace RestEase.Implementation
         {
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            T deserializedResponse = this.Deserialize<T>(content, response);
+            T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
             return deserializedResponse;
         }
 
@@ -416,7 +441,7 @@ namespace RestEase.Implementation
         {
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new Response<T>(content, response, () => this.Deserialize<T>(content, response));
+            return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using RestEase;
+﻿using Moq;
+using RestEase;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,10 +17,19 @@ namespace RestEaseUnitTests
         }
 
         [Fact]
-        public void NonGenericForReturnsSameAsGenericFor()
+        public void NonGenericInstanceForReturnsSameAsGenericFor()
         {
             var generic = RestClient.For<ISomeApi>("http://example.com");
             var nonGeneric = new RestClient("http://example.com").For(typeof(ISomeApi));
+            Assert.Equal(generic.GetType(), nonGeneric.GetType());
+        }
+
+        [Fact]
+        public void NonGenericStaticForReturnsSameAsGenericFor()
+        {
+            var requester = new Mock<IRequester>().Object;
+            var generic = RestClient.For<ISomeApi>("http://example.com");
+            var nonGeneric = RestClient.For(typeof(ISomeApi), requester);
             Assert.Equal(generic.GetType(), nonGeneric.GetType());
         }
     }

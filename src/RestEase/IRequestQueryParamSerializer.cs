@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace RestEase
 {
     /// <summary>
     /// Helper which knows how to serialize query parmaeters
     /// </summary>
+    [Obsolete("Use RequestQueryParamSerializer instead")]
     public interface IRequestQueryParamSerializer
     {
         /// <summary>
