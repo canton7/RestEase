@@ -1,3 +1,12 @@
+v1.4.2
+------
+
+ - Move to abstract base classes for custom serializers and deserializers
+ - Add MethodInfo to the IRequestInfo, and pass to custom serializers and deserializers. This allows custom serializers and deserializers to look at e.g. custom attributes on the method which was called (#51)
+ - Allow an `IFormatProvider` to be specified, which overrides the culture on the thread which calls RestEase's methods (#49)
+ - Reduce json.net dependency version to 6.0.1 for net45 (#52)
+ - Add `RestClient.For(Type type, IRequester requester)` overload (#43)
+
 v1.4.1
 ------
 
