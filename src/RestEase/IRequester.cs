@@ -30,6 +30,7 @@ namespace RestEase
         /// </summary>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
+        [Obsolete("Override RequestAsync<T>(IRequestInfo requestInfo) instead", error: false)]
         Task<HttpResponseMessage> RequestWithResponseMessageAsync(IRequestInfo requestInfo);
 
         /// <summary>
@@ -45,6 +46,7 @@ namespace RestEase
         /// </summary>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
+        [Obsolete("Override RequestAsync<T>(IRequestInfo requestInfo) instead", error: false)]
         Task<string> RequestRawAsync(IRequestInfo requestInfo);
     }
 }

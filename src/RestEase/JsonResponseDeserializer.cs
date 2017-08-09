@@ -1,12 +1,13 @@
 ﻿using Newtonsoft.Json;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace RestEase
 {
     /// <summary>
     /// Default implementation of IResponseDeserializer, using Json.NET
     /// </summary>
-    public class JsonResponseDeserializer : ResponseDeserializer
+    public class JsonResponseDeserializer : DefaultResponseDeserializer
     {
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.DeserializeObject{T}
@@ -14,8 +15,13 @@ namespace RestEase
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
         /// <inheritdoc/>
-        public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
+        public override async Task<T> Deserialize<T>(HttpResponseMessage response, ResponseDeserializerInfo info)
         {
+            var result = await base.Deserialize<T>(response, info);
+            if (result != null)
+                return result;
+
+            var content = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<T>(content, this.JsonSerializerSettings);
         }
     }

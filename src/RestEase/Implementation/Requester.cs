@@ -384,15 +384,15 @@ namespace RestEase.Implementation
         /// Calls this.ResponseDeserializer.ReadAndDeserializeAsync, after checking it's not null
         /// </summary>
         /// <typeparam name="T">Type of object to deserialize into</typeparam>
-        /// <param name="content">String content read from the response</param>
         /// <param name="response">Response to deserialize from</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>A task containing the deserialized response</returns>
-        protected virtual T Deserialize<T>(string content, HttpResponseMessage response, IRequestInfo requestInfo)
+        protected virtual Task<T> Deserialize<T>(HttpResponseMessage response, IRequestInfo requestInfo)
         {
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
-            return this.ResponseDeserializer.Deserialize<T>(content, response, new ResponseDeserializerInfo(requestInfo));
+
+            return this.ResponseDeserializer.Deserialize<T>(response, new ResponseDeserializerInfo(requestInfo));
         }
 
         /// <summary>
@@ -415,9 +415,8 @@ namespace RestEase.Implementation
         public virtual async Task<T> RequestAsync<T>(IRequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
-            return deserializedResponse;
+
+            return await this.Deserialize<T>(response, requestInfo).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -425,10 +424,10 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to construct the request from</param>
         /// <returns>Task containing the result of the request</returns>
-        public virtual async Task<HttpResponseMessage> RequestWithResponseMessageAsync(IRequestInfo requestInfo)
+        [Obsolete("Override RequestAsync<T>(IRequestInfo requestInfo) instead", error: false)]
+        public virtual Task<HttpResponseMessage> RequestWithResponseMessageAsync(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
-            return response;
+            return this.RequestAsync<HttpResponseMessage>(requestInfo);
         }
 
         /// <summary>
@@ -440,8 +439,8 @@ namespace RestEase.Implementation
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(IRequestInfo requestInfo)
         {
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
+
+            return new Response<T>(response,() => this.Deserialize<T>(response, requestInfo));
         }
 
         /// <summary>
@@ -449,11 +448,10 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to construct the request from</param>
         /// <returns>Task containing the raw string body of the response</returns>
-        public virtual async Task<string> RequestRawAsync(IRequestInfo requestInfo)
+        [Obsolete("Override RequestAsync<T>(IRequestInfo requestInfo) instead", error: false)]
+        public virtual Task<string> RequestRawAsync(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return responseString;
+            return this.RequestAsync<string>(requestInfo);
         }
 
         /// <summary>

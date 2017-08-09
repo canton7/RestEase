@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace RestEase
 {
@@ -9,46 +10,31 @@ namespace RestEase
     /// <typeparam name="T">Type of deserialized response</typeparam>
     public class Response<T>
     {
-        private readonly Func<T> contentDeserializer;
-        private bool contentDeserialized;
-        private T deserializedContent;
+        private readonly Lazy<Task<T>> contentDeserializer;
 
         /// <summary>
         /// Gets the raw HttpResponseMessage
         /// </summary>
         public HttpResponseMessage ResponseMessage { get; private set; }
-
-        /// <summary>
-        /// Gets the string content of the response
-        /// </summary>
-        public string StringContent { get; private set; }
-
+        
         /// <summary>
         /// Gets the deserialized response
         /// </summary>
         /// <returns>The deserialized content</returns>
-        public T GetContent()
+        public Task<T> GetContent()
         {
-            if (!this.contentDeserialized)
-            {
-                this.deserializedContent = this.contentDeserializer();
-                this.contentDeserialized = true;
-            }
-            
-            return this.deserializedContent;
+            return this.contentDeserializer.Value;
         }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Response{T}"/> class
         /// </summary>
-        /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage received</param>
         /// <param name="contentDeserializer">Func which will deserialize the content into a T</param>
-        public Response(string content, HttpResponseMessage response, Func<T> contentDeserializer)
+        public Response(HttpResponseMessage response, Func<Task<T>> contentDeserializer)
         {
-            this.StringContent = content;
             this.ResponseMessage = response;
-            this.contentDeserializer = contentDeserializer;
+            this.contentDeserializer = new Lazy<Task<T>>(contentDeserializer);
         }
     }
 }

@@ -131,7 +131,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var implementation = this.builder.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
 
-            var expectedResponse = Task.FromResult(new Response<string>("hello", new HttpResponseMessage(), () => null));
+            var expectedResponse = Task.FromResult(new Response<string>(new HttpResponseMessage(), () => null));
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<IRequestInfo>()))

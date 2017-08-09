@@ -72,8 +72,8 @@ namespace RestEaseUnitTests.RequesterTests
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage, It.IsAny<ResponseDeserializerInfo>()))
-                .Returns("hello")
+            responseDeserializer.Setup(x => x.Deserialize<string>(responseMessage, It.IsAny<ResponseDeserializerInfo>()))
+                .ReturnsAsync("hello")
                 .Verifiable();
 
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
@@ -115,8 +115,8 @@ namespace RestEaseUnitTests.RequesterTests
             requester.ResponseDeserializer = responseDeserializer.Object;
             var cancellationToken = new CancellationToken();
 
-            responseDeserializer.Setup(x => x.Deserialize<string>("content", responseMessage, It.IsAny<ResponseDeserializerInfo>()))
-                .Returns("hello")
+            responseDeserializer.Setup(x => x.Deserialize<string>(responseMessage, It.IsAny<ResponseDeserializerInfo>()))
+                .ReturnsAsync("hello")
                 .Verifiable();
 
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
@@ -130,8 +130,7 @@ namespace RestEaseUnitTests.RequesterTests
             responseDeserializer.Verify();
 
             Assert.Equal(requestInfo, requester.RequestInfo);
-            Assert.Equal("content", result.StringContent);
-            Assert.Equal("hello", deserializedContent);
+            Assert.Equal("hello", deserializedContent.Result);
             Assert.Equal(responseMessage, result.ResponseMessage);
         }
 
