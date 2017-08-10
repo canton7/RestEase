@@ -131,7 +131,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var implementation = this.builder.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
 
-            var expectedResponse = Task.FromResult(new Response<string>("hello", new HttpResponseMessage(), () => null));
+            var expectedResponse = Task.FromResult(new Response<string>(new HttpResponseMessage(), () => Task.FromResult<string>(null)));
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<IRequestInfo>()))
@@ -180,7 +180,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var expectedResponse = Task.FromResult("testy");
             IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestRawAsync(It.IsAny<IRequestInfo>()))
+            this.requester.Setup(x => x.RequestAsync<string>(It.IsAny<IRequestInfo>()))
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();

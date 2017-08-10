@@ -39,12 +39,5 @@ namespace RestEase
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
         Task<Response<T>> RequestWithResponseAsync<T>(IRequestInfo requestInfo);
-
-        /// <summary>
-        /// Invoked when the API interface method being called returns a Task{string}
-        /// </summary>
-        /// <param name="requestInfo">Object holding all information about the request</param>
-        /// <returns>Task to return to the API interface caller</returns>
-        Task<string> RequestRawAsync(IRequestInfo requestInfo);
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RestEase
 {
@@ -11,7 +12,7 @@ namespace RestEase
     /// </summary>
     public abstract class ResponseDeserializer : IResponseDeserializer
     {
-        [Obsolete("Override Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) instead", error: true)]
+        [Obsolete("Call DeserializeAsync<T>(HttpResponseMessage response, ResponseDeserializerInfo info) instead", error: true)]
         T IResponseDeserializer.Deserialize<T>(string content, HttpResponseMessage response)
         {
             // This exists only so that we can assign instances of ResponseDeserializer to the IResponseDeserializer in RestClient
@@ -26,9 +27,16 @@ namespace RestEase
         /// <param name="response">HttpResponseMessage. Consider calling response.Content.ReadAsStringAsync() to retrieve a string</param>
         /// <param name="info">Extra information about the response</param>
         /// <returns>Deserialized response</returns>
+        [Obsolete("Override DeserializeAsync<T>(HttpResponseMessage response, ResponseDeserializerInfo info)")]
         public virtual T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
         {
             throw new NotImplementedException("You must override and implement T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)");
+        }
+
+        public virtual async Task<T> DeserializeAsync<T>(HttpResponseMessage response, ResponseDeserializerInfo info)
+        {
+            string content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return this.Deserialize<T>(content, response, info);
         }
     }
 #pragma warning restore CS0618 // Type or member is obsolete

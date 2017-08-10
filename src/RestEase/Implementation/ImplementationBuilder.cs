@@ -31,7 +31,6 @@ namespace RestEase.Implementation
         private static readonly MethodInfo requestAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestAsync");
         private static readonly MethodInfo requestWithResponseMessageAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseMessageAsync");
         private static readonly MethodInfo requestWithResponseAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseAsync");
-        private static readonly MethodInfo requestRawAsyncMethod = typeof(IRequester).GetTypeInfo().GetMethod("RequestRawAsync");
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(MethodInfo) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
@@ -652,11 +651,6 @@ namespace RestEase.Implementation
                 {
                     // Stack: [Task<HttpResponseMessage>]
                     methodIlGenerator.Emit(OpCodes.Callvirt, requestWithResponseMessageAsyncMethod);
-                }
-                else if (typeOfT == typeof(string))
-                {
-                    // Stack: [Task<string>]
-                    methodIlGenerator.Emit(OpCodes.Callvirt, requestRawAsyncMethod);
                 }
                 else if (typeOfT.GetTypeInfo().IsGenericType && typeOfT.GetGenericTypeDefinition() == typeof(Response<>))
                 {

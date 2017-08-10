@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System.IO;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace RestEase
 {
@@ -14,8 +16,16 @@ namespace RestEase
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
         /// <inheritdoc/>
-        public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
+        public override async Task<T> DeserializeAsync<T>(HttpResponseMessage response, ResponseDeserializerInfo info)
         {
+            if (typeof(T) == typeof(Stream))
+                return (T)(object)(await response.Content.ReadAsStreamAsync().ConfigureAwait(false));
+
+            string content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (typeof(T) == typeof(string))
+                return (T)(object)content;
+
             return JsonConvert.DeserializeObject<T>(content, this.JsonSerializerSettings);
         }
     }
