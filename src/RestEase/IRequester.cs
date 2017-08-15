@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System;
+using System.IO;
 
 namespace RestEase
 {
@@ -46,5 +47,12 @@ namespace RestEase
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
         Task<string> RequestRawAsync(IRequestInfo requestInfo);
+
+        /// <summary>
+        /// Invoked when the API interface method being called returns a Task{Stream}
+        /// </summary>
+        /// <param name="requestInfo">Object holding all information about the request</param>
+        /// <returns>Task to return to the API interface caller</returns>
+        Task<Stream> RequestStreamAsync(IRequestInfo requestInfo);
     }
 }

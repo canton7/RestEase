@@ -3,6 +3,7 @@ using RestEase;
 using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -42,6 +43,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             [Get("bar")]
             Task<string> FooAsync();
+        }
+
+        public interface INoArgumentsReturnsStream
+        {
+            [Get("bar")]
+            Task<Stream> FooAsync();
         }
 
         public interface IAllRequestMethods
@@ -181,6 +188,30 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestRawAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(expectedResponse)
+                .Verifiable();
+
+            var response = implementation.FooAsync();
+
+            Assert.Equal(expectedResponse, response);
+            this.requester.Verify();
+            Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal(0, requestInfo.QueryParams.Count());
+            Assert.Equal("bar", requestInfo.Path);
+        }
+
+        [Fact]
+        public void NoArgumentsWithStreamResponseCallsCorrectly()
+        {
+            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsStream>(this.requester.Object);
+
+            var stream = new MemoryStream();
+            var expectedResponse = Task.FromResult<Stream>(stream);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestStreamAsync(It.IsAny<IRequestInfo>()))
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(expectedResponse)
                 .Verifiable();

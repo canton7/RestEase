@@ -172,10 +172,11 @@ Your interface methods may return one of the following types:
  - `Task<string>`: This method returns the raw response, as a string
  - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage%28v=vs.118%29.aspx) resulting from the request. It does not do any deserialiation
  - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers
+ - `Task<Stream>`: This method returns a Stream containing the response. Use this to e.g. download a file and stream it to disk.
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
 
-If you return a `Task<HttpResponseMessage>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc).
+If you return a `Task<HttpResponseMessage>` or a `Task<Stream>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc).
 If however you return a `Task<T>`, `Task<string>`, or `Task<Response<T>>`, then `HttpCompletionOption.ResponseContentRead` is used, meaning that any `CancellationToken` that you pass will cancel the body download.
 If you return a `Task`, then the response body isn't fetched, unless an `ApiException` is thrown.
 
@@ -677,6 +678,8 @@ public interface ISomeApi
     Task<LargeResponse> GetVeryLargeResponseAsync(CancellationToken cancellationToken);
 }
 ```
+
+Note that if your method returns a `Task<HttpResponseMessage>` or `Task<Stream>`, then the `CancellationToken` will not cancel the download of the response body, see [Return Types](#return-types) for details.
 
 
 Headers
