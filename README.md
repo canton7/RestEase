@@ -45,26 +45,27 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     3. [Constant Method Headers](#constant-method-headers)
     4. [Variable Method Headers](#variable-method-headers)
     5. [Redefining Headers](#redefining-headers)
-11. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+11. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
+12. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
         2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
         3. [Serializing request parameters: `RequestQueryParamSerializer`](serializing-request-parameters-requestqueryparamserializer)
-12. [Controlling the Requests](#controlling-the-requests)
+13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
-13. [Customizing RestEase](#customizing-restease)
-14. [Interface Accessibility](#interface-accessibility)
-15. [Using Generic Interfaces](#using-generic-interfaces)
-16. [Interface Inheritance](#interface-inheritance)
+14. [Customizing RestEase](#customizing-restease)
+15. [Interface Accessibility](#interface-accessibility)
+16. [Using Generic Interfaces](#using-generic-interfaces)
+17. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-17. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+18. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-18. [FAQs](#faqs)
-19. [Comparison to Refit](#comparison-to-refit)
+19. [FAQs](#faqs)
+20. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -149,7 +150,6 @@ namespace RestEaseSampleApplication
 }
 ```
 
-
 Request Types
 -------------
 
@@ -179,6 +179,7 @@ Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate i
 If you return a `Task<HttpResponseMessage>` or a `Task<Stream>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc).
 If however you return a `Task<T>`, `Task<string>`, or `Task<Response<T>>`, then `HttpCompletionOption.ResponseContentRead` is used, meaning that any `CancellationToken` that you pass will cancel the body download.
 If you return a `Task`, then the response body isn't fetched, unless an `ApiException` is thrown.
+
 
 Query Parameters
 ----------------
@@ -843,6 +844,15 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 // X-ParameterAndMethod-ToBeRemoved isn't set, because it was removed
 
 ```
+
+HttpClient and RestEase interface lifetimes
+-------------------------------------------
+
+Each instance of the interface which you define will create its own HttpClient instance.
+When using HttpClient, you should avoid creating and destroying many instances (e.g. one per client request in a web app): instead create a single instance and keep using it ([see here](https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/)).
+
+When using RestEase, this means that you should create a single instance of your interface and reuse it.
+If you use properties (e.g. Path Properties or Header Properties) which are set more than once, you should instead create a singleton HttpClient, and pass it to `RestClient.For<T>` to create many instances of your interface which share the same HttpClient.
 
 
 Controlling Serialization and Deserialization
