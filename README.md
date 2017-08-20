@@ -1191,6 +1191,8 @@ Add the following line to your `AssemblyInfo.cs`:
 [assembly: InternalsVisibleTo(RestEase.RestClient.FactoryAssemblyName)]
 ```
 
+You place the interface inside any namespace, or nest the interface inside another public type if you wish.
+
 
 Using Generic Interfaces
 ------------------------
