@@ -457,6 +457,18 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
+        /// Invoked when the API interface method being called returns a Task{Stream}
+        /// </summary>
+        /// <param name="requestInfo">Object holding all information about the request</param>
+        /// <returns>Task to return to the API interface caller</returns>
+        public virtual async Task<Stream> RequestStreamAsync(IRequestInfo requestInfo)
+        {
+            var response = await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            return stream;
+        }
+
+        /// <summary>
         /// Disposes the underlying <see cref="HttpClient"/>
         /// </summary>
         public void Dispose()
