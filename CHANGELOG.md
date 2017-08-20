@@ -1,3 +1,9 @@
+v1.4.3
+------
+
+ - Add support for `Task<Stream>` responses (#56)
+ - Various README improvements (#53, #55, #58, #59)
+
 v1.4.2
 ------
 
