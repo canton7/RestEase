@@ -4,7 +4,8 @@
 [![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
 [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
-RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Core (.NET Platform Standard 1.1, PCL profiles 7, 32, 44, 111, 151, excluding iOS), which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
+RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1, which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
+It won't work on platforms which don't support runtime code generation, including .NET Native and iOS.
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
