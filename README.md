@@ -513,7 +513,7 @@ public interface ISomeApi
     [Get("{accountId}/profile")]
     Task<Profile> GetProfileAsync();
 
-    [Delete("{accountId})]
+    [Delete("{accountId}")]
     Task DeleteAsync([Path("accountId")] int accountId);
 }
 
@@ -1389,7 +1389,7 @@ public interface ISomeApi
     Task<UsersResponse> FetchUsersByUrlAsync([Path(UrlEncode = false)] string url);
 }
 
-ISomeApi api = RestClient.For<ISomeApi("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 var firstPage = await api.FetchUsersAsync();
 // Actually put decent logic here...
