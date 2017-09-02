@@ -218,7 +218,17 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
-        public void DoesNotAttemptToApplyContentHeadersIfThereIsNoContent()
+        public void DoesNotThrowIfContentHeaderAppliedToClassButThereIsNoContent()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.AddPropertyHeader("Content-Type", "text/html", String.Empty);
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+        }
+
+        [Fact]
+        public void ThrowsIfContentHeaderAppliedToMethodButThereIsNoContent()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("Content-Type", "text/html");
