@@ -171,9 +171,9 @@ Your interface methods may return one of the following types:
  - `Task`: This method does not return any data, but the task will complete when the request has completed
  - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using Json.NET (or a custom deserializer, see [Controlling Serialization and Deserialization below](#controlling-serialization-and-deserialization)).
  - `Task<string>`: This method returns the raw response, as a string
- - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage%28v=vs.118%29.aspx) resulting from the request. It does not do any deserialiation
- - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers
- - `Task<Stream>`: This method returns a Stream containing the response. Use this to e.g. download a file and stream it to disk.
+ - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage%28v=vs.118%29.aspx) resulting from the request. It does not do any deserialiation. You must dispose this object after use.
+ - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers. You must dispose this object after use.
+ - `Task<Stream>`: This method returns a Stream containing the response. Use this to e.g. download a file and stream it to disk. You must dispose this object after use.
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
 
@@ -194,7 +194,7 @@ For these, simply put the query parameter as part of the URL:
 
 ```csharp
 public interface IGitHubApi
-{
+{f
    [Get("users/list?sort=desc")]
    Task<List<User>> GetUsersAsync();
 }
@@ -655,15 +655,17 @@ public interface ISomeApi
 
 ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
-var response = await api.FetchUserThatMayNotExistAsync(3);
-if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
+using (var response = await api.FetchUserThatMayNotExistAsync(3))
 {
-    // User wasn't found
-}
-else
-{
-    var user = response.GetContent();
-    // ...
+    if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
+    {
+        // User wasn't found
+    }
+    else
+    {
+        var user = response.GetContent();
+        // ...
+    }
 }
 ```
 

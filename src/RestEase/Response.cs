@@ -7,7 +7,7 @@ namespace RestEase
     /// Response containing both the HttpResponseMessage and deserialized response
     /// </summary>
     /// <typeparam name="T">Type of deserialized response</typeparam>
-    public class Response<T>
+    public class Response<T> : IDisposable
     {
         private readonly Func<T> contentDeserializer;
         private bool contentDeserialized;
@@ -49,6 +49,14 @@ namespace RestEase
             this.StringContent = content;
             this.ResponseMessage = response;
             this.contentDeserializer = contentDeserializer;
+        }
+
+        /// <summary>
+        /// Disposes the underlying <see cref="HttpResponseMessage"/>
+        /// </summary>
+        public void Dispose()
+        {
+            this.ResponseMessage.Dispose();
         }
     }
 }

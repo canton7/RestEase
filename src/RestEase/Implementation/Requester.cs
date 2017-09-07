@@ -415,7 +415,9 @@ namespace RestEase.Implementation
         public virtual async Task RequestVoidAsync(IRequestInfo requestInfo)
         {
             // We're not going to return the body (unless there's an ApiException), so there's no point in fetching it
-            await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
+            using (await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false))
+            {
+            }
         }
 
         /// <summary>
