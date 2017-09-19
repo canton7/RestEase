@@ -1,3 +1,8 @@
+v1.4.4
+------
+
+ - Ensure that methods which return `Task` properly dispose of the underlying `HttpResponseMessage` (#65)
+
 v1.4.3
 ------
 
