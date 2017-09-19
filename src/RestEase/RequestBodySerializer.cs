@@ -25,7 +25,7 @@ namespace RestEase
         /// <returns>HttpContent to assign to the request</returns>
         public virtual HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
         {
-            throw new NotImplementedException("You must override and implement SerializeBody<T>(T body, RequestBodySerializerInfo info)");
+            throw new NotImplementedException($"You must override and implement SerializeBody<T>(T body, RequestBodySerializerInfo info) in {this.GetType().Name}");
         }
     }
 #pragma warning restore CS0618 // Type or member is obsolete

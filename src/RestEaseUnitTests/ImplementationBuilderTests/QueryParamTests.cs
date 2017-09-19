@@ -42,7 +42,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface INullableQueryParameters
         {
             [Get("foo")]
-            Task FooAsync(object foo, int? bar, int? baz, int yay);
+            Task FooAsync(object foo, string bar, int? baz);
         }
 
         public interface IArrayQueryParam
@@ -255,6 +255,21 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             param.SerializeToString(formatProvider.Object);
 
             formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
+        }
+
+        [Fact]
+        public void SerializesNullQueryValues()
+        {
+            var requestInfo = Request<INullableQueryParameters>(x => x.FooAsync(null, null, null));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Equal(3, queryParams.Count);
+
+            // This overlaps with a test in QueryParameterTests
+            Assert.Empty(queryParams[0].SerializeToString(null));
+            Assert.Empty(queryParams[1].SerializeToString(null));
+            Assert.Empty(queryParams[2].SerializeToString(null));
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

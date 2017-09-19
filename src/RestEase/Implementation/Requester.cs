@@ -292,8 +292,8 @@ namespace RestEase.Implementation
         {
             // Apply from class -> method (combining static/dynamic), so we get the proper hierarchy
             var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
-            this.ApplyHeadersSet(requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders));
-            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams));
+            this.ApplyHeadersSet(requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
+            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
         }
 
         /// <summary>
@@ -301,8 +301,10 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         /// <param name="headers">Headers to add</param>
-        protected virtual void ApplyHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers)
+        /// <param name="complainIfBodyHeadersButNoBody">If true, and the header doesn't apply to the request, and there's no body, throw. If false, and the header can apply to a body but there isn't one, don't throw</param>
+        protected virtual void ApplyHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers, bool complainIfBodyHeadersButNoBody)
         {
+            HttpContent dummyContent = null;
             var headersGroups = headers.GroupBy(x => x.Key);
 
             foreach (var headersGroup in headersGroups)
@@ -317,17 +319,27 @@ namespace RestEase.Implementation
                     continue;
 
                 bool added = requestMessage.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
-                
+
                 // If we failed, it's probably a content header. Try again there
-                if (!added && requestMessage.Content != null)
+                if (!added)
                 {
-                    if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
-                        requestMessage.Content.Headers.Remove(headersGroup.Key);
-                    added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
+                    if (requestMessage.Content != null)
+                    {
+                        if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
+                            requestMessage.Content.Headers.Remove(headersGroup.Key);
+                        added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
+                    }
+                    else if (!complainIfBodyHeadersButNoBody)
+                    {
+                        // See if it could be added to a content
+                        if (dummyContent == null)
+                            dummyContent = new ByteArrayContent(new byte[0]);
+                        added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
+                    }
                 }
 
                 if (!added)
-                    throw new ArgumentException(String.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content?", headersGroup.Key));
+                    throw new ArgumentException(String.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content, or it's associated with HTTP responses, or it's malformed?", headersGroup.Key));
             }
         }
 
@@ -403,7 +415,9 @@ namespace RestEase.Implementation
         public virtual async Task RequestVoidAsync(IRequestInfo requestInfo)
         {
             // We're not going to return the body (unless there's an ApiException), so there's no point in fetching it
-            await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
+            using (await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false))
+            {
+            }
         }
 
         /// <summary>
