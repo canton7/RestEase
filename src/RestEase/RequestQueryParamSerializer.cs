@@ -25,7 +25,7 @@ namespace RestEase
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
         public virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
         {
-            throw new NotImplementedException("You must override and implement SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)"); ;
+            throw new NotImplementedException($"You must override and implement SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info) in {this.GetType().Name}");
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace RestEase
         /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
         public virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
         {
-            throw new NotImplementedException("You must override and implement SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)");
+            throw new NotImplementedException($"You must override and implement SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info) in {this.GetType().Name}");
         }
     }
 }

@@ -28,7 +28,7 @@ namespace RestEase
         /// <returns>Deserialized response</returns>
         public virtual T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
         {
-            throw new NotImplementedException("You must override and implement T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)");
+            throw new NotImplementedException($"You must override and implement T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) in {this.GetType().Name}");
         }
     }
 #pragma warning restore CS0618 // Type or member is obsolete
