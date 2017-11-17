@@ -1,7 +1,7 @@
 ﻿namespace RestEase
 {
     /// <summary>
-    /// Encapsulates extra information provides to <see cref="RequestBodySerializer"/>
+    /// Encapsulates extra information provided to <see cref="RequestBodySerializer"/>
     /// </summary>
     /// <remarks>
     /// This is broken out as a separate structure so that extra properties can be added without breaking backwards compatibility

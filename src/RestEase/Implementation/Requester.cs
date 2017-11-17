@@ -25,17 +25,22 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the deserializer used to deserialize responses
         /// </summary>
-        public ResponseDeserializer ResponseDeserializer { get; set; }
+        public ResponseDeserializer ResponseDeserializer { get; set; } = new JsonResponseDeserializer();
 
         /// <summary>
         /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
-        public RequestBodySerializer RequestBodySerializer { get; set; }
+        public RequestBodySerializer RequestBodySerializer { get; set; } = new JsonRequestBodySerializer();
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
-        public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+        public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; } = new JsonRequestQueryParamSerializer();
+
+        /// <summary>
+        /// Gets or sets the builder used to construct query strings, if any
+        /// </summary>
+        public QueryStringBuilder QueryStringBuilder { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
@@ -52,9 +57,6 @@ namespace RestEase.Implementation
         public Requester(HttpClient httpClient)
         {
             this.httpClient = httpClient;
-            this.ResponseDeserializer = new JsonResponseDeserializer();
-            this.RequestBodySerializer = new JsonRequestBodySerializer();
-            this.RequestQueryParamSerializer = new JsonRequestQueryParamSerializer();
         }
 
         /// <summary>
@@ -144,6 +146,14 @@ namespace RestEase.Implementation
         /// <returns>Query params combined into a query string</returns>
         protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams, IRequestInfo requestInfo)
         {
+            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
+
+            if (this.QueryStringBuilder != null)
+            {
+                var info = new QueryStringBuilderInfo(initialQueryString, rawQueryParameter, serializedQueryParams, requestInfo, this.FormatProvider);
+                return this.QueryStringBuilder.Build(info);
+            }
+
             // Implementation copied from FormUrlEncodedContent
 
             var sb = new StringBuilder();
@@ -166,8 +176,6 @@ namespace RestEase.Implementation
                 AppendQueryString(initialQueryString.Replace("%20", "+"));
             if (!String.IsNullOrEmpty(rawQueryParameter))
                 AppendQueryString(rawQueryParameter);
-
-            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
             foreach (var kvp in serializedQueryParams)
             {

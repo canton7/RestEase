@@ -52,7 +52,8 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
         2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
-        3. [Serializing request parameters: `RequestQueryParamSerializer`](serializing-request-parameters-requestqueryparamserializer)
+        3. [Serializing request parameters: `RequestQueryParamSerializer`](#serializing-request-parameters-requestqueryparamserializer)
+        4. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
 13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
@@ -1046,6 +1047,14 @@ var api = new RestClient("http://api.example.com")
 
 If you specified a `Format` property on the `[Query]` attribute, this will be available as `info.Format`.
 By default, this is `null`.
+
+#### Controlling query string generation: `QueryStringBuilder`
+
+RestEase has logic to turn a collection of query parameters into a single suitably-encoded query string.
+However, some servers don't correctly decode query strings, and so users may want to control how query strings are encoded.
+
+To do this, subclass `QueryStringBuilder` and assign it to the `RestClient.QueryStringBuilder` property.
+See the method `BuildQueryParam` in [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs) for the default implementation.
 
 
 Controlling the Requests
