@@ -1525,6 +1525,11 @@ Obviously, set the headers you need - don't just copy me blindly.
 
 You can use [extension methods](#advanced-functionality-using-extension-methods) to make this more palatable for consumers.
 
+### I want to ensure that all of the required properties on my request body are set
+
+User @netclectic has a solution, [see this issue](https://github.com/canton7/RestEase/issues/68#issue-255988650).
+
+
 Comparison to Refit
 -------------------
 
