@@ -56,9 +56,16 @@ namespace RestEase.Implementation
         private List<PathParameterInfo> _pathProperties;
 
         /// <summary>
-        /// Gets the values from headers which should be substituted into placeholders in the Path
+        /// Gets the values from properties which should be substituted into placeholders in the Path
         /// </summary>
         public IEnumerable<PathParameterInfo> PathProperties => this._pathProperties ?? Enumerable.Empty<PathParameterInfo>();
+
+        private List<QueryParameterInfo> _queryProperties;
+
+        /// <summary>
+        /// Gets the values from properties which should be added to all query strings
+        /// </summary>
+        public IEnumerable<QueryParameterInfo> QueryProperties => this._queryProperties ?? Enumerable.Empty<QueryParameterInfo>();
 
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
@@ -245,7 +252,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Add a path parameter from a property: a [Path] method parameter which is used to substitute a placeholder in the path
+        /// Add a path parameter from a property: a [Path] property which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
         /// <param name="name">Name of the name/value pair</param>
@@ -258,6 +265,26 @@ namespace RestEase.Implementation
                 this._pathProperties = new List<PathParameterInfo>();
 
             this._pathProperties.Add(new PathParameterInfo(name, value, format, urlEncode));
+        }
+
+        /// <summary>
+        /// Add a query parameter from a property: a [Query] property which is used to append to the query string of all requests
+        /// </summary>
+        /// <typeparam name="T">Type of value of the query parameter</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
+        /// <param name="name">Name of the name/value pair</param>
+        /// <param name="value">Value of the name/value pair</param>
+        /// <param name="format">
+        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
+        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
+        /// <see cref="IFormattable"/>)
+        /// </param>
+        public void AddQueryProperty<T>(QuerySerializationMethod serializationMethod, string name, T value, string format)
+        {
+            if (this._queryProperties == null)
+                this._queryProperties = new List<QueryParameterInfo>();
+
+            this._queryProperties.Add(new QueryParameterInfo<T>(serializationMethod, name, value, format));
         }
 
         /// <summary>

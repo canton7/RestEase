@@ -47,6 +47,7 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addRawQueryParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddRawQueryParameter");
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPathParameter");
         private static readonly MethodInfo addPathPropertyMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPathProperty");
+        private static readonly MethodInfo addQueryPropertyMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryProperty");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetTypeInfo().GetProperty("ClassHeaders").SetMethod;
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPropertyHeader");
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddMethodHeader");
@@ -340,6 +341,7 @@ namespace RestEase.Implementation
                     this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
                     this.AddPathProperties(methodIlGenerator, properties.Path);
+                    this.AddQueryProperties(methodIlGenerator, properties.Query, serializationMethods);
                     this.AddMethodHeaders(methodIlGenerator, methodInfo);
                     this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
                     this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
@@ -498,6 +500,24 @@ namespace RestEase.Implementation
                 else
                     methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Format);
                 methodIlGenerator.Emit(pathProperty.Attribute.UrlEncode ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+                methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
+            }
+        }
+
+        private void AddQueryProperties(ILGenerator methodIlGenerator, List<AttributedProperty<QueryAttribute>> query, ResolvedSerializationMethods serializationMethods)
+        {
+            foreach (var queryProperty in query)
+            {
+                var typedMethod = addQueryPropertyMethod.MakeGenericMethod(queryProperty.BackingField.FieldType);
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethods.ResolveQuery(queryProperty.Attribute.SerializationMethod));
+                methodIlGenerator.Emit(OpCodes.Ldstr, queryProperty.Attribute.Name);
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                methodIlGenerator.Emit(OpCodes.Ldfld, queryProperty.BackingField);
+                if (queryProperty.Attribute.Format == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, queryProperty.Attribute.Format);
                 methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
             }
         }

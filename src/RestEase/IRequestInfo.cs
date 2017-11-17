@@ -48,9 +48,14 @@ namespace RestEase
         IEnumerable<PathParameterInfo> PathParams { get; }
 
         /// <summary>
-        /// Gets the values from headers which should be substituted into placeholders in the Path
+        /// Gets the values from properties which should be substituted into placeholders in the Path
         /// </summary>
         IEnumerable<PathParameterInfo> PathProperties { get; }
+
+        /// <summary>
+        /// Gets the values from properties which should be added to all query strings
+        /// </summary>
+        IEnumerable<QueryParameterInfo> QueryProperties { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the interface
