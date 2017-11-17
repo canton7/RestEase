@@ -286,6 +286,21 @@ ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 await api.FooAsync("onitsown", "nokey");
 ```
 
+If you pass a value which is null, then the key is not inserted. If you pass any other value (e.g. emptystring) then the value is left empty.
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo")]
+    Task FooAsync([Query()] string foo, [Query] string bar);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo?bar=
+await api.FooAsync(null, "");
+```
+
 #### Formatting Variable Query Parameters
 
 By default, query parameter values will be serialized by calling `ToString()` on them.
