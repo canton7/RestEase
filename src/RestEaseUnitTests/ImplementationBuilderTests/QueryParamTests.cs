@@ -118,7 +118,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
 
             var queryParam0 = requestInfo.QueryParams.First().SerializeToString(null).First();
             Assert.Equal("bar", queryParam0.Key);
@@ -131,7 +131,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<IQueryParamWithImplicitName>(x => x.FooAsync("the value"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
 
             var queryParam0 = requestInfo.QueryParams.First().SerializeToString(null).First();
             Assert.Equal("foo", queryParam0.Key);
@@ -143,7 +143,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<IQueryParamWithUndecoratedParameter>(x => x.FooAsync("the value"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
 
             var queryParam0 = requestInfo.QueryParams.First().SerializeToString(null).First();
             Assert.Equal("foo", queryParam0.Key);
@@ -173,7 +173,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<ISingleParameterWithQueryParamAttributeNoReturn>(x => x.BooAsync("yay"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
 
@@ -182,7 +182,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<ISerializedQueryParam>(x => x.FooAsync("boom"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
@@ -191,7 +191,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<IHasNonOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
@@ -200,7 +200,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute>(x => x.FooAsync("boom"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
 
@@ -209,7 +209,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var requestInfo = Request<IHasOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
 
-            Assert.Equal(1, requestInfo.QueryParams.Count());
+            Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
 
@@ -220,8 +220,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            Assert.Equal(1, queryParams.Count);
-            Assert.Equal(null, queryParams[0].SerializeToString(null).First().Key);
+            Assert.Single(queryParams);
+            Assert.Null(queryParams[0].SerializeToString(null).First().Key);
         }
 
         [Fact]
@@ -231,7 +231,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            Assert.Equal(1, queryParams.Count);
+            Assert.Single(queryParams);
             Assert.Equal(String.Empty, queryParams[0].SerializeToString(null).First().Key);
         }
 
