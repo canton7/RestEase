@@ -194,7 +194,7 @@ For these, simply put the query parameter as part of the URL:
 
 ```csharp
 public interface IGitHubApi
-{f
+{
    [Get("users/list?sort=desc")]
    Task<List<User>> GetUsersAsync();
 }
