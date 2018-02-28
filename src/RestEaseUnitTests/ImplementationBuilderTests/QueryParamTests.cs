@@ -96,6 +96,34 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Query(Format = "X")] int foo);
         }
 
+        public interface IHasPathQuery
+        {
+            [Query("foo")]
+            string Foo { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasFormattedPathQuery
+        {
+            [Query(Format = "X")]
+            int Woo { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasSerializedPathQuery
+        {
+            [Query(SerializationMethod = QuerySerializationMethod.Serialized)]
+            string Yay { get; set; }
+
+            [Get]
+            Task FooAsync();
+        }
+
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
@@ -270,6 +298,59 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Empty(queryParams[0].SerializeToString(null));
             Assert.Empty(queryParams[1].SerializeToString(null));
             Assert.Empty(queryParams[2].SerializeToString(null));
+        }
+
+        [Fact]
+        public void HandlesQueryProperty()
+        {
+            var requestInfo = Request<IHasPathQuery>(x =>
+            {
+                x.Foo = "woo";
+                return x.FooAsync();
+            });
+
+            var queryProperties = requestInfo.QueryProperties.ToList();
+
+            Assert.Single(queryProperties);
+
+            var serialized = queryProperties[0].SerializeToString(null).ToList();
+            Assert.Single(serialized);
+            Assert.Equal("foo", serialized[0].Key);
+            Assert.Equal("woo", serialized[0].Value);
+        }
+
+        [Fact]
+        public void HandlesFormattedQueryProperty()
+        {
+            var requestInfo = Request<IHasFormattedPathQuery>(x =>
+            {
+                x.Woo = 10;
+                return x.FooAsync();
+            });
+
+            var queryProperties = requestInfo.QueryProperties.ToList();
+
+            Assert.Single(queryProperties);
+
+            var serialized = queryProperties[0].SerializeToString(null).ToList();
+            Assert.Single(serialized);
+            Assert.Equal("Woo", serialized[0].Key);
+            Assert.Equal("A", serialized[0].Value);
+        }
+
+        [Fact]
+        public void HandlesSerializedQueryProperty()
+        {
+            var requestInfo = Request<IHasSerializedPathQuery>(x =>
+            {
+                x.Yay = "woop";
+                return x.FooAsync();
+            });
+
+            var queryProperties = requestInfo.QueryProperties.ToList();
+
+            Assert.Single(queryProperties);
+            Assert.Equal(QuerySerializationMethod.Serialized, queryProperties[0].SerializationMethod);
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

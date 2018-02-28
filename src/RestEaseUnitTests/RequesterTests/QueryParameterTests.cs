@@ -352,5 +352,34 @@ namespace RestEaseUnitTests.RequesterTests
             Assert.Equal("http://api.example.com/base/foo?key=héllo", uri.ToString(), ignoreCase: true);
             Assert.Equal("http://api.example.com/base/foo?key=h%C3%A9llo", uri.AbsoluteUri.ToString(), ignoreCase: true);
         }
+
+        [Fact]
+        public void UsesQueryProperties()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryProperty(QuerySerializationMethod.ToString, "foo", "bar");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://api.example.com/base/foo?foo=bar", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void UsesQueryPropertiesAsWellAsQueryParameters()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryProperty(QuerySerializationMethod.ToString, "foo", "bar");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "foo", "baz");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://api.example.com/base/foo?foo=baz&foo=bar", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
+        public void DoesNotIncludeQueryPropertyIfNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddQueryProperty<string>(QuerySerializationMethod.ToString, "foo", null);
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "foo", "baz");
+            var uri = this.requester.ConstructUri("foo", requestInfo);
+            Assert.Equal("http://api.example.com/base/foo?foo=baz", uri.ToString(), ignoreCase: true);
+        }
     }
 }

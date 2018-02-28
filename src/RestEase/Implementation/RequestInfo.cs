@@ -279,7 +279,7 @@ namespace RestEase.Implementation
         /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
         /// <see cref="IFormattable"/>)
         /// </param>
-        public void AddQueryProperty<T>(QuerySerializationMethod serializationMethod, string name, T value, string format)
+        public void AddQueryProperty<T>(QuerySerializationMethod serializationMethod, string name, T value, string format = null)
         {
             if (this._queryProperties == null)
                 this._queryProperties = new List<QueryParameterInfo>();
