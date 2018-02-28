@@ -29,6 +29,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
         2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
     3. [Query Parameters Map](#query-parameters-map)
     4. [Raw Query String Parameters](#raw-query-string-parameters)
+    5. [Query Properties](#query-proprties)
 6. [Path Placeholders](#path-placeholders)
     1. [Path Parameters](#path-parameters)
         1. [Formatting Path Parameters](#formatting-path-parameters)
@@ -422,6 +423,34 @@ public interface ISomeApi
 var api = RestClient.For<ISomeApi>("http://api.example.com");
 var filter = "filter=foo"
 var searchResults = await api.SearchAsync(filter);
+```
+
+### Query Properties
+
+If you want to have a query string which is included in all of your requests, you can do this by declaring a `[Query]` property.
+These work the same way as query parameters, but they apply to all methods in your interface.
+If the value of the property is `null`, then it will not be added to your query.
+Otherwise, it will always be present, even if you declare a query parameter with the same name.
+
+The property must have both a getter and a setter.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+	[Query("foo")]
+	string Foo { get; set; }
+
+	[Get("thing")]
+	Task ThingAsync([Query] string foo);
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com");
+api.Foo = "bar";
+
+// Requests http://api.example.com?foo=baz&foo=bar
+await api.ThingAsync("baz");
 ```
 
 

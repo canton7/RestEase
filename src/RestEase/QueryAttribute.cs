@@ -5,11 +5,11 @@ namespace RestEase
     /// <summary>
     /// Marks a parameter as being a query param
     /// </summary>
-    [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class QueryAttribute : Attribute
     {
         /// <summary>
-        /// Gets or sets the name of the query param. Will use the parameter name if null
+        /// Gets or sets the name of the query param. Will use the parameter / property name if null
         /// </summary>
         public string Name { get; set; }
 
