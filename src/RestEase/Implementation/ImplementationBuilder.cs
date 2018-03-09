@@ -80,7 +80,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Singleton instance of <see cref="ImplementationBuilder"/>
         /// </summary>
-        public static ImplementationBuilder Instance => new ImplementationBuilder();
+        public static ImplementationBuilder Instance { get; } = new ImplementationBuilder();
 
         private ImplementationBuilder()
         {
