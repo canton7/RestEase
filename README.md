@@ -29,7 +29,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
         2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
     3. [Query Parameters Map](#query-parameters-map)
     4. [Raw Query String Parameters](#raw-query-string-parameters)
-    5. [Query Properties](#query-proprties)
+    5. [Query Properties](#query-properties)
 6. [Path Placeholders](#path-placeholders)
     1. [Path Parameters](#path-parameters)
         1. [Formatting Path Parameters](#formatting-path-parameters)
