@@ -1,3 +1,11 @@
+v1.4.5
+------
+
+ - Fix memory leak (#74)
+ - Allow a custom class to be used to control query param serialization (#61)
+ - Make sure HttpResponseMessage is properly disposed (this wasn't causing a memory leak) (#82)
+ - Add query properties (#70)
+
 v1.4.4
 ------
 
