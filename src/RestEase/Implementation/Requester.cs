@@ -25,17 +25,22 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the deserializer used to deserialize responses
         /// </summary>
-        public ResponseDeserializer ResponseDeserializer { get; set; }
+        public ResponseDeserializer ResponseDeserializer { get; set; } = new JsonResponseDeserializer();
 
         /// <summary>
         /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
         /// </summary>
-        public RequestBodySerializer RequestBodySerializer { get; set; }
+        public RequestBodySerializer RequestBodySerializer { get; set; } = new JsonRequestBodySerializer();
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
-        public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+        public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; } = new JsonRequestQueryParamSerializer();
+
+        /// <summary>
+        /// Gets or sets the builder used to construct query strings, if any
+        /// </summary>
+        public QueryStringBuilder QueryStringBuilder { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
@@ -52,9 +57,6 @@ namespace RestEase.Implementation
         public Requester(HttpClient httpClient)
         {
             this.httpClient = httpClient;
-            this.ResponseDeserializer = new JsonResponseDeserializer();
-            this.RequestBodySerializer = new JsonRequestBodySerializer();
-            this.RequestQueryParamSerializer = new JsonRequestQueryParamSerializer();
         }
 
         /// <summary>
@@ -126,7 +128,7 @@ namespace RestEase.Implementation
             }
 
             string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString(this.FormatProvider) ?? string.Empty;
-            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams, requestInfo);
+            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams, requestInfo.QueryProperties, requestInfo);
 
             // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
             uriBuilder.Query = query.TrimStart('?');
@@ -140,10 +142,25 @@ namespace RestEase.Implementation
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
         /// <param name="rawQueryParameter">The raw query parameter, if any</param>
         /// <param name="queryParams">The query parameters which need serializing (or an empty collection)</param>
+        /// <param name="queryProperties">The query parameters from properties which need serialializing (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Query params combined into a query string</returns>
-        protected virtual string BuildQueryParam(string initialQueryString, string rawQueryParameter, IEnumerable<QueryParameterInfo> queryParams, IRequestInfo requestInfo)
-        {
+        protected virtual string BuildQueryParam(
+            string initialQueryString,
+            string rawQueryParameter,
+            IEnumerable<QueryParameterInfo> queryParams,
+            IEnumerable<QueryParameterInfo> queryProperties,
+            IRequestInfo requestInfo)
+        { 
+            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
+            var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
+
+            if (this.QueryStringBuilder != null)
+            {
+                var info = new QueryStringBuilderInfo(initialQueryString, rawQueryParameter, serializedQueryParams, serializedQueryProperties, requestInfo, this.FormatProvider);
+                return this.QueryStringBuilder.Build(info);
+            }
+
             // Implementation copied from FormUrlEncodedContent
 
             var sb = new StringBuilder();
@@ -167,9 +184,7 @@ namespace RestEase.Implementation
             if (!String.IsNullOrEmpty(rawQueryParameter))
                 AppendQueryString(rawQueryParameter);
 
-            var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
-
-            foreach (var kvp in serializedQueryParams)
+            foreach (var kvp in serializedQueryParams.Concat(serializedQueryProperties))
             {
                 if (kvp.Key == null)
                 {
@@ -428,10 +443,12 @@ namespace RestEase.Implementation
         /// <returns>Task resulting in the deserialized response</returns>
         public virtual async Task<T> RequestAsync<T>(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
-            return deserializedResponse;
+            using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
+            {
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
+                return deserializedResponse;
+            }
         }
 
         /// <summary>
@@ -441,6 +458,7 @@ namespace RestEase.Implementation
         /// <returns>Task containing the result of the request</returns>
         public virtual async Task<HttpResponseMessage> RequestWithResponseMessageAsync(IRequestInfo requestInfo)
         {
+            // It's the user's responsibility to dispose this
             var response = await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
             return response;
         }
@@ -453,6 +471,7 @@ namespace RestEase.Implementation
         /// <returns>Task containing a Response{T}, which contains the raw HttpResponseMessage, and its deserialized content</returns>
         public virtual async Task<Response<T>> RequestWithResponseAsync<T>(IRequestInfo requestInfo)
         {
+            // It's the user's responsibility to dispose the Response<T>, which disposes the HttpResponseMessage
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
@@ -465,9 +484,11 @@ namespace RestEase.Implementation
         /// <returns>Task containing the raw string body of the response</returns>
         public virtual async Task<string> RequestRawAsync(IRequestInfo requestInfo)
         {
-            var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return responseString;
+            using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
+            {
+                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return responseString;
+            }
         }
 
         /// <summary>
@@ -477,6 +498,10 @@ namespace RestEase.Implementation
         /// <returns>Task to return to the API interface caller</returns>
         public virtual async Task<Stream> RequestStreamAsync(IRequestInfo requestInfo)
         {
+            // Disposing the HttpResponseMessage will dispose the Stream (indeed, that's the only reason when
+            // HttpResponseMessage is IDisposable), which the user wants to use. Since the HttpResponseMessage
+            // is only IDisposable to dispose the Stream, provided that the user disposes the Stream themselves,
+            // nothing will leak.
             var response = await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
             var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             return stream;

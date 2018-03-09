@@ -29,6 +29,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
         2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
     3. [Query Parameters Map](#query-parameters-map)
     4. [Raw Query String Parameters](#raw-query-string-parameters)
+    5. [Query Properties](#query-properties)
 6. [Path Placeholders](#path-placeholders)
     1. [Path Parameters](#path-parameters)
         1. [Formatting Path Parameters](#formatting-path-parameters)
@@ -52,7 +53,8 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
         2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
-        3. [Serializing request parameters: `RequestQueryParamSerializer`](serializing-request-parameters-requestqueryparamserializer)
+        3. [Serializing request parameters: `RequestQueryParamSerializer`](#serializing-request-parameters-requestqueryparamserializer)
+        4. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
 13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
@@ -194,7 +196,7 @@ For these, simply put the query parameter as part of the URL:
 
 ```csharp
 public interface IGitHubApi
-{f
+{
    [Get("users/list?sort=desc")]
    Task<List<User>> GetUsersAsync();
 }
@@ -283,6 +285,21 @@ ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://api.example.com/foo?onitsown&=nokey
 await api.FooAsync("onitsown", "nokey");
+```
+
+If you pass a value which is null, then the key is not inserted. If you pass any other value (e.g. emptystring) then the value is left empty.
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo")]
+    Task FooAsync([Query()] string foo, [Query] string bar);
+}
+
+ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/foo?bar=
+await api.FooAsync(null, "");
 ```
 
 #### Formatting Variable Query Parameters
@@ -406,6 +423,34 @@ public interface ISomeApi
 var api = RestClient.For<ISomeApi>("http://api.example.com");
 var filter = "filter=foo"
 var searchResults = await api.SearchAsync(filter);
+```
+
+### Query Properties
+
+If you want to have a query string which is included in all of your requests, you can do this by declaring a `[Query]` property.
+These work the same way as query parameters, but they apply to all methods in your interface.
+If the value of the property is `null`, then it will not be added to your query.
+Otherwise, it will always be present, even if you declare a query parameter with the same name.
+
+The property must have both a getter and a setter.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+	[Query("foo")]
+	string Foo { get; set; }
+
+	[Get("thing")]
+	Task ThingAsync([Query] string foo);
+}
+
+var api = RestClient.For<ISomeApi>("http://api.example.com");
+api.Foo = "bar";
+
+// Requests http://api.example.com?foo=baz&foo=bar
+await api.ThingAsync("baz");
 ```
 
 
@@ -1047,6 +1092,14 @@ var api = new RestClient("http://api.example.com")
 If you specified a `Format` property on the `[Query]` attribute, this will be available as `info.Format`.
 By default, this is `null`.
 
+#### Controlling query string generation: `QueryStringBuilder`
+
+RestEase has logic to turn a collection of query parameters into a single suitably-encoded query string.
+However, some servers don't correctly decode query strings, and so users may want to control how query strings are encoded.
+
+To do this, subclass `QueryStringBuilder` and assign it to the `RestClient.QueryStringBuilder` property.
+See the method `BuildQueryParam` in [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs) for the default implementation.
+
 
 Controlling the Requests
 ------------------------
@@ -1500,6 +1553,11 @@ using (var fileStream = File.OpenRead("somefile.txt"))
 Obviously, set the headers you need - don't just copy me blindly.
 
 You can use [extension methods](#advanced-functionality-using-extension-methods) to make this more palatable for consumers.
+
+### I want to ensure that all of the required properties on my request body are set
+
+User @netclectic has a solution, [see this issue](https://github.com/canton7/RestEase/issues/68#issue-255988650).
+
 
 Comparison to Refit
 -------------------

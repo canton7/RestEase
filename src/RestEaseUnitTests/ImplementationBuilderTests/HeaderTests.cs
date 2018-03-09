@@ -251,7 +251,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var headerParams = requestInfo.HeaderParams.ToList();
 
-            Assert.Equal(1, headerParams.Count);
+            Assert.Single(headerParams);
 
             Assert.Equal("Param Header", headerParams[0].Key);
             Assert.Equal("3", headerParams[0].Value);
@@ -313,7 +313,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
-            Assert.Equal(1, propertyHeaders.Count);
+            Assert.Single(propertyHeaders);
             Assert.Equal("Name", propertyHeaders[0].Key);
             Assert.Equal("Value", propertyHeaders[0].Value);
         }
@@ -332,7 +332,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
-            Assert.Equal(1, propertyHeaders.Count);
+            Assert.Single(propertyHeaders);
             Assert.Equal("Name", propertyHeaders[0].Key);
             Assert.Equal("Value", propertyHeaders[0].Value);
         }
@@ -370,7 +370,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
-            Assert.Equal(1, propertyHeaders.Count);
+            Assert.Single(propertyHeaders);
 
             Assert.Equal("X-API-Key", propertyHeaders[0].Key);
             Assert.Equal("Foo Bar", propertyHeaders[0].Value);
@@ -407,7 +407,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
-            Assert.Equal(1, propertyHeaders.Count);
+            Assert.Single(propertyHeaders);
 
             Assert.Equal("Authorization", propertyHeaders[0].Key);
             Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", propertyHeaders[0].Value);

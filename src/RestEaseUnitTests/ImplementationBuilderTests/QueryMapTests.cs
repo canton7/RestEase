@@ -172,7 +172,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(null);
 
-            Assert.Equal(0, requestInfo.QueryParams.Count());
+            Assert.Empty(requestInfo.QueryParams);
         }
 
         [Fact]

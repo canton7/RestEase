@@ -199,13 +199,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var pathParams = requestInfo.PathParams.ToList();
             var queryParams = requestInfo.QueryParams.ToList();
 
-            Assert.Equal(1, pathParams.Count);
+            Assert.Single(pathParams);
 
             var serialized = pathParams[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("foovalue", serialized.Value);
 
-            Assert.Equal(1, queryParams.Count);
+            Assert.Single(queryParams);
 
             var queryParam = queryParams[0].SerializeToString(null).First();
             Assert.Equal("bar", queryParam.Key);
@@ -223,7 +223,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var pathProperties = requestInfo.PathProperties.ToList();
 
-            Assert.Equal(1, pathProperties.Count);
+            Assert.Single(pathProperties);
 
             var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
@@ -251,7 +251,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var pathProperties = requestInfo.PathProperties.ToList();
 
-            Assert.Equal(1, pathProperties.Count);
+            Assert.Single(pathProperties);
 
             var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("Foo", serialized.Key);
@@ -268,7 +268,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             });
 
             var pathProperties = requestInfo.PathProperties.ToList();
-            Assert.Equal(1, pathProperties.Count);
+            Assert.Single(pathProperties);
 
             var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
@@ -284,7 +284,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             });
 
             var pathParams = requestInfo.PathParams.ToList();
-            Assert.Equal(1, pathParams.Count);
+            Assert.Single(pathParams);
 
             var serialized = pathParams[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
@@ -301,7 +301,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             });
 
             var pathProperties = requestInfo.PathProperties.ToList();
-            Assert.Equal(1, pathProperties.Count);
+            Assert.Single(pathProperties);
 
             Assert.False(pathProperties[0].UrlEncode);
         }
@@ -312,7 +312,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var requestInfo = Request<IHasPathParamWithNoUrlEncoding>(x => x.FooAsync("a/b+c"));
 
             var pathParams = requestInfo.PathParams.ToList();
-            Assert.Equal(1, pathParams.Count);
+            Assert.Single(pathParams);
 
             Assert.False(pathParams[0].UrlEncode);
         }

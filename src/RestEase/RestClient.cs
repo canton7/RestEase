@@ -65,6 +65,14 @@ namespace RestEase
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
+        /// Gets or sets the builder to use to construct encoded query strings from various parmaeters
+        /// </summary>
+        /// <remarks>
+        /// Defaults to null, in which case the default building logic is used
+        /// </remarks>
+        public QueryStringBuilder QueryStringBuilder { get; set; }
+
+        /// <summary>
         /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
         /// </summary>
         /// <remarks>
@@ -192,6 +200,8 @@ namespace RestEase
                 requester.ResponseDeserializer = new ResponseDeserializerWrapper(this.ResponseDeserializer);
             else if (this.JsonSerializerSettings != null)
                 requester.ResponseDeserializer = new JsonResponseDeserializer() { JsonSerializerSettings = this.JsonSerializerSettings };
+
+            requester.QueryStringBuilder = this.QueryStringBuilder;
 
             requester.FormatProvider = this.FormatProvider;
 

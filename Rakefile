@@ -7,6 +7,11 @@ TESTS_DIR = 'src/RestEaseUnitTests'
 RESTEASE_CSPROJ = File.join(RESTEASE_DIR, 'RestEase.csproj')
 NUGET_DIR = File.join(File.dirname(__FILE__), 'NuGet')
 
+def fx_version()
+  fx_version = ENV['FX_VERSION']
+  (["--fx-version", fx_version] if fx_version) || []
+end
+
 desc "Restore NuGet packages"
 task :restore do
   sh 'dotnet', 'restore', RESTEASE_SLN
@@ -34,6 +39,6 @@ end
 desc "Run tests"
 task :test do
   Dir.chdir(TESTS_DIR) do
-    sh 'dotnet', 'xunit'
+    sh 'dotnet', 'xunit', *fx_version
   end
 end
