@@ -21,10 +21,10 @@ namespace RestEase
         /// <summary>
         /// Initialises a new instance of the <see cref="SerializationMethodsAttribute"/> class
         /// </summary>
-        public SerializationMethodsAttribute()
+        public SerializationMethodsAttribute(BodySerializationMethod body = BodySerializationMethod.Default, QuerySerializationMethod query = QuerySerializationMethod.Default)
         {
-            this.Body = BodySerializationMethod.Default;
-            this.Query = QuerySerializationMethod.Default;
+            this.Body = body;
+            this.Query = query;
         }
     }
 }
