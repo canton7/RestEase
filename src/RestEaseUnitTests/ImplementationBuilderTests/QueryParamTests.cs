@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -112,6 +111,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             [Get("foo")]
             Task FooAsync();
+        }
+
+        public interface IHasQueryParameterNameUsingAttributeSetter
+        {
+            [Get]
+            Task FooAsync([Query(Name = "customName")] string queryParameter);
+        }
+
+        public interface IHasQueryParameterNameUsingAttributeConstructor
+        {
+            [Get]
+            Task FooAsync([Query("customName")] string queryParameter);
         }
 
         public interface IHasSerializedPathQuery
@@ -249,7 +260,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var queryParams = requestInfo.QueryParams.ToList();
 
             Assert.Single(queryParams);
-            Assert.Null(queryParams[0].SerializeToString(null).First().Key);
+            Assert.Equal("rawQuery", queryParams[0].SerializeToString(null).First().Key);
         }
 
         [Fact]
@@ -336,6 +347,34 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Assert.Single(serialized);
             Assert.Equal("Woo", serialized[0].Key);
             Assert.Equal("A", serialized[0].Value);
+        }
+
+        [Fact]
+        public void HandlesQueryParameterNameUsingAttributeSetter()
+        {
+            var requestInfo = Request<IHasQueryParameterNameUsingAttributeSetter>(x => x.FooAsync("foo"));
+
+            var queryParameters = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParameters);
+
+            var serialized = queryParameters[0].SerializeToString(null).ToList();
+            Assert.Single(serialized);
+            Assert.Equal("customName", serialized[0].Key);
+        }
+
+        [Fact]
+        public void HandlesQueryParameterNameUsingAttributeConstructor()
+        {
+            var requestInfo = Request<IHasQueryParameterNameUsingAttributeConstructor>(x => x.FooAsync("foo"));
+
+            var queryParameters = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParameters);
+
+            var serialized = queryParameters[0].SerializeToString(null).ToList();
+            Assert.Single(serialized);
+            Assert.Equal("customName", serialized[0].Key);
         }
 
         [Fact]
