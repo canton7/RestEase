@@ -8,15 +8,25 @@ namespace RestEase
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class QueryAttribute : Attribute
     {
+        private string _name;
+
         /// <summary>
-        /// Gets or sets the name of the query param. Will use the parameter / property name if null
+        /// Gets or sets the name of the query param. Will use the parameter / property name if unset.
         /// </summary>
-        public string Name { get; set; }
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                this.HasName = true;
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether the user has set the name attribute
         /// </summary>
-        public bool HasName { get; }
+        public bool HasName { get; private set; }
 
         /// <summary>
         /// Gets the serialization method to use to serialize the value. Defaults to QuerySerializationMethod.ToString
