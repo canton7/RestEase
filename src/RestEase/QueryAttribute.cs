@@ -11,7 +11,7 @@ namespace RestEase
         private string _name;
 
         /// <summary>
-        /// Gets or sets the name of the query param. Will NOT use the parameter / property name if null.
+        /// Gets or sets the name of the query param. Will use the parameter / property name if unset.
         /// </summary>
         public string Name
         {
@@ -19,7 +19,7 @@ namespace RestEase
             set
             {
                 _name = value;
-                HasName = true;
+                this.HasName = true;
             }
         }
 
