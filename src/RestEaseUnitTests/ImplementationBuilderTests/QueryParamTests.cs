@@ -260,7 +260,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var queryParams = requestInfo.QueryParams.ToList();
 
             Assert.Single(queryParams);
-            Assert.Equal("rawQuery", queryParams[0].SerializeToString(null).First().Key);
+            Assert.Null(queryParams[0].SerializeToString(null).First().Key);
         }
 
         [Fact]
