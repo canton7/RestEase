@@ -15,10 +15,10 @@ namespace RestEase
         /// </summary>
         public string Name
         {
-            get => _name;
+            get => this._name;
             set
             {
-                _name = value;
+                this._name = value;
                 this.HasName = true;
             }
         }
@@ -44,16 +44,7 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class
         /// </summary>
         public QueryAttribute()
-            : this(null, false, QuerySerializationMethod.Default)
-        {
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given name
-        /// </summary>
-        /// <param name="name">Name of the query parameter</param>
-        public QueryAttribute(string name)
-            : this(name, true, QuerySerializationMethod.Default)
+            : this(QuerySerializationMethod.Default)
         {
         }
 
@@ -62,7 +53,17 @@ namespace RestEase
         /// </summary>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(QuerySerializationMethod serializationMethod)
-            : this(null, false, serializationMethod)
+        {
+            // Don't set this.Name
+            this.SerializationMethod = serializationMethod;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="QueryAttribute"/> class, with the given name
+        /// </summary>
+        /// <param name="name">Name of the query parameter</param>
+        public QueryAttribute(string name)
+            : this(name, QuerySerializationMethod.Default)
         {
         }
 
@@ -72,14 +73,8 @@ namespace RestEase
         /// <param name="name">Name of the query parameter</param>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryAttribute(string name, QuerySerializationMethod serializationMethod)
-            : this(name, true, serializationMethod)
-        {
-        }
-
-        private QueryAttribute(string name, bool hasName, QuerySerializationMethod serializationMethod)
         {
             this.Name = name;
-            this.HasName = hasName;
             this.SerializationMethod = serializationMethod;
         }
     }
