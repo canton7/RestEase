@@ -76,13 +76,7 @@ namespace RestEase.Implementation
             if (this.value == null)
                 return Enumerable.Empty<KeyValuePair<string, string>>();
 
-            string stringValue;
-            if (this.value is IFormattable formattable)
-                stringValue = formattable.ToString(this.format, formatProvider);
-            else
-                stringValue = this.value.ToString();
-
-            return new[] { new KeyValuePair<string, string>(this.name, stringValue) };
+            return new[] { new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(this.value, this.format, formatProvider)) };
         }
     }
 
@@ -135,13 +129,7 @@ namespace RestEase.Implementation
                 if (value == null)
                     continue;
 
-                string stringValue;
-                if (value is IFormattable formattable)
-                    stringValue = formattable.ToString(this.format, formatProvider);
-                else
-                    stringValue = value.ToString();
-
-                yield return new KeyValuePair<string, string>(this.name, stringValue);
+                yield return new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(value, this.format, formatProvider));
             }
         }
     }

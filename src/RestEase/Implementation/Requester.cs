@@ -367,13 +367,7 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of the value being serialized</typeparam>
         /// <param name="value">Value being serialized</param>
         /// <returns>Serialized value</returns>
-        protected string ToStringHelper<T>(T value)
-        {
-            if (this.FormatProvider != null && value is IFormattable formattable)
-                return formattable.ToString(null, this.FormatProvider);
-            else
-                return value?.ToString();
-        }
+        protected string ToStringHelper<T>(T value) => Implementation.ToStringHelper.ToString(value, null, this.FormatProvider);
 
         /// <summary>
         /// Given an IRequestInfo, construct a HttpRequestMessage, send it, check the response for success, then return it

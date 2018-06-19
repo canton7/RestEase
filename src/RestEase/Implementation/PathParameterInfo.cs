@@ -39,14 +39,7 @@ namespace RestEase.Implementation
         /// <returns>Serialized value</returns>
         public KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
         {
-            string stringValue;
-
-            if (this.value is IFormattable formattable)
-                stringValue = formattable.ToString(this.format, formatProvider);
-            else
-                stringValue = this.value?.ToString();
-
-            return new KeyValuePair<string, string>(this.name, stringValue);
+            return new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(this.value, this.format, formatProvider));
         }
     }
 }
