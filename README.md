@@ -12,7 +12,7 @@ Almost every aspect of RestEase can be overridden and customized, leading to a l
 To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
 RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
 
-RestEase is built on top of [HttpClient](https://msdn.microsoft.com/en-us/library/system.net.http.httpclient%28v=vs.118%29.aspx) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
+RestEase is built on top of [HttpClient](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpclient) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
 
 RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
 
@@ -173,7 +173,7 @@ Your interface methods may return one of the following types:
  - `Task`: This method does not return any data, but the task will complete when the request has completed
  - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using Json.NET (or a custom deserializer, see [Controlling Serialization and Deserialization below](#controlling-serialization-and-deserialization)).
  - `Task<string>`: This method returns the raw response, as a string
- - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage%28v=vs.118%29.aspx) resulting from the request. It does not do any deserialiation. You must dispose this object after use.
+ - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpresponsemessage) resulting from the request. It does not do any deserialiation. You must dispose this object after use.
  - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers. You must dispose this object after use.
  - `Task<Stream>`: This method returns a Stream containing the response. Use this to e.g. download a file and stream it to disk. You must dispose this object after use.
 
@@ -633,10 +633,11 @@ public interface ISomeApi
 
 Exactly how this will be serialized depends on the type of parameters:
 
- - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://msdn.microsoft.com/en-us/library/system.net.http.streamcontent%28v=vs.118%29.aspx).
- - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://msdn.microsoft.com/en-us/library/system.net.http.stringcontent%28v=vs.118%29.aspx)).
+ - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.streamcontent).
+ - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.stringcontent?)).
+ - If the type is `byte[]`, then the byte array will be used directory as the content (using [`ByteArrayContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.bytearraycontent)).
  - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
- - If the type is a [`HttpContent`](https://msdn.microsoft.com/en-us/library/system.net.http.httpcontent%28v=vs.118%29.aspx) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
+ - If the type is a [`HttpContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpcontent) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
  - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 
@@ -682,7 +683,7 @@ public interface ISomeApi
 Response Status Codes
 ---------------------
 
-By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage.issuccessstatuscode%28v=vs.118%29.aspx)) will cause an `ApiException` to be thrown.
+By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpresponsemessage.issuccessstatuscode)) will cause an `ApiException` to be thrown.
 
 This is usually what you want (you don't want to try and parse the result of a failed request), but sometimes you're expecting failure.
 

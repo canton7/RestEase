@@ -284,6 +284,9 @@ namespace RestEase.Implementation
             if (requestInfo.BodyParameterInfo.ObjectValue is string stringValue)
                 return new StringContent(stringValue);
 
+            if (requestInfo.BodyParameterInfo.ObjectValue is byte[] byteArrayValue)
+                return new ByteArrayContent(byteArrayValue);
+
             switch (requestInfo.BodyParameterInfo.SerializationMethod)
             {
                 case BodySerializationMethod.UrlEncoded:
