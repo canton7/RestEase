@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using RestEase.Platform;
 using System.IO;
+using System.Runtime.ExceptionServices;
 
 namespace RestEase.Implementation
 {
@@ -115,9 +116,20 @@ namespace RestEase.Implementation
                     // Therefore the second one has to check for this...
                     if (TypeCreatorRegistry<T>.Creator == null)
                     {
-                        var implementationType = this.BuildImplementationImpl(typeof(T));
-                        var creator = this.BuildCreator<T>(implementationType);
-                        TypeCreatorRegistry<T>.Creator = creator;
+                        try
+                        {
+                            var implementationType = this.BuildImplementationImpl(typeof(T));
+                            var creator = this.BuildCreator<T>(implementationType);
+                            TypeCreatorRegistry<T>.Creator = creator;
+                        }
+                        catch (Exception e)
+                        {
+                            // If they request the same type again, make sure they get the same exception. If we try and build the type
+                            // again, they'll get a different exception about a duplicate type.
+                            // Yes we nuke the stack trace, but that's not the end of the world since they don't care about our internals
+                            TypeCreatorRegistry<T>.Creator = x => throw e;
+                            throw;
+                        }
                     }
                 }
             }

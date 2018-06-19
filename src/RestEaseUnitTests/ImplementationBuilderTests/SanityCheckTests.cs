@@ -135,5 +135,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(3, result);
         }
+
+        [Fact]
+        public void ThrowsSameExceptionIfRequestedTwice()
+        {
+            var e1 = Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
+            var e2 = Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
+            Assert.Same(e1, e2);
+        }
     }
 }
