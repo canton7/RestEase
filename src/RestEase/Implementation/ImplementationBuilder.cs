@@ -313,7 +313,7 @@ namespace RestEase.Implementation
             PropertyGrouping properties, 
             out MethodInfoGrouping methodInfoGrouping)
         {
-            int i = 0;
+            int methodIndex = 0;
             methodInfoGrouping = new MethodInfoGrouping();
 
             foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetMethods()))
@@ -326,6 +326,7 @@ namespace RestEase.Implementation
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+
                 if (methodInfo.IsGenericMethodDefinition)
                 {
                     var genericArguments = methodInfo.GetGenericArguments();
@@ -348,6 +349,16 @@ namespace RestEase.Implementation
                     }
                 }
 
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    var parameterBuilder = methodBuilder.DefineParameter(i + 1, parameter.Attributes, parameter.Name);
+                    if (parameter.HasDefaultValue)
+                    {
+                        parameterBuilder.SetConstant(parameter.DefaultValue);
+                    }
+                }
+
                 var methodIlGenerator = methodBuilder.GetILGenerator();
 
                 if (methodInfo == disposeMethod)
@@ -367,7 +378,7 @@ namespace RestEase.Implementation
 
                     this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
-                    var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + i, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
+                    var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + methodIndex, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
                     methodInfoGrouping.Fields.Add(new MethodInfoFieldReference(methodInfo, methodInfoFieldBuilder));
 
                     this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute, methodInfoFieldBuilder);
@@ -387,7 +398,7 @@ namespace RestEase.Implementation
                     typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
                 }
 
-                i++;
+                methodIndex++;
             }
         }
 
