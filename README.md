@@ -61,14 +61,15 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 14. [Customizing RestEase](#customizing-restease)
 15. [Interface Accessibility](#interface-accessibility)
 16. [Using Generic Interfaces](#using-generic-interfaces)
-17. [Interface Inheritance](#interface-inheritance)
+17. [Using Generic Methods](#using-generic-methods)
+18. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-18. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+19. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-19. [FAQs](#faqs)
-20. [Comparison to Refit](#comparison-to-refit)
+20. [FAQs](#faqs)
+21. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -1268,7 +1269,7 @@ public interface IReallyExcitingCrudApi<T, TKey>
     Task<T> ReadOne(TKey key);
 
     [Put("{key}")]
-    Task Update(TKey key, [Body]T payload);
+    Task Update(TKey key, [Body] T payload);
 
     [Delete("{key}")]
     Task Delete(TKey key);
@@ -1282,6 +1283,37 @@ Which can be used like this:
 // than one type (unless you have a different domain for each type)
 var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users"); 
 ```
+
+Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known).
+This means that, for example, if you declare a return type of `Task<T>`, then call with `T` set to `String`, then you will not get a stream back - the response will be deserialized as a stream, which will almost certainly fail.
+Likewise if you declare a query parameter of type `T`, then set `T` to `IEnumerable<string>`, then your query will contain something like `String[]`, instead of a collection of query parameters.
+
+
+Using Generic Methods
+---------------------
+
+You can define generic methods, if you wish. These have all of the same caveats as generic interfaces.
+
+```csharp
+public interface IReallyExcitingCrudApi
+{
+    [Post("")]
+    Task<T> Create<T>([Body] T paylod);
+
+    [Get("")]
+    Task<List<T>> ReadAll<T>();
+
+    [Get("{key}")]
+    Task<T> ReadOne<T, TKey>(TKey key);
+
+    [Put("{key}")]
+    Task Update<T, TKey>(TKey key, [Body] T payload);
+
+    [Delete("{key}")]
+    Task Delete<TKey>(TKey key);
+}
+```
+
 
 Interface Inheritance
 ---------------------

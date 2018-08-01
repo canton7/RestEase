@@ -326,6 +326,28 @@ namespace RestEase.Implementation
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+                if (methodInfo.IsGenericMethodDefinition)
+                {
+                    var genericArguments = methodInfo.GetGenericArguments();
+                    var builders = methodBuilder.DefineGenericParameters(genericArguments.Select(x => x.Name).ToArray());
+                    for (int j = 0; j < genericArguments.Length; j++)
+                    {
+                        var genericArgumentType = genericArguments[j].GetTypeInfo();
+                        var constraints = genericArgumentType.GetGenericParameterConstraints().Select(x => x.GetTypeInfo()).ToList();
+                        builders[j].SetGenericParameterAttributes(genericArgumentType.GenericParameterAttributes);
+                        var baseType = constraints.FirstOrDefault(x => x.IsClass);
+                        if (baseType != null)
+                        {
+                            builders[j].SetBaseTypeConstraint(baseType.AsType());
+                        }
+                        var interfaceTypes = constraints.Where(x => !x.IsClass).Select(x => x.AsType()).ToArray();
+                        if (interfaceTypes.Length > 0)
+                        {
+                            builders[j].SetInterfaceConstraints(interfaceTypes);
+                        }
+                    }
+                }
+
                 var methodIlGenerator = methodBuilder.GetILGenerator();
 
                 if (methodInfo == disposeMethod)
@@ -412,7 +434,6 @@ namespace RestEase.Implementation
                 getterIlGenerator.Emit(OpCodes.Ldfld, requesterField);
                 getterIlGenerator.Emit(OpCodes.Ret);
                 propertyBuilder.SetGetMethod(getter);
-
             }
 
             return grouping;
