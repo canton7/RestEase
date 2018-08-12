@@ -1,3 +1,13 @@
+v1.4.6
+------
+
+ - Fixed ignored QueryAttribute.Name when set using property setter (`[Query(Name = "customName")`)(#94)
+ - If type creation fails, make sure all subsequent attempts throw the same exception (#93)
+ - Support `byte[]` bodies (#91)
+ - Support generic methods (as well as generic interfaces) (#92)
+ - Support netstandard2.0 as a separate target (reduces dependencies for netstandard2.0+ projects) (#88)
+ - Reflect optional parameters in implementation for IronPython (#98)
+
 v1.4.5
 ------
 
