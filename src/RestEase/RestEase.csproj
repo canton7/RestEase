@@ -14,11 +14,21 @@
     <PackageProjectUrl>http://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseUrl>http://github.com/canton7/RestEase/blob/master/LICENSE.txt</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/canton7/RestEase.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/canton7/RestEase</RepositoryUrl>
     <Authors>Antony Male</Authors>
     <Description>Easy-to-use typesafe REST API client library, which is simple and customisable.</Description>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <Deterministic>true</Deterministic>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  
+  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
+  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
     <PackageReference Include="System.Net.Http" Version="4.1.0" />

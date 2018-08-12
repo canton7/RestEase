@@ -85,9 +85,11 @@ PM> Install-Package RestEase
 
 Or right-click your project -> Manage NuGet Packages... -> Online -> search for RestEase in the top right.
 
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to RestEase's source when debugging.
-If you haven't yet set up Visual Studio to use SymbolSource, do that now:
+This project uses [SourceLink](https://github.com/dotnet/sourcelink), so you can use the NuGet package but still have access to RestEase's source when debugging.
+Just tick "Enable source link support" in Options -> Debugging in VS 15.3+.
 
+I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), if you don't have VS 15.3+.
+To setup Visual Studio:
 
 1. Go to Tools -> Options -> Debugger -> General.
 2. Uncheck "Enable Just My Code (Managed only)".
