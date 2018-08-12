@@ -12,7 +12,7 @@ Almost every aspect of RestEase can be overridden and customized, leading to a l
 To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
 RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
 
-RestEase is built on top of [HttpClient](https://msdn.microsoft.com/en-us/library/system.net.http.httpclient%28v=vs.118%29.aspx) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
+RestEase is built on top of [HttpClient](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpclient) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
 
 RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
 
@@ -61,14 +61,15 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 14. [Customizing RestEase](#customizing-restease)
 15. [Interface Accessibility](#interface-accessibility)
 16. [Using Generic Interfaces](#using-generic-interfaces)
-17. [Interface Inheritance](#interface-inheritance)
+17. [Using Generic Methods](#using-generic-methods)
+18. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-18. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+19. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-19. [FAQs](#faqs)
-20. [Comparison to Refit](#comparison-to-refit)
+20. [FAQs](#faqs)
+21. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -84,9 +85,11 @@ PM> Install-Package RestEase
 
 Or right-click your project -> Manage NuGet Packages... -> Online -> search for RestEase in the top right.
 
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to RestEase's source when debugging.
-If you haven't yet set up Visual Studio to use SymbolSource, do that now:
+This project uses [SourceLink](https://github.com/dotnet/sourcelink), so you can use the NuGet package but still have access to RestEase's source when debugging.
+Just tick "Enable source link support" in Options -> Debugging in VS 15.3+.
 
+I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), if you don't have VS 15.3+.
+To setup Visual Studio:
 
 1. Go to Tools -> Options -> Debugger -> General.
 2. Uncheck "Enable Just My Code (Managed only)".
@@ -173,7 +176,7 @@ Your interface methods may return one of the following types:
  - `Task`: This method does not return any data, but the task will complete when the request has completed
  - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using Json.NET (or a custom deserializer, see [Controlling Serialization and Deserialization below](#controlling-serialization-and-deserialization)).
  - `Task<string>`: This method returns the raw response, as a string
- - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage%28v=vs.118%29.aspx) resulting from the request. It does not do any deserialiation. You must dispose this object after use.
+ - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpresponsemessage) resulting from the request. It does not do any deserialiation. You must dispose this object after use.
  - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers. You must dispose this object after use.
  - `Task<Stream>`: This method returns a Stream containing the response. Use this to e.g. download a file and stream it to disk. You must dispose this object after use.
 
@@ -633,10 +636,11 @@ public interface ISomeApi
 
 Exactly how this will be serialized depends on the type of parameters:
 
- - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://msdn.microsoft.com/en-us/library/system.net.http.streamcontent%28v=vs.118%29.aspx).
- - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://msdn.microsoft.com/en-us/library/system.net.http.stringcontent%28v=vs.118%29.aspx)).
+ - If the type is `Stream`, then the content will be streamed via [`StreamContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.streamcontent).
+ - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.stringcontent?)).
+ - If the type is `byte[]`, then the byte array will be used directory as the content (using [`ByteArrayContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.bytearraycontent)).
  - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
- - If the type is a [`HttpContent`](https://msdn.microsoft.com/en-us/library/system.net.http.httpcontent%28v=vs.118%29.aspx) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
+ - If the type is a [`HttpContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpcontent) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
  - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 
@@ -682,7 +686,7 @@ public interface ISomeApi
 Response Status Codes
 ---------------------
 
-By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://msdn.microsoft.com/en-us/library/system.net.http.httpresponsemessage.issuccessstatuscode%28v=vs.118%29.aspx)) will cause an `ApiException` to be thrown.
+By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpresponsemessage.issuccessstatuscode)) will cause an `ApiException` to be thrown.
 
 This is usually what you want (you don't want to try and parse the result of a failed request), but sometimes you're expecting failure.
 
@@ -1267,7 +1271,7 @@ public interface IReallyExcitingCrudApi<T, TKey>
     Task<T> ReadOne(TKey key);
 
     [Put("{key}")]
-    Task Update(TKey key, [Body]T payload);
+    Task Update(TKey key, [Body] T payload);
 
     [Delete("{key}")]
     Task Delete(TKey key);
@@ -1281,6 +1285,37 @@ Which can be used like this:
 // than one type (unless you have a different domain for each type)
 var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users"); 
 ```
+
+Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known).
+This means that, for example, if you declare a return type of `Task<T>`, then call with `T` set to `String`, then you will not get a stream back - the response will be deserialized as a stream, which will almost certainly fail.
+Likewise if you declare a query parameter of type `T`, then set `T` to `IEnumerable<string>`, then your query will contain something like `String[]`, instead of a collection of query parameters.
+
+
+Using Generic Methods
+---------------------
+
+You can define generic methods, if you wish. These have all of the same caveats as generic interfaces.
+
+```csharp
+public interface IReallyExcitingCrudApi
+{
+    [Post("")]
+    Task<T> Create<T>([Body] T paylod);
+
+    [Get("")]
+    Task<List<T>> ReadAll<T>();
+
+    [Get("{key}")]
+    Task<T> ReadOne<T, TKey>(TKey key);
+
+    [Put("{key}")]
+    Task Update<T, TKey>(TKey key, [Body] T payload);
+
+    [Delete("{key}")]
+    Task Delete<TKey>(TKey key);
+}
+```
+
 
 Interface Inheritance
 ---------------------

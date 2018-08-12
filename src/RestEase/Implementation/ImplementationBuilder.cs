@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using RestEase.Platform;
 using System.IO;
+using System.Runtime.ExceptionServices;
 
 namespace RestEase.Implementation
 {
@@ -115,9 +116,20 @@ namespace RestEase.Implementation
                     // Therefore the second one has to check for this...
                     if (TypeCreatorRegistry<T>.Creator == null)
                     {
-                        var implementationType = this.BuildImplementationImpl(typeof(T));
-                        var creator = this.BuildCreator<T>(implementationType);
-                        TypeCreatorRegistry<T>.Creator = creator;
+                        try
+                        {
+                            var implementationType = this.BuildImplementationImpl(typeof(T));
+                            var creator = this.BuildCreator<T>(implementationType);
+                            TypeCreatorRegistry<T>.Creator = creator;
+                        }
+                        catch (Exception e)
+                        {
+                            // If they request the same type again, make sure they get the same exception. If we try and build the type
+                            // again, they'll get a different exception about a duplicate type.
+                            // Yes we nuke the stack trace, but that's not the end of the world since they don't care about our internals
+                            TypeCreatorRegistry<T>.Creator = x => throw e;
+                            throw;
+                        }
                     }
                 }
             }
@@ -301,7 +313,7 @@ namespace RestEase.Implementation
             PropertyGrouping properties, 
             out MethodInfoGrouping methodInfoGrouping)
         {
-            int i = 0;
+            int methodIndex = 0;
             methodInfoGrouping = new MethodInfoGrouping();
 
             foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetMethods()))
@@ -314,6 +326,39 @@ namespace RestEase.Implementation
                 var parameterGrouping = new ParameterGrouping(parameters, methodInfo.Name);
 
                 var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, methodInfo.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+
+                if (methodInfo.IsGenericMethodDefinition)
+                {
+                    var genericArguments = methodInfo.GetGenericArguments();
+                    var builders = methodBuilder.DefineGenericParameters(genericArguments.Select(x => x.Name).ToArray());
+                    for (int j = 0; j < genericArguments.Length; j++)
+                    {
+                        var genericArgumentType = genericArguments[j].GetTypeInfo();
+                        var constraints = genericArgumentType.GetGenericParameterConstraints().Select(x => x.GetTypeInfo()).ToList();
+                        builders[j].SetGenericParameterAttributes(genericArgumentType.GenericParameterAttributes);
+                        var baseType = constraints.FirstOrDefault(x => x.IsClass);
+                        if (baseType != null)
+                        {
+                            builders[j].SetBaseTypeConstraint(baseType.AsType());
+                        }
+                        var interfaceTypes = constraints.Where(x => !x.IsClass).Select(x => x.AsType()).ToArray();
+                        if (interfaceTypes.Length > 0)
+                        {
+                            builders[j].SetInterfaceConstraints(interfaceTypes);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    var parameterBuilder = methodBuilder.DefineParameter(i + 1, parameter.Attributes, parameter.Name);
+                    if (parameter.HasDefaultValue)
+                    {
+                        parameterBuilder.SetConstant(parameter.DefaultValue);
+                    }
+                }
+
                 var methodIlGenerator = methodBuilder.GetILGenerator();
 
                 if (methodInfo == disposeMethod)
@@ -333,7 +378,7 @@ namespace RestEase.Implementation
 
                     this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
-                    var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + i, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
+                    var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + methodIndex, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
                     methodInfoGrouping.Fields.Add(new MethodInfoFieldReference(methodInfo, methodInfoFieldBuilder));
 
                     this.AddRequestInfoCreation(methodIlGenerator, requesterField, requestAttribute, methodInfoFieldBuilder);
@@ -353,7 +398,7 @@ namespace RestEase.Implementation
                     typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
                 }
 
-                i++;
+                methodIndex++;
             }
         }
 
@@ -400,7 +445,6 @@ namespace RestEase.Implementation
                 getterIlGenerator.Emit(OpCodes.Ldfld, requesterField);
                 getterIlGenerator.Emit(OpCodes.Ret);
                 propertyBuilder.SetGetMethod(getter);
-
             }
 
             return grouping;

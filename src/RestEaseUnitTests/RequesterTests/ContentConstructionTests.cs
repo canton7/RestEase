@@ -67,6 +67,16 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void SetContentAsByteArrayContentIfBodyIsByteArray()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, new byte[] { 1, 2, 3 });
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.IsType<ByteArrayContent>(content);
+        }
+
+        [Fact]
         public void UsesRequestBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");

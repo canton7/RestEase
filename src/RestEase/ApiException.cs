@@ -92,9 +92,17 @@ namespace RestEase
             : base($"{requestMethod} \"{requestUri}\" failed because response status code does not indicate success: {(int)statusCode} ({reasonPhrase}).")
         {
             this.RequestMethod = requestMethod;
+            this.Data[nameof(this.RequestMethod)] = requestMethod.Method;
+
             this.RequestUri = requestUri;
+            this.Data[nameof(this.RequestUri)] = requestUri;
+
             this.StatusCode = statusCode;
+            this.Data[nameof(this.StatusCode)] = statusCode;
+
             this.ReasonPhrase = reasonPhrase;
+            this.Data[nameof(this.ReasonPhrase)] = reasonPhrase;
+
             this.Headers = headers;
             this.ContentHeaders = contentHeaders;
             this.Content = contentString;

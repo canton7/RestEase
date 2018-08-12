@@ -2,23 +2,33 @@
 
   <PropertyGroup>
     <VersionPrefix>0.0.0</VersionPrefix>
-    <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.1;netstandard2.0;net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>RestEase</AssemblyName>
     <AssemblyTitle>RestEase</AssemblyTitle>
     <OutputType>Library</OutputType>
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
-    <Copyright>Copyright © Antony Male 2015-2017</Copyright>
+    <Copyright>Copyright © Antony Male 2015-2018</Copyright>
     <PackageIconUrl>https://raw.githubusercontent.com/canton7/RestEase/master/icon.png</PackageIconUrl>
     <PackageProjectUrl>http://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseUrl>http://github.com/canton7/RestEase/blob/master/LICENSE.txt</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/canton7/RestEase.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/canton7/RestEase</RepositoryUrl>
     <Authors>Antony Male</Authors>
     <Description>Easy-to-use typesafe REST API client library, which is simple and customisable.</Description>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <Deterministic>true</Deterministic>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  
+  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
+  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
     <PackageReference Include="System.Net.Http" Version="4.1.0" />
@@ -26,6 +36,11 @@
     <PackageReference Include="System.Reflection" Version="4.1.0" />
     <PackageReference Include="System.Reflection.Emit" Version="4.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Reflection.Emit" Version="4.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
@@ -39,7 +54,7 @@
     <Folder Include="Properties\" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' or '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
   </PropertyGroup>
 

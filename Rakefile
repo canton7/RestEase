@@ -33,7 +33,7 @@ end
 
 desc "Build the project for release"
 task :build do
-  sh 'dotnet', 'build', '--configuration=Release', RESTEASE_DIR
+  sh 'dotnet', 'build', '--configuration=Release', '/p:ContinuousIntegrationBuild=true', RESTEASE_DIR
 end
 
 desc "Run tests"

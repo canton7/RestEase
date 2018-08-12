@@ -35,12 +35,7 @@ namespace RestEase.Implementation
         /// <inheritdoc/>
         public override string SerializeToString(IFormatProvider formatProvider)
         {
-            if (formatProvider != null && this.value is IFormattable formattable)
-                return formattable.ToString(null, formatProvider);
-            else if (this.value != null)
-                return this.value.ToString();
-            else
-                return string.Empty;
+            return ToStringHelper.ToString(this.value, null, formatProvider) ?? string.Empty;
         }
     }
 }
