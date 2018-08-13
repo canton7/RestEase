@@ -1,3 +1,8 @@
+v1.4.7
+------
+
+ - Fix crash introduced by (#98) when a method has a non-primitive struct type with a default value
+
 v1.4.6
 ------
 

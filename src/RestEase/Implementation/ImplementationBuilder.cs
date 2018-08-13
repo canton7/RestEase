@@ -355,7 +355,16 @@ namespace RestEase.Implementation
                     var parameterBuilder = methodBuilder.DefineParameter(i + 1, parameter.Attributes, parameter.Name);
                     if (parameter.HasDefaultValue)
                     {
-                        parameterBuilder.SetConstant(parameter.DefaultValue);
+                        // So. https://github.com/dotnet/corefx/issues/26184
+                        // Most of the time, we're not allowed to set `null` as the value of a struct parameter, even
+                        // though the compiler happily did that, and `parameter.DefaultValue` is null. This has been
+                        // fixed in CoreFx though. So I don't want to disable this behaviour all of the time, when it
+                        // will work in newer CoreFx's, so instead we try, and catch the resulting exception.
+                        try
+                        {
+                            parameterBuilder.SetConstant(parameter.DefaultValue);
+                        }
+                        catch (ArgumentException) { }
                     }
                 }
 
