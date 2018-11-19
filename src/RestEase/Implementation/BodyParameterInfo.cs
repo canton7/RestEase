@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RestEase.Implementation;
+using System;
 using System.Net.Http;
 
 namespace RestEase.Implementation
@@ -17,6 +18,11 @@ namespace RestEase.Implementation
         /// Gets the body to serialize, as an object
         /// </summary>
         public object ObjectValue { get; protected set; }
+
+        /// <summary>
+        /// Gets type of body
+        /// </summary>
+        public abstract Type ObjectType { get; }
 
         /// <summary>
         /// Serialize the (typed) value using the given serializer
@@ -39,6 +45,11 @@ namespace RestEase.Implementation
         public T Value { get; private set; }
 
         /// <summary>
+        /// Gets type of body
+        /// </summary>
+        public override Type ObjectType { get; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="BodyParameterInfo{T}"/> class
         /// </summary>
         /// <param name="serializationMethod">Method to use the serialize the body</param>
@@ -48,6 +59,7 @@ namespace RestEase.Implementation
             this.SerializationMethod = serializationMethod;
             this.ObjectValue = value;
             this.Value = value;
+            this.ObjectType = typeof(T);
         }
 
         /// <summary>

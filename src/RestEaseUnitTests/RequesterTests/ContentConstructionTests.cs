@@ -28,22 +28,23 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
-        public void SetsContentNullIfBodyValueIsNull()
-        {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, null);
-            var content = this.requester.ConstructContent(requestInfo);
-            Assert.Null(content);
-        }
-
-        [Fact]
         public void SetsContentAsHttpContentIfBodyIsHttpContent()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            var content = new StringContent("test");
+            var content = new StringContent("test") as HttpContent;
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, content);
 
             Assert.Equal(content, this.requester.ConstructContent(requestInfo));
+        }
+
+        [Fact]
+        public void SetsContentNullIfBodyHttpContentAndValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<HttpContent>(BodySerializationMethod.Serialized, null);
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.Null(content);
         }
 
         [Fact]
@@ -57,6 +58,16 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void SetsContentNullIfBodyIsStreamAndValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<MemoryStream>(BodySerializationMethod.Serialized, null);
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.Null(content);
+        }
+
+        [Fact]
         public void SetsContentAsStringContentIfBodyIsString()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
@@ -67,6 +78,16 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void SetsContentNullIfBodyIsStringAndValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<string>(BodySerializationMethod.Serialized, null);
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.Null(content);
+        }
+
+        [Fact]
         public void SetContentAsByteArrayContentIfBodyIsByteArray()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
@@ -74,6 +95,36 @@ namespace RestEaseUnitTests.RequesterTests
             var content = this.requester.ConstructContent(requestInfo);
 
             Assert.IsType<ByteArrayContent>(content);
+        }
+
+        [Fact]
+        public void SetsContentNullIfBodyIsByteArrayAndValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<byte[]>(BodySerializationMethod.Serialized, null);
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.Null(content);
+        }
+
+        [Fact]
+        public void SetsContentAsStringContentIfContentBodyIsObjectAndValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, null);
+            var content = this.requester.ConstructContent(requestInfo);
+
+            Assert.IsType<StringContent>(content);
+        }
+
+        [Fact]
+        public async Task SetsStringContentValueAsNullStringValueIfContentBodyIsObjectAndValueIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, null);
+            var contentValue = await this.requester.ConstructContent(requestInfo).ReadAsStringAsync();
+
+            Assert.Equal("null", contentValue, ignoreCase: true);
         }
 
         [Fact]

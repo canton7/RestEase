@@ -151,7 +151,7 @@ namespace RestEase.Implementation
             IEnumerable<QueryParameterInfo> queryParams,
             IEnumerable<QueryParameterInfo> queryProperties,
             IRequestInfo requestInfo)
-        { 
+        {
             var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
             var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
@@ -272,20 +272,30 @@ namespace RestEase.Implementation
         /// <returns>null if no body is set, otherwise a suitable HttpContent (StringContent, StreamContent, FormUrlEncodedContent, etc)</returns>
         protected virtual HttpContent ConstructContent(IRequestInfo requestInfo)
         {
-            if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.ObjectValue == null)
+            if (requestInfo.BodyParameterInfo == null)
+            {
                 return null;
+            }
 
-            if (requestInfo.BodyParameterInfo.ObjectValue is HttpContent httpContentValue)
-                return httpContentValue;
+            if (typeof(HttpContent).GetTypeInfo().IsAssignableFrom(requestInfo.BodyParameterInfo.ObjectType.GetTypeInfo()))
+            {
+                return requestInfo.BodyParameterInfo.ObjectValue == null ? null : requestInfo.BodyParameterInfo.ObjectValue as HttpContent;
+            }
 
-            if (requestInfo.BodyParameterInfo.ObjectValue is Stream streamValue)
-                return new StreamContent(streamValue);
+            if (typeof(Stream).GetTypeInfo().IsAssignableFrom(requestInfo.BodyParameterInfo.ObjectType.GetTypeInfo()))
+            {
+                return requestInfo.BodyParameterInfo.ObjectValue == null ? null : new StreamContent(requestInfo.BodyParameterInfo.ObjectValue as Stream);
+            }
 
-            if (requestInfo.BodyParameterInfo.ObjectValue is string stringValue)
-                return new StringContent(stringValue);
+            if (typeof(string).GetTypeInfo().IsAssignableFrom(requestInfo.BodyParameterInfo.ObjectType.GetTypeInfo()))
+            {
+                return requestInfo.BodyParameterInfo.ObjectValue == null ? null : new StringContent(requestInfo.BodyParameterInfo.ObjectValue as string);
+            }
 
-            if (requestInfo.BodyParameterInfo.ObjectValue is byte[] byteArrayValue)
-                return new ByteArrayContent(byteArrayValue);
+            if (typeof(byte[]).GetTypeInfo().IsAssignableFrom(requestInfo.BodyParameterInfo.ObjectType.GetTypeInfo()))
+            {
+                return requestInfo.BodyParameterInfo.ObjectValue == null ? null : new ByteArrayContent(requestInfo.BodyParameterInfo.ObjectValue as byte[]);
+            }
 
             switch (requestInfo.BodyParameterInfo.SerializationMethod)
             {

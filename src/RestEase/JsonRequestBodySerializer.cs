@@ -16,9 +16,6 @@ namespace RestEase
         /// <inheritdoc/>
         public override HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
         {
-            if (body == null)
-                return null;
-
             var content = new StringContent(JsonConvert.SerializeObject(body, this.JsonSerializerSettings));
             content.Headers.ContentType.MediaType = "application/json";
             return content;
