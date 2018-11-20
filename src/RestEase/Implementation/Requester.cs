@@ -337,8 +337,8 @@ namespace RestEase.Implementation
         {
             // Apply from class -> method (combining static/dynamic), so we get the proper hierarchy
             var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
-            this.ApplyHeadersSet(requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
-            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
+            this.ApplyHeadersSet(requestInfo, requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
+            this.ApplyHeadersSet(requestInfo, requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
         }
 
         /// <summary>
@@ -346,8 +346,12 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         /// <param name="headers">Headers to add</param>
-        /// <param name="complainIfBodyHeadersButNoBody">If true, and the header doesn't apply to the request, and there's no body, throw. If false, and the header can apply to a body but there isn't one, don't throw</param>
-        protected virtual void ApplyHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers, bool complainIfBodyHeadersButNoBody)
+        /// <param name="areMethodHeaders">True if these headers came from the method, false if they came from the class</param>
+        protected virtual void ApplyHeadersSet(
+            IRequestInfo requestInfo,
+            HttpRequestMessage requestMessage,
+            IEnumerable<KeyValuePair<string, string>> headers,
+            bool areMethodHeaders)
         {
             HttpContent dummyContent = null;
             var headersGroups = headers.GroupBy(x => x.Key);
@@ -368,15 +372,23 @@ namespace RestEase.Implementation
                 // If we failed, it's probably a content header. Try again there
                 if (!added)
                 {
+                    // If they added a [Body] parameter, but passed null, and they've got headers on the method which
+                    // apply to the body, then add an empty body we can apply those headers to.
+                    if (requestInfo.BodyParameterInfo != null && requestMessage.Content == null && areMethodHeaders)
+                    {
+                        requestMessage.Content = new ByteArrayContent(new byte[0]);
+                    }
                     if (requestMessage.Content != null)
                     {
                         if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
                             requestMessage.Content.Headers.Remove(headersGroup.Key);
                         added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                     }
-                    else if (!complainIfBodyHeadersButNoBody)
+                    else if (!areMethodHeaders)
                     {
-                        // See if it could be added to a content
+                        // If we're here, then there's no content, and either there's no [Body] parameter, or there is
+                        // but they passed null to it, and this header is specified on the class.
+                        // See if it could be added to a content, and ignore it if so.
                         if (dummyContent == null)
                             dummyContent = new ByteArrayContent(new byte[0]);
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
