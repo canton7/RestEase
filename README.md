@@ -161,7 +161,7 @@ Request Types
 
 See the `[Get("path")]` attribute used above?
 That's how you mark that method as being a GET request.
-There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path)")]`, `[Patch("path")]`.
+There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path"))]`, `[Patch("path")]`.
 Use whichever one you need to.
 
 The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`.
@@ -671,7 +671,7 @@ var data = new Dictionary<string, object> {
 await api.CollectAsync(data);
  ```
 
-You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMthod.UrlEncoded)]` on the interface itself:
+You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMethod.UrlEncoded)]` on the interface itself:
 
 ```csharp
 [SerializationMethods(BodySerializationMethod.UrlEncoded)]
