@@ -26,7 +26,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     1. [Constant Query Parameters](#constant-query-parameters)
     2. [Variable Query Parameters](#variable-query-parameters)
         1. [Formatting Variable Query Parameters](#formatting-variable-query-parameters)
-        2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
+        2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters)
     3. [Query Parameters Map](#query-parameters-map)
     4. [Raw Query String Parameters](#raw-query-string-parameters)
     5. [Query Properties](#query-properties)
@@ -222,18 +222,18 @@ For example:
 public interface IGitHubApi
 {
     [Get("user")]
-    Task<User> FetchUserAsync(int userid);
+    Task<User> FetchUserAsync(int userId);
 
     // Is the same as:
 
     [Get("user")]
-    Task<User> FetchUserAsync([Query] int userid);
+    Task<User> FetchUserAsync([Query] int userId);
 
     // Is the same as:
     // (Note the casing of the parameter name)
 
     [Get("user")]
-    Task<User> FetchUserAsync([Query("userid")] int userId);
+    Task<User> FetchUserAsync([Query("userId")] int userid);
 }
 
 IGithubApi api = RestClient.For<IGithubApi>("http://api.github.com");
@@ -661,9 +661,9 @@ public interface IMeasurementProtocolApi
 }
 
 var data = new Dictionary<string, object> {
-    {"v", 1}, 
-    {"tids", new[] { "UA-1234-5", "UA-1234-6" }, 
-    {"cid", new Guid("d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c")}, 
+    {"v", 1},
+    {"tids", new[] { "UA-1234-5", "UA-1234-6" },
+    {"cid", new Guid("d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c")},
     {"t", "event"},
 };
 
@@ -1136,7 +1136,7 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
     if (auth != null)
     {
         // The AquireTokenAsync call will prompt with a UI if necessary
-        // Or otherwise silently use a refresh token to return a valid access token 
+        // Or otherwise silently use a refresh token to return a valid access token
         var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
         request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
   }
@@ -1235,7 +1235,7 @@ Now, you cannot customize what this generated class looks like, but you can see 
 What you *can* do however is to provide your own [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs) implementation, and pass that to an appropriate overload of `RestClient.For<T>`.
 In fact, the default implementation of [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs), [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), has been carefully written so that it's easy to extend: each little bit of functionality is broken out into its own virtual method, so it's easy to replace just the behaviour you need.
 
-Have a read through [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), figure out what you want to change, subclass it, and provide an instance of that subclass to `RestClient.For<T>`. 
+Have a read through [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), figure out what you want to change, subclass it, and provide an instance of that subclass to `RestClient.For<T>`.
 
 
 Interface Accessibility
@@ -1281,9 +1281,9 @@ public interface IReallyExcitingCrudApi<T, TKey>
 Which can be used like this:
 
 ```csharp
-// The "/users" part here is kind of important if you want it to work for more 
+// The "/users" part here is kind of important if you want it to work for more
 // than one type (unless you have a different domain for each type)
-var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users"); 
+var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users");
 ```
 
 Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known).
@@ -1332,7 +1332,7 @@ public interface IAuthenticatedEndpoint
 {
     [Header("X-Api-Token")]
     string ApiToken { get; set; }
- 
+
     [Header("X-Api-Username")]
     string ApiUsername { get; set; }
 
