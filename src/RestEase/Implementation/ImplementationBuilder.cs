@@ -216,10 +216,14 @@ namespace RestEase.Implementation
                     this.AddFriendlierNameForType(sb, arg);
                 }
                 sb.Append("]");
+                sb.Append(" ");
+                sb.Append(typeInfo.Assembly.GetName().Name);
             }
             else
             {
                 sb.Append(type.FullName.Replace('.', '+'));
+                sb.Append(" ");
+                sb.Append(typeInfo.Assembly.GetName().Name);
             }
         }
 
