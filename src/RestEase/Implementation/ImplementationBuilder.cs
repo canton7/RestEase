@@ -221,6 +221,7 @@ namespace RestEase.Implementation
             {
                 sb.Append(type.FullName.Replace('.', '+'));
             }
+            sb.Append("<>").Append(typeInfo.Assembly.GetName().Name.Replace('.', '+'));
         }
 
         private string CreateImplementationName(Type interfaceType)
