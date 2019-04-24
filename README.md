@@ -1403,7 +1403,8 @@ public static class SomeApiExtensions
 ### Using `IRequester` directly
 
 Alternatively, you can put a property of type `IRequester` on your interface, then write an extension method which uses the `IRequester`.
-Note that this approach is not unit testable.
+Note that the attributes or properties you put on your interface (`ISomeApi` in the example below) will not be added to the `RequestInfo`, since you are not invoking any code which does this.
+Note also that this approach is not unit testable.
 
 ```csharp
 public interface ISomeApi
