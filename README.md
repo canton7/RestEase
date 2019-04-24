@@ -161,7 +161,7 @@ Request Types
 
 See the `[Get("path")]` attribute used above?
 That's how you mark that method as being a GET request.
-There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path)")]`, `[Patch("path")]`.
+There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path"))]`, `[Patch("path")]`.
 Use whichever one you need to.
 
 The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`.
@@ -671,7 +671,7 @@ var data = new Dictionary<string, object> {
 await api.CollectAsync(data);
  ```
 
-You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMthod.UrlEncoded)]` on the interface itself:
+You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMethod.UrlEncoded)]` on the interface itself:
 
 ```csharp
 [SerializationMethods(BodySerializationMethod.UrlEncoded)]
@@ -788,7 +788,7 @@ public interface ISomeApi
     string ApiKey { get; set; }
 
     [Get("users/{userId}")]
-    Task<User> FetchUserId([Path] string userId);
+    Task<User> FetchUserAsync([Path] string userId);
 }
 
 ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
@@ -1403,7 +1403,8 @@ public static class SomeApiExtensions
 ### Using `IRequester` directly
 
 Alternatively, you can put a property of type `IRequester` on your interface, then write an extension method which uses the `IRequester`.
-Note that this approach is not unit testable.
+Note that the attributes or properties you put on your interface (`ISomeApi` in the example below) will not be added to the `RequestInfo`, since you are not invoking any code which does this.
+Note also that this approach is not unit testable.
 
 ```csharp
 public interface ISomeApi

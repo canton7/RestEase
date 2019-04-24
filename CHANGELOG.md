@@ -1,3 +1,11 @@
+v1.4.8
+------
+
+ - Avoid deadlock in ModifyingHttpClientHandler (#115)
+ - Avoid crash if a user's HttpClientHandler returns a HttpResponseMessage with a null body (#108)
+ - Add assembly name to generated type name, to avoid conflicts when two assemblies both use the same interface (#108)
+ - Improve README (#107, #111)
+
 v1.4.7
 ------
 

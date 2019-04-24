@@ -119,12 +119,10 @@ namespace RestEase
             if (response.Content == null)
                 return new ApiException(request, response, null);
 
-            HttpContentHeaders contentHeaders = null;
             string contentString = null;
 
             try
             {
-                contentHeaders = response.Content.Headers;
                 using (var content = response.Content)
                 {
                     contentString = await content.ReadAsStringAsync().ConfigureAwait(false);

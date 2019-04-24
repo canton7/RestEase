@@ -33,8 +33,8 @@ namespace RestEase.Implementation
         /// the asynchronous operation</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            await this.requestModifier(request, cancellationToken);
-            return await base.SendAsync(request, cancellationToken);
+            await this.requestModifier(request, cancellationToken).ConfigureAwait(false);
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
     }
 }

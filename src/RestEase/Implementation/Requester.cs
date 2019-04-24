@@ -442,7 +442,9 @@ namespace RestEase.Implementation
         {
             using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
             {
-                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var content = response.Content == null ?
+                    null :
+                    await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
                 return deserializedResponse;
             }
@@ -470,7 +472,9 @@ namespace RestEase.Implementation
         {
             // It's the user's responsibility to dispose the Response<T>, which disposes the HttpResponseMessage
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var content = response.Content == null ?
+                null :
+                await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
         }
 
@@ -483,7 +487,9 @@ namespace RestEase.Implementation
         {
             using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var responseString = response.Content == null ?
+                    null :
+                    await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return responseString;
             }
         }
@@ -500,7 +506,9 @@ namespace RestEase.Implementation
             // is only IDisposable to dispose the Stream, provided that the user disposes the Stream themselves,
             // nothing will leak.
             var response = await this.SendRequestAsync(requestInfo, readBody: false).ConfigureAwait(false);
-            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var stream = response.Content == null ?
+                null :
+                await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             return stream;
         }
 
