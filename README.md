@@ -788,7 +788,7 @@ public interface ISomeApi
     string ApiKey { get; set; }
 
     [Get("users/{userId}")]
-    Task<User> FetchUserId([Path] string userId);
+    Task<User> FetchUserAsync([Path] string userId);
 }
 
 ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
