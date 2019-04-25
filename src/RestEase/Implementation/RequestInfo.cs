@@ -239,32 +239,34 @@ namespace RestEase.Implementation
         /// Add a path parameter: a [Path] method parameter which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
+        /// <param name="serializationMethod"></param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
         /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
-        public void AddPathParameter<T>(string name, T value, string format = null, bool urlEncode = true)
+        public void AddPathParameter<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathParams == null)
                 this._pathParams = new List<PathParameterInfo>();
 
-            this._pathParams.Add(new PathParameterInfo(name, value, format, urlEncode));
+            this._pathParams.Add(new PathParameterInfo(name, value, format, urlEncode, serializationMethod));
         }
 
         /// <summary>
         /// Add a path parameter from a property: a [Path] property which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
         /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
-        public void AddPathProperty<T>(string name, T value, string format = null, bool urlEncode = true)
+        public void AddPathProperty<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathProperties == null)
                 this._pathProperties = new List<PathParameterInfo>();
 
-            this._pathProperties.Add(new PathParameterInfo(name, value, format, urlEncode));
+            this._pathProperties.Add(new PathParameterInfo(name, value, format, urlEncode, serializationMethod));
         }
 
         /// <summary>

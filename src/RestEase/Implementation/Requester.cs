@@ -33,6 +33,11 @@ namespace RestEase.Implementation
         public RequestBodySerializer RequestBodySerializer { get; set; } = new JsonRequestBodySerializer();
 
         /// <summary>
+        /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
+        /// </summary>
+        public RequestPathParamSerializer RequestPathParamSerializer { get; set; } = new JsonRequestPathParamSerializer();
+
+        /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
         public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; } = new JsonRequestQueryParamSerializer();
@@ -80,7 +85,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
-                var serialized = pathParam.SerializeToString(this.FormatProvider);
+                var serialized = SerializePathParameter(pathParam, requestInfo);
 
                 // Space needs to be treated separately
                 var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
@@ -151,7 +156,7 @@ namespace RestEase.Implementation
             IEnumerable<QueryParameterInfo> queryParams,
             IEnumerable<QueryParameterInfo> queryProperties,
             IRequestInfo requestInfo)
-        { 
+        {
             var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
             var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
@@ -240,6 +245,22 @@ namespace RestEase.Implementation
                 {
                     yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), this.ToStringHelper(kvp.Value));
                 }
+            }
+        }
+
+        protected virtual KeyValuePair<string, string> SerializePathParameter(PathParameterInfo pathParameter, IRequestInfo requestInfo)
+        {
+            switch (pathParameter.SerializationMethod)
+            {
+                case PathSerializationMethod.ToString:
+                    return pathParameter.SerializeToString(this.FormatProvider);
+                case PathSerializationMethod.Serialized:
+                    if (this.RequestPathParamSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize path parameter when RequestPathParamSerializer is null. Please set RequestPathParamSerializer");
+                    var result = pathParameter.SerializeValue(this.RequestPathParamSerializer, requestInfo);
+                    return result;
+                default:
+                    throw new InvalidOperationException("Should never get here");
             }
         }
 

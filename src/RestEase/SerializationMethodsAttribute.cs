@@ -19,12 +19,18 @@ namespace RestEase
         public QuerySerializationMethod Query { get; set; }
 
         /// <summary>
+        /// Gets and sets the serialization method used to serialize path parameters. Default to PathSerializationMethod.ToString
+        /// </summary>
+        public PathSerializationMethod Path { get; set; }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="SerializationMethodsAttribute"/> class
         /// </summary>
         public SerializationMethodsAttribute()
         {
             this.Body = BodySerializationMethod.Default;
             this.Query = QuerySerializationMethod.Default;
+            this.Path = PathSerializationMethod.Default;
         }
     }
 }

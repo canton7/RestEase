@@ -4,6 +4,7 @@
     {
         public const BodySerializationMethod DefaultBodySerializationMethod = BodySerializationMethod.Serialized;
         public QuerySerializationMethod DefaultQuerySerializationMethod = QuerySerializationMethod.ToString;
+        public PathSerializationMethod DefaultPathSerializationMethod = PathSerializationMethod.ToString;
 
         public SerializationMethodsAttribute ClassAttribute { get; private set; }
 
@@ -42,6 +43,20 @@
                 return this.ClassAttribute.Query;
 
             return DefaultQuerySerializationMethod;
+        }
+
+        public PathSerializationMethod ResolvePath(PathSerializationMethod parameterMethod)
+        {
+            if (parameterMethod == PathSerializationMethod.Default)
+                return parameterMethod;
+
+            if (this.MethodAttribute != null && this.MethodAttribute.Path != PathSerializationMethod.Default)
+                return this.MethodAttribute.Path;
+
+            if (this.ClassAttribute != null && this.ClassAttribute.Path != PathSerializationMethod.Default)
+                return this.ClassAttribute.Path;
+
+            return DefaultPathSerializationMethod;
         }
     }
 }
