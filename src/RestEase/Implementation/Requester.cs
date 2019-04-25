@@ -35,7 +35,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
         /// </summary>
-        public RequestPathParamSerializer RequestPathParamSerializer { get; set; } = new JsonRequestPathParamSerializer();
+        public RequestPathParamSerializer RequestPathParamSerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
