@@ -35,7 +35,7 @@ namespace RestEase
         /// </summary>
         /// <remarks>
         /// Defaults to <see cref="JsonResponseDeserializer"/>.
-        /// 
+        ///
         /// This has the type <see cref="IResponseDeserializer"/> for backwards-compatibility reasons. You should assign
         /// an instance of <see cref="ResponseDeserializer"/>
         /// </remarks>
@@ -46,18 +46,26 @@ namespace RestEase
         /// </summary>
         /// <remarks>
         /// Defaults to <see cref="JsonRequestBodySerializer"/>.
-        /// 
+        ///
         /// This has the type <see cref="IRequestBodySerializer"/> for backwards-compatibility reasons. You should assign
         /// an instance of <see cref="RequestBodySerializer"/>.
         /// </remarks>
         public IRequestBodySerializer RequestBodySerializer { get; set; }
 
         /// <summary>
+        /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
+        /// </summary>
+        /// <remarks>
+        /// Has no default value, explicit serializer implementation must be provided.
+        /// </remarks>
+        public RequestPathParamSerializer RequestPathParamSerializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
         /// <remarks>
         /// Defaults to <see cref="JsonRequestQueryParamSerializer"/>.
-        /// 
+        ///
         /// This has the type <see cref="IRequestQueryParamSerializer"/> for backwards-compatibility reasons. You should assign
         /// an instance of <see cref="RequestQueryParamSerializer"/>.
         /// </remarks>
@@ -186,6 +194,9 @@ namespace RestEase
                 requester.RequestBodySerializer = new RequestBodySerializerWrapper(this.RequestBodySerializer);
             else if (this.JsonSerializerSettings != null)
                 requester.RequestBodySerializer = new JsonRequestBodySerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
+
+            if (this.RequestPathParamSerializer != null)
+                requester.RequestPathParamSerializer = this.RequestPathParamSerializer;
 
             if (this.RequestQueryParamSerializer is RequestQueryParamSerializer requestQueryParamSerializer)
                 requester.RequestQueryParamSerializer = requestQueryParamSerializer;
@@ -354,7 +365,7 @@ namespace RestEase
         /// <param name="httpClient">HttpClient to use to make requests</param>
         /// <param name="jsonSerializerSettings">Serializer settings to pass to Json.NET</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        [Obsolete("Use 'new RestClient(httpClient) { JsonSerializerSettings = jsonSerializerSettings }.For<T>()' instead")] 
+        [Obsolete("Use 'new RestClient(httpClient) { JsonSerializerSettings = jsonSerializerSettings }.For<T>()' instead")]
         public static T For<T>(HttpClient httpClient, JsonSerializerSettings jsonSerializerSettings)
         {
             return new RestClient(httpClient) { JsonSerializerSettings = jsonSerializerSettings }.For<T>();
