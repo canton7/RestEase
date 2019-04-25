@@ -863,6 +863,7 @@ namespace RestEase.Implementation
             // Duplicate the requestInfo.
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
+            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)pathParameter.Attribute.SerializationMethod);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
             methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name);
