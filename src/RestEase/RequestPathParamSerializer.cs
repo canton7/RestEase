@@ -6,7 +6,7 @@ namespace RestEase
     /// <summary>
     /// Helper which knows how to serialize path parameters
     /// </summary>
-    public abstract class RequestPathParamSerializer : IRequestPathParamSerializer
+    public abstract class RequestPathParamSerializer
     {
         /// <summary>
         /// Serialize a path parameter whose value is scalar (not a collection), into a name -> value pair
