@@ -47,7 +47,7 @@
 
         public PathSerializationMethod ResolvePath(PathSerializationMethod parameterMethod)
         {
-            if (parameterMethod == PathSerializationMethod.Default)
+            if (parameterMethod != PathSerializationMethod.Default)
                 return parameterMethod;
 
             if (this.MethodAttribute != null && this.MethodAttribute.Path != PathSerializationMethod.Default)
