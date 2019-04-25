@@ -641,7 +641,8 @@ namespace RestEase.Implementation
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
-                this.AddPathParam(methodIlGenerator, pathParameter);
+                var pathSerializationMethod = serializationMethods.ResolvePath(pathParameter.Attribute.SerializationMethod);
+                this.AddPathParam(methodIlGenerator, pathParameter, pathSerializationMethod);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -852,7 +853,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, IndexedParameter<PathAttribute> pathParameter)
+        private void AddPathParam(ILGenerator methodIlGenerator, IndexedParameter<PathAttribute> pathParameter, PathSerializationMethod serializationMethod)
         {
             var methodInfo = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
 
@@ -863,7 +864,7 @@ namespace RestEase.Implementation
             // Duplicate the requestInfo.
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
-            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)pathParameter.Attribute.SerializationMethod);
+            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
             methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name);

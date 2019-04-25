@@ -9,10 +9,20 @@ using Xunit;
 
 namespace RestEaseUnitTests.RequesterTests
 {
+    using Moq;
+
     using RestEase;
 
     public class PathParameterTests
     {
+        public class HasToStringToo
+        {
+            public override string ToString()
+            {
+                return "HasToStringToo";
+            }
+        }
+
         private readonly PublicRequester requester = new PublicRequester(null);
 
         [Fact]
@@ -41,6 +51,25 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddPathParameter<int?>(PathSerializationMethod.ToString, "bar", null);
             var uri = this.requester.SubstitutePathParameters(requestInfo);
             Assert.Equal("/foo//baz", uri);
+        }
+
+        [Fact]
+        public void DoesNotTreatNullPathParamsAsEmptyWhenUsingSerializer()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
+            requestInfo.AddPathParameter<string>(PathSerializationMethod.Serialized, "bar", null);
+
+            var pathParameterSerializer = new Mock<RequestPathParamSerializer>();
+            pathParameterSerializer
+                .Setup(x => x.SerializePathParam("bar", null, It.IsAny<RequestPathParamSerializerInfo>()))
+                .Returns(new KeyValuePair<string, string>("bar", "foo"))
+                .Verifiable();
+            this.requester.RequestPathParamSerializer = pathParameterSerializer.Object;
+
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("/foo/foo/baz", uri);
+
+            pathParameterSerializer.VerifyAll();
         }
 
         [Fact]
@@ -87,6 +116,86 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddPathParameter(PathSerializationMethod.ToString, "path", "a/b+c", urlEncode: false);
             var uri = this.requester.SubstitutePathParameters(requestInfo);
             Assert.Equal("/foo/a/b+c", uri, ignoreCase: true);
+        }
+
+        [Fact]
+        public void ThrowsIfSerializedSerializationMethodUsedButNoRequestPathParamSerializerSet()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
+            requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", "bar");
+            this.requester.RequestPathParamSerializer = null;
+            Assert.Throws<InvalidOperationException>(() => this.requester.SubstitutePathParameters(requestInfo));
+        }
+
+        [Fact]
+        public void SerializesUsingSerializerForSerializedSerializationMethod()
+        {
+            var obj = new HasToStringToo();
+            var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
+            requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", obj);
+
+            var serializer = new Mock<RequestPathParamSerializer>();
+            serializer.Setup(x => x.SerializePathParam("foo", obj, It.IsAny<RequestPathParamSerializerInfo>()))
+                .Returns(new KeyValuePair<string, string>("foo", "SomethingElse"))
+                .Verifiable();
+            this.requester.RequestPathParamSerializer = serializer.Object;
+
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+
+            serializer.VerifyAll();
+            Assert.Equal("SomethingElse", uri);
+        }
+
+        [Fact]
+        public void PassesFormatWhenSerializing()
+        {
+            var obj = new HasToStringToo();
+            var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
+            requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", obj, "D5");
+
+            var serializer = new Mock<RequestPathParamSerializer>();
+            serializer.Setup(x =>
+                    x.SerializePathParam("foo", obj, new RequestPathParamSerializerInfo(requestInfo, "D5")))
+                .Returns(new KeyValuePair<string, string>("foo", "yep"))
+                .Verifiable();
+            this.requester.RequestPathParamSerializer = serializer.Object;
+
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+
+            serializer.VerifyAll();
+        }
+
+        [Fact]
+        public void DoesNotThrowIfRequestPathParamSerializerReturnsNull()
+        {
+            var serializer = new Mock<RequestPathParamSerializer>();
+            serializer.Setup(x => x.SerializePathParam(It.IsAny<string>(), It.IsAny<object>(), new RequestPathParamSerializerInfo()))
+                .Returns(null)
+                .Verifiable();
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "{name}");
+            requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "name", "value");
+            this.requester.RequestPathParamSerializer = serializer.Object;
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal("{name}", uri);
+        }
+
+        [Fact]
+        public void ShouldSubstituteEmptyStringOnNullValueFromSerializer()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
+            requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", "fancy");
+
+            var serializer = new Mock<RequestPathParamSerializer>();
+            serializer.Setup(x => x.SerializePathParam("foo", "fancy", It.IsAny<RequestPathParamSerializerInfo>()))
+                .Returns(new KeyValuePair<string, string>("foo", null))
+                .Verifiable();
+            this.requester.RequestPathParamSerializer = serializer.Object;
+
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            Assert.Equal(string.Empty, uri);
+
+            serializer.VerifyAll();
         }
     }
 }
