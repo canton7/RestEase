@@ -4,19 +4,19 @@ using System.Collections.Generic;
 namespace RestEase.Implementation
 {
     /// <summary>
-    /// Interface for path parameter info. Defines common functionality for path parameter info objects.
+    /// Class containing information about a desired path parameter
     /// </summary>
-    public interface IPathParameterInfo
+    public abstract class PathParameterInfo
     {
         /// <summary>
         /// Gets a value indicating whether this path parameter should be URL-encoded
         /// </summary>
-        bool UrlEncode { get; }
+        public bool UrlEncode { get; protected set; }
 
         /// <summary>
         /// Gets the method to use to serialize the path parameter.
         /// </summary>
-        PathSerializationMethod SerializationMethod { get; }
+        public PathSerializationMethod SerializationMethod { get; protected set; }
 
         /// <summary>
         /// Serialize the value into a name -> value pair using the given serializer
@@ -24,34 +24,25 @@ namespace RestEase.Implementation
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo);
+        public abstract KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo);
 
         /// <summary>
         /// Serialize the value into a name -> value pair using its ToString method
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider);
+        public abstract KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider);
     }
 
-    /// <inheritdoc />
     /// <summary>
-    /// Structure containing information about a desired path parameter
+    /// Class containing information about a desired path parameter
     /// </summary>
     /// <typeparam name="T">Type of the value</typeparam>
-    public struct PathParameterInfo<T> : IPathParameterInfo
+    public class PathParameterInfo<T> : PathParameterInfo
     {
         private readonly string name;
         private readonly T value;
         private readonly string format;
-
-        /// <summary>
-        /// Gets a value indicating whether this path parameter should be URL-encoded
-        /// </summary>
-        public bool UrlEncode { get; }
-
-        /// <inheritdoc />
-        public PathSerializationMethod SerializationMethod { get; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="PathParameterInfo{T}"/> Structure
@@ -72,7 +63,7 @@ namespace RestEase.Implementation
 
         /// <inheritdoc />
         /// <exception cref="ArgumentNullException">Thrown if serializer or requestInfo are null</exception>
-        public KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo)
+        public override KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
@@ -84,7 +75,7 @@ namespace RestEase.Implementation
         }
 
         /// <inheritdoc />
-        public KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
+        public override KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
         {
             return new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(this.value, this.format, formatProvider));
         }

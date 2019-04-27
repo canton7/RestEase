@@ -46,19 +46,19 @@ namespace RestEase.Implementation
         /// </summary>
         public RawQueryParameterInfo RawQueryParameter { get; private set; }
 
-        private List<IPathParameterInfo> _pathParams;
+        private List<PathParameterInfo> _pathParams;
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        public IEnumerable<IPathParameterInfo> PathParams => this._pathParams ?? Enumerable.Empty<IPathParameterInfo>();
+        public IEnumerable<PathParameterInfo> PathParams => this._pathParams ?? Enumerable.Empty<PathParameterInfo>();
 
-        private List<IPathParameterInfo> _pathProperties;
+        private List<PathParameterInfo> _pathProperties;
 
         /// <summary>
         /// Gets the values from properties which should be substituted into placeholders in the Path
         /// </summary>
-        public IEnumerable<IPathParameterInfo> PathProperties => this._pathProperties ?? Enumerable.Empty<IPathParameterInfo>();
+        public IEnumerable<PathParameterInfo> PathProperties => this._pathProperties ?? Enumerable.Empty<PathParameterInfo>();
 
         private List<QueryParameterInfo> _queryProperties;
 
@@ -247,7 +247,7 @@ namespace RestEase.Implementation
         public void AddPathParameter<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathParams == null)
-                this._pathParams = new List<IPathParameterInfo>();
+                this._pathParams = new List<PathParameterInfo>();
 
             this._pathParams.Add(new PathParameterInfo<T>(name, value, format, urlEncode, serializationMethod));
         }
@@ -264,7 +264,7 @@ namespace RestEase.Implementation
         public void AddPathProperty<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathProperties == null)
-                this._pathProperties = new List<IPathParameterInfo>();
+                this._pathProperties = new List<PathParameterInfo>();
 
             this._pathProperties.Add(new PathParameterInfo<T>(name, value, format, urlEncode, serializationMethod));
         }
