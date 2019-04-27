@@ -53,7 +53,8 @@ namespace RestEase.Implementation
             if (requestInfo == null)
                 throw new ArgumentNullException(nameof(requestInfo));
 
-            return serializer.SerializePathParam(this.name, this.value, new RequestPathParamSerializerInfo(requestInfo, this.format));
+            var serializedValue = serializer.SerializePathParam(this.value, new RequestPathParamSerializerInfo(requestInfo, this.format));
+            return new KeyValuePair<string, string>(this.name, serializedValue);
         }
 
         /// <summary>

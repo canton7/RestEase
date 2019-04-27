@@ -59,8 +59,8 @@ namespace RestEaseUnitTests.RequesterTests
 
             var pathParameterSerializer = new Mock<RequestPathParamSerializer>();
             pathParameterSerializer
-                .Setup(x => x.SerializePathParam("bar", null, It.IsAny<RequestPathParamSerializerInfo>()))
-                .Returns(new KeyValuePair<string, string>("bar", "foo"))
+                .Setup(x => x.SerializePathParam(null, It.IsAny<RequestPathParamSerializerInfo>()))
+                .Returns("foo")
                 .Verifiable();
             this.requester.RequestPathParamSerializer = pathParameterSerializer.Object;
 
@@ -133,8 +133,8 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", obj);
 
             var serializer = new Mock<RequestPathParamSerializer>();
-            serializer.Setup(x => x.SerializePathParam("foo", obj, It.IsAny<RequestPathParamSerializerInfo>()))
-                .Returns(new KeyValuePair<string, string>("foo", "SomethingElse"))
+            serializer.Setup(x => x.SerializePathParam(obj, It.IsAny<RequestPathParamSerializerInfo>()))
+                .Returns("SomethingElse")
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 
@@ -153,8 +153,8 @@ namespace RestEaseUnitTests.RequesterTests
 
             var serializer = new Mock<RequestPathParamSerializer>();
             serializer.Setup(x =>
-                    x.SerializePathParam("foo", obj, new RequestPathParamSerializerInfo(requestInfo, "D5")))
-                .Returns(new KeyValuePair<string, string>("foo", "yep"))
+                    x.SerializePathParam(obj, new RequestPathParamSerializerInfo(requestInfo, "D5")))
+                .Returns("yep")
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 
@@ -167,15 +167,15 @@ namespace RestEaseUnitTests.RequesterTests
         public void DoesNotThrowIfRequestPathParamSerializerReturnsNull()
         {
             var serializer = new Mock<RequestPathParamSerializer>();
-            serializer.Setup(x => x.SerializePathParam(It.IsAny<string>(), It.IsAny<object>(), new RequestPathParamSerializerInfo()))
-                .Returns(null)
+            serializer.Setup(x => x.SerializePathParam(It.IsAny<object>(), new RequestPathParamSerializerInfo()))
+                .Returns((string)null)
                 .Verifiable();
 
             var requestInfo = new RequestInfo(HttpMethod.Get, "{name}");
             requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "name", "value");
             this.requester.RequestPathParamSerializer = serializer.Object;
             var uri = this.requester.SubstitutePathParameters(requestInfo);
-            Assert.Equal("{name}", uri);
+            Assert.Equal(string.Empty, uri);
         }
 
         [Fact]
@@ -185,8 +185,8 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", "fancy");
 
             var serializer = new Mock<RequestPathParamSerializer>();
-            serializer.Setup(x => x.SerializePathParam("foo", "fancy", It.IsAny<RequestPathParamSerializerInfo>()))
-                .Returns(new KeyValuePair<string, string>("foo", null))
+            serializer.Setup(x => x.SerializePathParam("fancy", It.IsAny<RequestPathParamSerializerInfo>()))
+                .Returns((string)null)
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 

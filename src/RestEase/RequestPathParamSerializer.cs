@@ -9,12 +9,11 @@ namespace RestEase
     public abstract class RequestPathParamSerializer
     {
         /// <summary>
-        /// Serialize a path parameter whose value is scalar (not a collection), into a name -> value pair
+        /// Serialize a path parameter whose value is scalar (not a collection), into a string value
         /// </summary>
-        /// <param name="name">Name of the path parameter</param>
         /// <param name="value">Value of the path parameter</param>
         /// <param name="info">Extra info which may be useful to the serializer</param>
-        /// <returns>A name -> value pair to use as path parameter</returns>
-        public abstract KeyValuePair<string, string> SerializePathParam(string name,object value, RequestPathParamSerializerInfo info);
+        /// <returns>A string value to use as path parameter</returns>
+        public abstract string SerializePathParam(object value, RequestPathParamSerializerInfo info);
     }
 }
