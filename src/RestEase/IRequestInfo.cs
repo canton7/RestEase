@@ -45,12 +45,12 @@ namespace RestEase
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
-        IEnumerable<PathParameterInfo> PathParams { get; }
+        IEnumerable<IPathParameterInfo> PathParams { get; }
 
         /// <summary>
         /// Gets the values from properties which should be substituted into placeholders in the Path
         /// </summary>
-        IEnumerable<PathParameterInfo> PathProperties { get; }
+        IEnumerable<IPathParameterInfo> PathProperties { get; }
 
         /// <summary>
         /// Gets the values from properties which should be added to all query strings

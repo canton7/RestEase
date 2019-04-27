@@ -248,7 +248,7 @@ namespace RestEase.Implementation
             }
         }
 
-        protected virtual KeyValuePair<string, string> SerializePathParameter(PathParameterInfo pathParameter, IRequestInfo requestInfo)
+        protected virtual KeyValuePair<string, string> SerializePathParameter(IPathParameterInfo pathParameter, IRequestInfo requestInfo)
         {
             switch (pathParameter.SerializationMethod)
             {

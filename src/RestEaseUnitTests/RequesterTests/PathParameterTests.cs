@@ -59,7 +59,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             var pathParameterSerializer = new Mock<RequestPathParamSerializer>();
             pathParameterSerializer
-                .Setup(x => x.SerializePathParam(null, It.IsAny<RequestPathParamSerializerInfo>()))
+                .Setup(x => x.SerializePathParam<string>(null, It.IsAny<RequestPathParamSerializerInfo>()))
                 .Returns("foo")
                 .Verifiable();
             this.requester.RequestPathParamSerializer = pathParameterSerializer.Object;
