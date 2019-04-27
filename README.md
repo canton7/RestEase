@@ -37,28 +37,28 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     2. [Path Properties](#path-properties)
         1. [Formatting Path Properties](#formatting-path-properties)
         2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
-7. [HTTP Request Message Properties](#http-request-message-properties)
-8. [Body Content](#body-content)
+7. [Body Content](#body-content)
     1. [URL Encoded Bodies](#url-encoded-bodies)
-9. [Response Status Codes](#response-status-codes)
-10. [Cancelling Requests](#cancelling-requests)
-11. [Headers](#headers)
+8. [Response Status Codes](#response-status-codes)
+9. [Cancelling Requests](#cancelling-requests)
+10. [Headers](#headers)
     1. [Constant Interface Headers](#constant-interface-headers)
     2. [Variable Interface Headers](#variable-interface-headers)
     3. [Constant Method Headers](#constant-method-headers)
     4. [Variable Method Headers](#variable-method-headers)
     5. [Redefining Headers](#redefining-headers)
-12. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
-13. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+11. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
+12. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
         2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
         3. [Serializing request parameters: `RequestQueryParamSerializer`](#serializing-request-parameters-requestqueryparamserializer)
         4. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
-14. [Controlling the Requests](#controlling-the-requests)
+13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
+    3. [HTTP Request Message Properties](#http-request-message-properties)
 15. [Customizing RestEase](#customizing-restease)
 16. [Interface Accessibility](#interface-accessibility)
 17. [Using Generic Interfaces](#using-generic-interfaces)
@@ -620,39 +620,6 @@ api.PathPart = "users/abc";
 
 // Requests http://api.example.com/users/abc/profile
 await api.GetAsync();
-```
-
-HTTP Request Message Properties
------------------
-
-In very specific cases (i. e. you use custom `DelegatingHandler`), it might be useful to pass any object reference into the handler. In such case `HttpRequestMessage.Properties` can be used.
-This is done by decorating method parameters with `[HttpRequestMessageProperty("key")]`. If key parameter is not specified then the name of the parameter will be used.
-
-If all (or most) of the methods on the interface pass such object you can specify a `[HttpRequestMessageProperty]` property.
-These work in the same way as path parameters, but they're on the level of the entire API. Properties must have both a getter and a setter.
-
-Property keys used at interface method level must be unique, parameter key must not be same as property key.
-
-For example:
-
-```csharp
-public interface ISomeApi
-{
-    [HttpRequestMessageProperty]
-    object AlwaysIncluded { get; set; }
-
-    [Get]
-    Task Get([HttpRequestMessageProperty("myKey")] object myObjectIWantToAccessFromDelegatingHandler);
-}
-```
-
-delegating handler:
-```csharp
-protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-{
-    var alwaysIncluded = request.Properties["AlwaysIncluded"];
-    var myObjectIWantToAccessFromDelegatingHandler = request.Properties["myKey"];
-}
 ```
 
 Body Content
@@ -1222,6 +1189,40 @@ var httpClient = new HttpClient(new CustomHttpClientHandler())
 ISomeApi api = RestClient.For<ISomeApi>(httpClient);
 ```
 
+HTTP Request Message Properties
+-----------------
+
+In very specific cases (i. e. you use custom `HttpMessageHandler`), it might be useful to pass any object reference into the handler. In such case `HttpRequestMessage.Properties` can be used.
+This is done by decorating method parameters with `[HttpRequestMessageProperty("key")]`. If key parameter is not specified then the name of the parameter will be used.
+
+If all (or most) of the methods on the interface pass such object you can specify a `[HttpRequestMessageProperty]` property.
+These work in the same way as path parameters, but they're on the level of the entire API. Properties must have both a getter and a setter.
+
+Property keys used at interface method level must be unique, parameter key must not be same as property key.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [HttpRequestMessageProperty]
+    CommonData AlwaysIncluded { get; set; }
+
+    [Get]
+    Task Get([HttpRequestMessageProperty("myKey")] string myValueIWantToAccessFromHttpMessageHandler);
+}
+```
+
+handler:
+```csharp
+protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+{
+    var alwaysIncluded = (CommonData)request.Properties["AlwaysIncluded"];
+    var myValueIWantToAccessFromHttpMessageHandler = (string)request.Properties["myKey"];
+    ...
+    return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+}
+```
 
 Customizing RestEase
 --------------------
