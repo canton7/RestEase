@@ -1194,7 +1194,7 @@ For example:
 
 public class DoublingPathParamSerializer : RequestPathParamSerializer
 {
-    public override string SerializePathParam(object value, RequestPathParamSerializerInfo info)
+    public override string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
     {
         if (value == null)
         {
