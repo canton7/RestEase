@@ -1219,7 +1219,9 @@ protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage 
 {
     var alwaysIncluded = (CommonData)request.Properties["AlwaysIncluded"];
     var myValueIWantToAccessFromHttpMessageHandler = (string)request.Properties["myKey"];
-    ...
+
+    // Let's use the properties!
+
     return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 }
 ```
