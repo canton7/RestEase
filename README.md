@@ -548,19 +548,10 @@ In this case, you can mark the parameter for custom serialization using `PathSer
 
 For example:
 ```csharp
-public enum SpecialParameter
-{
-    [EnumMember(Value = "api_foo")]
-    Foo,
-
-    [EnumMember(Value = "api_bar")]
-    Bar
-}
-
 public interface ISomeApi
 {
     [Get("path/{param}")]
-    Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] SpecialParameter param);
+    Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] string param);
 }
 
 ISomeApi = new RestClient
@@ -568,8 +559,8 @@ ISomeApi = new RestClient
     RequestPathParamSerializer = new DoublingPathParamSerializer()
 }.For<ISomeApi>("http://api.example.com");
 
-// Requests http://api.example.com/path/api_foo
-await api.GetAsync(SpecialParameter.Foo);
+// Requests http://api.example.com/path/hellohello
+await api.GetAsync("hello");
 ```
 
 For the definition of `DoublingPathParamSerializer`, see [the section on controlling (de)serialization](#serializing-request-path-parameters-requestpathparamserializer).
@@ -1182,13 +1173,13 @@ By default, this is `null`.
 
 This class has one method, called whenever a path parameter requires serialization (i.e. is decorated with `[Path(PathSerializationMethod.Serialized)]`).
 
-This method wants you to return a `KeyValuePair<string, string>`, where the key corresponds to the name of the path placeholder, and the value corresponds to the value.
+This method wants you to return a `string`, which is the value that will be inserted in place of the placeholder in the path string.
 For example:
 
 ```csharp
-return new KeyValuePair<string, string>("foo", "bar");
+return "bar";
 
-// Will get serialized to '.../bar/...' if the path was written as '.../{foo}/...'
+// Path will be rendered as '.../bar/...' if the path template was written as '.../{key}/...'
 ```
 
 There is no default path serializer, as its usage is often very specific. If a path parameter has `PathSerializationMethod.Serialized` specified when no serializer has been set on the `RestClient`, an exception will be thrown.
@@ -1203,21 +1194,21 @@ For example:
 
 public class DoublingPathParamSerializer : RequestPathParamSerializer
 {
-    public override KeyValuePair<string, string> SerializePathParam(string name, object value, RequestPathParamSerializerInfo info)
+    public override string SerializePathParam(object value, RequestPathParamSerializerInfo info)
     {
         if (value == null)
         {
-            return new KeyValuePair<string, string>(name, null);
+            return null;
         }
 
         // Duplicate value if it's a string
         if (value is string str)
         {
-            return new KeyValuePair<string, string>(name, $"{str}{str}");
+            return $"{str}{str}";
         }
 
         // If it's not a string, use default .ToString() behaviour
-        return new KeyValuePair<string, string>(name, value.ToString());
+        return value.ToString();
     }
 }
 
