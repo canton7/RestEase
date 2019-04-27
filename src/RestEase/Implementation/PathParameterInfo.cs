@@ -29,7 +29,7 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format parameter to pass to ToString if value implements <see cref="IFormattable"/></param>
         /// <param name="urlEncode">Indicates whether this parameter should be url-encoded</param>
-        /// <param name="serializationMethod"></param>
+        /// <param name="serializationMethod">Method to use to serialize the path value.</param>
         public PathParameterInfo(string name, object value, string format, bool urlEncode, PathSerializationMethod serializationMethod)
         {
             this.name = name;
@@ -39,6 +39,13 @@ namespace RestEase.Implementation
             this.SerializationMethod = serializationMethod;
         }
 
+        /// <summary>
+        /// Serialize the value into a name -> value pair using the given serializer
+        /// </summary>
+        /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <returns>Serialized value</returns>
+        /// <exception cref="ArgumentNullException">Thrown if serializer or requestInfo are null</exception>
         public KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo)
         {
             if (serializer == null)
@@ -50,7 +57,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Serialize the value into a collection of name -> value pairs using its ToString method
+        /// Serialize the value into a name -> value pair using its ToString method
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>

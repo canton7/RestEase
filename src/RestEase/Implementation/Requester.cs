@@ -85,7 +85,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
-                var serialized = SerializePathParameter(pathParam, requestInfo);
+                var serialized = this.SerializePathParameter(pathParam, requestInfo);
 
                 // Space needs to be treated separately
                 var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;

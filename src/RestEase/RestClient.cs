@@ -195,8 +195,7 @@ namespace RestEase
             else if (this.JsonSerializerSettings != null)
                 requester.RequestBodySerializer = new JsonRequestBodySerializer() { JsonSerializerSettings = this.JsonSerializerSettings };
 
-            if (this.RequestPathParamSerializer != null)
-                requester.RequestPathParamSerializer = this.RequestPathParamSerializer;
+            requester.RequestPathParamSerializer = this.RequestPathParamSerializer;
 
             if (this.RequestQueryParamSerializer is RequestQueryParamSerializer requestQueryParamSerializer)
                 requester.RequestQueryParamSerializer = requestQueryParamSerializer;

@@ -15,9 +15,6 @@ namespace RestEase
         /// <param name="value">Value of the path parameter</param>
         /// <param name="info">Extra info which may be useful to the serializer</param>
         /// <returns>A name -> value pair to use as path parameter</returns>
-        public virtual KeyValuePair<string, string> SerializePathParam(string name, object value, RequestPathParamSerializerInfo info)
-        {
-            throw new NotImplementedException($"You must override and implement SerializePathParam<T>(string name, T value, RequestPathParamSerializerInfo info) in {this.GetType().Name}");
-        }
+        public abstract KeyValuePair<string, string> SerializePathParam(string name,object value, RequestPathParamSerializerInfo info);
     }
 }

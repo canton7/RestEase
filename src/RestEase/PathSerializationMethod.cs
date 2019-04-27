@@ -11,7 +11,7 @@ namespace RestEase
         ToString,
 
         /// <summary>
-        /// Serialized using the configured IRequestPathParamSerializer (uses Json.NET by default)
+        /// Serialized using the configured RequestPathParamSerializer
         /// </summary>
         Serialized,
 

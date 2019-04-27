@@ -3,8 +3,8 @@
     internal class ResolvedSerializationMethods
     {
         public const BodySerializationMethod DefaultBodySerializationMethod = BodySerializationMethod.Serialized;
-        public QuerySerializationMethod DefaultQuerySerializationMethod = QuerySerializationMethod.ToString;
-        public PathSerializationMethod DefaultPathSerializationMethod = PathSerializationMethod.ToString;
+        public const QuerySerializationMethod DefaultQuerySerializationMethod = QuerySerializationMethod.ToString;
+        public const PathSerializationMethod DefaultPathSerializationMethod = PathSerializationMethod.ToString;
 
         public SerializationMethodsAttribute ClassAttribute { get; private set; }
 

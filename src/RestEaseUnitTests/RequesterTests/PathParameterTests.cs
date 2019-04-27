@@ -1,4 +1,6 @@
-﻿using RestEase.Implementation;
+﻿using Moq;
+using RestEase;
+using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +11,6 @@ using Xunit;
 
 namespace RestEaseUnitTests.RequesterTests
 {
-    using Moq;
-
-    using RestEase;
-
     public class PathParameterTests
     {
         public class HasToStringToo
