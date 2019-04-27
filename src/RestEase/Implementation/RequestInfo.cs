@@ -67,6 +67,13 @@ namespace RestEase.Implementation
         /// </summary>
         public IEnumerable<QueryParameterInfo> QueryProperties => this._queryProperties ?? Enumerable.Empty<QueryParameterInfo>();
 
+        private List<RequestPropertyInfo> _httpRequestMessageProperties;
+
+        /// <summary>
+        /// Gets the values from properties which should be added as request properties
+        /// </summary>
+        public IEnumerable<RequestPropertyInfo> HttpRequestMessageProperties => this._httpRequestMessageProperties ?? Enumerable.Empty<RequestPropertyInfo>();
+
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
         /// </summary>
@@ -252,6 +259,19 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
+        /// Add a HTTP request message property parameter: a [RequestProperty] method parameter which is used to add request property dictionary entry
+        /// </summary>
+        /// <param name="key">Key of the key/value pair</param>
+        /// <param name="value">Value of the key/value pair</param>
+        public void AddHttpRequestMessagePropertyParameter(string key, object value)
+        {
+            if (this._httpRequestMessageProperties == null)
+                this._httpRequestMessageProperties = new List<RequestPropertyInfo>();
+
+            this._httpRequestMessageProperties.Add(new RequestPropertyInfo(key, value));
+        }
+
+        /// <summary>
         /// Add a path parameter from a property: a [Path] property which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
@@ -285,6 +305,19 @@ namespace RestEase.Implementation
                 this._queryProperties = new List<QueryParameterInfo>();
 
             this._queryProperties.Add(new QueryParameterInfo<T>(serializationMethod, name, value, format));
+        }
+
+        /// <summary>
+        /// Add a request property from a property: a [RequestProperty] property which is used to add request property dictionary entry
+        /// </summary>
+        /// <param name="key">Key of the key/value pair</param>
+        /// <param name="value">Value of the key/value pair</param>
+        public void AddHttpRequestMessagePropertyProperty(string key, object value)
+        {
+            if (this._httpRequestMessageProperties == null)
+                this._httpRequestMessageProperties = new List<RequestPropertyInfo>();
+
+            this._httpRequestMessageProperties.Add(new RequestPropertyInfo(key, value));
         }
 
         /// <summary>

@@ -103,6 +103,23 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void RequestInfoHttpMessagePropertiesAddedToRequestMessage()
+        {
+            var messageHandler = new MockHttpMessageHandler { ResponseMessage = Task.FromResult(new HttpResponseMessage())};
+            var httpClient = new HttpClient(messageHandler);
+            var requester = new PublicRequester(httpClient);
+
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
+            requestInfo.AddHttpRequestMessagePropertyProperty("key1", "value1");
+            requestInfo.AddHttpRequestMessagePropertyParameter("key2", "value2");
+            requester.RequestWithResponseMessageAsync(requestInfo).Wait();
+
+            Assert.Equal(2, messageHandler.Request.Properties.Count);
+            Assert.Equal("value1", messageHandler.Request.Properties["key1"]);
+            Assert.Equal("value2", messageHandler.Request.Properties["key2"]);
+        }
+
+        [Fact]
         public void RequestWithResponseAsyncSendsRequest()
         {
             var requester = new RequesterWithStubbedSendRequestAsync(null);

@@ -49,6 +49,8 @@ namespace RestEase.Implementation
         private static readonly MethodInfo addPathParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPathParameter");
         private static readonly MethodInfo addPathPropertyMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPathProperty");
         private static readonly MethodInfo addQueryPropertyMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryProperty");
+        private static readonly MethodInfo addRequestPropertyParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddHttpRequestMessagePropertyParameter");
+        private static readonly MethodInfo addRequestPropertyPropertyMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddHttpRequestMessagePropertyProperty");
         private static readonly MethodInfo setClassHeadersMethod = typeof(RequestInfo).GetTypeInfo().GetProperty("ClassHeaders").SetMethod;
         private static readonly MethodInfo addPropertyHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddPropertyHeader");
         private static readonly MethodInfo addMethodHeaderMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddMethodHeader");
@@ -397,6 +399,7 @@ namespace RestEase.Implementation
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
                     this.AddPathProperties(methodIlGenerator, properties.Path);
                     this.AddQueryProperties(methodIlGenerator, properties.Query, serializationMethods);
+                    this.AddRequestProperties(methodIlGenerator, properties.RequestProperties);
                     this.AddMethodHeaders(methodIlGenerator, methodInfo);
                     this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
                     this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
@@ -576,6 +579,18 @@ namespace RestEase.Implementation
             }
         }
 
+        private void AddRequestProperties(ILGenerator methodIlGenerator, List<AttributedProperty<RequestPropertyAttribute>> requestProperties)
+        {
+            foreach (var requestProperty in requestProperties)
+            {
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldstr, requestProperty.Attribute.Key);
+                methodIlGenerator.Emit(OpCodes.Ldarg_0);
+                methodIlGenerator.Emit(OpCodes.Ldfld, requestProperty.BackingField);
+                methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyPropertyMethod);
+            }
+        }
+
         private void AddMethodHeaders(ILGenerator methodIlGenerator, MethodInfo methodInfo)
         {
             var methodHeaders = methodInfo.GetCustomAttributes<HeaderAttribute>();
@@ -641,6 +656,11 @@ namespace RestEase.Implementation
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
                 this.AddPathParam(methodIlGenerator, pathParameter);
+            }
+
+            foreach (var requestPropertyParameter in parameterGrouping.HttpRequestMessageProperties)
+            {
+                this.AddHttpRequestMessagePropertyParam(methodIlGenerator, requestPropertyParameter);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -880,6 +900,26 @@ namespace RestEase.Implementation
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
+        }
+
+        private void AddHttpRequestMessagePropertyParam(ILGenerator methodIlGenerator, IndexedParameter<RequestPropertyAttribute> requestPropertyParameter)
+        {
+            // Equivalent C#:
+            // requestInfo.AddRequestPropertyParameter("key", value);
+            // where 'value' is the parameter at index parameterIndex
+
+            // Duplicate the requestInfo.
+            // Stack: [..., requestInfo, requestInfo]
+            methodIlGenerator.Emit(OpCodes.Dup);
+            // Load the name onto the stack
+            // Stack: [..., requestInfo, requestInfo, key]
+            methodIlGenerator.Emit(OpCodes.Ldstr, requestPropertyParameter.Attribute.Key ?? requestPropertyParameter.Parameter.Name);
+            // Load the param onto the stack
+            // Stack: [..., requestInfo, requestInfo, key, value]
+            methodIlGenerator.Emit(OpCodes.Ldarg, (short)requestPropertyParameter.Index);
+            // Call AddRequestPropertyParameter
+            // Stack: [..., requestInfo]
+            methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyParameterMethod);
         }
 
         private void AddHeaderParameter(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo method)

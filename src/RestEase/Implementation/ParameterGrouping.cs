@@ -11,6 +11,7 @@ namespace RestEase.Implementation
     {
         public List<IndexedParameter<PathAttribute>> PathParameters { get; private set; }
         public List<IndexedParameter<QueryAttribute>> QueryParameters { get; private set; }
+        public List<IndexedParameter<RequestPropertyAttribute>> HttpRequestMessageProperties { get; private set; }
         public IndexedParameter<RawQueryStringAttribute>? RawQueryString { get; private set; }
         public List<IndexedParameter<QueryMapAttribute>> QueryMaps { get; private set; }
         public List<IndexedParameter<HeaderAttribute>> HeaderParameters { get; private set; }
@@ -22,6 +23,7 @@ namespace RestEase.Implementation
         {
             this.PathParameters = new List<IndexedParameter<PathAttribute>>();
             this.QueryParameters = new List<IndexedParameter<QueryAttribute>>();
+            this.HttpRequestMessageProperties = new List<IndexedParameter<RequestPropertyAttribute>>();
             this.QueryMaps = new List<IndexedParameter<QueryMapAttribute>>();
             this.HeaderParameters = new List<IndexedParameter<HeaderAttribute>>();
             this.PlainParameters = new List<IndexedParameter>();
@@ -74,6 +76,13 @@ namespace RestEase.Implementation
                 if (pathParamAttribute != null)
                 {
                     this.PathParameters.Add(new IndexedParameter<PathAttribute>(parameter.Index, parameter.Parameter, pathParamAttribute));
+                    continue;
+                }
+
+                var httpRequestMessagePropertyParamAttribute = parameter.Parameter.GetCustomAttribute<RequestPropertyAttribute>();
+                if (httpRequestMessagePropertyParamAttribute != null)
+                {
+                    this.HttpRequestMessageProperties.Add(new IndexedParameter<RequestPropertyAttribute>(parameter.Index, parameter.Parameter, httpRequestMessagePropertyParamAttribute));
                     continue;
                 }
 

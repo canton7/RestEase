@@ -12,11 +12,12 @@ namespace RestEase.Implementation
         public List<AttributedProperty<HeaderAttribute>> Headers { get; } = new List<AttributedProperty<HeaderAttribute>>();
         public List<AttributedProperty<PathAttribute>> Path { get; } = new List<AttributedProperty<PathAttribute>>();
         public List<AttributedProperty<QueryAttribute>> Query { get; } = new List<AttributedProperty<QueryAttribute>>();
+        public List<AttributedProperty<RequestPropertyAttribute>> RequestProperties { get; } = new List<AttributedProperty<RequestPropertyAttribute>>();
 
         public PropertyInfo Requester { get; private set; }
 
         public IEnumerable<IAttributedProperty> AllPropertiesWithStorage
-            => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query);
+            => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query).Concat(this.RequestProperties);
 
         public PropertyGrouping(IEnumerable<PropertyInfo> properties)
         {
@@ -58,6 +59,18 @@ namespace RestEase.Implementation
                         queryAttribute.Name = property.Name;
 
                     this.Query.Add(new AttributedProperty<QueryAttribute>(queryAttribute, property));
+                    continue;
+                }
+
+                var requestPropertyAttribute = property.GetCustomAttribute<RequestPropertyAttribute>();
+                if (requestPropertyAttribute != null)
+                {
+                    AssertHasGetterAndSetter(property);
+
+                    if (requestPropertyAttribute.Key == null)
+                        requestPropertyAttribute.Key = property.Name;
+
+                    this.RequestProperties.Add(new AttributedProperty<RequestPropertyAttribute>(requestPropertyAttribute, property));
                     continue;
                 }
 
