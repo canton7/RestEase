@@ -1152,7 +1152,7 @@ return new KeyValuePair<string, string>("foo", "bar");
 // Will get serialized to '.../bar/...' if the path was written as '.../{foo}/...'
 ```
 
-There is no default path serializer, as its usage is often very specific.
+There is no default path serializer, as its usage is often very specific. If a path parameter has `PathSerializationMethod.Serialized` specified when no serializer has been set on the `RestClient`, an exception will be thrown.
 
 To tell RestEase to use a path serializer, you must create a new `RestClient`, assign its `RequestPathParamSerializer` property, then call `For<T>()` to get an implementation of your interface.
 
