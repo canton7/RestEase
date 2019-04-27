@@ -966,9 +966,9 @@ namespace RestEase.Implementation
                 path = String.Empty;
 
             // Check that there are no duplicate param names in the attributes
-            var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1);
+            var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
             if (duplicateKey != null)
-                throw new ImplementationCreationException(String.Format("Mathod '{0}': found more than one path parameter for key {1}.", methodName, duplicateKey));
+                throw new ImplementationCreationException(String.Format("Method '{0}': found more than one path parameter for key {1}.", methodName, duplicateKey));
 
             // Check that each placeholder has a matching attribute, and vice versa
             // We allow a property param to fill in for a missing path param, but we allow them to duplicate
