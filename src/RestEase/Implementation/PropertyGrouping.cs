@@ -12,12 +12,12 @@ namespace RestEase.Implementation
         public List<AttributedProperty<HeaderAttribute>> Headers { get; } = new List<AttributedProperty<HeaderAttribute>>();
         public List<AttributedProperty<PathAttribute>> Path { get; } = new List<AttributedProperty<PathAttribute>>();
         public List<AttributedProperty<QueryAttribute>> Query { get; } = new List<AttributedProperty<QueryAttribute>>();
-        public List<AttributedProperty<RequestPropertyAttribute>> RequestProperties { get; } = new List<AttributedProperty<RequestPropertyAttribute>>();
+        public List<AttributedProperty<HttpRequestMessagePropertyAttribute>> HttpRequestMessageProperties { get; } = new List<AttributedProperty<HttpRequestMessagePropertyAttribute>>();
 
         public PropertyInfo Requester { get; private set; }
 
         public IEnumerable<IAttributedProperty> AllPropertiesWithStorage
-            => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query).Concat(this.RequestProperties);
+            => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query).Concat(this.HttpRequestMessageProperties);
 
         public PropertyGrouping(IEnumerable<PropertyInfo> properties)
         {
@@ -62,15 +62,15 @@ namespace RestEase.Implementation
                     continue;
                 }
 
-                var requestPropertyAttribute = property.GetCustomAttribute<RequestPropertyAttribute>();
-                if (requestPropertyAttribute != null)
+                var httpRequestMessagePropertyAttribute = property.GetCustomAttribute<HttpRequestMessagePropertyAttribute>();
+                if (httpRequestMessagePropertyAttribute != null)
                 {
                     AssertHasGetterAndSetter(property);
 
-                    if (requestPropertyAttribute.Key == null)
-                        requestPropertyAttribute.Key = property.Name;
+                    if (httpRequestMessagePropertyAttribute.Key == null)
+                        httpRequestMessagePropertyAttribute.Key = property.Name;
 
-                    this.RequestProperties.Add(new AttributedProperty<RequestPropertyAttribute>(requestPropertyAttribute, property));
+                    this.HttpRequestMessageProperties.Add(new AttributedProperty<HttpRequestMessagePropertyAttribute>(httpRequestMessagePropertyAttribute, property));
                     continue;
                 }
 

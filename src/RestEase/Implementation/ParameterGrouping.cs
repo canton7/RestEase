@@ -11,7 +11,7 @@ namespace RestEase.Implementation
     {
         public List<IndexedParameter<PathAttribute>> PathParameters { get; private set; }
         public List<IndexedParameter<QueryAttribute>> QueryParameters { get; private set; }
-        public List<IndexedParameter<RequestPropertyAttribute>> HttpRequestMessageProperties { get; private set; }
+        public List<IndexedParameter<HttpRequestMessagePropertyAttribute>> HttpRequestMessageProperties { get; private set; }
         public IndexedParameter<RawQueryStringAttribute>? RawQueryString { get; private set; }
         public List<IndexedParameter<QueryMapAttribute>> QueryMaps { get; private set; }
         public List<IndexedParameter<HeaderAttribute>> HeaderParameters { get; private set; }
@@ -23,7 +23,7 @@ namespace RestEase.Implementation
         {
             this.PathParameters = new List<IndexedParameter<PathAttribute>>();
             this.QueryParameters = new List<IndexedParameter<QueryAttribute>>();
-            this.HttpRequestMessageProperties = new List<IndexedParameter<RequestPropertyAttribute>>();
+            this.HttpRequestMessageProperties = new List<IndexedParameter<HttpRequestMessagePropertyAttribute>>();
             this.QueryMaps = new List<IndexedParameter<QueryMapAttribute>>();
             this.HeaderParameters = new List<IndexedParameter<HeaderAttribute>>();
             this.PlainParameters = new List<IndexedParameter>();
@@ -79,10 +79,10 @@ namespace RestEase.Implementation
                     continue;
                 }
 
-                var httpRequestMessagePropertyParamAttribute = parameter.Parameter.GetCustomAttribute<RequestPropertyAttribute>();
+                var httpRequestMessagePropertyParamAttribute = parameter.Parameter.GetCustomAttribute<HttpRequestMessagePropertyAttribute>();
                 if (httpRequestMessagePropertyParamAttribute != null)
                 {
-                    this.HttpRequestMessageProperties.Add(new IndexedParameter<RequestPropertyAttribute>(parameter.Index, parameter.Parameter, httpRequestMessagePropertyParamAttribute));
+                    this.HttpRequestMessageProperties.Add(new IndexedParameter<HttpRequestMessagePropertyAttribute>(parameter.Index, parameter.Parameter, httpRequestMessagePropertyParamAttribute));
                     continue;
                 }
 

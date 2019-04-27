@@ -385,7 +385,7 @@ namespace RestEase.Implementation
                 Content = this.ConstructContent(requestInfo),
             };
 
-            this.ApplyHttpRequestMessageProperties(requestInfo, message.Properties);
+            this.ApplyHttpRequestMessageProperties(requestInfo, message);
 
             // Do this after setting the content, as doing so may set headers which we want to remove / override
             this.ApplyHeaders(requestInfo, message);
@@ -406,11 +406,11 @@ namespace RestEase.Implementation
             return response;
         }
 
-        private void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, IDictionary<string, object> messageProperties)
+        private void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
             foreach (var property in requestInfo.HttpRequestMessageProperties)
             {
-                messageProperties.Add(property.Key, property.Value);
+                requestMessage.Properties.Add(property.Key, property.Value);
             }
         }
 

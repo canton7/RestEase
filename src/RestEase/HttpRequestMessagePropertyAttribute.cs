@@ -6,7 +6,7 @@ namespace RestEase
     /// Marks a parameter as HTTP request message property
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class RequestPropertyAttribute : Attribute
+    public class HttpRequestMessagePropertyAttribute : Attribute
     {
         /// <summary>
         /// Gets or sets the optional key of the parameter. Will use the parameter name if null
@@ -14,16 +14,16 @@ namespace RestEase
         public string Key { get; set; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PathAttribute"/> class
+        /// Initialises a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class
         /// </summary>
-        public RequestPropertyAttribute()
+        public HttpRequestMessagePropertyAttribute()
         { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PathAttribute"/> class, with the given key
+        /// Initialises a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class, with the given key
         /// </summary>
         /// <param name="key">key</param>
-        public RequestPropertyAttribute(string key)
+        public HttpRequestMessagePropertyAttribute(string key)
         {
             this.Key = key;
         }

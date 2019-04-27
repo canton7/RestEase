@@ -390,6 +390,9 @@ namespace RestEase.Implementation
 
                     this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
 
+                    var httpRequestMessageProperties = parameterGrouping.HttpRequestMessageProperties.Select(x => x.Attribute.Key ?? x.Parameter.Name).Concat(properties.HttpRequestMessageProperties.Select(x => x.Attribute.Key));
+                    this.ValidateHttpRequestMessageProperties(httpRequestMessageProperties, methodInfo.Name);
+
                     var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + methodIndex, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
                     methodInfoGrouping.Fields.Add(new MethodInfoFieldReference(methodInfo, methodInfoFieldBuilder));
 
@@ -399,7 +402,7 @@ namespace RestEase.Implementation
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
                     this.AddPathProperties(methodIlGenerator, properties.Path);
                     this.AddQueryProperties(methodIlGenerator, properties.Query, serializationMethods);
-                    this.AddRequestProperties(methodIlGenerator, properties.RequestProperties);
+                    this.AddHttpRequestMessageProperties(methodIlGenerator, properties.HttpRequestMessageProperties);
                     this.AddMethodHeaders(methodIlGenerator, methodInfo);
                     this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
                     this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
@@ -579,14 +582,16 @@ namespace RestEase.Implementation
             }
         }
 
-        private void AddRequestProperties(ILGenerator methodIlGenerator, List<AttributedProperty<RequestPropertyAttribute>> requestProperties)
+        private void AddHttpRequestMessageProperties(ILGenerator methodIlGenerator, List<AttributedProperty<HttpRequestMessagePropertyAttribute>> httpRequestMessageProperties)
         {
-            foreach (var requestProperty in requestProperties)
+            foreach (var httpRequestMessageProperty in httpRequestMessageProperties)
             {
                 methodIlGenerator.Emit(OpCodes.Dup);
-                methodIlGenerator.Emit(OpCodes.Ldstr, requestProperty.Attribute.Key);
+                methodIlGenerator.Emit(OpCodes.Ldstr, httpRequestMessageProperty.Attribute.Key);
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
-                methodIlGenerator.Emit(OpCodes.Ldfld, requestProperty.BackingField);
+                methodIlGenerator.Emit(OpCodes.Ldfld, httpRequestMessageProperty.BackingField);
+                if (httpRequestMessageProperty.BackingField.FieldType.GetTypeInfo().IsValueType)
+                    methodIlGenerator.Emit(OpCodes.Box, httpRequestMessageProperty.BackingField.FieldType);
                 methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyPropertyMethod);
             }
         }
@@ -902,10 +907,10 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddHttpRequestMessagePropertyParam(ILGenerator methodIlGenerator, IndexedParameter<RequestPropertyAttribute> requestPropertyParameter)
+        private void AddHttpRequestMessagePropertyParam(ILGenerator methodIlGenerator, IndexedParameter<HttpRequestMessagePropertyAttribute> requestPropertyParameter)
         {
             // Equivalent C#:
-            // requestInfo.AddRequestPropertyParameter("key", value);
+            // requestInfo.AddHttpRequestMessagePropertyParameter("key", value);
             // where 'value' is the parameter at index parameterIndex
 
             // Duplicate the requestInfo.
@@ -914,10 +919,15 @@ namespace RestEase.Implementation
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, key]
             methodIlGenerator.Emit(OpCodes.Ldstr, requestPropertyParameter.Attribute.Key ?? requestPropertyParameter.Parameter.Name);
+
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, key, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, (short)requestPropertyParameter.Index);
-            // Call AddRequestPropertyParameter
+
+            if (requestPropertyParameter.Parameter.ParameterType.GetTypeInfo().IsValueType)
+                methodIlGenerator.Emit(OpCodes.Box, requestPropertyParameter.Parameter.ParameterType);
+
+            // Call AddHttpRequestMessagePropertyParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyParameterMethod);
         }
@@ -940,6 +950,14 @@ namespace RestEase.Implementation
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, method);
+        }
+
+        private void ValidateHttpRequestMessageProperties(IEnumerable<string> keys, string methodName)
+        {
+            // Check that there are no duplicate param names in the attributes
+            var duplicateKey = keys.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
+            if (duplicateKey != null)
+                throw new ImplementationCreationException(String.Format("Method '{0}': found more than one HTTP request message property for key {1}.", methodName, duplicateKey));
         }
 
         private void ValidatePathParams(string path, IEnumerable<string> pathParams, IEnumerable<string> propertyParams, string methodName)

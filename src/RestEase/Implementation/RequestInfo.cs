@@ -259,7 +259,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Add a HTTP request message property parameter: a [RequestProperty] method parameter which is used to add request property dictionary entry
+        /// Add a HTTP request message property parameter: a [RequestProperty] method parameter which is used to add HTTP request message property dictionary entry
         /// </summary>
         /// <param name="key">Key of the key/value pair</param>
         /// <param name="value">Value of the key/value pair</param>
@@ -308,7 +308,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Add a request property from a property: a [RequestProperty] property which is used to add request property dictionary entry
+        /// Add a HTTP request message property from a property: a [RequestProperty] property which is used to add HTTP request message property dictionary entry
         /// </summary>
         /// <param name="key">Key of the key/value pair</param>
         /// <param name="value">Value of the key/value pair</param>

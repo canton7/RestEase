@@ -10,16 +10,16 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 {
     public class HttpRequestMessagePropertyTests
     {
-        public interface IRequestProperties
+        public interface IHttpRequestMessageProperties
         {
-            [RequestProperty]
+            [HttpRequestMessageProperty]
             object PropertyFoo { get; set; }
 
-            [RequestProperty("bar-property")]
-            object P2 { get; set; }
+            [HttpRequestMessageProperty("bar-property")]
+            int P2 { get; set; }
 
             [Get("foo")]
-            Task FooAsync([RequestProperty] object foo, [RequestProperty("bar-parameter")] object p2);
+            Task FooAsync([HttpRequestMessageProperty] object foo, [HttpRequestMessageProperty("bar-parameter")] decimal valueType);
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
@@ -28,36 +28,36 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesPathProperty()
         {
-            var requestProperty1 = new object();
-            var requestProperty2 = new object();
+            var propertyValue = new object();
+            var parameterValue = new object();
             var requestInfo =
-                Request<IRequestProperties>(
+                Request<IHttpRequestMessageProperties>(
                     x =>
                     {
-                        x.PropertyFoo = "foo";
-                        x.P2 = "bar";
-                        return x.FooAsync(requestProperty1, requestProperty2);
+                        x.PropertyFoo = propertyValue;
+                        x.P2 = 1;
+                        return x.FooAsync(parameterValue, 123.456m);
                     });
 
-            var requestProperties = requestInfo.HttpRequestMessageProperties.ToList();
+            var httpRequestMessageProperties = requestInfo.HttpRequestMessageProperties.ToList();
 
-            Assert.Equal(4, requestProperties.Count);
+            Assert.Equal(4, httpRequestMessageProperties.Count);
 
-            var propertyPropertyFoo = requestProperties[0];
-            Assert.Equal(nameof(IRequestProperties.PropertyFoo), propertyPropertyFoo.Key);
-            Assert.Equal("foo", propertyPropertyFoo.Value);
+            var propertyPropertyFoo = httpRequestMessageProperties[0];
+            Assert.Equal(nameof(IHttpRequestMessageProperties.PropertyFoo), propertyPropertyFoo.Key);
+            Assert.Equal(propertyValue, propertyPropertyFoo.Value);
 
-            var propertyP2 = requestProperties[1];
+            var propertyP2 = httpRequestMessageProperties[1];
             Assert.Equal("bar-property", propertyP2.Key);
-            Assert.Equal("bar", propertyP2.Value);
+            Assert.Equal(1, propertyP2.Value);
 
-            var propertyParam1 = requestProperties[2];
+            var propertyParam1 = httpRequestMessageProperties[2];
             Assert.Equal("foo", propertyParam1.Key);
-            Assert.Equal(requestProperty1, propertyParam1.Value);
+            Assert.Equal(parameterValue, propertyParam1.Value);
 
-            var propertyParam2 = requestProperties[3];
+            var propertyParam2 = httpRequestMessageProperties[3];
             Assert.Equal("bar-parameter", propertyParam2.Key);
-            Assert.Equal(requestProperty2, propertyParam2.Value);
+            Assert.Equal(123.456m, propertyParam2.Value);
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)
