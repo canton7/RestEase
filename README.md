@@ -34,9 +34,11 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     1. [Path Parameters](#path-parameters)
         1. [Formatting Path Parameters](#formatting-path-parameters)
         2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
+        3. [Serialization of Path Parameters](#serialization-of-path-parameters)
     2. [Path Properties](#path-properties)
         1. [Formatting Path Properties](#formatting-path-properties)
         2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
+        3. [Serialization of Path Properties](#serialization-of-path-properties)
 7. [Body Content](#body-content)
     1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
@@ -53,8 +55,9 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
         2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
-        3. [Serializing request parameters: `RequestQueryParamSerializer`](#serializing-request-parameters-requestqueryparamserializer)
-        4. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
+        3. [Serializing request query parameters: `RequestQueryParamSerializer`](#serializing-request-query-parameters-requestqueryparamserializer)
+        4. [Serializing request path parameters: `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer)
+        5. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
 13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
@@ -560,10 +563,16 @@ public interface ISomeApi
     Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] SpecialParameter param);
 }
 
-ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi = new RestClient
+{
+    RequestPathParamSerializer = new DoublingPathParamSerializer()
+}.For<ISomeApi>("http://api.example.com");
+
 // Requests http://api.example.com/path/api_foo
 await api.GetAsync(SpecialParameter.Foo);
 ```
+
+For the definition of `DoublingPathParamSerializer`, see [the section on controlling (de)serialization](#serializing-request-path-parameters-requestpathparamserializer).
 
 You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Path = PathSerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
 
@@ -662,6 +671,36 @@ api.PathPart = "users/abc";
 // Requests http://api.example.com/users/abc/profile
 await api.GetAsync();
 ```
+
+#### Serialization of Path Properties
+
+As with path parameters, you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour as defined by the `RequestPathParamSerializer` provided when creating the `RestClient`.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [Path(PathSerializationMethod.Serialized)]
+    public string SuperSpecial { get; set; }
+
+    [Get("{superSpecial}/resource")]
+    Task GetAsync();
+}
+
+var api = new RestClient
+{
+    RequestPathParamSerializer = new DoublingPathParamSerializer()
+}.For<ISomeApi>();
+
+api.SuperSpecial = "bar";
+
+// Requests 'barbar/resource'
+await api.GetAsync();
+
+```
+
+For the definition of `DoublingPathParamSerializer`, see [the section on controlling (de)serialization](#serializing-request-path-parameters-requestpathparamserializer).
 
 Body Content
 ------------
