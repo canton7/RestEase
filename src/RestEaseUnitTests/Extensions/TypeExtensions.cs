@@ -1,10 +1,8 @@
-
 using System;
+using System.Reflection;
 
 namespace RestEaseUnitTests.Extensions
 {
-    using System.Reflection;
-
     public static class TypeExtensions
     {
 #if NETCOREAPP1_0
