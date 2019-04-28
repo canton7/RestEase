@@ -19,7 +19,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Path] string foo, [Path("bar")] string bar);
 
             [Get("foo/{foo}/{bar}")]
-            Task DifferentParaneterTypesAsync([Path] object foo, [Path] int? bar);
+            Task DifferentParameterTypesAsync([Path] object foo, [Path] int? bar);
         }
 
         public interface IHasPathParamInPathButNotParameters
@@ -121,13 +121,42 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Path(UrlEncode = false)] string foo);
         }
 
+        public interface ISerializedPathParam
+        {
+            [Get("{foo}")]
+            Task FooAsync([Path(PathSerializationMethod.Serialized)] object foo);
+        }
+
+        [SerializationMethods(Path = PathSerializationMethod.Serialized)]
+        public interface IHasNonOverriddenDefaultPathSerializationMethod
+        {
+            [Get("{foo}")]
+            Task FooAsync([Path] string foo);
+        }
+
+        [SerializationMethods(Path = PathSerializationMethod.Serialized)]
+        public interface IHasOverriddenDefaultPathSerializationMethod
+        {
+            [Get("{foo}")]
+            Task FooAsync([Path(PathSerializationMethod.ToString)] string foo);
+        }
+
+        public interface IHasSerializedPathProperty
+        {
+            [Path(PathSerializationMethod.Serialized)]
+            string Yay { get; set; }
+
+            [Get("{Yay}")]
+            Task FooAsync();
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
         [Fact]
         public void HandlesNullPathParams()
         {
-            var requestInfo = Request<IPathParams>(x => x.DifferentParaneterTypesAsync(null, null));
+            var requestInfo = Request<IPathParams>(x => x.DifferentParameterTypesAsync(null, null));
 
             var pathParams = requestInfo.PathParams.ToList();
 
@@ -327,6 +356,48 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             param.SerializeToString(formatProvider.Object);
 
             formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
+        }
+
+        [Fact]
+        public void RecordsSerializedSerializationMethod()
+        {
+            var requestInfo = Request<ISerializedPathParam>(x => x.FooAsync("fizzbuzz"));
+
+            Assert.Single(requestInfo.PathParams);
+            Assert.Equal(PathSerializationMethod.Serialized, requestInfo.PathParams.First().SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultPathSerializationMethodIsSpecifiedBySerializationMethodsHeader()
+        {
+            var requestInfo = Request<IHasNonOverriddenDefaultPathSerializationMethod>(x => x.FooAsync("buzz"));
+
+            Assert.Single(requestInfo.PathParams);
+            Assert.Equal(PathSerializationMethod.Serialized, requestInfo.PathParams.First().SerializationMethod);
+        }
+
+        [Fact]
+        public void DefaultPathSerializationMethodCanBeOverridden()
+        {
+            var requestInfo = Request<IHasOverriddenDefaultPathSerializationMethod>(x => x.FooAsync("foo"));
+
+            Assert.Single(requestInfo.PathParams);
+            Assert.Equal(PathSerializationMethod.ToString, requestInfo.PathParams.First().SerializationMethod);
+        }
+
+        [Fact]
+        public void HandlesSerializedPathProperty()
+        {
+            var requestInfo = Request<IHasSerializedPathProperty>(x =>
+            {
+                x.Yay = "woopdidoo";
+                return x.FooAsync();
+            });
+
+            var pathProperties = requestInfo.PathProperties.ToList();
+
+            Assert.Single(pathProperties);
+            Assert.Equal(PathSerializationMethod.Serialized, pathProperties[0].SerializationMethod);
         }
 
         private IRequestInfo Request<T>(Func<T, Task> selector)

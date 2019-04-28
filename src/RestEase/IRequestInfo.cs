@@ -58,6 +58,11 @@ namespace RestEase
         IEnumerable<QueryParameterInfo> QueryProperties { get; }
 
         /// <summary>
+        /// Gets the values from properties which should be added as HTTP request message properties
+        /// </summary>
+        IEnumerable<HttpRequestMessagePropertyInfo> HttpRequestMessageProperties { get; }
+
+        /// <summary>
         /// Gets the headers which were applied to the interface
         /// </summary>
         IEnumerable<KeyValuePair<string, string>> ClassHeaders { get; }

@@ -67,6 +67,13 @@ namespace RestEase.Implementation
         /// </summary>
         public IEnumerable<QueryParameterInfo> QueryProperties => this._queryProperties ?? Enumerable.Empty<QueryParameterInfo>();
 
+        private List<HttpRequestMessagePropertyInfo> _httpRequestMessageProperties;
+
+        /// <summary>
+        /// Gets the values from properties which should be added as request properties
+        /// </summary>
+        public IEnumerable<HttpRequestMessagePropertyInfo> HttpRequestMessageProperties => this._httpRequestMessageProperties ?? Enumerable.Empty<HttpRequestMessagePropertyInfo>();
+
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
         /// </summary>
@@ -239,32 +246,47 @@ namespace RestEase.Implementation
         /// Add a path parameter: a [Path] method parameter which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
+        /// <param name="serializationMethod"></param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
         /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
-        public void AddPathParameter<T>(string name, T value, string format = null, bool urlEncode = true)
+        public void AddPathParameter<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathParams == null)
                 this._pathParams = new List<PathParameterInfo>();
 
-            this._pathParams.Add(new PathParameterInfo(name, value, format, urlEncode));
+            this._pathParams.Add(new PathParameterInfo<T>(name, value, format, urlEncode, serializationMethod));
+        }
+
+        /// <summary>
+        /// Add a HTTP request message property parameter: a [RequestProperty] method parameter which is used to add HTTP request message property dictionary entry
+        /// </summary>
+        /// <param name="key">Key of the key/value pair</param>
+        /// <param name="value">Value of the key/value pair</param>
+        public void AddHttpRequestMessagePropertyParameter(string key, object value)
+        {
+            if (this._httpRequestMessageProperties == null)
+                this._httpRequestMessageProperties = new List<HttpRequestMessagePropertyInfo>();
+
+            this._httpRequestMessageProperties.Add(new HttpRequestMessagePropertyInfo(key, value));
         }
 
         /// <summary>
         /// Add a path parameter from a property: a [Path] property which is used to substitute a placeholder in the path
         /// </summary>
         /// <typeparam name="T">Type of the value of the path parameter</typeparam>
+        /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
         /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
-        public void AddPathProperty<T>(string name, T value, string format = null, bool urlEncode = true)
+        public void AddPathProperty<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
         {
             if (this._pathProperties == null)
                 this._pathProperties = new List<PathParameterInfo>();
 
-            this._pathProperties.Add(new PathParameterInfo(name, value, format, urlEncode));
+            this._pathProperties.Add(new PathParameterInfo<T>(name, value, format, urlEncode, serializationMethod));
         }
 
         /// <summary>
@@ -285,6 +307,19 @@ namespace RestEase.Implementation
                 this._queryProperties = new List<QueryParameterInfo>();
 
             this._queryProperties.Add(new QueryParameterInfo<T>(serializationMethod, name, value, format));
+        }
+
+        /// <summary>
+        /// Add a HTTP request message property from a property: a [RequestProperty] property which is used to add HTTP request message property dictionary entry
+        /// </summary>
+        /// <param name="key">Key of the key/value pair</param>
+        /// <param name="value">Value of the key/value pair</param>
+        public void AddHttpRequestMessagePropertyProperty(string key, object value)
+        {
+            if (this._httpRequestMessageProperties == null)
+                this._httpRequestMessageProperties = new List<HttpRequestMessagePropertyInfo>();
+
+            this._httpRequestMessageProperties.Add(new HttpRequestMessagePropertyInfo(key, value));
         }
 
         /// <summary>

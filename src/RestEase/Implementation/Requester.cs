@@ -33,6 +33,11 @@ namespace RestEase.Implementation
         public RequestBodySerializer RequestBodySerializer { get; set; } = new JsonRequestBodySerializer();
 
         /// <summary>
+        /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
+        /// </summary>
+        public RequestPathParamSerializer RequestPathParamSerializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
         public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; } = new JsonRequestQueryParamSerializer();
@@ -80,7 +85,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
-                var serialized = pathParam.SerializeToString(this.FormatProvider);
+                var serialized = this.SerializePathParameter(pathParam, requestInfo);
 
                 // Space needs to be treated separately
                 var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
@@ -151,7 +156,7 @@ namespace RestEase.Implementation
             IEnumerable<QueryParameterInfo> queryParams,
             IEnumerable<QueryParameterInfo> queryProperties,
             IRequestInfo requestInfo)
-        { 
+        {
             var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
             var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
@@ -244,6 +249,28 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
+        /// Serializes the value of a path parameter, using an appropriate method
+        /// </summary>
+        /// <param name="pathParameter">Path parameter to serialize</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <returns>Serialized value</returns>
+        protected virtual KeyValuePair<string, string> SerializePathParameter(PathParameterInfo pathParameter, IRequestInfo requestInfo)
+        {
+            switch (pathParameter.SerializationMethod)
+            {
+                case PathSerializationMethod.ToString:
+                    return pathParameter.SerializeToString(this.FormatProvider);
+                case PathSerializationMethod.Serialized:
+                    if (this.RequestPathParamSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize path parameter when RequestPathParamSerializer is null. Please set RequestPathParamSerializer");
+                    var result = pathParameter.SerializeValue(this.RequestPathParamSerializer, requestInfo, this.FormatProvider);
+                    return result;
+                default:
+                    throw new InvalidOperationException("Should never get here");
+            }
+        }
+
+        /// <summary>
         /// Serializes the value of a query parameter, using an appropriate method
         /// </summary>
         /// <param name="queryParameter">Query parameter to serialize</param>
@@ -258,7 +285,7 @@ namespace RestEase.Implementation
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
-                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo);
+                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo, this.FormatProvider);
                     return result ?? Enumerable.Empty<KeyValuePair<string, string>>();
                 default:
                     throw new InvalidOperationException("Should never get here");
@@ -294,7 +321,7 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo);
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo, this.FormatProvider);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -310,8 +337,8 @@ namespace RestEase.Implementation
         {
             // Apply from class -> method (combining static/dynamic), so we get the proper hierarchy
             var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
-            this.ApplyHeadersSet(requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
-            this.ApplyHeadersSet(requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
+            this.ApplyHeadersSet(requestInfo, requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
+            this.ApplyHeadersSet(requestInfo, requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
         }
 
         /// <summary>
@@ -319,8 +346,12 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         /// <param name="headers">Headers to add</param>
-        /// <param name="complainIfBodyHeadersButNoBody">If true, and the header doesn't apply to the request, and there's no body, throw. If false, and the header can apply to a body but there isn't one, don't throw</param>
-        protected virtual void ApplyHeadersSet(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers, bool complainIfBodyHeadersButNoBody)
+        /// <param name="areMethodHeaders">True if these headers came from the method, false if they came from the class</param>
+        protected virtual void ApplyHeadersSet(
+            IRequestInfo requestInfo,
+            HttpRequestMessage requestMessage,
+            IEnumerable<KeyValuePair<string, string>> headers,
+            bool areMethodHeaders)
         {
             HttpContent dummyContent = null;
             var headersGroups = headers.GroupBy(x => x.Key);
@@ -341,15 +372,23 @@ namespace RestEase.Implementation
                 // If we failed, it's probably a content header. Try again there
                 if (!added)
                 {
+                    // If they added a [Body] parameter, but passed null, and they've got headers on the method which
+                    // apply to the body, then add an empty body we can apply those headers to.
+                    if (requestInfo.BodyParameterInfo != null && requestMessage.Content == null && areMethodHeaders)
+                    {
+                        requestMessage.Content = new ByteArrayContent(new byte[0]);
+                    }
                     if (requestMessage.Content != null)
                     {
                         if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
                             requestMessage.Content.Headers.Remove(headersGroup.Key);
                         added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                     }
-                    else if (!complainIfBodyHeadersButNoBody)
+                    else if (!areMethodHeaders)
                     {
-                        // See if it could be added to a content
+                        // If we're here, then there's no content, and either there's no [Body] parameter, or there is
+                        // but they passed null to it, and this header is specified on the class.
+                        // See if it could be added to a content, and ignore it if so.
                         if (dummyContent == null)
                             dummyContent = new ByteArrayContent(new byte[0]);
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
@@ -385,6 +424,8 @@ namespace RestEase.Implementation
                 Content = this.ConstructContent(requestInfo),
             };
 
+            this.ApplyHttpRequestMessageProperties(requestInfo, message);
+
             // Do this after setting the content, as doing so may set headers which we want to remove / override
             this.ApplyHeaders(requestInfo, message);
 
@@ -402,6 +443,14 @@ namespace RestEase.Implementation
                 throw await ApiException.CreateAsync(message, response).ConfigureAwait(false);
 
             return response;
+        }
+
+        private void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
+        {
+            foreach (var property in requestInfo.HttpRequestMessageProperties)
+            {
+                requestMessage.Properties.Add(property.Key, property.Value);
+            }
         }
 
         /// <summary>

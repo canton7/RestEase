@@ -23,8 +23,9 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public abstract HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo);
+        public abstract HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider);
     }
 
     /// <summary>
@@ -55,13 +56,14 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public override HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo)
+        public override HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
 
-            return serializer.SerializeBody<T>(this.Value, new RequestBodySerializerInfo(requestInfo));
+            return serializer.SerializeBody<T>(this.Value, new RequestBodySerializerInfo(requestInfo, formatProvider));
         }
     }
 }

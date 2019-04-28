@@ -236,5 +236,19 @@ namespace RestEaseUnitTests.RequesterTests
             var message = new HttpRequestMessage();
             Assert.Throws<ArgumentException>(() => this.requester.ApplyHeaders(requestInfo, message));
         }
+
+        [Fact]
+        public void SendsBodyHeadersIfBodyIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Post, "foo");
+            requestInfo.AddMethodHeader("Content-Type", "text/plain");
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Default, null);
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.NotNull(message.Content);
+            Assert.Equal("text/plain", message.Content.Headers.ContentType.MediaType);
+        }
     }
 }
