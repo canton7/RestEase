@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using RestEase.Implementation;
+using System.Linq;
 
 #if !NETSTANDARD1_1
 using System.ComponentModel;
@@ -76,11 +76,18 @@ namespace RestEase
             }
 #endif
 
-            var displayAttribute = fieldInfo.GetCustomAttribute<DisplayAttribute>();
-
+            // netstandard can get this by referencing System.ComponentModel.DataAnnotations, (and framework
+            // can get this by referencing the assembly). However we don't want a dependency on this nuget package,
+            // for something so niche, so do a reflection-only load
+            var displayAttribute = fieldInfo.CustomAttributes
+                .FirstOrDefault(x => x.AttributeType.FullName == "System.ComponentModel.DataAnnotations.DisplayAttribute");
             if (displayAttribute != null)
             {
-                return CacheAdd(value, displayAttribute.Name);
+                var name = displayAttribute.NamedArguments.FirstOrDefault(x => x.MemberName == "Name").TypedValue.Value;
+                if (name != null)
+                {
+                    return CacheAdd(value, (string)name);
+                }
             }
 
             return CacheAdd(value, stringValue);
