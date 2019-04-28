@@ -67,12 +67,12 @@ namespace RestEase.Implementation
         /// </summary>
         public IEnumerable<QueryParameterInfo> QueryProperties => this._queryProperties ?? Enumerable.Empty<QueryParameterInfo>();
 
-        private List<RequestPropertyInfo> _httpRequestMessageProperties;
+        private List<HttpRequestMessagePropertyInfo> _httpRequestMessageProperties;
 
         /// <summary>
         /// Gets the values from properties which should be added as request properties
         /// </summary>
-        public IEnumerable<RequestPropertyInfo> HttpRequestMessageProperties => this._httpRequestMessageProperties ?? Enumerable.Empty<RequestPropertyInfo>();
+        public IEnumerable<HttpRequestMessagePropertyInfo> HttpRequestMessageProperties => this._httpRequestMessageProperties ?? Enumerable.Empty<HttpRequestMessagePropertyInfo>();
 
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
@@ -266,9 +266,9 @@ namespace RestEase.Implementation
         public void AddHttpRequestMessagePropertyParameter(string key, object value)
         {
             if (this._httpRequestMessageProperties == null)
-                this._httpRequestMessageProperties = new List<RequestPropertyInfo>();
+                this._httpRequestMessageProperties = new List<HttpRequestMessagePropertyInfo>();
 
-            this._httpRequestMessageProperties.Add(new RequestPropertyInfo(key, value));
+            this._httpRequestMessageProperties.Add(new HttpRequestMessagePropertyInfo(key, value));
         }
 
         /// <summary>
@@ -315,9 +315,9 @@ namespace RestEase.Implementation
         public void AddHttpRequestMessagePropertyProperty(string key, object value)
         {
             if (this._httpRequestMessageProperties == null)
-                this._httpRequestMessageProperties = new List<RequestPropertyInfo>();
+                this._httpRequestMessageProperties = new List<HttpRequestMessagePropertyInfo>();
 
-            this._httpRequestMessageProperties.Add(new RequestPropertyInfo(key, value));
+            this._httpRequestMessageProperties.Add(new HttpRequestMessagePropertyInfo(key, value));
         }
 
         /// <summary>

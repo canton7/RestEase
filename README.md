@@ -58,19 +58,19 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
-    3. [HTTP Request Message Properties](#http-request-message-properties)
-15. [Customizing RestEase](#customizing-restease)
-16. [Interface Accessibility](#interface-accessibility)
-17. [Using Generic Interfaces](#using-generic-interfaces)
-18. [Using Generic Methods](#using-generic-methods)
-19. [Interface Inheritance](#interface-inheritance)
+    3. [Adding to `HttpRequestMessage.Properties`](#adding-to-httprequestmessageproperties)
+14. [Customizing RestEase](#customizing-restease)
+15. [Interface Accessibility](#interface-accessibility)
+16. [Using Generic Interfaces](#using-generic-interfaces)
+17. [Using Generic Methods](#using-generic-methods)
+18. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-20. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+19. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-21. [FAQs](#faqs)
-22. [Comparison to Refit](#comparison-to-refit)
+20. [FAQs](#faqs)
+21. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -1189,14 +1189,17 @@ var httpClient = new HttpClient(new CustomHttpClientHandler())
 ISomeApi api = RestClient.For<ISomeApi>(httpClient);
 ```
 
-HTTP Request Message Properties
------------------
+Adding to `HttpRequestMessage.Properties`
+-----------------------------------------
 
-In very specific cases (i. e. you use custom `HttpMessageHandler`), it might be useful to pass any object reference into the handler. In such case `HttpRequestMessage.Properties` can be used.
-This is done by decorating method parameters with `[HttpRequestMessageProperty("key")]`. If key parameter is not specified then the name of the parameter will be used.
+In very specific cases (i.e. you use custom `HttpMessageHandler`), it might be useful to pass any object reference into the handler.
+In such case `HttpRequestMessage.Properties` can be used.
+This is done by decorating method parameters with `[HttpRequestMessageProperty]`.
+If key parameter is not specified then the name of the parameter will be used.
 
 If all (or most) of the methods on the interface pass such object you can specify a `[HttpRequestMessageProperty]` property.
-These work in the same way as path parameters, but they're on the level of the entire API. Properties must have both a getter and a setter.
+These work in the same way as path parameters, but they're on the level of the entire API.
+Properties must have both a getter and a setter.
 
 Property keys used at interface method level must be unique, parameter key must not be same as property key.
 
@@ -1213,7 +1216,8 @@ public interface ISomeApi
 }
 ```
 
-handler:
+In your `HttpMessageHandler` subclass:
+
 ```csharp
 protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 {

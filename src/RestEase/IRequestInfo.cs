@@ -60,7 +60,7 @@ namespace RestEase
         /// <summary>
         /// Gets the values from properties which should be added as HTTP request message properties
         /// </summary>
-        IEnumerable<RequestPropertyInfo> HttpRequestMessageProperties { get; }
+        IEnumerable<HttpRequestMessagePropertyInfo> HttpRequestMessageProperties { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the interface
