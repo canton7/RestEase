@@ -1,3 +1,10 @@
+v1.4.9
+------
+
+ - Support custom path parameter/property serialization (thanks to @sharparam). This is useful for enums (#95)
+ - Support setting `HttpRequestMessage.Proprties` through properties and parameters (thanks to @Husqvik) (#116)
+ - Allow request body headers to be sent, if the body is null (#109)
+
 v1.4.8
 ------
 
