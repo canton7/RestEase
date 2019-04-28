@@ -12,11 +12,12 @@ namespace RestEase.Implementation
         public List<AttributedProperty<HeaderAttribute>> Headers { get; } = new List<AttributedProperty<HeaderAttribute>>();
         public List<AttributedProperty<PathAttribute>> Path { get; } = new List<AttributedProperty<PathAttribute>>();
         public List<AttributedProperty<QueryAttribute>> Query { get; } = new List<AttributedProperty<QueryAttribute>>();
+        public List<AttributedProperty<HttpRequestMessagePropertyAttribute>> HttpRequestMessageProperties { get; } = new List<AttributedProperty<HttpRequestMessagePropertyAttribute>>();
 
         public PropertyInfo Requester { get; private set; }
 
         public IEnumerable<IAttributedProperty> AllPropertiesWithStorage
-            => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query);
+            => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query).Concat(this.HttpRequestMessageProperties);
 
         public PropertyGrouping(IEnumerable<PropertyInfo> properties)
         {
@@ -58,6 +59,18 @@ namespace RestEase.Implementation
                         queryAttribute.Name = property.Name;
 
                     this.Query.Add(new AttributedProperty<QueryAttribute>(queryAttribute, property));
+                    continue;
+                }
+
+                var httpRequestMessagePropertyAttribute = property.GetCustomAttribute<HttpRequestMessagePropertyAttribute>();
+                if (httpRequestMessagePropertyAttribute != null)
+                {
+                    AssertHasGetterAndSetter(property);
+
+                    if (httpRequestMessagePropertyAttribute.Key == null)
+                        httpRequestMessagePropertyAttribute.Key = property.Name;
+
+                    this.HttpRequestMessageProperties.Add(new AttributedProperty<HttpRequestMessagePropertyAttribute>(httpRequestMessagePropertyAttribute, property));
                     continue;
                 }
 

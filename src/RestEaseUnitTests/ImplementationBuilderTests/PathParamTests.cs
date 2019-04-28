@@ -19,7 +19,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Path] string foo, [Path("bar")] string bar);
 
             [Get("foo/{foo}/{bar}")]
-            Task DifferentParaneterTypesAsync([Path] object foo, [Path] int? bar);
+            Task DifferentParameterTypesAsync([Path] object foo, [Path] int? bar);
         }
 
         public interface IHasPathParamInPathButNotParameters
@@ -156,7 +156,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesNullPathParams()
         {
-            var requestInfo = Request<IPathParams>(x => x.DifferentParaneterTypesAsync(null, null));
+            var requestInfo = Request<IPathParams>(x => x.DifferentParameterTypesAsync(null, null));
 
             var pathParams = requestInfo.PathParams.ToList();
 

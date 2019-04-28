@@ -61,6 +61,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
+    3. [Adding to `HttpRequestMessage.Properties`](#adding-to-httprequestmessageproperties)
 14. [Customizing RestEase](#customizing-restease)
 15. [Interface Accessibility](#interface-accessibility)
 16. [Using Generic Interfaces](#using-generic-interfaces)
@@ -1302,6 +1303,46 @@ var httpClient = new HttpClient(new CustomHttpClientHandler())
 ISomeApi api = RestClient.For<ISomeApi>(httpClient);
 ```
 
+Adding to `HttpRequestMessage.Properties`
+-----------------------------------------
+
+In very specific cases (i.e. you use custom `HttpMessageHandler`), it might be useful to pass any object reference into the handler.
+In such case `HttpRequestMessage.Properties` can be used.
+This is done by decorating method parameters with `[HttpRequestMessageProperty]`.
+If key parameter is not specified then the name of the parameter will be used.
+
+If all (or most) of the methods on the interface pass such object you can specify a `[HttpRequestMessageProperty]` property.
+These work in the same way as path parameters, but they're on the level of the entire API.
+Properties must have both a getter and a setter.
+
+Property keys used at interface method level must be unique, parameter key must not be same as property key.
+
+For example:
+
+```csharp
+public interface ISomeApi
+{
+    [HttpRequestMessageProperty]
+    CommonData AlwaysIncluded { get; set; }
+
+    [Get]
+    Task Get([HttpRequestMessageProperty("myKey")] string myValueIWantToAccessFromHttpMessageHandler);
+}
+```
+
+In your `HttpMessageHandler` subclass:
+
+```csharp
+protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+{
+    var alwaysIncluded = (CommonData)request.Properties["AlwaysIncluded"];
+    var myValueIWantToAccessFromHttpMessageHandler = (string)request.Properties["myKey"];
+
+    // Let's use the properties!
+
+    return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+}
+```
 
 Customizing RestEase
 --------------------

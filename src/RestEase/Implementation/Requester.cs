@@ -412,6 +412,8 @@ namespace RestEase.Implementation
                 Content = this.ConstructContent(requestInfo),
             };
 
+            this.ApplyHttpRequestMessageProperties(requestInfo, message);
+
             // Do this after setting the content, as doing so may set headers which we want to remove / override
             this.ApplyHeaders(requestInfo, message);
 
@@ -429,6 +431,14 @@ namespace RestEase.Implementation
                 throw await ApiException.CreateAsync(message, response).ConfigureAwait(false);
 
             return response;
+        }
+
+        private void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
+        {
+            foreach (var property in requestInfo.HttpRequestMessageProperties)
+            {
+                requestMessage.Properties.Add(property.Key, property.Value);
+            }
         }
 
         /// <summary>
