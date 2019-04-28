@@ -14,7 +14,7 @@ namespace RestEase
     /// <inheritdoc />
     /// <summary>
     /// A serializer that handles enum values specially, serializing them into their display value
-    /// as defined by a Display or EnumMember attribute.
+    /// as defined by a EnumMember, DisplayName, or Display attribute (in that order).
     /// </summary>
     public class StringEnumRequestPathParamSerializer : RequestPathParamSerializer
     {
@@ -29,17 +29,10 @@ namespace RestEase
         /// <param name="info">Extra info which may be useful to the serializer</param>
         /// <returns>A string value to use as path parameter</returns>
         /// <remarks>
-        /// If the value is an enum value, the serializer will check if it has an EnumMember or Display
-        /// attribute, and if so return the value of that instead.
+        /// If the value is an enum value, the serializer will check if it has an EnumMember, DisplayName or Display
+        /// attribute, and if so return the value of that instead (in that order of preference).
         /// </remarks>
         public override string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
-        {
-            var type = typeof(T);
-
-            return IsEnum(type) ? GetEnumDisplayName(value) : value.ToString();
-        }
-
-        private static string GetEnumDisplayName<T>(T value)
         {
             var type = typeof(T);
 
