@@ -12,9 +12,6 @@ namespace RestEase
         /// </summary>
         /// <param name="info">Information about the request</param>
         /// <returns>The escaped query string</returns>
-        public virtual string Build(QueryStringBuilderInfo info)
-        {
-            throw new NotImplementedException($"You must override and implementBuild(QueryStringBuilderInfo info) in {this.GetType().Name}");
-        }
+        public abstract string Build(QueryStringBuilderInfo info);
     }
 }
