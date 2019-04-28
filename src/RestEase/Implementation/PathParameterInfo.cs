@@ -23,6 +23,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
         public abstract KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider);
 
@@ -61,8 +62,14 @@ namespace RestEase.Implementation
             this.SerializationMethod = serializationMethod;
         }
 
-        /// <inheritdoc />
-        /// <exception cref="ArgumentNullException">Thrown if serializer or requestInfo are null</exception>
+        /// <summary>
+        /// Serialize the value into a name -> value pair using the given serializer
+        /// </summary>
+        /// <param name="serializer">Serializer to use</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
+
+        /// <returns>Serialized value</returns>
         public override KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
         {
             if (serializer == null)
@@ -74,7 +81,11 @@ namespace RestEase.Implementation
             return new KeyValuePair<string, string>(this.name, serializedValue);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Serialize the value into a name -> value pair using its ToString method
+        /// </summary>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
+        /// <returns>Serialized value</returns>
         public override KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
         {
             return new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(this.value, this.format, formatProvider));
