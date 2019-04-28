@@ -1184,6 +1184,8 @@ return "bar";
 
 There is no default path serializer, as its usage is often very specific. If a path parameter has `PathSerializationMethod.Serialized` specified when no serializer has been set on the `RestClient`, an exception will be thrown.
 
+There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have `EnumMember`, `DisplayName`, or `Display` attributes specified on their members. This can be used as-is or as a reference for your own implementation.
+
 To tell RestEase to use a path serializer, you must create a new `RestClient`, assign its `RequestPathParamSerializer` property, then call `For<T>()` to get an implementation of your interface.
 
 For example:
