@@ -26,7 +26,7 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     1. [Constant Query Parameters](#constant-query-parameters)
     2. [Variable Query Parameters](#variable-query-parameters)
         1. [Formatting Variable Query Parameters](#formatting-variable-query-parameters)
-        2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters) 
+        2. [Serialization of Variable Query Parameters](#serialization-of-variable-query-parameters)
     3. [Query Parameters Map](#query-parameters-map)
     4. [Raw Query String Parameters](#raw-query-string-parameters)
     5. [Query Properties](#query-properties)
@@ -34,9 +34,11 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     1. [Path Parameters](#path-parameters)
         1. [Formatting Path Parameters](#formatting-path-parameters)
         2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
+        3. [Serialization of Path Parameters](#serialization-of-path-parameters)
     2. [Path Properties](#path-properties)
         1. [Formatting Path Properties](#formatting-path-properties)
         2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
+        3. [Serialization of Path Properties](#serialization-of-path-properties)
 7. [Body Content](#body-content)
     1. [URL Encoded Bodies](#url-encoded-bodies)
 8. [Response Status Codes](#response-status-codes)
@@ -53,8 +55,9 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
         2. [Serializing request bodies: `RequestBodySerializer`](#serializing-request-bodies-requestbodyserializer)
-        3. [Serializing request parameters: `RequestQueryParamSerializer`](#serializing-request-parameters-requestqueryparamserializer)
-        4. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
+        3. [Serializing request query parameters: `RequestQueryParamSerializer`](#serializing-request-query-parameters-requestqueryparamserializer)
+        4. [Serializing request path parameters: `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer)
+        5. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
 13. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
@@ -359,7 +362,7 @@ await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
 You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Query = QuerySerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
 
 ```csharp
-[SerializationMethods(Query = QuerySerializationMethods.Serialized)]
+[SerializationMethods(Query = QuerySerializationMethod.Serialized)]
 public interface ISomeApi
 {
     [Get("search")]
@@ -538,6 +541,52 @@ ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
 await api.FooAsync("bar/baz");
 ```
 
+#### Serialization of Path Parameters
+
+Similar to query paramters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members).
+In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying [a `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
+
+For example:
+```csharp
+public enum MyEnum
+{
+    [Display(Name = "first")]
+    First,
+
+    [Display(Name = "second")]
+    Second,
+}
+
+public interface ISomeApi
+{
+    [Get("path/{param}")]
+    Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] MyEnum param);
+}
+
+ISomeApi = new RestClient
+{
+    RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
+}.For<ISomeApi>("http://api.example.com");
+
+// Requests http://api.example.com/path/first
+await api.GetAsync(MyEnum.First);
+```
+
+You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Path = PathSerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
+
+```csharp
+[SerializationMethods(Path = PathSerializationMethod.Serialized)]
+public interface ISomeApi
+{
+    [Get("path/{foo}")]
+    [SerializationMethods(Path = PathSerializationMethod.ToString)]
+    Task<string> GetWithToStringAsync([Path] MyEnum foo);
+
+    [Get("path/{foo}")]
+    Task<string> GetWithSerializedAsync([Path] MyEnum foo);
+}
+```
+
 ### Path Properties
 
 Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
@@ -621,6 +670,44 @@ api.PathPart = "users/abc";
 await api.GetAsync();
 ```
 
+#### Serialization of Path Properties
+
+[As with path parameters](#serialization-of-path-parameters), you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour.
+You must also supply a `RequestPathParamSerializer` when creating the `RestClient`.
+This can be used for things like controlling how enum members are serialized.
+
+For example:
+
+```csharp
+public enum MyEnum
+{
+    [Display(Name = "first")]
+    First,
+
+    [Display(Name = "second")]
+    Second,
+}
+
+public interface ISomeApi
+{
+    [Path("pathPart", PathSerializationMethod.Serialized)]
+    MyEnum PathPart { get; set; }
+
+    [Get("path/{pathPart}")]
+    Task<string> GetAsync();
+}
+
+ISomeApi = new RestClient
+{
+    RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
+}.For<ISomeApi>("http://api.example.com");
+
+api.PathPart = MyEnumSecond;
+// Requests http://api.example.com/path/second
+await api.GetAsync();
+```
+
+
 Body Content
 ------------
 
@@ -661,9 +748,9 @@ public interface IMeasurementProtocolApi
 }
 
 var data = new Dictionary<string, object> {
-    {"v", 1}, 
-    {"tids", new[] { "UA-1234-5", "UA-1234-6" }, 
-    {"cid", new Guid("d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c")}, 
+    {"v", 1},
+    {"tids", new[] { "UA-1234-5", "UA-1234-6" },
+    {"cid", new Guid("d1e9ea6b-2e8b-4699-93e0-0bcbd26c206c")},
     {"t", "event"},
 };
 
@@ -937,6 +1024,7 @@ You can completely customize how requests are serialized, and responses deserial
  - To control how responses are deserialized, subclass [`ResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/ResponseDeserializer.cs)
  - To control how request bodies are serialized, subclass [`RequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/RequestBodySerializer.cs)
  - To control how request query parameters are serialized, subclass [`RequestQueryParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/RequestQueryParamSerializer.cs)
+ - To control how request path parameters are serialized, subclass [`RequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/RequestPathParamSerializer.cs)
 
 You can, of course, provide a custom implementation of only one of these, or all of them, or any number in between.
 
@@ -1018,7 +1106,7 @@ var api = new RestClient("http://api.example.com")
 }.For<ISomeApi>();
 ```
 
-#### Serializing request parameters: `RequestQueryParamSerializer`
+#### Serializing request query parameters: `RequestQueryParamSerializer`
 
 This class has two methods: one is called whenever a scalar query parameter requires serialization (i.e. is decorated with `[Query(QuerySerializationMethod.Serialized)]`); the other is called whenever a collection of query parameters (that is, the query parameter has type `IEnumerable<T>` for some `T`) requires serialization.
 
@@ -1096,6 +1184,32 @@ var api = new RestClient("http://api.example.com")
 If you specified a `Format` property on the `[Query]` attribute, this will be available as `info.Format`.
 By default, this is `null`.
 
+#### Serializing request path parameters: `RequestPathParamSerializer`
+
+This class has one method, called whenever a path parameter requires serialization (i.e. is decorated with `[Path(PathSerializationMethod.Serialized)]`).
+
+This method wants you to return a `string`, which is the value that will be inserted in place of the placeholder in the path string.
+
+There is no default path serializer, as its usage is often very specific.
+In order to use `PathSerializationMethod.Serialized`, you *must* set `RestClient.RequestPathParamSerializer`.
+
+There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have `EnumMember`, `DisplayName` or `Display` attributes specified on their members (evaluated in that order).
+This can be used as-is or as a reference for your own implementation.
+
+To tell RestEase to use a path serializer, you must create a new `RestClient`, assign its `RequestPathParamSerializer` property, then call `For<T>()` to get an implementation of your interface.
+
+For example:
+
+```csharp
+var api = new RestClient("http://api.example.com")
+{
+    RequestPathParamSerializer = new StringEnumRequestPathParamSerializer(),
+}.For<ISomeApi>();
+```
+
+If you specified a `Format` property on the `[Path]` attribute, this will be available as `info.Format`.
+By default, this is `null`.
+
 #### Controlling query string generation: `QueryStringBuilder`
 
 RestEase has logic to turn a collection of query parameters into a single suitably-encoded query string.
@@ -1136,7 +1250,7 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
     if (auth != null)
     {
         // The AquireTokenAsync call will prompt with a UI if necessary
-        // Or otherwise silently use a refresh token to return a valid access token 
+        // Or otherwise silently use a refresh token to return a valid access token
         var token = await context.AcquireTokenAsync("http://my.service.uri/app", "clientId", new Uri("callback://complete")).ConfigureAwait(false);
         request.Headers.Authorization = new AuthenticationHeaderValue(auth.Scheme, token);
   }
@@ -1235,7 +1349,7 @@ Now, you cannot customize what this generated class looks like, but you can see 
 What you *can* do however is to provide your own [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs) implementation, and pass that to an appropriate overload of `RestClient.For<T>`.
 In fact, the default implementation of [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs), [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), has been carefully written so that it's easy to extend: each little bit of functionality is broken out into its own virtual method, so it's easy to replace just the behaviour you need.
 
-Have a read through [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), figure out what you want to change, subclass it, and provide an instance of that subclass to `RestClient.For<T>`. 
+Have a read through [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), figure out what you want to change, subclass it, and provide an instance of that subclass to `RestClient.For<T>`.
 
 
 Interface Accessibility
@@ -1281,9 +1395,9 @@ public interface IReallyExcitingCrudApi<T, TKey>
 Which can be used like this:
 
 ```csharp
-// The "/users" part here is kind of important if you want it to work for more 
+// The "/users" part here is kind of important if you want it to work for more
 // than one type (unless you have a different domain for each type)
-var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users"); 
+var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users");
 ```
 
 Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known).
@@ -1332,7 +1446,7 @@ public interface IAuthenticatedEndpoint
 {
     [Header("X-Api-Token")]
     string ApiToken { get; set; }
- 
+
     [Header("X-Api-Username")]
     string ApiUsername { get; set; }
 

@@ -33,6 +33,11 @@ namespace RestEase.Implementation
         public RequestBodySerializer RequestBodySerializer { get; set; } = new JsonRequestBodySerializer();
 
         /// <summary>
+        /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
+        /// </summary>
+        public RequestPathParamSerializer RequestPathParamSerializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
         /// </summary>
         public RequestQueryParamSerializer RequestQueryParamSerializer { get; set; } = new JsonRequestQueryParamSerializer();
@@ -80,7 +85,7 @@ namespace RestEase.Implementation
             var sb = new StringBuilder(requestInfo.Path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
-                var serialized = pathParam.SerializeToString(this.FormatProvider);
+                var serialized = this.SerializePathParameter(pathParam, requestInfo);
 
                 // Space needs to be treated separately
                 var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
@@ -151,7 +156,7 @@ namespace RestEase.Implementation
             IEnumerable<QueryParameterInfo> queryParams,
             IEnumerable<QueryParameterInfo> queryProperties,
             IRequestInfo requestInfo)
-        { 
+        {
             var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
             var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
 
@@ -244,6 +249,28 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
+        /// Serializes the value of a path parameter, using an appropriate method
+        /// </summary>
+        /// <param name="pathParameter">Path parameter to serialize</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <returns>Serialized value</returns>
+        protected virtual KeyValuePair<string, string> SerializePathParameter(PathParameterInfo pathParameter, IRequestInfo requestInfo)
+        {
+            switch (pathParameter.SerializationMethod)
+            {
+                case PathSerializationMethod.ToString:
+                    return pathParameter.SerializeToString(this.FormatProvider);
+                case PathSerializationMethod.Serialized:
+                    if (this.RequestPathParamSerializer == null)
+                        throw new InvalidOperationException("Cannot serialize path parameter when RequestPathParamSerializer is null. Please set RequestPathParamSerializer");
+                    var result = pathParameter.SerializeValue(this.RequestPathParamSerializer, requestInfo, this.FormatProvider);
+                    return result;
+                default:
+                    throw new InvalidOperationException("Should never get here");
+            }
+        }
+
+        /// <summary>
         /// Serializes the value of a query parameter, using an appropriate method
         /// </summary>
         /// <param name="queryParameter">Query parameter to serialize</param>
@@ -258,7 +285,7 @@ namespace RestEase.Implementation
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
-                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo);
+                    var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo, this.FormatProvider);
                     return result ?? Enumerable.Empty<KeyValuePair<string, string>>();
                 default:
                     throw new InvalidOperationException("Should never get here");
@@ -294,7 +321,7 @@ namespace RestEase.Implementation
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
-                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo);
+                    return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo, this.FormatProvider);
                 default:
                     throw new InvalidOperationException("Should never get here");
             }

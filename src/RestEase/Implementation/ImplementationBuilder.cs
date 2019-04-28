@@ -38,7 +38,7 @@ namespace RestEase.Implementation
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(MethodInfo) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
-        
+
         // These two methods have the same signature, which is very useful...
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryParameter");
         private static readonly MethodInfo addQueryCollectionParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryCollectionParameter");
@@ -109,7 +109,7 @@ namespace RestEase.Implementation
             // We have a lock around creating all types, as that's simpler and probably won't be noticable in practice.
 
             if (TypeCreatorRegistry<T>.Creator == null)
-            { 
+            {
                 lock (this.implementationBuilderLockObject)
                 {
                     // Two threads can fail the null test and acquire this lock in order. The first one will create the type.
@@ -311,7 +311,7 @@ namespace RestEase.Implementation
             FieldInfo classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
             SerializationMethodsAttribute classSerializationMethodsAttribute,
-            PropertyGrouping properties, 
+            PropertyGrouping properties,
             out MethodInfoGrouping methodInfoGrouping)
         {
             int methodIndex = 0;
@@ -395,7 +395,7 @@ namespace RestEase.Implementation
                     this.AddCancellationTokenIfNeeded(methodIlGenerator, parameterGrouping.CancellationToken);
                     this.AddClassHeadersIfNeeded(methodIlGenerator, classHeadersField);
                     this.AddPropertyHeaders(methodIlGenerator, properties.Headers);
-                    this.AddPathProperties(methodIlGenerator, properties.Path);
+                    this.AddPathProperties(methodIlGenerator, properties.Path, serializationMethods);
                     this.AddQueryProperties(methodIlGenerator, properties.Query, serializationMethods);
                     this.AddMethodHeaders(methodIlGenerator, methodInfo);
                     this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
@@ -540,12 +540,13 @@ namespace RestEase.Implementation
             }
         }
 
-        private void AddPathProperties(ILGenerator methodIlGenerator, List<AttributedProperty<PathAttribute>> path)
+        private void AddPathProperties(ILGenerator methodIlGenerator, List<AttributedProperty<PathAttribute>> path, ResolvedSerializationMethods serializationMethods)
         {
             foreach (var pathProperty in path)
             {
                 var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
                 methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethods.ResolvePath(pathProperty.Attribute.SerializationMethod));
                 methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
                 methodIlGenerator.Emit(OpCodes.Ldfld, pathProperty.BackingField);
@@ -640,7 +641,8 @@ namespace RestEase.Implementation
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
             {
-                this.AddPathParam(methodIlGenerator, pathParameter);
+                var pathSerializationMethod = serializationMethods.ResolvePath(pathParameter.Attribute.SerializationMethod);
+                this.AddPathParam(methodIlGenerator, pathParameter, pathSerializationMethod);
             }
 
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
@@ -713,7 +715,7 @@ namespace RestEase.Implementation
         }
 
         private void AddRequestMethodInvocation(ILGenerator methodIlGenerator, MethodInfo methodInfo)
-        { 
+        {
             // Call the appropriate RequestVoidAsync/RequestAsync method, depending on whether or not we have a return type
             if (methodInfo.ReturnType == typeof(Task))
             {
@@ -851,7 +853,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, methodInfo);
         }
 
-        private void AddPathParam(ILGenerator methodIlGenerator, IndexedParameter<PathAttribute> pathParameter)
+        private void AddPathParam(ILGenerator methodIlGenerator, IndexedParameter<PathAttribute> pathParameter, PathSerializationMethod serializationMethod)
         {
             var methodInfo = addPathParameterMethod.MakeGenericMethod(pathParameter.Parameter.ParameterType);
 
@@ -862,6 +864,7 @@ namespace RestEase.Implementation
             // Duplicate the requestInfo.
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
+            methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethod);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
             methodIlGenerator.Emit(OpCodes.Ldstr, pathParameter.Attribute.Name ?? pathParameter.Parameter.Name);

@@ -1,6 +1,7 @@
 ﻿using Moq;
 using RestEase;
 using RestEase.Implementation;
+using RestEaseUnitTests.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -118,7 +119,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var implementation = this.builder.CreateImplementation<IHasGenericConstraint>(this.requester.Object);
             var methodInfo = implementation.GetType().GetMethod("Foo");
             Assert.Equal(new[] { typeof(IInterface), typeof(Base) }, methodInfo.GetGenericArguments()[0].GetGenericParameterConstraints());
-            Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, methodInfo.GetGenericArguments()[0].GenericParameterAttributes);
+            Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, methodInfo.GetGenericArguments()[0].GetGenericParameterAttributes());
         }
     }
 }

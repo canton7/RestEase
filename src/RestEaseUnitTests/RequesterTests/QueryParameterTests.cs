@@ -185,7 +185,8 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "bar", obj, "D3");
 
             var serializer = new Mock<RequestQueryParamSerializer>();
-            serializer.Setup(x => x.SerializeQueryParam<HasToString>("bar", obj, new RequestQueryParamSerializerInfo(requestInfo, "D3"))).Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY") }).Verifiable();
+            serializer.Setup(x => x.SerializeQueryParam<HasToString>("bar", obj, new RequestQueryParamSerializerInfo(requestInfo, "D3", null)))
+                .Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY") }).Verifiable();
             this.requester.RequestQueryParamSerializer = serializer.Object;
 
             var uri = this.requester.ConstructUri("/foo", requestInfo);
@@ -220,7 +221,7 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddQueryCollectionParameter(QuerySerializationMethod.Serialized, "bar", new[] { obj }, "D4");
 
             var serializer = new Mock<RequestQueryParamSerializer>();
-            serializer.Setup(x => x.SerializeQueryCollectionParam<HasToString>("bar", new[] { obj }, new RequestQueryParamSerializerInfo(requestInfo, "D4")))
+            serializer.Setup(x => x.SerializeQueryCollectionParam<HasToString>("bar", new[] { obj }, new RequestQueryParamSerializerInfo(requestInfo, "D4", null)))
                 .Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY"), new KeyValuePair<string, string>("bar", "BOOMWOO") })
                 .Verifiable();
             this.requester.RequestQueryParamSerializer = serializer.Object;
