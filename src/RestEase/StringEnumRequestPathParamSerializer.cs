@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using RestEase.Implementation;
 
 #if !NETSTANDARD1_1
 using System.ComponentModel;
@@ -42,7 +43,7 @@ namespace RestEase
 
             if (!IsEnum(type))
             {
-                return value.ToString();
+                return ToStringHelper.ToString(value, info.Format, info.FormatProvider);
             }
 
             if (cache.TryGetValue(value, out var stringValue))

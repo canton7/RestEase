@@ -263,7 +263,7 @@ namespace RestEase.Implementation
                 case PathSerializationMethod.Serialized:
                     if (this.RequestPathParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize path parameter when RequestPathParamSerializer is null. Please set RequestPathParamSerializer");
-                    var result = pathParameter.SerializeValue(this.RequestPathParamSerializer, requestInfo);
+                    var result = pathParameter.SerializeValue(this.RequestPathParamSerializer, requestInfo, this.FormatProvider);
                     return result;
                 default:
                     throw new InvalidOperationException("Should never get here");

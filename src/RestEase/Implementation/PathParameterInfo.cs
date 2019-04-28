@@ -24,7 +24,7 @@ namespace RestEase.Implementation
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        public abstract KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo);
+        public abstract KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider);
 
         /// <summary>
         /// Serialize the value into a name -> value pair using its ToString method
@@ -63,14 +63,14 @@ namespace RestEase.Implementation
 
         /// <inheritdoc />
         /// <exception cref="ArgumentNullException">Thrown if serializer or requestInfo are null</exception>
-        public override KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo)
+        public override KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
             if (requestInfo == null)
                 throw new ArgumentNullException(nameof(requestInfo));
 
-            var serializedValue = serializer.SerializePathParam(this.value, new RequestPathParamSerializerInfo(requestInfo, this.format));
+            var serializedValue = serializer.SerializePathParam(this.value, new RequestPathParamSerializerInfo(requestInfo, this.format, formatProvider));
             return new KeyValuePair<string, string>(this.name, serializedValue);
         }
 

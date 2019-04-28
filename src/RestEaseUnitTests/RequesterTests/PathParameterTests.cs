@@ -3,6 +3,7 @@ using RestEase;
 using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -153,7 +154,34 @@ namespace RestEaseUnitTests.RequesterTests
 
             var serializer = new Mock<RequestPathParamSerializer>();
             serializer.Setup(x =>
-                    x.SerializePathParam(obj, new RequestPathParamSerializerInfo(requestInfo, "D5")))
+                    x.SerializePathParam(obj, new RequestPathParamSerializerInfo(requestInfo, "D5", null)))
+                .Returns("yep")
+                .Verifiable();
+            this.requester.RequestPathParamSerializer = serializer.Object;
+
+            var uri = this.requester.SubstitutePathParameters(requestInfo);
+
+            serializer.VerifyAll();
+        }
+
+        [Fact]
+        public void PassesFormatProviderWhenSerializing()
+        {
+            var obj = new HasToStringToo();
+
+#if NETCOREAPP1_0
+            var provider = new CultureInfo("sv-SE");
+#else
+            var provider = CultureInfo.GetCultureInfo("sv-SE");
+#endif
+
+            this.requester.FormatProvider = provider;
+            var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
+            requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", obj);
+
+            var serializer = new Mock<RequestPathParamSerializer>();
+            serializer.Setup(x =>
+                    x.SerializePathParam(obj, new RequestPathParamSerializerInfo(requestInfo, null, provider)))
                 .Returns("yep")
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;

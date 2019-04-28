@@ -11,7 +11,7 @@ namespace RestEaseUnitTests
 {
     public class StringEnumRequestPathParamSerializerTests
     {
-        private static readonly RequestPathParamSerializerInfo info = new RequestPathParamSerializerInfo(null, null);
+        private static readonly RequestPathParamSerializerInfo info = new RequestPathParamSerializerInfo(null, null, null);
 
         private static readonly RequestPathParamSerializer serializer = new StringEnumRequestPathParamSerializer();
 
