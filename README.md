@@ -362,7 +362,7 @@ await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
 You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Query = QuerySerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
 
 ```csharp
-[SerializationMethods(Query = QuerySerializationMethods.Serialized)]
+[SerializationMethods(Query = QuerySerializationMethod.Serialized)]
 public interface ISomeApi
 {
     [Get("search")]
@@ -543,40 +543,47 @@ await api.FooAsync("bar/baz");
 
 #### Serialization of Path Parameters
 
-Similar to query paramters, calling `ToString()` is sometimes not enough: you might want to apply custom conversion to some parameters where `ToString()` is not feasible (like enum values).
-In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and further control it by using a [custom serializer](#custom-serializers-and-deserializers).
+Similar to query paramters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members).
+In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying [a `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
 
 For example:
 ```csharp
+public enum MyEnum
+{
+    [Display(Name = "first")]
+    First,
+
+    [Display(Name = "second")]
+    Second,
+}
+
 public interface ISomeApi
 {
     [Get("path/{param}")]
-    Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] string param);
+    Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] MyEnum param);
 }
 
 ISomeApi = new RestClient
 {
-    RequestPathParamSerializer = new DoublingPathParamSerializer()
+    RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
 }.For<ISomeApi>("http://api.example.com");
 
-// Requests http://api.example.com/path/hellohello
-await api.GetAsync("hello");
+// Requests http://api.example.com/path/first
+await api.GetAsync(MyEnum.First);
 ```
-
-For the definition of `DoublingPathParamSerializer`, see [the section on controlling (de)serialization](#serializing-request-path-parameters-requestpathparamserializer).
 
 You can also specify the default serialization method for an entire api by specifying `[SerializationMethods(Path = PathSerializationMethod.Serialized)]` on the interface, or for all parameters in a given method by specifying it on the method, for example:
 
 ```csharp
-[SerializationMethods(Path = PathSerializationMethods.Serialized)]
+[SerializationMethods(Path = PathSerializationMethod.Serialized)]
 public interface ISomeApi
 {
     [Get("path/{foo}")]
     [SerializationMethods(Path = PathSerializationMethod.ToString)]
-    Task<string> GetWithToStringAsync([Path] SpecialParameter foo);
+    Task<string> GetWithToStringAsync([Path] MyEnum foo);
 
     [Get("path/{foo}")]
-    Task<string> GetWithSerializedAsync([Path] SpecialParameter foo);
+    Task<string> GetWithSerializedAsync([Path] MyEnum foo);
 }
 ```
 
@@ -665,33 +672,41 @@ await api.GetAsync();
 
 #### Serialization of Path Properties
 
-As with path parameters, you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour as defined by the `RequestPathParamSerializer` provided when creating the `RestClient`.
+[As with path parameters](#serialization-of-path-parameters), you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour.
+You must also supply a `RequestPathParamSerializer` when creating the `RestClient`.
+This can be used for things like controlling how enum members are serialized.
 
 For example:
 
 ```csharp
-public interface ISomeApi
+public enum MyEnum
 {
-    [Path(PathSerializationMethod.Serialized)]
-    public string SuperSpecial { get; set; }
+    [Display(Name = "first")]
+    First,
 
-    [Get("{superSpecial}/resource")]
-    Task GetAsync();
+    [Display(Name = "second")]
+    Second,
 }
 
-var api = new RestClient
+public interface ISomeApi
 {
-    RequestPathParamSerializer = new DoublingPathParamSerializer()
-}.For<ISomeApi>();
+    [Path("pathPart", PathSerializationMethod.Serialized)]
+    MyEnum PathPart { get; set; }
 
-api.SuperSpecial = "bar";
+    [Get("path/{pathPart}")]
+    Task<string> GetAsync();
+}
 
-// Requests 'barbar/resource'
+ISomeApi = new RestClient
+{
+    RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
+}.For<ISomeApi>("http://api.example.com");
+
+api.PathPart = MyEnumSecond;
+// Requests http://api.example.com/path/second
 await api.GetAsync();
-
 ```
 
-For the definition of `DoublingPathParamSerializer`, see [the section on controlling (de)serialization](#serializing-request-path-parameters-requestpathparamserializer).
 
 Body Content
 ------------
@@ -1174,49 +1189,21 @@ By default, this is `null`.
 This class has one method, called whenever a path parameter requires serialization (i.e. is decorated with `[Path(PathSerializationMethod.Serialized)]`).
 
 This method wants you to return a `string`, which is the value that will be inserted in place of the placeholder in the path string.
-For example:
 
-```csharp
-return "bar";
+There is no default path serializer, as its usage is often very specific.
+In order to use `PathSerializationMethod.Serialized`, you *must* set `RestClient.RequestPathParamSerializer`.
 
-// Path will be rendered as '.../bar/...' if the path template was written as '.../{key}/...'
-```
-
-There is no default path serializer, as its usage is often very specific. If a path parameter has `PathSerializationMethod.Serialized` specified when no serializer has been set on the `RestClient`, an exception will be thrown.
-
-There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have `EnumMember`, `DisplayName`, or `Display` attributes specified on their members (evaluated in that order). This can be used as-is or as a reference for your own implementation.
+There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have `EnumMember`, `DisplayName` or `Display` attributes specified on their members (evaluated in that order).
+This can be used as-is or as a reference for your own implementation.
 
 To tell RestEase to use a path serializer, you must create a new `RestClient`, assign its `RequestPathParamSerializer` property, then call `For<T>()` to get an implementation of your interface.
 
 For example:
 
 ```csharp
-// Duplicating the value in the path is unlikely to be useful in a real API,
-// but used here purely as an example implementation.
-
-public class DoublingPathParamSerializer : RequestPathParamSerializer
-{
-    public override string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
-    {
-        if (value == null)
-        {
-            return null;
-        }
-
-        // Duplicate value if it's a string
-        if (value is string str)
-        {
-            return $"{str}{str}";
-        }
-
-        // If it's not a string, use default .ToString() behaviour
-        return value.ToString();
-    }
-}
-
 var api = new RestClient("http://api.example.com")
 {
-    RequestPathParamSerializer = new DoublingPathParamSerializer()
+    RequestPathParamSerializer = new StringEnumRequestPathParamSerializer(),
 }.For<ISomeApi>();
 ```
 
