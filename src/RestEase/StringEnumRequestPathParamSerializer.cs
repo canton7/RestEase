@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -9,8 +10,6 @@ using System.Runtime.Serialization;
 
 namespace RestEase
 {
-    using System;
-
     /// <inheritdoc />
     /// <summary>
     /// A serializer that handles enum values specially, serializing them into their display value
@@ -34,6 +33,11 @@ namespace RestEase
         /// </remarks>
         public override string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
             var type = typeof(T);
 
             if (!IsEnum(type))
