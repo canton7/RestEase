@@ -73,6 +73,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync();
         }
 
+        public interface IHasDuplicatePathProperties
+        {
+            [Path("foo")]
+            string Foo { get; set; }
+
+            [Path("foo")]
+            string Foo2 { get; set; }
+
+            [Get("{foo}")]
+            Task FooAsync();
+        }
+
         public interface IHasPathPropertyWithNoName
         {
             [Path]
@@ -257,6 +269,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var serialized = pathProperties[0].SerializeToString(null);
             Assert.Equal("foo", serialized.Key);
             Assert.Equal("bar", serialized.Value);
+        }
+
+        [Fact]
+        public void ThrowsIfDuplicatePathProperties()
+        {
+            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicatePathProperties>(this.requester.Object));
         }
 
         [Fact]

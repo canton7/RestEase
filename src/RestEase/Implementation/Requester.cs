@@ -65,24 +65,25 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Takes the Path, PathParams, and PathProperties from the given IRequestInfo, and constructs a path with placeholders substituted
-        /// for their desired values.
+        /// Takes the PathParams and PathProperties from the given IRequestInfo, and constructs a path with
+        /// placeholders substituted for their desired values.
         /// </summary>
         /// <remarks>
         /// Note that this method assumes that valdation has occurred. That is, there won't by any
         /// placeholders with no value, or values without a placeholder.
         /// </remarks>
+        /// <param name="path">Path to substitute placeholders in</param>
         /// <param name="requestInfo">IRequestInfo to get Path, PathParams, and PathProperties from</param>
         /// <returns>The constructed path, with placeholders substituted for their actual values</returns>
-        protected virtual string SubstitutePathParameters(IRequestInfo requestInfo)
+        protected virtual string SubstitutePathParameters(string path, IRequestInfo requestInfo)
         {
-            if (requestInfo.Path == null || (!requestInfo.PathParams.Any() && !requestInfo.PathProperties.Any()))
-                return requestInfo.Path;
+            if (string.IsNullOrEmpty(path) || (!requestInfo.PathParams.Any() && !requestInfo.PathProperties.Any()))
+                return path;
 
             // We've already done validation to ensure that the parts in the path, and the available values, are present
             // Substitute the path params, then the path properties. That way, the properties are used only if
             // there are no matching path params.
-            var sb = new StringBuilder(requestInfo.Path);
+            var sb = new StringBuilder(path);
             foreach (var pathParam in requestInfo.PathParams.Concat(requestInfo.PathProperties))
             {
                 var serialized = this.SerializePathParameter(pathParam, requestInfo);
@@ -98,27 +99,42 @@ namespace RestEase.Implementation
         /// <summary>
         /// Given an IRequestInfo and pre-substituted relative path, constructs a URI with the right query parameters
         /// </summary>
+        /// <param name="basePath">Base path to start with, with placeholders already substituted</param>
         /// <param name="path">Path to start with, with placeholders already substituted</param>
         /// <param name="requestInfo">IRequestInfo to retrieve the query parameters from</param>
         /// <returns>Constructed URI; relative if 'path' was relative, otherwise absolute</returns>
-        protected virtual Uri ConstructUri(string path, IRequestInfo requestInfo)
+        protected virtual Uri ConstructUri(string basePath, string path, IRequestInfo requestInfo)
         {
             UriBuilder uriBuilder;
             try
             {
+                // If path is absolute, then BaseAddress and basePath are both ignored.
+                // If path starts with /, then basePath is ignored but BaseAddress is not.
+                // If basePath is absolute, then BaseAddress is ignored.
+
                 var trimmedPath = (path ?? String.Empty).TrimStart('/');
                 // Here, a leading slash will strip the path from baseAddress
                 var uri = new Uri(trimmedPath, UriKind.RelativeOrAbsolute);
+                if (!uri.IsAbsoluteUri && path?.StartsWith("/") != true && !string.IsNullOrEmpty(basePath))
+                {
+                    var trimmedBasePath = (basePath ?? String.Empty).TrimStart('/');
+                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
+                    // the last path component (assuming there is one)
+                    if (!trimmedBasePath.EndsWith("/") && !String.IsNullOrEmpty(uri.OriginalString))
+                        trimmedBasePath += '/';
+                    uri = new Uri(trimmedBasePath + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                }
+
                 if (!uri.IsAbsoluteUri)
                 {
                     var baseAddress = this.httpClient.BaseAddress?.ToString();
-                    if (!String.IsNullOrWhiteSpace(baseAddress))
+                    if (!String.IsNullOrEmpty(baseAddress))
                     {
                         // Need to make sure it ends with a trailing slash, or appending our relative path will strip
-                        // the last path component (assuming we *have* a relative path)
-                        if (!baseAddress.EndsWith("/") && !String.IsNullOrWhiteSpace(trimmedPath))
+                        // the last path component (assuming there is one)
+                        if (!baseAddress.EndsWith("/") && !String.IsNullOrEmpty(uri.OriginalString))
                             baseAddress += '/';
-                        uri = new Uri(new Uri(baseAddress), uri);
+                        uri = new Uri(baseAddress + uri.OriginalString, UriKind.RelativeOrAbsolute);
                     }
                 }
 
@@ -344,6 +360,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Given a set of headers, apply them to the given HttpRequestMessage. Headers will override any of that type already present
         /// </summary>
+        /// <param name="requestInfo">RequestInfo for this request</param>
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>
         /// <param name="headers">Headers to add</param>
         /// <param name="areMethodHeaders">True if these headers came from the method, false if they came from the class</param>
@@ -416,11 +433,12 @@ namespace RestEase.Implementation
         /// <returns>Resulting HttpResponseMessage</returns>
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
         {
-            var path = this.SubstitutePathParameters(requestInfo) ?? String.Empty;
+            var basePath = this.SubstitutePathParameters(requestInfo.BasePath, requestInfo) ?? String.Empty;
+            var path = this.SubstitutePathParameters(requestInfo.Path, requestInfo) ?? String.Empty;
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
-                RequestUri = this.ConstructUri(path, requestInfo),
+                RequestUri = this.ConstructUri(basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
             };
 

@@ -20,6 +20,11 @@ namespace RestEase.Implementation
         public HttpMethod Method { get; }
 
         /// <summary>
+        /// Gets or sets the path which should be prepended to <see cref="Path"/> if any
+        /// </summary>
+        public string BasePath { get; set; }
+
+        /// <summary>
         /// Gets the relative path to the resource to request
         /// </summary>
         public string Path { get; }
