@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
-    <Copyright>Copyright © Antony Male 2015-2018</Copyright>
+    <Copyright>Copyright © Antony Male 2015-2019</Copyright>
     <PackageIconUrl>https://raw.githubusercontent.com/canton7/RestEase/master/icon.png</PackageIconUrl>
     <PackageProjectUrl>http://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseUrl>http://github.com/canton7/RestEase/blob/master/LICENSE.txt</PackageLicenseUrl>
