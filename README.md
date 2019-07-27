@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
 [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
-RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1, which aims to make interacting with remote REST endpoints easy, without adding unnecessary compexity.
+RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
 It won't work on platforms which don't support runtime code generation, including .NET Native and iOS.
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
@@ -39,18 +39,19 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
         1. [Formatting Path Properties](#formatting-path-properties)
         2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
         3. [Serialization of Path Properties](#serialization-of-path-properties)
-7. [Body Content](#body-content)
+7. [Base Path](#base-path)
+8. [Body Content](#body-content)
     1. [URL Encoded Bodies](#url-encoded-bodies)
-8. [Response Status Codes](#response-status-codes)
-9. [Cancelling Requests](#cancelling-requests)
-10. [Headers](#headers)
+9. [Response Status Codes](#response-status-codes)
+10. [Cancelling Requests](#cancelling-requests)
+11. [Headers](#headers)
     1. [Constant Interface Headers](#constant-interface-headers)
     2. [Variable Interface Headers](#variable-interface-headers)
     3. [Constant Method Headers](#constant-method-headers)
     4. [Variable Method Headers](#variable-method-headers)
     5. [Redefining Headers](#redefining-headers)
-11. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
-12. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+12. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
+13. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
@@ -58,22 +59,22 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
         3. [Serializing request query parameters: `RequestQueryParamSerializer`](#serializing-request-query-parameters-requestqueryparamserializer)
         4. [Serializing request path parameters: `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer)
         5. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
-13. [Controlling the Requests](#controlling-the-requests)
+14. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
     3. [Adding to `HttpRequestMessage.Properties`](#adding-to-httprequestmessageproperties)
-14. [Customizing RestEase](#customizing-restease)
-15. [Interface Accessibility](#interface-accessibility)
-16. [Using Generic Interfaces](#using-generic-interfaces)
-17. [Using Generic Methods](#using-generic-methods)
-18. [Interface Inheritance](#interface-inheritance)
+15. [Customizing RestEase](#customizing-restease)
+16. [Interface Accessibility](#interface-accessibility)
+17. [Using Generic Interfaces](#using-generic-interfaces)
+18. [Using Generic Methods](#using-generic-methods)
+19. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-19. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+20. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-20. [FAQs](#faqs)
-21. [Comparison to Refit](#comparison-to-refit)
+21. [FAQs](#faqs)
+22. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -170,6 +171,7 @@ Use whichever one you need to.
 
 The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`.
 (You *can* specify an absolute path here if you need to, in which case the base uri will be ignored).
+Also see the section on [Base Paths](#base-path).
 
 
 Return Types
@@ -708,6 +710,36 @@ api.PathPart = MyEnumSecond;
 await api.GetAsync();
 ```
 
+Base Path
+---------
+
+The URL that's requested is a combination of the base URL you passed to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`), and the path given in your `[Get("path")]` (or `[Post("path")]`, etc) attribute.
+You can also specify a part inserted between these two, using a `[BasePath("path")]` attribute on your interface.
+This is useful if all of the paths in your API start with the same prefix.
+
+For example:
+
+```csharp
+[BasePath("api/v1")]
+public interface ISomeApi
+{
+    [Get("users")]
+    Task<List<User>> GetUsersAsync();
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+// Requests http://api.example.com/api/v1/users
+await api.GetUsersASync();
+```
+
+If the path given to `[Get("path")]` (etc) starts with a `/`, then the base path will be ignored.
+If it is absolute, then both the base path and the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
+Otherwise, if the base path is absolute, then the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
+
+The base path can contain `{placeholders}`.
+Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
+
+Query strings, or other parts of a URI, are not supported in the base path, and their behaviour is undefined and subject to change.
 
 Body Content
 ------------
@@ -728,7 +760,7 @@ Exactly how this will be serialized depends on the type of parameters:
  - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.stringcontent?)).
  - If the type is `byte[]`, then the byte array will be used directory as the content (using [`ByteArrayContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.bytearraycontent)).
  - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
- - If the type is a [`HttpContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpcontent) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
+ - If the type is an [`HttpContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpcontent) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
  - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 

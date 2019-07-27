@@ -15,14 +15,14 @@ namespace RestEaseUnitTests.RequesterTests
              : base(httpClient)
         { }
 
-        public new Uri ConstructUri(string relativePath, IRequestInfo requestInfo)
+        public new Uri ConstructUri(string basePath, string relativePath, IRequestInfo requestInfo)
         {
-            return base.ConstructUri(relativePath, requestInfo);
+            return base.ConstructUri(basePath, relativePath, requestInfo);
         }
 
-        public new string SubstitutePathParameters(IRequestInfo requestInfo)
+        public new string SubstitutePathParameters(string path, IRequestInfo requestInfo)
         {
-            return base.SubstitutePathParameters(requestInfo);
+            return base.SubstitutePathParameters(path, requestInfo);
         }
 
         public new HttpContent ConstructContent(IRequestInfo requestInfo)

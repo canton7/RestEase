@@ -30,7 +30,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{baz}");
             requestInfo.AddPathParameter(PathSerializationMethod.ToString, "bar", "yay");
             requestInfo.AddPathParameter(PathSerializationMethod.ToString, "baz", "woo");
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/yay/woo", uri);
         }
 
@@ -39,7 +39,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/{bar}");
             requestInfo.AddPathParameter(PathSerializationMethod.ToString, "bar", "yay");
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/yay/yay", uri);
         }
 
@@ -48,8 +48,8 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
             requestInfo.AddPathParameter<int?>(PathSerializationMethod.ToString, "bar", null);
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
-            Assert.Equal("/foo//baz", uri);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
+            Assert.Equal("/foo//baz", uri); ;
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace RestEaseUnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestPathParamSerializer = pathParameterSerializer.Object;
 
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/foo/baz", uri);
 
             pathParameterSerializer.VerifyAll();
@@ -76,7 +76,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
             requestInfo.AddPathParameter<string>(PathSerializationMethod.ToString, "bar", "a ?b/cé");
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/a%20%3fb%2fc%c3%a9/baz", uri, ignoreCase: true);
         }
 
@@ -85,7 +85,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
             requestInfo.AddPathProperty(PathSerializationMethod.ToString, "bar", "yay");
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/yay/baz", uri, ignoreCase: true);
         }
 
@@ -95,7 +95,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{bar}/baz");
             requestInfo.AddPathParameter(PathSerializationMethod.ToString, "bar", "woo");
             requestInfo.AddPathProperty(PathSerializationMethod.ToString, "bar", "yay");
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/woo/baz", uri, ignoreCase: true);
         }
 
@@ -104,7 +104,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{path}");
             requestInfo.AddPathProperty(PathSerializationMethod.ToString, "path", "a/b+c", urlEncode: false);
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/a/b+c", uri, ignoreCase: true);
         }
 
@@ -113,7 +113,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "/foo/{path}");
             requestInfo.AddPathParameter(PathSerializationMethod.ToString, "path", "a/b+c", urlEncode: false);
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal("/foo/a/b+c", uri, ignoreCase: true);
         }
 
@@ -123,7 +123,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
             requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", "bar");
             this.requester.RequestPathParamSerializer = null;
-            Assert.Throws<InvalidOperationException>(() => this.requester.SubstitutePathParameters(requestInfo));
+            Assert.Throws<InvalidOperationException>(() => this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo));
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace RestEaseUnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
 
             serializer.VerifyAll();
             Assert.Equal("SomethingElse", uri);
@@ -159,7 +159,7 @@ namespace RestEaseUnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
 
             serializer.VerifyAll();
         }
@@ -186,7 +186,7 @@ namespace RestEaseUnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
 
             serializer.VerifyAll();
         }
@@ -202,12 +202,12 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "{name}");
             requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "name", "value");
             this.requester.RequestPathParamSerializer = serializer.Object;
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal(string.Empty, uri);
         }
 
         [Fact]
-        public void ShouldSubstituteEmptyStringOnNullValueFromSerializer()
+        public void SubstitutesEmptyStringOnNullValueFromSerializer()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "{foo}");
             requestInfo.AddPathParameter(PathSerializationMethod.Serialized, "foo", "fancy");
@@ -218,7 +218,7 @@ namespace RestEaseUnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestPathParamSerializer = serializer.Object;
 
-            var uri = this.requester.SubstitutePathParameters(requestInfo);
+            var uri = this.requester.SubstitutePathParameters(requestInfo.Path, requestInfo);
             Assert.Equal(string.Empty, uri);
 
             serializer.VerifyAll();

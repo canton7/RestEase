@@ -38,6 +38,7 @@ namespace RestEase.Implementation
         private static readonly ConstructorInfo requestInfoCtor = typeof(RequestInfo).GetTypeInfo().GetConstructor(new[] { typeof(HttpMethod), typeof(string), typeof(MethodInfo) });
         private static readonly MethodInfo cancellationTokenSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("CancellationToken").SetMethod;
         private static readonly MethodInfo allowAnyStatusCodeSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
+        private static readonly MethodInfo basePathSetter = typeof(RequestInfo).GetTypeInfo().GetProperty("BasePath").SetMethod;
 
         // These two methods have the same signature, which is very useful...
         private static readonly MethodInfo addQueryParameterMethod = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryParameter");
@@ -167,6 +168,7 @@ namespace RestEase.Implementation
 
             var classAllowAnyStatusCodeAttribute = interfaceTypeInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
             var classSerializationMethodsAttribute = interfaceTypeInfo.GetCustomAttribute<SerializationMethodsAttribute>();
+            var classBasePathAttribute = interfaceTypeInfo.GetCustomAttribute<BasePathAttribute>();
 
             foreach (var childInterfaceType in interfaceTypeInfo.GetInterfaces())
             {
@@ -182,13 +184,24 @@ namespace RestEase.Implementation
             this.HandleEvents(interfaceType);
             var properties = this.HandleProperties(typeBuilder, interfaceType, requesterField);
 
+            this.ValidatePathProperties(classBasePathAttribute?.BasePath, properties.Path.Select(x => x.Attribute.Name).ToList());
+
             // If there are any class headers, define a static readonly field which contains them
             // Also define a static constructor to initialise it
             FieldBuilder classHeadersField = null;
             if (classHeaders.Length > 0)
                 classHeadersField = typeBuilder.DefineField("classHeaders", typeof(List<KeyValuePair<string, string>>), FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.InitOnly);
 
-            this.HandleMethods(typeBuilder, interfaceType, requesterField, classHeadersField, classAllowAnyStatusCodeAttribute, classSerializationMethodsAttribute, properties, out MethodInfoGrouping methodInfoGrouping);
+            this.HandleMethods(
+                typeBuilder,
+                interfaceType,
+                requesterField,
+                classHeadersField,
+                classAllowAnyStatusCodeAttribute,
+                classSerializationMethodsAttribute,
+                classBasePathAttribute,
+                properties,
+                out MethodInfoGrouping methodInfoGrouping);
 
             this.AddStaticCtor(typeBuilder, classHeaders, classHeadersField, methodInfoGrouping);
 
@@ -313,6 +326,7 @@ namespace RestEase.Implementation
             FieldInfo classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
             SerializationMethodsAttribute classSerializationMethodsAttribute,
+            BasePathAttribute basePathAttribute,
             PropertyGrouping properties,
             out MethodInfoGrouping methodInfoGrouping)
         {
@@ -405,6 +419,7 @@ namespace RestEase.Implementation
                     this.AddHttpRequestMessageProperties(methodIlGenerator, properties.HttpRequestMessageProperties);
                     this.AddMethodHeaders(methodIlGenerator, methodInfo);
                     this.AddAllowAnyStatusCodeIfNecessary(methodIlGenerator, allowAnyStatusCodeAttribute ?? classAllowAnyStatusCodeAttribute);
+                    this.AddBasePathIfNecessary(methodIlGenerator, basePathAttribute);
                     this.AddParameters(methodIlGenerator, parameterGrouping, methodInfo.Name, serializationMethods);
                     this.AddRequestMethodInvocation(methodIlGenerator, methodInfo);
 
@@ -615,6 +630,16 @@ namespace RestEase.Implementation
                 methodIlGenerator.Emit(OpCodes.Dup);
                 methodIlGenerator.Emit(OpCodes.Ldc_I4_1);
                 methodIlGenerator.Emit(OpCodes.Callvirt, allowAnyStatusCodeSetter);
+            }
+        }
+
+        private void AddBasePathIfNecessary(ILGenerator methodIlGenerator, BasePathAttribute basePathAttribute)
+        {
+            if (basePathAttribute != null)
+            {
+                methodIlGenerator.Emit(OpCodes.Dup);
+                methodIlGenerator.Emit(OpCodes.Ldstr, basePathAttribute.BasePath);
+                methodIlGenerator.Emit(OpCodes.Callvirt, basePathSetter);
             }
         }
 
@@ -963,24 +988,43 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException(String.Format("Method '{0}': found more than one HTTP request message property for key {1}.", methodName, duplicateKey));
         }
 
-        private void ValidatePathParams(string path, IEnumerable<string> pathParams, IEnumerable<string> propertyParams, string methodName)
+        private void ValidatePathProperties(string basePath, IEnumerable<string> pathProperties)
+        {
+            // Check that there are no duplicate param names in the attributes
+            var duplicatePropertyKey = pathProperties.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
+            if (duplicatePropertyKey != null)
+                throw new ImplementationCreationException(String.Format("Found more than one path property for key {0}", duplicatePropertyKey));
+
+            if (basePath != null)
+            {
+                // Check that each placeholder in the base path has a matching path property, and vice versa.
+                // We don't consider path parameters here.
+                var placeholders = pathParamMatch.Matches(basePath).Cast<Match>().Select(x => x.Groups[1].Value).ToList();
+
+                var firstMissingParam = placeholders.Except(pathProperties).FirstOrDefault();
+                if (firstMissingParam != null)
+                    throw new ImplementationCreationException(String.Format("Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in [BasePath(\"{1}\")].", firstMissingParam, basePath));
+            }
+        }
+
+        private void ValidatePathParams(string path, IEnumerable<string> pathParams, IEnumerable<string> pathProperties, string methodName)
         {
             if (path == null)
                 path = String.Empty;
 
             // Check that there are no duplicate param names in the attributes
-            var duplicateKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
-            if (duplicateKey != null)
-                throw new ImplementationCreationException(String.Format("Method '{0}': found more than one path parameter for key {1}.", methodName, duplicateKey));
+            var duplicateMethodKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
+            if (duplicateMethodKey != null)
+                throw new ImplementationCreationException(String.Format("Method '{0}': found more than one path parameter for key {1}.", methodName, duplicateMethodKey));
 
             // Check that each placeholder has a matching attribute, and vice versa
             // We allow a property param to fill in for a missing path param, but we allow them to duplicate
             // each other (the path param takes precedence), and allow a property param which doesn't have a placeholder.
             var placeholders = pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value).ToList();
 
-            var firstMissingParam = placeholders.Except(pathParams.Concat(propertyParams)).FirstOrDefault();
+            var firstMissingParam = placeholders.Except(pathParams.Concat(pathProperties)).FirstOrDefault();
             if (firstMissingParam != null)
-                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find a [Path(\"{1}\")] property for the path parameter '{1}'.", methodName, firstMissingParam));
+                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find a [Path(\"{1}\")] property or parameter for the path placeholder '{{{1}}}'.", methodName, firstMissingParam));
 
             var firstMissingPlaceholder = pathParams.Except(placeholders).FirstOrDefault();
             if (firstMissingPlaceholder != null)
