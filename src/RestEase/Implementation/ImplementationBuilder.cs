@@ -557,6 +557,10 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Ldnull);
                 else
                     methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
+                if (propertyHeader.Attribute.Format == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Format);
                 methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
             }
         }
@@ -702,7 +706,7 @@ namespace RestEase.Implementation
                 if (headerParameter.Attribute.Name.Contains(":"))
                     throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\")] must not have a colon in its name", methodName, headerParameter.Attribute.Name));
                 var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
-                this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
+                this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute, (short)headerParameter.Index, typedMethod);
             }
         }
 
@@ -960,21 +964,25 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyParameterMethod);
         }
 
-        private void AddHeaderParameter(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo method)
+        private void AddHeaderParameter(ILGenerator methodIlGenerator, HeaderAttribute header, short parameterIndex, MethodInfo method)
         {
             // Equivalent C#:
-            // requestInfo.AddHeaderParameter("name", value);
+            // requestInfo.AddHeaderParameter("name", value, format);
             // where 'value' is the parameter at index parameterIndex
-
             // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            methodIlGenerator.Emit(OpCodes.Ldstr, header.Name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Format parameter
+            if (header.Format == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, header.Format);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, method);

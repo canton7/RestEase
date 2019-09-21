@@ -19,8 +19,17 @@ namespace RestEase
         public PathSerializationMethod SerializationMethod { get; set; }
 
         /// <summary>
-        /// Gets or sets the format string to pass to the value's ToString() method, if the value implements <see cref="IFormattable"/>
+        /// Gets or sets the format string used to format the value
         /// </summary>
+        /// <remarks>
+        /// If <see cref="SerializationMethod"/> is <see cref="PathSerializationMethod.Serialized"/>, this is passed to the serializer
+        /// as <see cref="RequestPathParamSerializerInfo.Format"/>.
+        /// Otherwise, if this looks like a format string which can be passed to <see cref="string.Format(IFormatProvider, string, object[])"/>,
+        /// (i.e. it contains at least one format placeholder), then this happens with the value passed as the first arg.
+        /// Otherwise, if the value implements <see cref="IFormattable"/>, this is passed to the value's
+        /// <see cref="IFormattable.ToString(string, IFormatProvider)"/> method. Otherwise this is ignored.
+        /// Example values: "X2", "{0:X2}", "test{0}".
+        /// </remarks>
         public string Format { get; set; }
 
         /// <summary>

@@ -75,7 +75,7 @@ namespace RestEase
         /// <summary>
         /// Gets the headers which were applied using properties
         /// </summary>
-        IEnumerable<KeyValuePair<string, string>> PropertyHeaders { get; }
+        IEnumerable<HeaderParameterInfo> PropertyHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were applied to the method being called
@@ -85,7 +85,7 @@ namespace RestEase
         /// <summary>
         /// Gets the headers which were passed to the method as parameters
         /// </summary>
-        IEnumerable<KeyValuePair<string, string>> HeaderParams { get; }
+        IEnumerable<HeaderParameterInfo> HeaderParams { get; }
 
         /// <summary>
         /// Gets information the [Body] method parameter, if it exists

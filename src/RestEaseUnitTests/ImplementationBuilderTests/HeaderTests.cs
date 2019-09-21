@@ -3,6 +3,7 @@ using RestEase;
 using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -32,7 +33,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasParamHeaders
         {
             [Get("foo")]
-            Task FooAsync([Header("Param Header 1")] string foo, [Header("Param Header 2")] string bar);
+            Task FooAsync([Header("Param Header 1")] string foo, [Header("Param Header 2")] object bar);
         }
 
         public interface IHasParamHeaderOfNonStringType
@@ -150,6 +151,21 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([Header("baz")] string header);
         }
 
+        public interface IHasFormattedPathHeader
+        {
+            [Header("foo", Format = "X2")]
+            int Foo { get; set; }
+
+            [Get("foo")]
+            Task FooAsync();
+        }
+
+        public interface IHasFormattedHeaderParam
+        {
+            [Get("foo")]
+            Task FooAsync([Header("Foo", Format = "X2")] int foo);
+        }
+
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ImplementationBuilder builder = ImplementationBuilder.Instance;
 
@@ -209,11 +225,13 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, headerParams.Count);
 
-            Assert.Equal("Param Header 1", headerParams[0].Key);
-            Assert.Equal("value 1", headerParams[0].Value);
+            var serialized1 = headerParams[0].SerializeToString(null);
+            Assert.Equal("Param Header 1", serialized1.Key);
+            Assert.Equal("value 1", serialized1.Value);
 
-            Assert.Equal("Param Header 2", headerParams[1].Key);
-            Assert.Equal("value 2", headerParams[1].Value);
+            var serialized2 = headerParams[1].SerializeToString(null);
+            Assert.Equal("Param Header 2", serialized2.Key);
+            Assert.Equal("value 2", serialized2.Value);
         }
 
         [Fact]
@@ -232,8 +250,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Equal(2, headerParams.Count);
 
-            Assert.Equal("Param Header 2", headerParams[1].Key);
-            Assert.Null(headerParams[1].Value);
+            var serialized = headerParams[1].SerializeToString(null);
+            Assert.Equal("Param Header 2", serialized.Key);
+            Assert.Null(serialized.Value);
         }
 
         [Fact]
@@ -253,8 +272,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Single(headerParams);
 
-            Assert.Equal("Param Header", headerParams[0].Key);
-            Assert.Equal("3", headerParams[0].Value);
+            var serialized = headerParams[0].SerializeToString(null);
+            Assert.Equal("Param Header", serialized.Key);
+            Assert.Equal("3", serialized.Value);
         }
 
         [Fact]
@@ -314,8 +334,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
             Assert.Single(propertyHeaders);
-            Assert.Equal("Name", propertyHeaders[0].Key);
-            Assert.Equal("Value", propertyHeaders[0].Value);
+            var serialized = propertyHeaders[0].SerializeToString(null);
+            Assert.Equal("Name", serialized.Key);
+            Assert.Equal("Value", serialized.Value);
         }
 
         [Fact]
@@ -333,8 +354,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
             Assert.Single(propertyHeaders);
-            Assert.Equal("Name", propertyHeaders[0].Key);
-            Assert.Equal("Value", propertyHeaders[0].Value);
+            var serialized = propertyHeaders[0].SerializeToString(null);
+            Assert.Equal("Name", serialized.Key);
+            Assert.Equal("Value", serialized.Value);
         }
 
         [Fact]
@@ -372,8 +394,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Single(propertyHeaders);
 
-            Assert.Equal("X-API-Key", propertyHeaders[0].Key);
-            Assert.Equal("Foo Bar", propertyHeaders[0].Value);
+            var serialized = propertyHeaders[0].SerializeToString(null);
+            Assert.Equal("X-API-Key", serialized.Key);
+            Assert.Equal("Foo Bar", serialized.Value);
         }
 
         [Fact]
@@ -409,14 +432,72 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             Assert.Single(propertyHeaders);
 
-            Assert.Equal("Authorization", propertyHeaders[0].Key);
-            Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", propertyHeaders[0].Value);
+            var serialized = propertyHeaders[0].SerializeToString(null);
+            Assert.Equal("Authorization", serialized.Key);
+            Assert.Equal("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==", serialized.Value);
         }
 
         [Fact]
         public void HandlesNullHeaderValues()
         {
             this.builder.CreateImplementation<IHasNullHeaderValues>(this.requester.Object);
+        }
+
+        [Fact]
+        public void HandlesFormattedPathHeader()
+        {
+            var implementation = this.builder.CreateImplementation<IHasFormattedPathHeader>(this.requester.Object);
+            implementation.Foo = 10;
+
+            IRequestInfo requestInfo = null;
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Single(requestInfo.PropertyHeaders);
+            var serialized = requestInfo.PropertyHeaders.First().SerializeToString(null);
+            Assert.Equal("foo", serialized.Key);
+            Assert.Equal("0A", serialized.Value);
+        }
+
+        [Fact]
+        public void HandlesFormattedHeaderParam()
+        {
+            var implementation = this.builder.CreateImplementation<IHasFormattedHeaderParam>(this.requester.Object);
+
+            IRequestInfo requestInfo = null;
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync(12);
+
+            Assert.Single(requestInfo.HeaderParams);
+            var serialized = requestInfo.HeaderParams.First().SerializeToString(null);
+            Assert.Equal("Foo", serialized.Key);
+            Assert.Equal("0C", serialized.Value);
+        }
+
+        [Fact]
+        public void FormattedPathHeaderUsesGivenFormatProvider()
+        {
+            var implementation = this.builder.CreateImplementation<IHasFormattedPathHeader>(this.requester.Object);
+            implementation.Foo = 10;
+            var formatProvider = new Mock<IFormatProvider>();
+
+            IRequestInfo requestInfo = null;
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync();
+
+            Assert.Single(requestInfo.PropertyHeaders);
+            var serialized = requestInfo.PropertyHeaders.First().SerializeToString(formatProvider.Object);
+
+            formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
         }
     }
 }
