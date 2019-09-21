@@ -307,7 +307,7 @@ public interface ISomeApi
     Task FooAsync([Query()] string foo, [Query] string bar);
 }
 
-ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://api.example.com/foo?bar=
 await api.FooAsync(null, "");
@@ -327,7 +327,7 @@ public interface ISomeApi
     Task FooAsync([Query(Format = "X2")] int param);
 }
 
-ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://api.example.com/foo?param=FE
 await api.FooAsync(254);
@@ -358,7 +358,7 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query(QuerySerializationMethod.Serialized)] SearchParams param);
 }
 
-ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 // Requests http://api.example.com/search?params={"Term": "foo", "Mode": "basic"}
 await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
 ```
@@ -517,7 +517,7 @@ public interface ISomeApi
     Task FooAsync([Path("bar", Format = "D2")] int param);
 }
 
-ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://api.example.com/foo/01
 await api.FooAsync(1);
@@ -540,7 +540,7 @@ public interface ISomeApi
     Task FooAsync([Path(UrlEncode = false)] string bar);
 }
 
-ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
 // Requests http://api.example.com/foo/bar/baz
 await api.FooAsync("bar/baz");
@@ -568,7 +568,7 @@ public interface ISomeApi
     Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] MyEnum param);
 }
 
-ISomeApi = new RestClient
+ISomeApi api = new RestClient
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
 }.For<ISomeApi>("http://api.example.com");
@@ -702,7 +702,7 @@ public interface ISomeApi
     Task<string> GetAsync();
 }
 
-ISomeApi = new RestClient
+ISomeApi api = new RestClient
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
 }.For<ISomeApi>("http://api.example.com");
