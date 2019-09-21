@@ -1569,7 +1569,7 @@ public interface ISomeApi
 {
     // Method which is only used by SomeApiExtensions
     [Post("upload")]
-    Task UploadAsync(HttpContent content);
+    Task UploadAsync([Body] HttpContent content);
 }
 
 public static class SomeApiExtensions
