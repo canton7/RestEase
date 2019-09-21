@@ -34,10 +34,17 @@ namespace RestEase
         public QuerySerializationMethod SerializationMethod { get; set; }
 
         /// <summary>
-        /// Gets or sets a format string to be passed to the custom serializer (if serializationMethod is
-        /// <see cref="QuerySerializationMethod.Serialized"/>), or to the value's ToString() method (if serializationMethod
-        /// is <see cref="QuerySerializationMethod.ToString"/> and value implements <see cref="IFormattable"/>)
+        /// Gets or sets the format string used to format the value
         /// </summary>
+        /// <remarks>
+        /// If <see cref="SerializationMethod"/> is <see cref="QuerySerializationMethod.Serialized"/>, this is passed to the serializer
+        /// as <see cref="RequestQueryParamSerializerInfo.Format"/>.
+        /// Otherwise, if this looks like a format string which can be passed to <see cref="string.Format(IFormatProvider, string, object[])"/>,
+        /// (i.e. it contains at least one format placeholder), then this happens with the value passed as the first arg.
+        /// Otherwise, if the value implements <see cref="IFormattable"/>, this is passed to the value's
+        /// <see cref="IFormattable.ToString(string, IFormatProvider)"/> method. Otherwise this is ignored.
+        /// Example values: "X2", "{0:X2}", "test{0}".
+        /// </remarks>
         public string Format { get; set; }
 
         /// <summary>

@@ -316,11 +316,7 @@ await api.FooAsync(null, "");
 By default, query parameter values will be serialized by calling `ToString()` on them.
 This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
-However, you can also specify a string format to use.
-If the type implements `IFormattable`, then your string format is passed to the `IFormattable.ToString()` method.
-(`null` is passed for the IFormatProvider argument, meaning that the current thread's culture is used if applicable).
-
-You specify a format using the `Format` property of the `[Query]` attribute, for example:
+However, you can also specify a string format to use using the `Format` property of the `[Query]` attribute, for example:
 
 ```csharp
 public interface ISomeApi
@@ -335,7 +331,10 @@ ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
 await api.FooAsync(254);
 ```
 
-If you use a [custom serializer](#custom-serializers-and-deserializers), then the format is passed to that serializer, and you can use it as you like.
+1. If you use a [custom serializer](#custom-serializers-and-deserializers), then the format is passed to that serializer, and you can use it as you like.
+2. Otherwise, if the format looks like it could be passed to `string.Format`, then this happens with `param` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:X2}"` or `"hello {0}"`.
+3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
+4. Otherwise, the format is ignored.
 
 
 #### Serialization of Variable Query Parameters
@@ -507,11 +506,7 @@ Every placeholder must have a corresponding parameter, and every parameter must 
 As with `[Query]`, path parameter values will be serialized by calling `ToString()` on them.
 This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
-However, you can also specify a string format to use.
-If the type implements `IFormattable`, then your string format is passed to the `IFormattable.ToString()` method.
-(`null` is passed for the IFormatProvider argument, meaning that the current thread's culture is used if applicable).
-
-You specify a format using the `Format` property of the `[Path]` attribute, for example:
+However, you can also specify a format using the `Format` property of the `[Path]` attribute, for example:
 
 ```csharp
 public interface ISomeApi
@@ -525,6 +520,11 @@ ISomeApi = RestClient.For<ISomeApi>("http://api.example.com");
 // Requests http://api.example.com/foo/01
 await api.FooAsync(1);
 ```
+
+1. If you use a [custom serializer](#custom-serializers-and-deserializers), then the format is passed to that serializer, and you can use it as you like.
+2. Otherwise, if the format looks like it could be passed to `string.Format`, then this happens with `param` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:D2}"` or `"hello {0}"`.
+3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"D2"`.
+4. Otherwise, the format is ignored.
 
 #### URL Encoding in Path Parameters
 
@@ -640,7 +640,7 @@ public interface ISomeApi
     Guid AccountId { get; set; }
 
     [Get("{accountId}/profile")]
-    Task<Profile> GetProfileAsync()
+    Task<Profile> GetProfileAsync();
 }
 
 var api = RestClient.For<ISomeApi>("http://api.example.com/user");
