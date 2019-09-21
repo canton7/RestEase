@@ -30,7 +30,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Serialize the value into a name -> value pair using its ToString method
         /// </summary>
-        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
         public abstract KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider);
     }
@@ -50,7 +50,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        /// <param name="format">Format parameter to pass to ToString if value implements <see cref="IFormattable"/></param>
+        /// <param name="format">Format string to use</param>
         /// <param name="urlEncode">Indicates whether this parameter should be url-encoded</param>
         /// <param name="serializationMethod">Method to use to serialize the path value.</param>
         public PathParameterInfo(string name, T value, string format, bool urlEncode, PathSerializationMethod serializationMethod)
@@ -67,8 +67,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
-        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
-
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
         public override KeyValuePair<string, string> SerializeValue(RequestPathParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
         {
@@ -84,7 +83,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Serialize the value into a name -> value pair using its ToString method
         /// </summary>
-        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
         public override KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
         {

@@ -47,8 +47,10 @@ RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbett
 11. [Headers](#headers)
     1. [Constant Interface Headers](#constant-interface-headers)
     2. [Variable Interface Headers](#variable-interface-headers)
+        1. [Formatting Variable Interface Headers](#formatting-variable-interface-headers)
     3. [Constant Method Headers](#constant-method-headers)
     4. [Variable Method Headers](#variable-method-headers)
+        1. [Formatting Variable Method Headers](#formatting-variable-method-headers) 
     5. [Redefining Headers](#redefining-headers)
 12. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
 13. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
@@ -917,6 +919,33 @@ ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
 var user = await api.FetchUserAsync("bob");
 ```
 
+#### Formatting Variable Interface Headers
+
+By default, variable interface header values will be serialized by calling `ToString()` on them.
+This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+
+However, you can also specify a string format to use using the `Format` property of the `[Query]` attribute, for example:
+
+```csharp
+public interface ISomeApi
+{
+    [Header("SomeHeader", Format = "X2")]
+    int SomeHeader { get; set; }
+
+    [Get("foo")]
+    Task FooAsync();
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+api.SomeHeader = 254;
+// SomeHeader: FE
+await api.FooAsync();
+```
+
+1. If the format looks like it could be passed to `string.Format`, then this happens with `SomeHeader` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:X2}"` or `"hello {0}"`.
+2. Otherwise, if `SomeHeader` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `SomeHeader` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
+3. Otherwise, the format is ignored.
+
 ### Constant Method Headers
 
 If you want to have a header which only applies to a particular method, and whose value never changes, then use a constant method header.
@@ -949,6 +978,29 @@ public interface ISomeApi
     Task<List<User>> GetUsersAsync([Header("Authorization")] string authorization);
 }
 ```
+
+#### Formatting Variable Method Headers
+
+By default, variable method header values will be serialized by calling `ToString()` on them.
+This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+
+However, you can also specify a string format to use using the `Format` property of the `[Query]` attribute, for example:
+
+```csharp
+public interface ISomeApi
+{
+    [Get("foo")]
+    Task FooAsync([Header("SomeHeader", Format = "X2")] int someHeader);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+// SomeHeader: FE
+await api.FooAsync(254);
+```
+
+1. If the format looks like it could be passed to `string.Format`, then this happens with `someHeader` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:X2}"` or `"hello {0}"`.
+2. Otherwise, if `someHeader` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `someHeader` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
+3. Otherwise, the format is ignored.
 
 ### Redefining Headers
 

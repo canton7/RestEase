@@ -19,14 +19,14 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="serializer">Serializer to use</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
-        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
         public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider);
 
         /// <summary>
         /// Serialize the value into a collection of name -> value pairs using its ToString method
         /// </summary>
-        /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
         public abstract IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider);
     }
@@ -47,11 +47,7 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the query value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        /// <param name="format">
-        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
-        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
-        /// <see cref="IFormattable"/>)
-        /// </param>
+        /// <param name="format">Format string to use</param>
         public QueryParameterInfo(QuerySerializationMethod serializationMethod, string name, T value, string format)
         {
             this.SerializationMethod = serializationMethod;
@@ -77,7 +73,11 @@ namespace RestEase.Implementation
             return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(requestInfo, this.format, formatProvider));
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Serialize the value into a collection of name -> value pairs using its ToString method
+        /// </summary>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
+        /// <returns>Serialized value</returns>
         public override IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider)
         {
             if (this.value == null)
@@ -103,11 +103,7 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the query values</param>
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pair</param>
-        /// <param name="format">
-        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
-        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
-        /// <see cref="IFormattable"/>)
-        /// </param>
+        /// <param name="format">Format string to use</param>
         public QueryCollectionParameterInfo(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string format)
         {
             this.SerializationMethod = serializationMethod;
@@ -131,7 +127,11 @@ namespace RestEase.Implementation
             return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(requestInfo, this.format, formatProvider));
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Serialize the value into a collection of name -> value pairs using its ToString method
+        /// </summary>
+        /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
+        /// <returns>Serialized value</returns>
         public override IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider)
         {
             if (this.values == null)

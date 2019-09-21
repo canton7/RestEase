@@ -353,8 +353,8 @@ namespace RestEase.Implementation
         {
             // Apply from class -> method (combining static/dynamic), so we get the proper hierarchy
             var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
-            this.ApplyHeadersSet(requestInfo, requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
-            this.ApplyHeadersSet(requestInfo, requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
+            this.ApplyHeadersSet(requestInfo, requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders.Select(x => x.SerializeToString(this.FormatProvider))), false);
+            this.ApplyHeadersSet(requestInfo, requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams.Select(x => x.SerializeToString(this.FormatProvider))), true);
         }
 
         /// <summary>
