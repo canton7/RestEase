@@ -22,6 +22,11 @@ namespace RestEase
         /// </summary>
         public const string FactoryAssemblyName = "RestEaseFactory";
 
+        /// <summary>
+        /// Name of the key in <see cref="HttpRequestMessage.Properties"/> that a request's <see cref="IRequestInfo"/> is stored
+        /// </summary>
+        public const string HttpRequestMessageRequestInfoPropertyKey = "RestEaseRequestInfo";
+
         private readonly HttpClient httpClient;
 
         /// <summary>

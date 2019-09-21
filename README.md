@@ -1291,6 +1291,8 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
 
 ```
 
+If you need, you can get the `IRequestInfo` for the current request using `(IRequestInfo)request.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey]`.
+
 ### Custom `HttpClient`
 
 The second is a `RestClient.For<T>` overload which lets you specify a custom `HttpClient` to use.
@@ -1335,6 +1337,8 @@ var httpClient = new HttpClient(new CustomHttpClientHandler())
 ISomeApi api = RestClient.For<ISomeApi>(httpClient);
 ```
 
+If you need, you can get the `IRequestInfo` for the current request using `(IRequestInfo)request.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey]`.
+
 Adding to `HttpRequestMessage.Properties`
 -----------------------------------------
 
@@ -1347,7 +1351,7 @@ If all (or most) of the methods on the interface pass such object you can specif
 These work in the same way as path parameters, but they're on the level of the entire API.
 Properties must have both a getter and a setter.
 
-Property keys used at interface method level must be unique, parameter key must not be same as property key.
+Property keys used at interface method level must be unique: a parameter key must not be same as a property key.
 
 For example:
 

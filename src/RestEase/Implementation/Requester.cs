@@ -440,6 +440,7 @@ namespace RestEase.Implementation
                 Method = requestInfo.Method,
                 RequestUri = this.ConstructUri(basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
+                Properties = { { RestClient.HttpRequestMessageRequestInfoPropertyKey, requestInfo } },
             };
 
             this.ApplyHttpRequestMessageProperties(requestInfo, message);
