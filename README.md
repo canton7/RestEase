@@ -1455,13 +1455,13 @@ public interface IReallyExcitingCrudApi<T, TKey>
     Task<List<T>> ReadAll();
 
     [Get("{key}")]
-    Task<T> ReadOne(TKey key);
+    Task<T> ReadOne([Path] TKey key);
 
     [Put("{key}")]
-    Task Update(TKey key, [Body] T payload);
+    Task Update([Path] TKey key, [Body] T payload);
 
     [Delete("{key}")]
-    Task Delete(TKey key);
+    Task Delete([Path] TKey key);
 }
 ```
 
