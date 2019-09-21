@@ -713,7 +713,7 @@ await api.GetAsync();
 Base Path
 ---------
 
-The URL that's requested is a combination of the base URL you passed to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`), and the path given in your `[Get("path")]` (or `[Post("path")]`, etc) attribute.
+The URL that's requested is a combination of the base URL you passed to `RestClient.For<T>("http://api.example.com")` (or `HttpClient.BaseAddress`), and the path given in your `[Get("path")]` (or `[Post("path")]`, etc) attribute.
 You can also specify a part inserted between these two, using a `[BasePath("path")]` attribute on your interface.
 This is useful if all of the paths in your API start with the same prefix.
 
