@@ -170,10 +170,10 @@ namespace RestEase.Implementation
             var classSerializationMethodsAttribute = interfaceTypeInfo.GetCustomAttribute<SerializationMethodsAttribute>();
             var classBasePathAttribute = interfaceTypeInfo.GetCustomAttribute<BasePathAttribute>();
 
-            foreach (var childInterfaceType in interfaceTypeInfo.GetInterfaces())
+            foreach (var parentInterfaceType in interfaceTypeInfo.GetInterfaces())
             {
-                if (childInterfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
-                    throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", childInterfaceType.Name));
+                if (parentInterfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
+                    throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", parentInterfaceType.Name));
             }
 
             // Define a readonly field which holds a reference to the IRequester

@@ -1510,7 +1510,9 @@ Interface Inheritance
 ### Sharing common properties and methods
 
 You're allowed to use interface inheritance to share common properties and methods between different APIs.
-However, you are not allowed to put any attributes (`[Header]` or `[AllowAnyStatusCode]`) onto the child interfaces being inherited, just onto the parent-most interface.
+
+You can only put an `[AllowAnyStatusCode]` attribute on the derived interface, and not on any parent interfaces.
+An `[AllowAnyStatusCode]` attribute on the derived interface also applies to all methods on all parent interfaces.
 
 For example:
 
