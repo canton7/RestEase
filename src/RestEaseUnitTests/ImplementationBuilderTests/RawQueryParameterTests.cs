@@ -14,8 +14,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
     {
         public class HasToString : IFormattable
         {
+            public IFormatProvider LastFormatProvider { get; set; }
+
             public string ToString(string format, IFormatProvider formatProvider)
             {
+                this.LastFormatProvider = formatProvider;
                 3.ToString(formatProvider); // Just call this
                 return "HasToString";
             }
@@ -92,13 +95,15 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
-            implementation.FooAsync(new HasToString());
+            var hasToString = new HasToString();
+            implementation.FooAsync(hasToString);
 
             var formatProvider = new Mock<IFormatProvider>();
 
             requestInfo.RawQueryParameter.SerializeToString(formatProvider.Object);
 
-            formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
+            Assert.Equal(formatProvider.Object, hasToString.LastFormatProvider);
+            //formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
         }
     }
 }
