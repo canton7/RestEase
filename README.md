@@ -14,7 +14,7 @@ RestEase will then generate an implementation of that interface for you, and by 
 
 RestEase is built on top of [HttpClient](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpclient) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
 
-RestEase is heavily inspired by [Paul Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
+RestEase is heavily inspired by [Ana Betts' Refit](https://github.com/paulcbetts/refit), which in turn is inspired by Retrofit.
 
 ### Table of Contents
 
