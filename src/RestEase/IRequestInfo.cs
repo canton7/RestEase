@@ -20,7 +20,7 @@ namespace RestEase
         /// <summary>
         /// Gets the path which should be prepended to <see cref="Path"/> if any
         /// </summary>
-        string BasePath { get; }
+        string? BasePath { get; }
 
         /// <summary>
         /// Gets the relative path to the resource to request
@@ -45,7 +45,7 @@ namespace RestEase
         /// <summary>
         /// Gets the raw query parameter provider
         /// </summary>
-        RawQueryParameterInfo RawQueryParameter { get; }
+        RawQueryParameterInfo? RawQueryParameter { get; }
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
@@ -70,7 +70,7 @@ namespace RestEase
         /// <summary>
         /// Gets the headers which were applied to the interface
         /// </summary>
-        IEnumerable<KeyValuePair<string, string>> ClassHeaders { get; }
+        IEnumerable<KeyValuePair<string, string?>>? ClassHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were applied using properties
@@ -80,7 +80,7 @@ namespace RestEase
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        IEnumerable<KeyValuePair<string, string>> MethodHeaders { get; }
+        IEnumerable<KeyValuePair<string, string?>> MethodHeaders { get; }
 
         /// <summary>
         /// Gets the headers which were passed to the method as parameters
@@ -90,7 +90,7 @@ namespace RestEase
         /// <summary>
         /// Gets information the [Body] method parameter, if it exists
         /// </summary>
-        BodyParameterInfo BodyParameterInfo { get; }
+        BodyParameterInfo? BodyParameterInfo { get; }
 
         /// <summary>
         /// Gets the MethodInfo of the interface method which was invoked

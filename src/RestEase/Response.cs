@@ -11,7 +11,7 @@ namespace RestEase
     {
         private readonly Func<T> contentDeserializer;
         private bool contentDeserialized;
-        private T deserializedContent;
+        private T deserializedContent = default!;
 
         /// <summary>
         /// Gets the raw HttpResponseMessage
@@ -19,9 +19,9 @@ namespace RestEase
         public HttpResponseMessage ResponseMessage { get; private set; }
 
         /// <summary>
-        /// Gets the string content of the response
+        /// Gets the string content of the response, if there is a response
         /// </summary>
-        public string StringContent { get; private set; }
+        public string? StringContent { get; private set; }
 
         /// <summary>
         /// Gets the deserialized response
@@ -44,7 +44,7 @@ namespace RestEase
         /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage received</param>
         /// <param name="contentDeserializer">Func which will deserialize the content into a T</param>
-        public Response(string content, HttpResponseMessage response, Func<T> contentDeserializer)
+        public Response(string? content, HttpResponseMessage response, Func<T> contentDeserializer)
         {
             this.StringContent = content;
             this.ResponseMessage = response;

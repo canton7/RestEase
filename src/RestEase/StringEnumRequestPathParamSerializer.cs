@@ -33,7 +33,7 @@ namespace RestEase
         /// If the value is an enum value, the serializer will check if it has an EnumMember, DisplayName or Display
         /// attribute, and if so return the value of that instead (in that order of preference).
         /// </remarks>
-        public override string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
+        public override string? SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
         {
             if (value == null)
             {

@@ -13,7 +13,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public abstract KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider);
+        public abstract KeyValuePair<string, string?> SerializeToString(IFormatProvider? formatProvider);
     }
 
     /// <summary>
@@ -24,8 +24,8 @@ namespace RestEase.Implementation
     {
         private readonly string name;
         private readonly T value;
-        private readonly string defaultValue;
-        private readonly string format;
+        private readonly string? defaultValue;
+        private readonly string? format;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="HeaderParameterInfo{T}"/> class
@@ -34,7 +34,7 @@ namespace RestEase.Implementation
         /// <param name="value">Value of the header</param>
         /// <param name="defaultValue">Default value of the header, used if <paramref name="value"/> is null</param>
         /// <param name="format"></param>
-        public HeaderParameterInfo(string name, T value, string defaultValue, string format)
+        public HeaderParameterInfo(string name, T value, string? defaultValue, string? format)
         {
             this.name = name;
             this.value = value;
@@ -47,12 +47,12 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public override KeyValuePair<string, string> SerializeToString(IFormatProvider formatProvider)
+        public override KeyValuePair<string, string?> SerializeToString(IFormatProvider? formatProvider)
         {
-            string value = this.defaultValue;
+            string? value = this.defaultValue;
             if (this.value != null)
                 value = ToStringHelper.ToString(this.value, this.format, formatProvider);
-            return new KeyValuePair<string, string>(this.name, value);
+            return new KeyValuePair<string, string?>(this.name, value);
         }
     }
 }

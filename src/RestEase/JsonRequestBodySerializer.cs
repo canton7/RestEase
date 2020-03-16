@@ -11,10 +11,10 @@ namespace RestEase
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.SerializeObject
         /// </summary>
-        public JsonSerializerSettings JsonSerializerSettings { get; set; }
+        public JsonSerializerSettings? JsonSerializerSettings { get; set; }
 
         /// <inheritdoc/>
-        public override HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
+        public override HttpContent? SerializeBody<T>(T body, RequestBodySerializerInfo info)
         {
             if (body == null)
                 return null;

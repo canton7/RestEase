@@ -74,11 +74,11 @@ namespace RestEase.Implementation
             return (IEnumerable<KeyValuePair<object, object>>)method.Invoke(null, new[] { dictionary });
         }
 
-        private static IEnumerable<KeyValuePair<object, object>> IterateGenericTyped<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
+        private static IEnumerable<KeyValuePair<object?, object?>> IterateGenericTyped<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
         {
             foreach (var kvp in dictionary)
             {
-                yield return new KeyValuePair<object, object>(kvp.Key, kvp.Value);
+                yield return new KeyValuePair<object?, object?>(kvp.Key, kvp.Value);
             }
         }
     }

@@ -11,7 +11,7 @@ namespace RestEase
         /// <summary>
         /// Gets or sets the optional name of the placeholder. Will use the parameter name if null
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Gets the serialization method to use to serialize the value. Defaults to PathSerializationMethod.ToString
@@ -30,7 +30,7 @@ namespace RestEase
         /// <see cref="IFormattable.ToString(string, IFormatProvider)"/> method. Otherwise this is ignored.
         /// Example values: "X2", "{0:X2}", "test{0}".
         /// </remarks>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this path parameter should be URL-encoded. Defaults to true.

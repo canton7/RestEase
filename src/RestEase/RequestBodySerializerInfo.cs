@@ -19,14 +19,14 @@ namespace RestEase
         /// Gets the format provider. If this is null, the default will be used.
         /// Specified by the user on <see cref="RestClient.FormatProvider" />
         /// </summary>
-        public IFormatProvider FormatProvider { get; }
+        public IFormatProvider? FormatProvider { get; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RequestBodySerializerInfo"/> structure
         /// </summary>
         /// <param name="requestInfo">Information about the request</param>
         /// <param name="formatProvider">Format provider to use</param>
-        public RequestBodySerializerInfo(IRequestInfo requestInfo, IFormatProvider formatProvider)
+        public RequestBodySerializerInfo(IRequestInfo requestInfo, IFormatProvider? formatProvider)
         {
             this.RequestInfo = requestInfo;
             this.FormatProvider = formatProvider;

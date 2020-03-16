@@ -23,7 +23,7 @@ namespace RestEase
         /// <param name="info">Extra information about the request</param>
         /// <typeparam name="T">Type of the body to serialize</typeparam>
         /// <returns>HttpContent to assign to the request</returns>
-        public virtual HttpContent SerializeBody<T>(T body, RequestBodySerializerInfo info)
+        public virtual HttpContent? SerializeBody<T>(T body, RequestBodySerializerInfo info)
         {
             throw new NotImplementedException($"You must override and implement SerializeBody<T>(T body, RequestBodySerializerInfo info) in {this.GetType().Name}");
         }

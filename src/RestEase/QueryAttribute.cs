@@ -8,12 +8,12 @@ namespace RestEase
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class QueryAttribute : Attribute
     {
-        private string _name;
+        private string? _name;
 
         /// <summary>
         /// Gets or sets the name of the query param. Will use the parameter / property name if unset.
         /// </summary>
-        public string Name
+        public string? Name
         {
             get => this._name;
             set
@@ -45,7 +45,7 @@ namespace RestEase
         /// <see cref="IFormattable.ToString(string, IFormatProvider)"/> method. Otherwise this is ignored.
         /// Example values: "X2", "{0:X2}", "test{0}".
         /// </remarks>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryAttribute"/> class

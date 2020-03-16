@@ -16,7 +16,7 @@ namespace RestEase
         /// <summary>
         /// Gets the value of the header, if present
         /// </summary>
-        public string Value { get; }
+        public string? Value { get; }
 
         /// <summary>
         /// Gets or sets the format string used to format the value, if this is used as a variable header
@@ -29,11 +29,12 @@ namespace RestEase
         /// <see cref="IFormattable.ToString(string, IFormatProvider)"/> method. Otherwise this is ignored.
         /// Example values: "X2", "{0:X2}", "test{0}".
         /// </remarks>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="HeaderAttribute"/> class
-        /// </summary>
+        /// </summary>#
+        /// 
         /// <param name="name">Name of the header</param>
         public HeaderAttribute(string name)
         {

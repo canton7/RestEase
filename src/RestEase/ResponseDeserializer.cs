@@ -12,7 +12,7 @@ namespace RestEase
     public abstract class ResponseDeserializer : IResponseDeserializer
     {
         [Obsolete("Override Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) instead", error: true)]
-        T IResponseDeserializer.Deserialize<T>(string content, HttpResponseMessage response)
+        T IResponseDeserializer.Deserialize<T>(string? content, HttpResponseMessage response)
         {
             // This exists only so that we can assign instances of ResponseDeserializer to the IResponseDeserializer in RestClient
             throw new InvalidOperationException("This should never be called");
@@ -26,7 +26,7 @@ namespace RestEase
         /// <param name="response">HttpResponseMessage. Consider calling response.Content.ReadAsStringAsync() to retrieve a string</param>
         /// <param name="info">Extra information about the response</param>
         /// <returns>Deserialized response</returns>
-        public virtual T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
+        public virtual T Deserialize<T>(string? content, HttpResponseMessage response, ResponseDeserializerInfo info)
         {
             throw new NotImplementedException($"You must override and implement T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) in {this.GetType().Name}");
         }

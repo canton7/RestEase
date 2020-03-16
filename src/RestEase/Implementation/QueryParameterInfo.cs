@@ -21,14 +21,14 @@ namespace RestEase.Implementation
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public abstract IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider);
+        public abstract IEnumerable<KeyValuePair<string, string?>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider? formatProvider);
 
         /// <summary>
         /// Serialize the value into a collection of name -> value pairs using its ToString method
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public abstract IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider);
+        public abstract IEnumerable<KeyValuePair<string, string?>> SerializeToString(IFormatProvider? formatProvider);
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ namespace RestEase.Implementation
     {
         private readonly string name;
         private readonly T value;
-        private readonly string format;
+        private readonly string? format;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryParameterInfo{T}"/> class
@@ -48,7 +48,7 @@ namespace RestEase.Implementation
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to use</param>
-        public QueryParameterInfo(QuerySerializationMethod serializationMethod, string name, T value, string format)
+        public QueryParameterInfo(QuerySerializationMethod serializationMethod, string name, T value, string? format)
         {
             this.SerializationMethod = serializationMethod;
             this.name = name;
@@ -63,14 +63,14 @@ namespace RestEase.Implementation
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
+        public override IEnumerable<KeyValuePair<string, string?>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider? formatProvider)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
             if (requestInfo == null)
                 throw new ArgumentNullException(nameof(requestInfo));
 
-            return serializer.SerializeQueryParam<T>(this.name, this.value, new RequestQueryParamSerializerInfo(requestInfo, this.format, formatProvider));
+            return serializer.SerializeQueryParam(this.name, this.value, new RequestQueryParamSerializerInfo(requestInfo, this.format, formatProvider));
         }
 
         /// <summary>
@@ -78,12 +78,12 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider)
+        public override IEnumerable<KeyValuePair<string, string?>> SerializeToString(IFormatProvider? formatProvider)
         {
             if (this.value == null)
-                return Enumerable.Empty<KeyValuePair<string, string>>();
+                return Enumerable.Empty<KeyValuePair<string, string?>>();
 
-            return new[] { new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(this.value, this.format, formatProvider)) };
+            return new[] { new KeyValuePair<string, string?>(this.name, ToStringHelper.ToString(this.value, this.format, formatProvider)) };
         }
     }
 
@@ -95,7 +95,7 @@ namespace RestEase.Implementation
     {
         private readonly string name;
         private readonly IEnumerable<T> values;
-        private readonly string format;
+        private readonly string? format;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryCollectionParameterInfo{T}"/> class
@@ -104,7 +104,7 @@ namespace RestEase.Implementation
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pair</param>
         /// <param name="format">Format string to use</param>
-        public QueryCollectionParameterInfo(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string format)
+        public QueryCollectionParameterInfo(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string? format)
         {
             this.SerializationMethod = serializationMethod;
             this.name = name;
@@ -119,12 +119,12 @@ namespace RestEase.Implementation
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
+        public override IEnumerable<KeyValuePair<string, string?>> SerializeValue(RequestQueryParamSerializer serializer, IRequestInfo requestInfo, IFormatProvider? formatProvider)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
 
-            return serializer.SerializeQueryCollectionParam<T>(this.name, this.values, new RequestQueryParamSerializerInfo(requestInfo, this.format, formatProvider));
+            return serializer.SerializeQueryCollectionParam(this.name, this.values, new RequestQueryParamSerializerInfo(requestInfo, this.format, formatProvider));
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> given to the <see cref="Requester"/>, if any</param>
         /// <returns>Serialized value</returns>
-        public override IEnumerable<KeyValuePair<string, string>> SerializeToString(IFormatProvider formatProvider)
+        public override IEnumerable<KeyValuePair<string, string?>> SerializeToString(IFormatProvider? formatProvider)
         {
             if (this.values == null)
                 yield break;
@@ -142,7 +142,7 @@ namespace RestEase.Implementation
                 if (value == null)
                     continue;
 
-                yield return new KeyValuePair<string, string>(this.name, ToStringHelper.ToString(value, this.format, formatProvider));
+                yield return new KeyValuePair<string, string?>(this.name, ToStringHelper.ToString(value, this.format, formatProvider));
             }
         }
     }

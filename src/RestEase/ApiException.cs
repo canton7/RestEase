@@ -39,12 +39,12 @@ namespace RestEase
         /// <summary>
         /// Gets the content headers associated with the response
         /// </summary>
-        public HttpContentHeaders ContentHeaders { get; }
+        public HttpContentHeaders? ContentHeaders { get; }
 
         /// <summary>
         /// Gets the content associated with the response, if any
         /// </summary>
-        public string Content { get; }
+        public string? Content { get; }
 
         /// <summary>
         /// Gets a value indicating whether any content is associated with the response
@@ -60,7 +60,7 @@ namespace RestEase
         /// <param name="request">Request which triggered the exception</param>
         /// <param name="response"><see cref="HttpResponseMessage"/> provided by the <see cref="HttpClient"/></param>
         /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
-        public ApiException(HttpRequestMessage request, HttpResponseMessage response, string contentString)
+        public ApiException(HttpRequestMessage request, HttpResponseMessage response, string? contentString)
             : this(request.Method,
                   request.RequestUri,
                   response.StatusCode,
@@ -87,8 +87,8 @@ namespace RestEase
             HttpStatusCode statusCode,
             string reasonPhrase,
             HttpResponseHeaders headers,
-            HttpContentHeaders contentHeaders,
-            string contentString)
+            HttpContentHeaders? contentHeaders,
+            string? contentString)
             : base($"{requestMethod} \"{requestUri}\" failed because response status code does not indicate success: {(int)statusCode} ({reasonPhrase}).")
         {
             this.RequestMethod = requestMethod;
@@ -119,7 +119,7 @@ namespace RestEase
             if (response.Content == null)
                 return new ApiException(request, response, null);
 
-            string contentString = null;
+            string? contentString = null;
 
             try
             {

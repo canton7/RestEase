@@ -11,7 +11,7 @@ namespace RestEase
         /// <summary>
         /// Gets or sets the optional key of the parameter. Will use the parameter name if null
         /// </summary>
-        public string Key { get; set; }
+        public string? Key { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class

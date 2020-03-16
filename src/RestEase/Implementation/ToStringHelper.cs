@@ -34,7 +34,7 @@ namespace RestEase.Implementation
         /// <param name="format">Format parameter, see description</param>
         /// <param name="formatProvider">Format provider to pass to <see cref="IFormattable.ToString(string, IFormatProvider)"/></param>
         /// <returns>String version of the input value</returns>
-        public static string ToString<T>(T value, string format, IFormatProvider formatProvider)
+        public static string? ToString<T>(T value, string? format, IFormatProvider? formatProvider)
         {
             // If it looks like it's a ToString placeholder, use ToString
             if (format != null && stringFormatRegex.IsMatch(format))
