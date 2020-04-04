@@ -246,7 +246,7 @@ public interface IGitHubApi
 
 IGithubApi api = RestClient.For<IGithubApi>("http://api.github.com");
 
-// Requests http://api.github.com/user?userId=3
+// Requests http://api.github.com/user?userid=3
 await api.FetchUserAsync(3);
 ```
 
