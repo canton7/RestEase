@@ -11,16 +11,30 @@ namespace RestEase
         /// <summary>
         /// Gets the Name of the header
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// Gets the value of the header, if present
         /// </summary>
-        public string Value { get; private set; }
+        public string? Value { get; }
+
+        /// <summary>
+        /// Gets or sets the format string used to format the value, if this is used as a variable header
+        /// (i.e. <see cref="Value"/> is null).
+        /// </summary>
+        /// <remarks>
+        /// If this looks like a format string which can be passed to <see cref="string.Format(IFormatProvider, string, object[])"/>,
+        /// (i.e. it contains at least one format placeholder), then this happens with the value passed as the first arg.
+        /// Otherwise, if the value implements <see cref="IFormattable"/>, this is passed to the value's
+        /// <see cref="IFormattable.ToString(string, IFormatProvider)"/> method. Otherwise this is ignored.
+        /// Example values: "X2", "{0:X2}", "test{0}".
+        /// </remarks>
+        public string? Format { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="HeaderAttribute"/> class
-        /// </summary>
+        /// </summary>#
+        /// 
         /// <param name="name">Name of the header</param>
         public HeaderAttribute(string name)
         {

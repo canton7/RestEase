@@ -16,6 +16,6 @@ namespace RestEase
         /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage. Consider calling response.Content.ReadAsStringAsync() to retrieve a string</param>
         /// <returns>Deserialized response</returns>
-        T Deserialize<T>(string content, HttpResponseMessage response);
+        T Deserialize<T>(string? content, HttpResponseMessage response);
     }
 }

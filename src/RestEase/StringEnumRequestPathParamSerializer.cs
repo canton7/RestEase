@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using RestEase.Implementation;
 using System.Linq;
+using RestEase.Platform;
 
 #if !NETSTANDARD1_1
 using System.ComponentModel;
@@ -32,16 +33,16 @@ namespace RestEase
         /// If the value is an enum value, the serializer will check if it has an EnumMember, DisplayName or Display
         /// attribute, and if so return the value of that instead (in that order of preference).
         /// </remarks>
-        public override string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
+        public override string? SerializePathParam<T>(T value, RequestPathParamSerializerInfo info)
         {
             if (value == null)
             {
                 return null;
             }
 
-            var type = typeof(T);
+            var typeInfo = typeof(T).GetTypeInfo();
 
-            if (!IsEnum(type))
+            if (!typeInfo.IsEnum)
             {
                 return ToStringHelper.ToString(value, info.Format, info.FormatProvider);
             }
@@ -53,7 +54,7 @@ namespace RestEase
 
             stringValue = value.ToString();
 
-            var fieldInfo = GetField(type, stringValue);
+            var fieldInfo = typeInfo.GetField(stringValue);
 
             if (fieldInfo == null)
             {
@@ -97,24 +98,6 @@ namespace RestEase
         {
             cache.TryAdd(key, value);
             return value;
-        }
-
-        private static bool IsEnum(Type type)
-        {
-#if NETSTANDARD1_1
-            return type.GetTypeInfo().IsEnum;
-#else
-            return type.IsEnum;
-#endif
-        }
-
-        private static FieldInfo GetField(Type type, string name)
-        {
-#if NETSTANDARD1_1
-            return type.GetTypeInfo().GetDeclaredField(name);
-#else
-            return type.GetField(name);
-#endif
         }
     }
 }

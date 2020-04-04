@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Text;
 
 namespace RestEase.Platform
 {
@@ -28,6 +26,11 @@ namespace RestEase.Platform
         public static IEnumerable<PropertyInfo> GetProperties(this TypeInfo typeInfo)
         {
             return typeInfo.DeclaredProperties;
+        }
+
+        public static FieldInfo GetField(this TypeInfo typeInfo, string name)
+        {
+            return typeInfo.GetDeclaredField(name);
         }
 
         public static ConstructorInfo GetConstructor(this TypeInfo typeInfo, Type[] paramTypes)

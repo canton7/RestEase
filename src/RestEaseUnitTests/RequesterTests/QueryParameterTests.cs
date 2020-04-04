@@ -121,6 +121,19 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void CallsStringFormatIfFormatLooksLikeAFormatParameter()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            var objectMock = new Mock<IFormattable>();
+            objectMock.Setup(x => x.ToString("D3", null)).Returns("BOOM").Verifiable();
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "bar", objectMock.Object, "{0,6:D3}");
+            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+
+            objectMock.VerifyAll();
+            Assert.Equal(new Uri("http://api.example.com/base/foo?bar=++BOOM"), uri);
+        }
+
+        [Fact]
         public void CallsToStringWithFormatParameterIfGivenForToStringSerializationMethod()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);

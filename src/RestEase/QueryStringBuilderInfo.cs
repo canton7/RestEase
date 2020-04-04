@@ -21,12 +21,12 @@ namespace RestEase
         /// <summary>
         /// Gets the query parameters (or an empty collection)
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> QueryParams { get; }
+        public IEnumerable<KeyValuePair<string, string?>> QueryParams { get; }
 
         /// <summary>
         /// Gets the query properties (or an empty collection)
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> QueryProperties { get; }
+        public IEnumerable<KeyValuePair<string, string?>> QueryProperties { get; }
 
         /// <summary>
         /// Gets the RequestInfo representing the request
@@ -36,7 +36,7 @@ namespace RestEase
         /// <summary>
         /// Gets the format provider, if any
         /// </summary>
-        public IFormatProvider FormatProvider { get; }
+        public IFormatProvider? FormatProvider { get; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="QueryStringBuilderInfo"/> class
@@ -50,10 +50,10 @@ namespace RestEase
         public QueryStringBuilderInfo(
             string initialQueryString,
             string rawQueryParameter,
-            IEnumerable<KeyValuePair<string, string>> queryParams,
-            IEnumerable<KeyValuePair<string, string>> queryProperties,
+            IEnumerable<KeyValuePair<string, string?>> queryParams,
+            IEnumerable<KeyValuePair<string, string?>> queryProperties,
             IRequestInfo requestInfo,
-            IFormatProvider formatProvider)
+            IFormatProvider? formatProvider)
         {
             this.InitialQueryString = initialQueryString;
             this.RawQueryParameter = rawQueryParameter;

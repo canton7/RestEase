@@ -15,6 +15,6 @@ namespace RestEase
         /// <param name="value">Value of the path parameter</param>
         /// <param name="info">Extra info which may be useful to the serializer</param>
         /// <returns>A string value to use as path parameter</returns>
-        public abstract string SerializePathParam<T>(T value, RequestPathParamSerializerInfo info);
+        public abstract string? SerializePathParam<T>(T value, RequestPathParamSerializerInfo info);
     }
 }

@@ -12,7 +12,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public abstract string SerializeToString(IFormatProvider formatProvider);
+        public abstract string SerializeToString(IFormatProvider? formatProvider);
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ namespace RestEase.Implementation
         }
 
         /// <inheritdoc/>
-        public override string SerializeToString(IFormatProvider formatProvider)
+        public override string SerializeToString(IFormatProvider? formatProvider)
         {
             return ToStringHelper.ToString(this.value, null, formatProvider) ?? string.Empty;
         }

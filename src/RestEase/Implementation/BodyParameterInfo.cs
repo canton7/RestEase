@@ -11,12 +11,23 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the method to use to serialize the body
         /// </summary>
-        public BodySerializationMethod SerializationMethod { get; protected set; }
+        public BodySerializationMethod SerializationMethod { get; }
 
         /// <summary>
         /// Gets the body to serialize, as an object
         /// </summary>
-        public object ObjectValue { get; protected set; }
+        public object? ObjectValue { get; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="BodyParameterInfo{T}"/> class
+        /// </summary>
+        /// <param name="serializationMethod">Method to use the serialize the body</param>
+        /// <param name="objectValue">Body to serialize, as an object</param>
+        protected BodyParameterInfo(BodySerializationMethod serializationMethod, object? objectValue)
+        {
+            this.SerializationMethod = serializationMethod;
+            this.ObjectValue = objectValue;
+        }
 
         /// <summary>
         /// Serialize the (typed) value using the given serializer
@@ -25,7 +36,7 @@ namespace RestEase.Implementation
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public abstract HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider);
+        public abstract HttpContent? SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo, IFormatProvider? formatProvider);
     }
 
     /// <summary>
@@ -37,7 +48,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the body to serialize
         /// </summary>
-        public T Value { get; private set; }
+        public T Value { get; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="BodyParameterInfo{T}"/> class
@@ -45,9 +56,8 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use the serialize the body</param>
         /// <param name="value">Body to serialize</param>
         public BodyParameterInfo(BodySerializationMethod serializationMethod, T value)
+            : base(serializationMethod, value)
         {
-            this.SerializationMethod = serializationMethod;
-            this.ObjectValue = value;
             this.Value = value;
         }
 
@@ -58,12 +68,12 @@ namespace RestEase.Implementation
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider"><see cref="IFormatProvider"/> to use if the value implements <see cref="IFormattable"/></param>
         /// <returns>Serialized value</returns>
-        public override HttpContent SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo, IFormatProvider formatProvider)
+        public override HttpContent? SerializeValue(RequestBodySerializer serializer, IRequestInfo requestInfo, IFormatProvider? formatProvider)
         {
             if (serializer == null)
                 throw new ArgumentNullException(nameof(serializer));
 
-            return serializer.SerializeBody<T>(this.Value, new RequestBodySerializerInfo(requestInfo, formatProvider));
+            return serializer.SerializeBody(this.Value, new RequestBodySerializerInfo(requestInfo, formatProvider));
         }
     }
 }

@@ -11,10 +11,10 @@ namespace RestEase
         /// <summary>
         /// Gets or sets the serializer settings to pass to JsonConvert.DeserializeObject{T}
         /// </summary>
-        public JsonSerializerSettings JsonSerializerSettings { get; set; }
+        public JsonSerializerSettings? JsonSerializerSettings { get; set; }
 
         /// <inheritdoc/>
-        public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info)
+        public override T Deserialize<T>(string? content, HttpResponseMessage response, ResponseDeserializerInfo info)
         {
             return JsonConvert.DeserializeObject<T>(content, this.JsonSerializerSettings);
         }

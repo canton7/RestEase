@@ -114,7 +114,7 @@ namespace RestEaseUnitTests.RequesterTests
             requestInfo.AddHttpRequestMessagePropertyParameter("key2", "value2");
             requester.RequestWithResponseMessageAsync(requestInfo).Wait();
 
-            Assert.Equal(2, messageHandler.Request.Properties.Count);
+            Assert.Equal(3, messageHandler.Request.Properties.Count);
             Assert.Equal("value1", messageHandler.Request.Properties["key1"]);
             Assert.Equal("value2", messageHandler.Request.Properties["key2"]);
         }

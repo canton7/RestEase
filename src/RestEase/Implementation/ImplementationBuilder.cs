@@ -22,7 +22,7 @@ namespace RestEase.Implementation
     {
         private static class TypeCreatorRegistry<T>
         {
-            public static Func<IRequester, T> Creator;
+            public static Func<IRequester, T>? Creator;
         }
 
         private static readonly Regex pathParamMatch = new Regex(@"\{(.+?)\}");
@@ -170,10 +170,10 @@ namespace RestEase.Implementation
             var classSerializationMethodsAttribute = interfaceTypeInfo.GetCustomAttribute<SerializationMethodsAttribute>();
             var classBasePathAttribute = interfaceTypeInfo.GetCustomAttribute<BasePathAttribute>();
 
-            foreach (var childInterfaceType in interfaceTypeInfo.GetInterfaces())
+            foreach (var parentInterfaceType in interfaceTypeInfo.GetInterfaces())
             {
-                if (childInterfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
-                    throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", childInterfaceType.Name));
+                if (parentInterfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
+                    throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", parentInterfaceType.Name));
             }
 
             // Define a readonly field which holds a reference to the IRequester
@@ -184,11 +184,11 @@ namespace RestEase.Implementation
             this.HandleEvents(interfaceType);
             var properties = this.HandleProperties(typeBuilder, interfaceType, requesterField);
 
-            this.ValidatePathProperties(classBasePathAttribute?.BasePath, properties.Path.Select(x => x.Attribute.Name).ToList());
+            this.ValidatePathProperties(classBasePathAttribute?.BasePath, properties.Path.Select(x => x.Attribute.Name!).ToList());
 
             // If there are any class headers, define a static readonly field which contains them
             // Also define a static constructor to initialise it
-            FieldBuilder classHeadersField = null;
+            FieldBuilder? classHeadersField = null;
             if (classHeaders.Length > 0)
                 classHeadersField = typeBuilder.DefineField("classHeaders", typeof(List<KeyValuePair<string, string>>), FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.InitOnly);
 
@@ -265,7 +265,7 @@ namespace RestEase.Implementation
             ctorIlGenerator.Emit(OpCodes.Ret);
         }
 
-        private void AddStaticCtor(TypeBuilder typeBuilder, HeaderAttribute[] classHeaders, FieldBuilder classHeadersField, MethodInfoGrouping methodInfoGrouping)
+        private void AddStaticCtor(TypeBuilder typeBuilder, HeaderAttribute[] classHeaders, FieldBuilder? classHeadersField, MethodInfoGrouping methodInfoGrouping)
         {
             // static Name()
             // {
@@ -323,10 +323,10 @@ namespace RestEase.Implementation
             TypeBuilder typeBuilder,
             Type interfaceType,
             FieldBuilder requesterField,
-            FieldInfo classHeadersField,
+            FieldInfo? classHeadersField,
             AllowAnyStatusCodeAttribute classAllowAnyStatusCodeAttribute,
             SerializationMethodsAttribute classSerializationMethodsAttribute,
-            BasePathAttribute basePathAttribute,
+            BasePathAttribute? basePathAttribute,
             PropertyGrouping properties,
             out MethodInfoGrouping methodInfoGrouping)
         {
@@ -402,9 +402,9 @@ namespace RestEase.Implementation
                     var methodSerializationMethodsAttribute = methodInfo.GetCustomAttribute<SerializationMethodsAttribute>();
                     var serializationMethods = new ResolvedSerializationMethods(classSerializationMethodsAttribute, methodSerializationMethodsAttribute);
 
-                    this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name).ToList(), methodInfo.Name);
+                    this.ValidatePathParams(requestAttribute.Path, parameterGrouping.PathParameters.Select(x => x.Attribute.Name ?? x.Parameter.Name).ToList(), properties.Path.Select(x => x.Attribute.Name!).ToList(), methodInfo.Name);
 
-                    var httpRequestMessageProperties = parameterGrouping.HttpRequestMessageProperties.Select(x => x.Attribute.Key ?? x.Parameter.Name).Concat(properties.HttpRequestMessageProperties.Select(x => x.Attribute.Key));
+                    var httpRequestMessageProperties = parameterGrouping.HttpRequestMessageProperties.Select(x => x.Attribute.Key ?? x.Parameter.Name).Concat(properties.HttpRequestMessageProperties.Select(x => x.Attribute.Key!));
                     this.ValidateHttpRequestMessageProperties(httpRequestMessageProperties, methodInfo.Name);
 
                     var methodInfoFieldBuilder = typeBuilder.DefineField("methodInfo<>_" + methodIndex, typeof(MethodInfo), FieldAttributes.Private | FieldAttributes.Static);
@@ -533,7 +533,7 @@ namespace RestEase.Implementation
             }
         }
 
-        private void AddClassHeadersIfNeeded(ILGenerator methodIlGenerator, FieldInfo classHeadersField)
+        private void AddClassHeadersIfNeeded(ILGenerator methodIlGenerator, FieldInfo? classHeadersField)
         {
             if (classHeadersField != null)
             {
@@ -548,7 +548,7 @@ namespace RestEase.Implementation
         {
             foreach (var propertyHeader in headers)
             {
-                var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField.FieldType);
+                var typedMethod = addPropertyHeaderMethod.MakeGenericMethod(propertyHeader.BackingField!.FieldType);
                 methodIlGenerator.Emit(OpCodes.Dup);
                 methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Name);
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
@@ -557,6 +557,10 @@ namespace RestEase.Implementation
                     methodIlGenerator.Emit(OpCodes.Ldnull);
                 else
                     methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Value);
+                if (propertyHeader.Attribute.Format == null)
+                    methodIlGenerator.Emit(OpCodes.Ldnull);
+                else
+                    methodIlGenerator.Emit(OpCodes.Ldstr, propertyHeader.Attribute.Format);
                 methodIlGenerator.Emit(OpCodes.Callvirt, typedMethod);
             }
         }
@@ -565,7 +569,7 @@ namespace RestEase.Implementation
         {
             foreach (var pathProperty in path)
             {
-                var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField.FieldType);
+                var typedMethod = addPathPropertyMethod.MakeGenericMethod(pathProperty.BackingField!.FieldType);
                 methodIlGenerator.Emit(OpCodes.Dup);
                 methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethods.ResolvePath(pathProperty.Attribute.SerializationMethod));
                 methodIlGenerator.Emit(OpCodes.Ldstr, pathProperty.Attribute.Name);
@@ -584,7 +588,7 @@ namespace RestEase.Implementation
         {
             foreach (var queryProperty in query)
             {
-                var typedMethod = addQueryPropertyMethod.MakeGenericMethod(queryProperty.BackingField.FieldType);
+                var typedMethod = addQueryPropertyMethod.MakeGenericMethod(queryProperty.BackingField!.FieldType);
                 methodIlGenerator.Emit(OpCodes.Dup);
                 methodIlGenerator.Emit(OpCodes.Ldc_I4, (int)serializationMethods.ResolveQuery(queryProperty.Attribute.SerializationMethod));
                 methodIlGenerator.Emit(OpCodes.Ldstr, queryProperty.Attribute.Name);
@@ -606,7 +610,7 @@ namespace RestEase.Implementation
                 methodIlGenerator.Emit(OpCodes.Ldstr, httpRequestMessageProperty.Attribute.Key);
                 methodIlGenerator.Emit(OpCodes.Ldarg_0);
                 methodIlGenerator.Emit(OpCodes.Ldfld, httpRequestMessageProperty.BackingField);
-                if (httpRequestMessageProperty.BackingField.FieldType.GetTypeInfo().IsValueType)
+                if (httpRequestMessageProperty.BackingField!.FieldType.GetTypeInfo().IsValueType)
                     methodIlGenerator.Emit(OpCodes.Box, httpRequestMessageProperty.BackingField.FieldType);
                 methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyPropertyMethod);
             }
@@ -633,7 +637,7 @@ namespace RestEase.Implementation
             }
         }
 
-        private void AddBasePathIfNecessary(ILGenerator methodIlGenerator, BasePathAttribute basePathAttribute)
+        private void AddBasePathIfNecessary(ILGenerator methodIlGenerator, BasePathAttribute? basePathAttribute)
         {
             if (basePathAttribute != null)
             {
@@ -702,13 +706,13 @@ namespace RestEase.Implementation
                 if (headerParameter.Attribute.Name.Contains(":"))
                     throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\")] must not have a colon in its name", methodName, headerParameter.Attribute.Name));
                 var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
-                this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute.Name, (short)headerParameter.Index, typedMethod);
+                this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute, (short)headerParameter.Index, typedMethod);
             }
         }
 
         private static MethodInfo MakeQueryParameterMethodInfo(Type parameterType)
         {
-            Type typeOfT = null;
+            Type? typeOfT = null;
             // Don't want to count string as an IEnumrable<char>...
             if (parameterType != typeof(string))
                 typeOfT = CollectionTypeOfType(parameterType);
@@ -720,7 +724,7 @@ namespace RestEase.Implementation
                 return addQueryCollectionParameterMethod.MakeGenericMethod(typeOfT);
         }
 
-        private static MethodInfo MakeQueryMapMethodInfo(Type queryMapType)
+        private static MethodInfo? MakeQueryMapMethodInfo(Type queryMapType)
         {
             var nullableDictionaryTypes = DictionaryTypesOfType(queryMapType);
             if (nullableDictionaryTypes == null)
@@ -728,7 +732,7 @@ namespace RestEase.Implementation
 
             var dictionaryTypes = nullableDictionaryTypes.Value;
 
-            Type typeOfT = null;
+            Type? typeOfT = null;
             // Don't want to count string as an IEnumrable<char>...
             if (dictionaryTypes.Value != typeof(string))
                 typeOfT = CollectionTypeOfType(dictionaryTypes.Value);
@@ -739,7 +743,7 @@ namespace RestEase.Implementation
                 return addQueryCollectionMapMethod.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value, typeOfT);
         }
 
-        private static Type CollectionTypeOfType(Type input)
+        private static Type? CollectionTypeOfType(Type input)
         {
             foreach (var baseType in EnumerableExtensions.Concat(input, input.GetTypeInfo().GetInterfaces()))
             {
@@ -859,7 +863,7 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, addMethodHeaderMethod);
         }
 
-        private void AddQueryParam(ILGenerator methodIlGenerator, string name, short parameterIndex, string format, MethodInfo methodToCall, QuerySerializationMethod serializationMethod)
+        private void AddQueryParam(ILGenerator methodIlGenerator, string? name, short parameterIndex, string? format, MethodInfo methodToCall, QuerySerializationMethod serializationMethod)
         {
             // Equivalent C#:
             // requestInfo.AddQueryParameter(serializationMethod, name, value, format) (or AddQueryCollectionParameter)
@@ -960,21 +964,25 @@ namespace RestEase.Implementation
             methodIlGenerator.Emit(OpCodes.Callvirt, addRequestPropertyParameterMethod);
         }
 
-        private void AddHeaderParameter(ILGenerator methodIlGenerator, string name, short parameterIndex, MethodInfo method)
+        private void AddHeaderParameter(ILGenerator methodIlGenerator, HeaderAttribute header, short parameterIndex, MethodInfo method)
         {
             // Equivalent C#:
-            // requestInfo.AddHeaderParameter("name", value);
+            // requestInfo.AddHeaderParameter("name", value, format);
             // where 'value' is the parameter at index parameterIndex
-
             // Duplicate the requestInfo. This is because calling AddQueryParameter on it will pop it
             // Stack: [..., requestInfo, requestInfo]
             methodIlGenerator.Emit(OpCodes.Dup);
             // Load the name onto the stack
             // Stack: [..., requestInfo, requestInfo, name]
-            methodIlGenerator.Emit(OpCodes.Ldstr, name);
+            methodIlGenerator.Emit(OpCodes.Ldstr, header.Name);
             // Load the param onto the stack
             // Stack: [..., requestInfo, requestInfo, name, value]
             methodIlGenerator.Emit(OpCodes.Ldarg, parameterIndex);
+            // Format parameter
+            if (header.Format == null)
+                methodIlGenerator.Emit(OpCodes.Ldnull);
+            else
+                methodIlGenerator.Emit(OpCodes.Ldstr, header.Format);
             // Call AddPathParameter
             // Stack: [..., requestInfo]
             methodIlGenerator.Emit(OpCodes.Callvirt, method);
@@ -988,7 +996,7 @@ namespace RestEase.Implementation
                 throw new ImplementationCreationException(String.Format("Method '{0}': found more than one HTTP request message property for key {1}.", methodName, duplicateKey));
         }
 
-        private void ValidatePathProperties(string basePath, IEnumerable<string> pathProperties)
+        private void ValidatePathProperties(string? basePath, IEnumerable<string> pathProperties)
         {
             // Check that there are no duplicate param names in the attributes
             var duplicatePropertyKey = pathProperties.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
@@ -1007,7 +1015,7 @@ namespace RestEase.Implementation
             }
         }
 
-        private void ValidatePathParams(string path, IEnumerable<string> pathParams, IEnumerable<string> pathProperties, string methodName)
+        private void ValidatePathParams(string? path, IEnumerable<string> pathParams, IEnumerable<string> pathProperties, string methodName)
         {
             if (path == null)
                 path = String.Empty;

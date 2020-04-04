@@ -35,7 +35,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
         /// </summary>
-        public RequestPathParamSerializer RequestPathParamSerializer { get; set; }
+        public RequestPathParamSerializer? RequestPathParamSerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
@@ -45,7 +45,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the builder used to construct query strings, if any
         /// </summary>
-        public QueryStringBuilder QueryStringBuilder { get; set; }
+        public QueryStringBuilder? QueryStringBuilder { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
@@ -53,7 +53,7 @@ namespace RestEase.Implementation
         /// <remarks>
         /// Defaults to null, in which case the current culture is used.
         /// </remarks>
-        public IFormatProvider FormatProvider { get; set; }
+        public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
@@ -75,7 +75,7 @@ namespace RestEase.Implementation
         /// <param name="path">Path to substitute placeholders in</param>
         /// <param name="requestInfo">IRequestInfo to get Path, PathParams, and PathProperties from</param>
         /// <returns>The constructed path, with placeholders substituted for their actual values</returns>
-        protected virtual string SubstitutePathParameters(string path, IRequestInfo requestInfo)
+        protected virtual string? SubstitutePathParameters(string? path, IRequestInfo requestInfo)
         {
             if (string.IsNullOrEmpty(path) || (!requestInfo.PathParams.Any() && !requestInfo.PathProperties.Any()))
                 return path;
@@ -132,7 +132,7 @@ namespace RestEase.Implementation
                     {
                         // Need to make sure it ends with a trailing slash, or appending our relative path will strip
                         // the last path component (assuming there is one)
-                        if (!baseAddress.EndsWith("/") && !String.IsNullOrEmpty(uri.OriginalString))
+                        if (!baseAddress!.EndsWith("/") && !String.IsNullOrEmpty(uri.OriginalString))
                             baseAddress += '/';
                         uri = new Uri(baseAddress + uri.OriginalString, UriKind.RelativeOrAbsolute);
                     }
@@ -193,7 +193,7 @@ namespace RestEase.Implementation
                 sb.Append(query);
             }
 
-            string Encode(string data)
+            string Encode(string? data)
             {
                 if (string.IsNullOrEmpty(data))
                     return string.Empty;
@@ -228,10 +228,10 @@ namespace RestEase.Implementation
         /// <remarks>Currently only supports objects which implement IDictionary</remarks>
         /// <param name="body">Object to attempt to serialize</param>
         /// <returns>Key/value collection suitable for URL encoding</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeBodyForUrlEncoding(object body)
+        protected virtual IEnumerable<KeyValuePair<string, string?>> SerializeBodyForUrlEncoding(object body)
         {
             if (body == null)
-                return Enumerable.Empty<KeyValuePair<string, string>>();
+                return Enumerable.Empty<KeyValuePair<string, string?>>();
 
             if (DictionaryIterator.CanIterate(body.GetType()))
                 return this.TransformDictionaryToCollectionOfKeysAndValues(body);
@@ -245,7 +245,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="dictionary">Dictionary to transform</param>
         /// <returns>A set of KeyValuePairs</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
+        protected virtual IEnumerable<KeyValuePair<string, string?>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
         {
             foreach (var kvp in DictionaryIterator.Iterate(dictionary))
             {
@@ -254,12 +254,12 @@ namespace RestEase.Implementation
                     foreach (var individualValue in (IEnumerable)kvp.Value)
                     {
                         var stringValue = this.ToStringHelper(individualValue);
-                        yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), stringValue);
+                        yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, stringValue);
                     }
                 }
                 else if (kvp.Value != null)
                 {
-                    yield return new KeyValuePair<string, string>(this.ToStringHelper(kvp.Key), this.ToStringHelper(kvp.Value));
+                    yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, this.ToStringHelper(kvp.Value));
                 }
             }
         }
@@ -270,7 +270,7 @@ namespace RestEase.Implementation
         /// <param name="pathParameter">Path parameter to serialize</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        protected virtual KeyValuePair<string, string> SerializePathParameter(PathParameterInfo pathParameter, IRequestInfo requestInfo)
+        protected virtual KeyValuePair<string, string?> SerializePathParameter(PathParameterInfo pathParameter, IRequestInfo requestInfo)
         {
             switch (pathParameter.SerializationMethod)
             {
@@ -292,7 +292,7 @@ namespace RestEase.Implementation
         /// <param name="queryParameter">Query parameter to serialize</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Serialized value</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string>> SerializeQueryParameter(QueryParameterInfo queryParameter, IRequestInfo requestInfo)
+        protected virtual IEnumerable<KeyValuePair<string, string?>> SerializeQueryParameter(QueryParameterInfo queryParameter, IRequestInfo requestInfo)
         {
             switch (queryParameter.SerializationMethod)
             {
@@ -302,7 +302,7 @@ namespace RestEase.Implementation
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
                     var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo, this.FormatProvider);
-                    return result ?? Enumerable.Empty<KeyValuePair<string, string>>();
+                    return result ?? Enumerable.Empty<KeyValuePair<string, string?>>();
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -313,7 +313,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to get the BodyParameterInfo for</param>
         /// <returns>null if no body is set, otherwise a suitable HttpContent (StringContent, StreamContent, FormUrlEncodedContent, etc)</returns>
-        protected virtual HttpContent ConstructContent(IRequestInfo requestInfo)
+        protected virtual HttpContent? ConstructContent(IRequestInfo requestInfo)
         {
             if (requestInfo.BodyParameterInfo == null || requestInfo.BodyParameterInfo.ObjectValue == null)
                 return null;
@@ -352,9 +352,9 @@ namespace RestEase.Implementation
         protected virtual void ApplyHeaders(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
             // Apply from class -> method (combining static/dynamic), so we get the proper hierarchy
-            var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
-            this.ApplyHeadersSet(requestInfo, requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders), false);
-            this.ApplyHeadersSet(requestInfo, requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams), true);
+            var classHeaders = requestInfo.ClassHeaders ?? Enumerable.Empty<KeyValuePair<string, string?>>();
+            this.ApplyHeadersSet(requestInfo, requestMessage, classHeaders.Concat(requestInfo.PropertyHeaders.Select(x => x.SerializeToString(this.FormatProvider))), false);
+            this.ApplyHeadersSet(requestInfo, requestMessage, requestInfo.MethodHeaders.Concat(requestInfo.HeaderParams.Select(x => x.SerializeToString(this.FormatProvider))), true);
         }
 
         /// <summary>
@@ -367,10 +367,10 @@ namespace RestEase.Implementation
         protected virtual void ApplyHeadersSet(
             IRequestInfo requestInfo,
             HttpRequestMessage requestMessage,
-            IEnumerable<KeyValuePair<string, string>> headers,
+            IEnumerable<KeyValuePair<string, string?>> headers,
             bool areMethodHeaders)
         {
-            HttpContent dummyContent = null;
+            HttpContent? dummyContent = null;
             var headersGroups = headers.GroupBy(x => x.Key);
 
             foreach (var headersGroup in headersGroups)
@@ -423,7 +423,7 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of the value being serialized</typeparam>
         /// <param name="value">Value being serialized</param>
         /// <returns>Serialized value</returns>
-        protected string ToStringHelper<T>(T value) => Implementation.ToStringHelper.ToString(value, null, this.FormatProvider);
+        protected string? ToStringHelper<T>(T value) => Implementation.ToStringHelper.ToString(value, null, this.FormatProvider);
 
         /// <summary>
         /// Given an IRequestInfo, construct a HttpRequestMessage, send it, check the response for success, then return it
@@ -440,6 +440,7 @@ namespace RestEase.Implementation
                 Method = requestInfo.Method,
                 RequestUri = this.ConstructUri(basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
+                Properties = { { RestClient.HttpRequestMessageRequestInfoPropertyKey, requestInfo } },
             };
 
             this.ApplyHttpRequestMessageProperties(requestInfo, message);
@@ -479,7 +480,7 @@ namespace RestEase.Implementation
         /// <param name="response">Response to deserialize from</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>A task containing the deserialized response</returns>
-        protected virtual T Deserialize<T>(string content, HttpResponseMessage response, IRequestInfo requestInfo)
+        protected virtual T Deserialize<T>(string? content, HttpResponseMessage response, IRequestInfo requestInfo)
         {
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
@@ -550,7 +551,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to construct the request from</param>
         /// <returns>Task containing the raw string body of the response</returns>
-        public virtual async Task<string> RequestRawAsync(IRequestInfo requestInfo)
+        public virtual async Task<string?> RequestRawAsync(IRequestInfo requestInfo)
         {
             using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
             {
@@ -566,7 +567,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="requestInfo">Object holding all information about the request</param>
         /// <returns>Task to return to the API interface caller</returns>
-        public virtual async Task<Stream> RequestStreamAsync(IRequestInfo requestInfo)
+        public virtual async Task<Stream?> RequestStreamAsync(IRequestInfo requestInfo)
         {
             // Disposing the HttpResponseMessage will dispose the Stream (indeed, that's the only reason when
             // HttpResponseMessage is IDisposable), which the user wants to use. Since the HttpResponseMessage

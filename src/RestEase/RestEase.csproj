@@ -3,13 +3,15 @@
   <PropertyGroup>
     <VersionPrefix>0.0.0</VersionPrefix>
     <TargetFrameworks>netstandard1.1;netstandard2.0;net45</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>RestEase</AssemblyName>
     <AssemblyTitle>RestEase</AssemblyTitle>
     <OutputType>Library</OutputType>
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
-    <Copyright>Copyright © Antony Male 2015-2019</Copyright>
+    <Copyright>Copyright © Antony Male 2015-2020</Copyright>
     <PackageIconUrl>https://raw.githubusercontent.com/canton7/RestEase/master/icon.png</PackageIconUrl>
     <PackageProjectUrl>http://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

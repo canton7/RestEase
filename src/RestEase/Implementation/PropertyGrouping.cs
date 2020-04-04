@@ -14,7 +14,7 @@ namespace RestEase.Implementation
         public List<AttributedProperty<QueryAttribute>> Query { get; } = new List<AttributedProperty<QueryAttribute>>();
         public List<AttributedProperty<HttpRequestMessagePropertyAttribute>> HttpRequestMessageProperties { get; } = new List<AttributedProperty<HttpRequestMessagePropertyAttribute>>();
 
-        public PropertyInfo Requester { get; private set; }
+        public PropertyInfo? Requester { get; private set; }
 
         public IEnumerable<IAttributedProperty> AllPropertiesWithStorage
             => this.Headers.Concat<IAttributedProperty>(this.Path).Concat(this.Query).Concat(this.HttpRequestMessageProperties);

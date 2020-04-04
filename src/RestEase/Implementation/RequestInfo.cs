@@ -22,7 +22,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the path which should be prepended to <see cref="Path"/> if any
         /// </summary>
-        public string BasePath { get; set; }
+        public string? BasePath { get; set; }
 
         /// <summary>
         /// Gets the relative path to the resource to request
@@ -39,7 +39,7 @@ namespace RestEase.Implementation
         /// </summary>
         public bool AllowAnyStatusCode { get; set; }
 
-        private List<QueryParameterInfo> _queryParams;
+        private List<QueryParameterInfo>? _queryParams;
 
         /// <summary>
         /// Gets the query parameters to append to the request URI
@@ -49,30 +49,30 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets the raw query parameter provider
         /// </summary>
-        public RawQueryParameterInfo RawQueryParameter { get; private set; }
+        public RawQueryParameterInfo? RawQueryParameter { get; private set; }
 
-        private List<PathParameterInfo> _pathParams;
+        private List<PathParameterInfo>? _pathParams;
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
         /// </summary>
         public IEnumerable<PathParameterInfo> PathParams => this._pathParams ?? Enumerable.Empty<PathParameterInfo>();
 
-        private List<PathParameterInfo> _pathProperties;
+        private List<PathParameterInfo>? _pathProperties;
 
         /// <summary>
         /// Gets the values from properties which should be substituted into placeholders in the Path
         /// </summary>
         public IEnumerable<PathParameterInfo> PathProperties => this._pathProperties ?? Enumerable.Empty<PathParameterInfo>();
 
-        private List<QueryParameterInfo> _queryProperties;
+        private List<QueryParameterInfo>? _queryProperties;
 
         /// <summary>
         /// Gets the values from properties which should be added to all query strings
         /// </summary>
         public IEnumerable<QueryParameterInfo> QueryProperties => this._queryProperties ?? Enumerable.Empty<QueryParameterInfo>();
 
-        private List<HttpRequestMessagePropertyInfo> _httpRequestMessageProperties;
+        private List<HttpRequestMessagePropertyInfo>? _httpRequestMessageProperties;
 
         /// <summary>
         /// Gets the values from properties which should be added as request properties
@@ -82,33 +82,33 @@ namespace RestEase.Implementation
         /// <summary>
         /// Gets or sets the headers which were applied to the interface
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> ClassHeaders { get; set; }
+        public IEnumerable<KeyValuePair<string, string?>>? ClassHeaders { get; set; }
 
-        private List<KeyValuePair<string, string>> _propertyHeaders;
+        private List<HeaderParameterInfo>? _propertyHeaders;
 
         /// <summary>
         /// Gets the headers which were applied using properties
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> PropertyHeaders => this._propertyHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
+        public IEnumerable<HeaderParameterInfo> PropertyHeaders => this._propertyHeaders ?? Enumerable.Empty<HeaderParameterInfo>();
 
-        private List<KeyValuePair<string, string>> _methodHeaders;
+        private List<KeyValuePair<string, string?>>? _methodHeaders;
 
         /// <summary>
         /// Gets the headers which were applied to the method being called
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> MethodHeaders => this._methodHeaders ?? Enumerable.Empty<KeyValuePair<string, string>>();
+        public IEnumerable<KeyValuePair<string, string?>> MethodHeaders => this._methodHeaders ?? Enumerable.Empty<KeyValuePair<string, string?>>();
 
-        private List<KeyValuePair<string, string>> _headerParams;
+        private List<HeaderParameterInfo>? _headerParams;
 
         /// <summary>
         /// Gets the headers which were passed to the method as parameters
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> HeaderParams => this._headerParams ?? Enumerable.Empty<KeyValuePair<string, string>>();
+        public IEnumerable<HeaderParameterInfo> HeaderParams => this._headerParams ?? Enumerable.Empty<HeaderParameterInfo>();
 
         /// <summary>
         /// Gets information the [Body] method parameter, if it exists
         /// </summary>
-        public BodyParameterInfo BodyParameterInfo { get; private set; }
+        public BodyParameterInfo? BodyParameterInfo { get; private set; }
 
         /// <summary>
         /// Gets the MethodInfo of the interface method which was invoked
@@ -120,7 +120,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
-        public RequestInfo(HttpMethod method, string path) : this(method, path, null)
+        public RequestInfo(HttpMethod method, string path) : this(method, path, null!)
         {
         }
 
@@ -145,12 +145,8 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        /// <param name="format">
-        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
-        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
-        /// <see cref="IFormattable"/>)
-        /// </param>
-        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value, string format = null)
+        /// <param name="format">Format string to use</param>
+        public void AddQueryParameter<T>(QuerySerializationMethod serializationMethod, string name, T value, string? format = null)
         {
             if (this._queryParams == null)
                 this._queryParams = new List<QueryParameterInfo>();
@@ -165,12 +161,8 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/values pair</param>
         /// <param name="values">Values of the name/values pairs</param>
-        /// <param name="format">
-        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
-        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
-        /// <see cref="IFormattable"/>)
-        /// </param>
-        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string format = null)
+        /// <param name="format">Format string to use</param>
+        public void AddQueryCollectionParameter<T>(QuerySerializationMethod serializationMethod, string name, IEnumerable<T> values, string? format = null)
         {
             if (this._queryParams == null)
                 this._queryParams = new List<QueryParameterInfo>();
@@ -254,9 +246,9 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod"></param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
+        /// <param name="format">Format string to use</param>
         /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
-        public void AddPathParameter<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
+        public void AddPathParameter<T>(PathSerializationMethod serializationMethod, string name, T value, string? format = null, bool urlEncode = true)
         {
             if (this._pathParams == null)
                 this._pathParams = new List<PathParameterInfo>();
@@ -284,9 +276,9 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        /// <param name="format">Format string to pass to ToString(), if the value implements <see cref="IFormattable"/></param>
+        /// <param name="format">Format string to use</param>
         /// <param name="urlEncode">Whether or not this path parameter should be URL-encoded</param>
-        public void AddPathProperty<T>(PathSerializationMethod serializationMethod, string name, T value, string format = null, bool urlEncode = true)
+        public void AddPathProperty<T>(PathSerializationMethod serializationMethod, string name, T value, string? format = null, bool urlEncode = true)
         {
             if (this._pathProperties == null)
                 this._pathProperties = new List<PathParameterInfo>();
@@ -301,12 +293,8 @@ namespace RestEase.Implementation
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
-        /// <param name="format">
-        /// Format string to be passed to the custom serializer (if serializationMethod is <see cref="QuerySerializationMethod.Serialized"/>),
-        /// or to the value's ToString() method (if serializationMethod is <see cref="QuerySerializationMethod.ToString"/> and value implements
-        /// <see cref="IFormattable"/>)
-        /// </param>
-        public void AddQueryProperty<T>(QuerySerializationMethod serializationMethod, string name, T value, string format = null)
+        /// <param name="format">Format string to use</param>
+        public void AddQueryProperty<T>(QuerySerializationMethod serializationMethod, string name, T value, string? format = null)
         {
             if (this._queryProperties == null)
                 this._queryProperties = new List<QueryParameterInfo>();
@@ -334,15 +322,13 @@ namespace RestEase.Implementation
         /// <param name="name">Name of the header</param>
         /// <param name="value">Value of the header</param>
         /// <param name="defaultValue">Value to use if 'value' == null</param>
-        public void AddPropertyHeader<T>(string name, T value, string defaultValue)
+        /// <param name="format">Format string to use</param>
+        public void AddPropertyHeader<T>(string name, T value, string? defaultValue, string? format = null)
         {
             if (this._propertyHeaders == null)
-                this._propertyHeaders = new List<KeyValuePair<string, string>>();
+                this._propertyHeaders = new List<HeaderParameterInfo>();
 
-            string stringValue = defaultValue;
-            if (value != null)
-                stringValue = value.ToString();
-            this._propertyHeaders.Add(new KeyValuePair<string, string>(name, stringValue));
+            this._propertyHeaders.Add(new HeaderParameterInfo<T>(name, value, defaultValue, format));
         }
 
         /// <summary>
@@ -353,9 +339,9 @@ namespace RestEase.Implementation
         public void AddMethodHeader(string name, string value)
         {
             if (this._methodHeaders == null)
-                this._methodHeaders = new List<KeyValuePair<string, string>>();
+                this._methodHeaders = new List<KeyValuePair<string, string?>>();
 
-            this._methodHeaders.Add(new KeyValuePair<string, string>(name, value));
+            this._methodHeaders.Add(new KeyValuePair<string, string?>(name, value));
         }
 
         /// <summary>
@@ -364,15 +350,13 @@ namespace RestEase.Implementation
         /// <typeparam name="T">Type of the value</typeparam>
         /// <param name="name">Name of the header (passed to the HeaderAttribute)</param>
         /// <param name="value">Value of the header (value of the parameter)</param>
-        public void AddHeaderParameter<T>(string name, T value)
+        /// <param name="format">Format string to use</param>
+        public void AddHeaderParameter<T>(string name, T value, string? format = null)
         {
             if (this._headerParams == null)
-                this._headerParams = new List<KeyValuePair<string, string>>();
+                this._headerParams = new List<HeaderParameterInfo>();
 
-            string stringValue = null;
-            if (value != null)
-                stringValue = value.ToString();
-            this._headerParams.Add(new KeyValuePair<string, string>(name, stringValue));
+            this._headerParams.Add(new HeaderParameterInfo<T>(name, value, null, format));
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace RestEase
         /// <summary>
         /// Gets or sets the path to request. This is relative to the base path configured when RestService.For was called, and can contain placeholders
         /// </summary>
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod

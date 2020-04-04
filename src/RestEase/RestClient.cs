@@ -22,12 +22,17 @@ namespace RestEase
         /// </summary>
         public const string FactoryAssemblyName = "RestEaseFactory";
 
+        /// <summary>
+        /// Name of the key in <see cref="HttpRequestMessage.Properties"/> that a request's <see cref="IRequestInfo"/> is stored
+        /// </summary>
+        public const string HttpRequestMessageRequestInfoPropertyKey = "RestEaseRequestInfo";
+
         private readonly HttpClient httpClient;
 
         /// <summary>
         /// Gets or sets the JsonSerializerSettings to use with all non-overridden serializers / deserializers
         /// </summary>
-        public JsonSerializerSettings JsonSerializerSettings { get; set; }
+        public JsonSerializerSettings? JsonSerializerSettings { get; set; }
 
 #pragma warning disable CS0618 // Type or member is obsolete
         /// <summary>
@@ -39,7 +44,7 @@ namespace RestEase
         /// This has the type <see cref="IResponseDeserializer"/> for backwards-compatibility reasons. You should assign
         /// an instance of <see cref="ResponseDeserializer"/>
         /// </remarks>
-        public IResponseDeserializer ResponseDeserializer { get; set; }
+        public IResponseDeserializer? ResponseDeserializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize request bodies (when [Body(BodySerializationMethod.Serialized)] is used)
@@ -50,7 +55,7 @@ namespace RestEase
         /// This has the type <see cref="IRequestBodySerializer"/> for backwards-compatibility reasons. You should assign
         /// an instance of <see cref="RequestBodySerializer"/>.
         /// </remarks>
-        public IRequestBodySerializer RequestBodySerializer { get; set; }
+        public IRequestBodySerializer? RequestBodySerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize path parameters (when [Path(PathSerializationMethod.Serialized)] is used)
@@ -58,7 +63,7 @@ namespace RestEase
         /// <remarks>
         /// Has no default value, explicit serializer implementation must be provided.
         /// </remarks>
-        public RequestPathParamSerializer RequestPathParamSerializer { get; set; }
+        public RequestPathParamSerializer? RequestPathParamSerializer { get; set; }
 
         /// <summary>
         /// Gets or sets the serializer used to serialize query parameters (when [Query(QuerySerializationMethod.Serialized)] is used)
@@ -69,7 +74,7 @@ namespace RestEase
         /// This has the type <see cref="IRequestQueryParamSerializer"/> for backwards-compatibility reasons. You should assign
         /// an instance of <see cref="RequestQueryParamSerializer"/>.
         /// </remarks>
-        public IRequestQueryParamSerializer RequestQueryParamSerializer { get; set; }
+        public IRequestQueryParamSerializer? RequestQueryParamSerializer { get; set; }
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
@@ -78,7 +83,7 @@ namespace RestEase
         /// <remarks>
         /// Defaults to null, in which case the default building logic is used
         /// </remarks>
-        public QueryStringBuilder QueryStringBuilder { get; set; }
+        public QueryStringBuilder? QueryStringBuilder { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IFormatProvider"/> used to format items using <see cref="IFormattable.ToString(string, IFormatProvider)"/>
@@ -86,7 +91,7 @@ namespace RestEase
         /// <remarks>
         /// Defaults to null, in which case the current culture is used.
         /// </remarks>
-        public IFormatProvider FormatProvider { get; set; }
+        public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
@@ -337,7 +342,7 @@ namespace RestEase
         /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
-        public static T For<T>(string baseUrl, ResponseDeserializer responseDeserializer = null, RequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(string baseUrl, ResponseDeserializer? responseDeserializer = null, RequestBodySerializer? requestBodySerializer = null)
         {
             return new RestClient(baseUrl) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
@@ -352,7 +357,7 @@ namespace RestEase
         /// <param name="requestBodySerializer">Serializer to use when serializing request bodiess, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
-        public static T For<T>(string baseUrl, RequestModifier requestModifier, ResponseDeserializer responseDeserializer = null, RequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(string baseUrl, RequestModifier requestModifier, ResponseDeserializer? responseDeserializer = null, RequestBodySerializer? requestBodySerializer = null)
         {
             return new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
@@ -379,7 +384,7 @@ namespace RestEase
         /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
-        public static T For<T>(HttpClient httpClient, ResponseDeserializer responseDeserializer = null, RequestBodySerializer requestBodySerializer = null)
+        public static T For<T>(HttpClient httpClient, ResponseDeserializer? responseDeserializer = null, RequestBodySerializer? requestBodySerializer = null)
         {
             return new RestClient(httpClient) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>();
         }
@@ -404,10 +409,10 @@ namespace RestEase
             public RequestQueryParamSerializerWrapper(IRequestQueryParamSerializer serializer) =>
                 this.serializer = serializer;
 
-            public override IEnumerable<KeyValuePair<string, string>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info) =>
+            public override IEnumerable<KeyValuePair<string, string?>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info) =>
                 this.serializer.SerializeQueryCollectionParam(name, values, info);
 
-            public override IEnumerable<KeyValuePair<string, string>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info) =>
+            public override IEnumerable<KeyValuePair<string, string?>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info) =>
                 this.serializer.SerializeQueryParam(name, value, info);
         }
 
@@ -418,7 +423,7 @@ namespace RestEase
             public ResponseDeserializerWrapper(IResponseDeserializer deserializer) =>
                 this.deserializer = deserializer;
 
-            public override T Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) =>
+            public override T Deserialize<T>(string? content, HttpResponseMessage response, ResponseDeserializerInfo info) =>
                 this.deserializer.Deserialize<T>(content, response);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
