@@ -1,3 +1,12 @@
+
+v1.4.11
+-------
+
+ - Add extended formats for property headers and header params (#123)
+ - Make RequestInfo available to the RequestModifier (#133)
+ - Add Nullable Reference Type annotations
+ - README improvements (#127, #129, #132, #135, #138)
+
 v1.4.10
 -------
 
