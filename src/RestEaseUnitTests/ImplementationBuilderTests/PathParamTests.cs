@@ -115,7 +115,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasFormattedPathParam
         {
             [Get("path/{foo}")]
-            Task FooAsync([Path(Format = "D2")] int foo);
+            Task FooAsync([Path(Format = "C")] int foo);
         }
 
         public interface IHasPathPropertyWithNoUrlEncoding
@@ -333,9 +333,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             var pathParams = requestInfo.PathParams.ToList();
             Assert.Single(pathParams);
 
-            var serialized = pathParams[0].SerializeToString(null);
+            var serialized = pathParams[0].SerializeToString(CultureInfo.InvariantCulture);
             Assert.Equal("foo", serialized.Key);
-            Assert.Equal("02", serialized.Value);
+            Assert.Equal("¤2.00", serialized.Value);
         }
 
         [Fact]

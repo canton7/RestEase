@@ -153,7 +153,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
         public interface IHasFormattedPathHeader
         {
-            [Header("foo", Format = "X2")]
+            [Header("foo", Format = "C")]
             int Foo { get; set; }
 
             [Get("foo")]
@@ -457,9 +457,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync();
 
             Assert.Single(requestInfo.PropertyHeaders);
-            var serialized = requestInfo.PropertyHeaders.First().SerializeToString(null);
+            var serialized = requestInfo.PropertyHeaders.First().SerializeToString(CultureInfo.InvariantCulture);
             Assert.Equal("foo", serialized.Key);
-            Assert.Equal("0A", serialized.Value);
+            Assert.Equal("¤10.00", serialized.Value);
         }
 
         [Fact]

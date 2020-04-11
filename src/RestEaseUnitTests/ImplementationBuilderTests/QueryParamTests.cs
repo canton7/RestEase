@@ -92,7 +92,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasFormat
         {
             [Get("foo")]
-            Task FooAsync([Query(Format = "X")] int foo);
+            Task FooAsync([Query(Format = "C")] int foo);
         }
 
         public interface IHasPathQuery
@@ -281,7 +281,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var queryParams = requestInfo.QueryParams.ToList();
 
-            Assert.Equal("B", queryParams[0].SerializeToString(null).First().Value);
+            Assert.Equal("¤11.00", queryParams[0].SerializeToString(CultureInfo.InvariantCulture).First().Value);
         }
 
         [Fact]

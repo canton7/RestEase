@@ -7,11 +7,6 @@ TESTS_DIR = 'src/RestEaseUnitTests'
 RESTEASE_CSPROJ = File.join(RESTEASE_DIR, 'RestEase.csproj')
 NUGET_DIR = File.join(File.dirname(__FILE__), 'NuGet')
 
-def fx_version()
-  fx_version = ENV['FX_VERSION']
-  (["--fx-version", fx_version] if fx_version) || []
-end
-
 desc "Restore NuGet packages"
 task :restore do
   sh 'dotnet', 'restore', RESTEASE_SLN
@@ -19,7 +14,7 @@ end
 
 desc "Create NuGet package"
 task :package do
-  sh 'dotnet', 'pack', '--no-build', '--configuration=Release', "--output=\"#{NUGET_DIR}\"", '--include-symbols', RESTEASE_DIR
+  sh 'dotnet', 'pack', '--no-build', '--configuration=Release', "--output=#{NUGET_DIR}", '--include-symbols', RESTEASE_DIR
 end
 
 desc "Bump version number"
@@ -39,6 +34,6 @@ end
 desc "Run tests"
 task :test do
   Dir.chdir(TESTS_DIR) do
-    sh 'dotnet', 'xunit', *fx_version
+    sh 'dotnet', 'test'
   end
 end
