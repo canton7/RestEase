@@ -148,8 +148,7 @@ namespace RestEase.Implementation
                 throw new FormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
-            string rawQueryParameter = requestInfo.RawQueryParameter?.SerializeToString(this.FormatProvider) ?? string.Empty;
-            var query = this.BuildQueryParam(uriBuilder.Query, rawQueryParameter, requestInfo.QueryParams, requestInfo.QueryProperties, requestInfo);
+            var query = this.BuildQueryParam(uriBuilder.Query, requestInfo.RawQueryParameters, requestInfo.QueryParams, requestInfo.QueryProperties, requestInfo);
 
             // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
             uriBuilder.Query = query.TrimStart('?');
@@ -161,24 +160,25 @@ namespace RestEase.Implementation
         /// Build up a query string from the initial query string, raw query parameter, and any query params (which need to be combined)
         /// </summary>
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
-        /// <param name="rawQueryParameter">The raw query parameter, if any</param>
+        /// <param name="rawQueryParameters">The raw query parameters, if any</param>
         /// <param name="queryParams">The query parameters which need serializing (or an empty collection)</param>
         /// <param name="queryProperties">The query parameters from properties which need serialializing (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Query params combined into a query string</returns>
         protected virtual string BuildQueryParam(
             string initialQueryString,
-            string rawQueryParameter,
+            IEnumerable<RawQueryParameterInfo> rawQueryParameters,
             IEnumerable<QueryParameterInfo> queryParams,
             IEnumerable<QueryParameterInfo> queryProperties,
             IRequestInfo requestInfo)
         {
             var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
             var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
+            var serializedRawQueryParameters = rawQueryParameters.Select(x => x.SerializeToString(this.FormatProvider));
 
             if (this.QueryStringBuilder != null)
             {
-                var info = new QueryStringBuilderInfo(initialQueryString, rawQueryParameter, serializedQueryParams, serializedQueryProperties, requestInfo, this.FormatProvider);
+                var info = new QueryStringBuilderInfo(initialQueryString, serializedRawQueryParameters, serializedQueryParams, serializedQueryProperties, requestInfo, this.FormatProvider);
                 return this.QueryStringBuilder.Build(info);
             }
 
@@ -202,8 +202,11 @@ namespace RestEase.Implementation
 
             if (!String.IsNullOrEmpty(initialQueryString))
                 AppendQueryString(initialQueryString.Replace("%20", "+"));
-            if (!String.IsNullOrEmpty(rawQueryParameter))
-                AppendQueryString(rawQueryParameter);
+
+            foreach (var serializedRawQueryParameter in serializedRawQueryParameters)
+            {
+                AppendQueryString(serializedRawQueryParameter);
+            }
 
             foreach (var kvp in serializedQueryParams.Concat(serializedQueryProperties))
             {

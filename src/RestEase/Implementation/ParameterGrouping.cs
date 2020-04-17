@@ -12,7 +12,7 @@ namespace RestEase.Implementation
         public List<IndexedParameter<PathAttribute>> PathParameters { get; private set; }
         public List<IndexedParameter<QueryAttribute>> QueryParameters { get; private set; }
         public List<IndexedParameter<HttpRequestMessagePropertyAttribute>> HttpRequestMessageProperties { get; private set; }
-        public IndexedParameter<RawQueryStringAttribute>? RawQueryString { get; private set; }
+        public List<IndexedParameter<RawQueryStringAttribute>> RawQueryStringParameters { get; private set; }
         public List<IndexedParameter<QueryMapAttribute>> QueryMaps { get; private set; }
         public List<IndexedParameter<HeaderAttribute>> HeaderParameters { get; private set; }
         public List<IndexedParameter> PlainParameters { get; private set; }
@@ -27,6 +27,7 @@ namespace RestEase.Implementation
             this.QueryMaps = new List<IndexedParameter<QueryMapAttribute>>();
             this.HeaderParameters = new List<IndexedParameter<HeaderAttribute>>();
             this.PlainParameters = new List<IndexedParameter>();
+            this.RawQueryStringParameters = new List<IndexedParameter<RawQueryStringAttribute>>();
 
             // Index 0 is 'this'
             var indexedParameters = parameters.Select((x, i) => new { Index = i + 1, Parameter = x });
@@ -66,9 +67,7 @@ namespace RestEase.Implementation
                 var rawQueryStringAttribute = parameter.Parameter.GetCustomAttribute<RawQueryStringAttribute>();
                 if (rawQueryStringAttribute != null)
                 {
-                    if (this.RawQueryString.HasValue)
-                        throw new ImplementationCreationException(String.Format("Method '{0}': found more than one parameter with a [RawQueryString] attribute", methodName));
-                    this.RawQueryString = new IndexedParameter<RawQueryStringAttribute>(parameter.Index, parameter.Parameter, rawQueryStringAttribute);
+                    this.RawQueryStringParameters.Add(new IndexedParameter<RawQueryStringAttribute>(parameter.Index, parameter.Parameter, rawQueryStringAttribute));
                     continue;
                 }
 
