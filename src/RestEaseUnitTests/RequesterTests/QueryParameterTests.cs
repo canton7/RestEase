@@ -328,6 +328,16 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void AddsTwoRawQueryStringsOnItsOwn()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
+            requestInfo.AddRawQueryParameter("bar=foo&woo=baz");
+            var uri = this.requester.ConstructUri(null, "a", requestInfo);
+            Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo&bar=foo&woo=baz", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
         public void PrependsRawQueryStringWithQueryParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);

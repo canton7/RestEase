@@ -681,11 +681,10 @@ namespace RestEase.Implementation
                 this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, null, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
             }
 
-            if (parameterGrouping.RawQueryString != null)
+            foreach (var rawQueryStringParameter in parameterGrouping.RawQueryStringParameters)
             {
-                var parameter = parameterGrouping.RawQueryString.Value;
-                var method = addRawQueryParameterMethod.MakeGenericMethod(parameter.Parameter.ParameterType);
-                this.AddRawQueryParam(methodIlGenerator, (short)parameter.Index, method);
+                var method = addRawQueryParameterMethod.MakeGenericMethod(rawQueryStringParameter.Parameter.ParameterType);
+                this.AddRawQueryParam(methodIlGenerator, (short)rawQueryStringParameter.Index, method);
             }
 
             foreach (var pathParameter in parameterGrouping.PathParameters)

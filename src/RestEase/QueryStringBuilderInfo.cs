@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using RestEase.Implementation;
 
 namespace RestEase
 {
@@ -16,7 +17,7 @@ namespace RestEase
         /// <summary>
         /// Gets the raw query parameter, if any
         /// </summary>
-        public string RawQueryParameter { get; }
+        public IEnumerable<RawQueryParameterInfo> RawQueryParameters { get; }
 
         /// <summary>
         /// Gets the query parameters (or an empty collection)
@@ -42,21 +43,21 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="QueryStringBuilderInfo"/> class
         /// </summary>
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
-        /// <param name="rawQueryParameter">The raw query parameter, if any</param>
+        /// <param name="rawQueryParameters">The raw query parameter, if any</param>
         /// <param name="queryParams">The query parameters (or an empty collection)</param>
         /// <param name="queryProperties">The query propeorties (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider">Format provider to use to format things</param>
         public QueryStringBuilderInfo(
             string initialQueryString,
-            string rawQueryParameter,
+            IEnumerable<RawQueryParameterInfo> rawQueryParameters,
             IEnumerable<KeyValuePair<string, string?>> queryParams,
             IEnumerable<KeyValuePair<string, string?>> queryProperties,
             IRequestInfo requestInfo,
             IFormatProvider? formatProvider)
         {
             this.InitialQueryString = initialQueryString;
-            this.RawQueryParameter = rawQueryParameter;
+            this.RawQueryParameters = rawQueryParameters;
             this.QueryParams = queryParams;
             this.QueryProperties = queryProperties;
             this.RequestInfo = requestInfo;

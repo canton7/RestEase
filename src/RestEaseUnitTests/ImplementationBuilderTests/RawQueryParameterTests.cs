@@ -38,6 +38,12 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             Task FooAsync([RawQueryString] string one, [RawQueryString] string two);
         }
 
+        public interface IThreeRawQueryStrings
+        {
+            [Get]
+            Task FooAsync([RawQueryString] string one, [RawQueryString] string two, [RawQueryString] string three);
+        }
+
         public interface ICustomRawQueryString
         {
             [Get]
@@ -59,15 +65,42 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync("&test=test2");
 
-            Assert.NotNull(requestInfo.RawQueryParameter);
-            Assert.Equal("&test=test2", requestInfo.RawQueryParameter.SerializeToString(null));
+            Assert.NotNull(requestInfo.RawQueryParameters);
+            Assert.Equal("&test=test2", requestInfo.RawQueryParameters.SerializeToString(null));
         }
 
         [Fact]
-        public void ThrowsIfTwoRawQueryParamsSpecified()
+        public void AddsTwoRawQueryParam()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRawQueryStrings>(this.requester.Object));
+            var implementation = this.builder.CreateImplementation<ITwoRawQueryStrings>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("&test=test2", "&test3=test4");
+
+            Assert.NotNull(requestInfo.RawQueryParameters);
+            Assert.Equal("&test=test2&test3=test4", requestInfo.RawQueryParameters.SerializeToString(null));
         }
+
+        [Fact]
+        public void AddsThreeRawQueryParam()
+        {
+            var implementation = this.builder.CreateImplementation<IThreeRawQueryStrings>(this.requester.Object);
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .Returns(Task.FromResult(false));
+
+            implementation.FooAsync("&test=test2", "&test3=test4", "&test5=test6");
+
+            Assert.NotNull(requestInfo.RawQueryParameters);
+            Assert.Equal("&test=test2&test3=test4&test5=test6", requestInfo.RawQueryParameters.SerializeToString(null));
+        }
+
 
         [Fact]
         public void CallsToStringOnParam()
@@ -81,8 +114,8 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             implementation.FooAsync(new HasToString());
 
-            Assert.NotNull(requestInfo.RawQueryParameter);
-            Assert.Equal("HasToString", requestInfo.RawQueryParameter.SerializeToString(null));
+            Assert.NotNull(requestInfo.RawQueryParameters);
+            Assert.Equal("HasToString", requestInfo.RawQueryParameters.SerializeToString(null));
         }
 
         [Fact]
@@ -100,7 +133,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
             var formatProvider = new Mock<IFormatProvider>();
 
-            requestInfo.RawQueryParameter.SerializeToString(formatProvider.Object);
+            requestInfo.RawQueryParameters.SerializeToString(formatProvider.Object);
 
             Assert.Equal(formatProvider.Object, hasToString.LastFormatProvider);
             //formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));

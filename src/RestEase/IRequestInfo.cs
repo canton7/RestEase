@@ -45,7 +45,7 @@ namespace RestEase
         /// <summary>
         /// Gets the raw query parameter provider
         /// </summary>
-        RawQueryParameterInfo? RawQueryParameter { get; }
+        IEnumerable<RawQueryParameterInfo> RawQueryParameters { get; }
 
         /// <summary>
         /// Gets the parameters which should be substituted into placeholders in the Path
