@@ -415,7 +415,7 @@ var searchResults = await api.SearchBlogPostsAsync(filters);
 ### Raw Query String Parameters
 
 In rare cases, you may have generated a query string by other means, and want to give this to RestEase.
-To do this, provide a parameter decorated with `[RawQueryString]`.
+To do this, provide one or more parameters decorated with `[RawQueryString]`.
 
 This parameter can be of any type, and `.ToString()` will be called on it to turn it into a string.
 Its value will be prepended, verbatim, to the query string: you are responsible for any escaping.

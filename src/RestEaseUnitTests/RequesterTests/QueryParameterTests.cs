@@ -328,7 +328,7 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
-        public void AddsTwoRawQueryStringsOnItsOwn()
+        public void AddsTwoRawQueryStringsOnTheirOwn()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddRawQueryParameter("foo=bar&baz=woo");

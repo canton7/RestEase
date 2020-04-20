@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using RestEase.Implementation;
+using System.Linq;
 
 namespace RestEase
 {
@@ -17,7 +17,17 @@ namespace RestEase
         /// <summary>
         /// Gets the raw query parameter, if any
         /// </summary>
-        public IEnumerable<RawQueryParameterInfo> RawQueryParameters { get; }
+        public IEnumerable<string> RawQueryParameters { get; }
+
+        /// <summary>
+        /// Gets the raw query parameter, if any
+        /// </summary>
+        [Obsolete]
+        public string RawQueryParameter
+        {
+            get { return RawQueryParameters.First(); }
+            private set => RawQueryParameter = value;
+        }
 
         /// <summary>
         /// Gets the query parameters (or an empty collection)
@@ -50,7 +60,7 @@ namespace RestEase
         /// <param name="formatProvider">Format provider to use to format things</param>
         public QueryStringBuilderInfo(
             string initialQueryString,
-            IEnumerable<RawQueryParameterInfo> rawQueryParameters,
+            IEnumerable<string> rawQueryParameters,
             IEnumerable<KeyValuePair<string, string?>> queryParams,
             IEnumerable<KeyValuePair<string, string?>> queryProperties,
             IRequestInfo requestInfo,
@@ -58,6 +68,33 @@ namespace RestEase
         {
             this.InitialQueryString = initialQueryString;
             this.RawQueryParameters = rawQueryParameters;
+            this.QueryParams = queryParams;
+            this.QueryProperties = queryProperties;
+            this.RequestInfo = requestInfo;
+            this.FormatProvider = formatProvider;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="QueryStringBuilderInfo"/> class
+        /// </summary>
+        /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
+        /// <param name="rawQueryParameter">The raw query parameter, if any</param>
+        /// <param name="queryParams">The query parameters (or an empty collection)</param>
+        /// <param name="queryProperties">The query propeorties (or an empty collection)</param>
+        /// <param name="requestInfo">RequestInfo representing the request</param>
+        /// <param name="formatProvider">Format provider to use to format things</param>
+        [Obsolete]
+        public QueryStringBuilderInfo(
+            string initialQueryString,
+            string rawQueryParameter,
+            IEnumerable<KeyValuePair<string, string?>> queryParams,
+            IEnumerable<KeyValuePair<string, string?>> queryProperties,
+            IRequestInfo requestInfo,
+            IFormatProvider? formatProvider)
+        {
+            this.InitialQueryString = initialQueryString;
+            this.RawQueryParameter = rawQueryParameter;
+            this.RawQueryParameters = new List<string>(){ rawQueryParameter };
             this.QueryParams = queryParams;
             this.QueryProperties = queryProperties;
             this.RequestInfo = requestInfo;

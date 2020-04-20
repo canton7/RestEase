@@ -165,7 +165,8 @@ namespace RestEase.Implementation
         /// <param name="queryProperties">The query parameters from properties which need serialializing (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Query params combined into a query string</returns>
-        protected virtual string BuildQueryParam(string initialQueryString,
+        protected virtual string BuildQueryParam(
+            string initialQueryString,
             IEnumerable<RawQueryParameterInfo> rawQueryParameters,
             IEnumerable<QueryParameterInfo> queryParams,
             IEnumerable<QueryParameterInfo> queryProperties,
@@ -173,10 +174,11 @@ namespace RestEase.Implementation
         {
             var serializedQueryParams = queryParams.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
             var serializedQueryProperties = queryProperties.SelectMany(x => this.SerializeQueryParameter(x, requestInfo));
+            var serializedRawQueryParameters = rawQueryParameters.Select(rqp => rqp.SerializeToString(this.FormatProvider));
 
             if (this.QueryStringBuilder != null)
             {
-                var info = new QueryStringBuilderInfo(initialQueryString, rawQueryParameters, serializedQueryParams, serializedQueryProperties, requestInfo, this.FormatProvider);
+                var info = new QueryStringBuilderInfo(initialQueryString, serializedRawQueryParameters, serializedQueryParams, serializedQueryProperties, requestInfo, this.FormatProvider);
                 return this.QueryStringBuilder.Build(info);
             }
 
@@ -201,14 +203,11 @@ namespace RestEase.Implementation
             if (!String.IsNullOrEmpty(initialQueryString))
                 AppendQueryString(initialQueryString.Replace("%20", "+"));
 
-            if (rawQueryParameters != null && rawQueryParameters.Any())
+            foreach (var rawQueryParameter in rawQueryParameters)
             {
-                foreach (var rawQueryParameter in rawQueryParameters)
-                {
-                    AppendQueryString(rawQueryParameter.SerializeToString(FormatProvider));
-                }
+                AppendQueryString(rawQueryParameter.SerializeToString(FormatProvider));
             }
-            
+
             foreach (var kvp in serializedQueryParams.Concat(serializedQueryProperties))
             {
                 if (kvp.Key == null)
