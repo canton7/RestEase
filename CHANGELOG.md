@@ -1,3 +1,13 @@
+Changelog
+=========
+
+v1.4.12
+-------
+
+ - Add support for multiple raw query strings (#151)
+ - Add netstandard1.2 target
+ - README improvements
+
 
 v1.4.11
 -------
