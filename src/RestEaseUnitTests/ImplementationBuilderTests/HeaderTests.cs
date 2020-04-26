@@ -80,7 +80,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             [Get("foo")]
             Task FooAsync([Header("Foo", "Bar")] string foo);
         }
-        
+
         public interface IHasPropertyHeaderWithValue
         {
             [Header("Name", "Value")]
@@ -153,7 +153,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 
         public interface IHasFormattedPathHeader
         {
-            [Header("foo", Format = "X2")]
+            [Header("foo", Format = "C")]
             int Foo { get; set; }
 
             [Get("foo")]
@@ -418,7 +418,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var implementation = this.builder.CreateImplementation<IHasAuthorizationHeader>(this.requester.Object);
             // Values from http://en.wikipedia.org/wiki/Basic_access_authentication#Client_side
-            var value = Convert.ToBase64String(Encoding.ASCII.GetBytes("Aladdin:open sesame"));
+            string value = Convert.ToBase64String(Encoding.ASCII.GetBytes("Aladdin:open sesame"));
             implementation.Authorization = new AuthenticationHeaderValue("Basic", value);
             IRequestInfo requestInfo = null;
 
@@ -457,9 +457,9 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             implementation.FooAsync();
 
             Assert.Single(requestInfo.PropertyHeaders);
-            var serialized = requestInfo.PropertyHeaders.First().SerializeToString(null);
+            var serialized = requestInfo.PropertyHeaders.First().SerializeToString(CultureInfo.InvariantCulture);
             Assert.Equal("foo", serialized.Key);
-            Assert.Equal("0A", serialized.Value);
+            Assert.Equal("¤10.00", serialized.Value);
         }
 
         [Fact]

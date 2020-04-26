@@ -60,7 +60,7 @@ namespace RestEase
         /// <param name="httpMethod">HTTP Method to use, e.g. "PATCH"</param>
         /// <param name="path">Relative path to use</param>
         public RequestAttribute(string httpMethod, string path)
-            : this (new HttpMethod(httpMethod), path)
+            : this(new HttpMethod(httpMethod), path)
         {
         }
     }

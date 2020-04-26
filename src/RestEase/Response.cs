@@ -34,7 +34,7 @@ namespace RestEase
                 this.deserializedContent = this.contentDeserializer();
                 this.contentDeserialized = true;
             }
-            
+
             return this.deserializedContent;
         }
 

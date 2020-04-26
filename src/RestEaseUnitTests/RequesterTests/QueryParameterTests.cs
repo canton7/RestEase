@@ -1,12 +1,8 @@
 ﻿using RestEase.Implementation;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using RestEase;
 using Moq;
@@ -328,6 +324,16 @@ namespace RestEaseUnitTests.RequesterTests
         }
 
         [Fact]
+        public void AddsTwoRawQueryStringsOnTheirOwn()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Get, null);
+            requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
+            requestInfo.AddRawQueryParameter("bar=foo&woo=baz");
+            var uri = this.requester.ConstructUri(null, "a", requestInfo);
+            Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo&bar=foo&woo=baz", uri.ToString(), ignoreCase: true);
+        }
+
+        [Fact]
         public void PrependsRawQueryStringWithQueryParams()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
@@ -352,7 +358,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "&ba r=");
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "?yay?");
-            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, String.Empty, "?baz");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, string.Empty, "?baz");
             var uri = this.requester.ConstructUri(null, "foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?%26ba+r%3d&%3fyay%3f&=%3fbaz", uri.ToString(), ignoreCase: true);
         }

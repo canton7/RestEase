@@ -46,10 +46,12 @@ namespace RestEase.Implementation
         /// </summary>
         public IEnumerable<QueryParameterInfo> QueryParams => this._queryParams ?? Enumerable.Empty<QueryParameterInfo>();
 
+        private List<RawQueryParameterInfo>? _rawQueryParameterInfos;
+
         /// <summary>
-        /// Gets the raw query parameter provider
+        /// Gets the raw query parameters
         /// </summary>
-        public RawQueryParameterInfo? RawQueryParameter { get; private set; }
+        public IEnumerable<RawQueryParameterInfo> RawQueryParameters => this._rawQueryParameterInfos ?? Enumerable.Empty<RawQueryParameterInfo>();
 
         private List<PathParameterInfo>? _pathParams;
 
@@ -194,10 +196,10 @@ namespace RestEase.Implementation
                 // If it is, treat it as an ienumerable<object> (yay covariance)
                 if (serializationMethod == QuerySerializationMethod.ToString &&
                     typeof(TValue) == typeof(object) &&
-                    kvp.Value is IEnumerable<object> &&
+                    kvp.Value is IEnumerable<object> enumerable &&
                     !(kvp.Value is string))
                 {
-                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), (IEnumerable<object>)kvp.Value, format: null));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), enumerable, format: null));
                 }
                 else
                 {
@@ -236,7 +238,10 @@ namespace RestEase.Implementation
         /// <param name="value">Raw query parameter</param>
         public void AddRawQueryParameter<T>(T value)
         {
-            this.RawQueryParameter = new RawQueryParameterInfo<T>(value);
+            if (this._rawQueryParameterInfos == null)
+                this._rawQueryParameterInfos = new List<RawQueryParameterInfo>();
+
+            this._rawQueryParameterInfos.Add(new RawQueryParameterInfo<T>(value));
         }
 
         /// <summary>

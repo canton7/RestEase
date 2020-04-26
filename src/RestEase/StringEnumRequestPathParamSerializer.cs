@@ -47,7 +47,7 @@ namespace RestEase
                 return ToStringHelper.ToString(value, info.Format, info.FormatProvider);
             }
 
-            if (cache.TryGetValue(value, out var stringValue))
+            if (cache.TryGetValue(value, out string? stringValue))
             {
                 return stringValue;
             }
@@ -84,7 +84,7 @@ namespace RestEase
                 .FirstOrDefault(x => x.AttributeType.FullName == "System.ComponentModel.DataAnnotations.DisplayAttribute");
             if (displayAttribute != null)
             {
-                var name = displayAttribute.NamedArguments.FirstOrDefault(x => x.MemberName == "Name").TypedValue.Value;
+                object? name = displayAttribute.NamedArguments.FirstOrDefault(x => x.MemberName == "Name").TypedValue.Value;
                 if (name != null)
                 {
                     return CacheAdd(value, (string)name);

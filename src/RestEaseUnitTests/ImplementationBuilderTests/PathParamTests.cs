@@ -2,10 +2,8 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -115,7 +113,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasFormattedPathParam
         {
             [Get("path/{foo}")]
-            Task FooAsync([Path(Format = "D2")] int foo);
+            Task FooAsync([Path(Format = "C")] int foo);
         }
 
         public interface IHasPathPropertyWithNoUrlEncoding
@@ -168,7 +166,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesNullPathParams()
         {
-            var requestInfo = Request<IPathParams>(x => x.DifferentParameterTypesAsync(null, null));
+            var requestInfo = this.Request<IPathParams>(x => x.DifferentParameterTypesAsync(null, null));
 
             var pathParams = requestInfo.PathParams.ToList();
 
@@ -186,7 +184,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void NullPathParamsAreRenderedAsEmpty()
         {
-            var requestInfo = Request<IPathParams>(x => x.FooAsync("foo value", "bar value"));
+            var requestInfo = this.Request<IPathParams>(x => x.FooAsync("foo value", "bar value"));
 
             var pathParams = requestInfo.PathParams.ToList();
 
@@ -235,7 +233,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesBothGetAndQueryParams()
         {
-            var requestInfo = Request<IHasBothPathAndQueryParams>(x => x.FooAsync("foovalue", "barvalue"));
+            var requestInfo = this.Request<IHasBothPathAndQueryParams>(x => x.FooAsync("foovalue", "barvalue"));
 
             var pathParams = requestInfo.PathParams.ToList();
             var queryParams = requestInfo.QueryParams.ToList();
@@ -256,7 +254,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesPathProperty()
         {
-            var requestInfo = Request<IHasPathProperty>(x =>
+            var requestInfo = this.Request<IHasPathProperty>(x =>
             {
                 x.Foo = "bar";
                 return x.FooAsync();
@@ -280,7 +278,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DoesNotThrowIfPathPropertyAndParamHaveTheSameName()
         {
-            Request<IHasBothPathPropertyAndPathParam>(x =>
+            this.Request<IHasBothPathPropertyAndPathParam>(x =>
             {
                 x.Foo = "bar";
                 return x.FooAsync("yay");
@@ -290,7 +288,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesPathPropertyWithNoName()
         {
-            var requestInfo = Request<IHasPathPropertyWithNoName>(x =>
+            var requestInfo = this.Request<IHasPathPropertyWithNoName>(x =>
             {
                 x.Foo = "bar";
                 return x.FooAsync();
@@ -308,7 +306,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesFormattedPathProperties()
         {
-            var requestInfo = Request<IHasFormattedPathProperty>(x =>
+            var requestInfo = this.Request<IHasFormattedPathProperty>(x =>
             {
                 x.Foo = 10;
                 return x.FooAsync();
@@ -325,23 +323,20 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesFormattedPathParams()
         {
-            var requestInfo = Request<IHasFormattedPathParam>(x =>
-            {
-                return x.FooAsync(2);
-            });
+            var requestInfo = this.Request<IHasFormattedPathParam>(x => x.FooAsync(2));
 
             var pathParams = requestInfo.PathParams.ToList();
             Assert.Single(pathParams);
 
-            var serialized = pathParams[0].SerializeToString(null);
+            var serialized = pathParams[0].SerializeToString(CultureInfo.InvariantCulture);
             Assert.Equal("foo", serialized.Key);
-            Assert.Equal("02", serialized.Value);
+            Assert.Equal("¤2.00", serialized.Value);
         }
 
         [Fact]
         public void HandlesPathPropertiesWithNoUrlEncoding()
         {
-            var requestInfo = Request<IHasPathPropertyWithNoUrlEncoding>(x =>
+            var requestInfo = this.Request<IHasPathPropertyWithNoUrlEncoding>(x =>
             {
                 x.Foo = "a/b+c";
                 return x.FooAsync();
@@ -356,7 +351,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesPathParamsWithNoUrlEncoding()
         {
-            var requestInfo = Request<IHasPathParamWithNoUrlEncoding>(x => x.FooAsync("a/b+c"));
+            var requestInfo = this.Request<IHasPathParamWithNoUrlEncoding>(x => x.FooAsync("a/b+c"));
 
             var pathParams = requestInfo.PathParams.ToList();
             Assert.Single(pathParams);
@@ -367,7 +362,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void SerializeToStringUsesGivenFormatProvider()
         {
-            var requestInfo = Request<IHasFormattedPathParam>(x => x.FooAsync(3));
+            var requestInfo = this.Request<IHasFormattedPathParam>(x => x.FooAsync(3));
             var formatProvider = new Mock<IFormatProvider>();
 
             var param = requestInfo.PathParams.First();
@@ -379,7 +374,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void RecordsSerializedSerializationMethod()
         {
-            var requestInfo = Request<ISerializedPathParam>(x => x.FooAsync("fizzbuzz"));
+            var requestInfo = this.Request<ISerializedPathParam>(x => x.FooAsync("fizzbuzz"));
 
             Assert.Single(requestInfo.PathParams);
             Assert.Equal(PathSerializationMethod.Serialized, requestInfo.PathParams.First().SerializationMethod);
@@ -388,7 +383,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultPathSerializationMethodIsSpecifiedBySerializationMethodsHeader()
         {
-            var requestInfo = Request<IHasNonOverriddenDefaultPathSerializationMethod>(x => x.FooAsync("buzz"));
+            var requestInfo = this.Request<IHasNonOverriddenDefaultPathSerializationMethod>(x => x.FooAsync("buzz"));
 
             Assert.Single(requestInfo.PathParams);
             Assert.Equal(PathSerializationMethod.Serialized, requestInfo.PathParams.First().SerializationMethod);
@@ -397,7 +392,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultPathSerializationMethodCanBeOverridden()
         {
-            var requestInfo = Request<IHasOverriddenDefaultPathSerializationMethod>(x => x.FooAsync("foo"));
+            var requestInfo = this.Request<IHasOverriddenDefaultPathSerializationMethod>(x => x.FooAsync("foo"));
 
             Assert.Single(requestInfo.PathParams);
             Assert.Equal(PathSerializationMethod.ToString, requestInfo.PathParams.First().SerializationMethod);
@@ -406,7 +401,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesSerializedPathProperty()
         {
-            var requestInfo = Request<IHasSerializedPathProperty>(x =>
+            var requestInfo = this.Request<IHasSerializedPathProperty>(x =>
             {
                 x.Yay = "woopdidoo";
                 return x.FooAsync();

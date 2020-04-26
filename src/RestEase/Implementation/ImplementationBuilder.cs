@@ -153,18 +153,18 @@ namespace RestEase.Implementation
             var interfaceTypeInfo = interfaceType.GetTypeInfo();
 
             if (!interfaceTypeInfo.IsInterface)
-                throw new ArgumentException(String.Format("Type {0} is not an interface", interfaceType.Name), nameof(interfaceType));
+                throw new ArgumentException(string.Format("Type {0} is not an interface", interfaceType.Name), nameof(interfaceType));
 
             var typeBuilder = this.moduleBuilder.DefineType(this.CreateImplementationName(interfaceType), TypeAttributes.Public | TypeAttributes.Sealed);
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
-            var classHeaders = InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetCustomAttributes<HeaderAttribute>()).ToArray();
+            var classHeaders = this.InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetCustomAttributes<HeaderAttribute>()).ToArray();
             var firstHeaderWithoutValue = classHeaders.FirstOrDefault(x => x.Value == null);
             if (firstHeaderWithoutValue != null)
-                throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on interface must have the form [Header(\"Name\", \"Value\")]", firstHeaderWithoutValue.Name));
+                throw new ImplementationCreationException(string.Format("[Header(\"{0}\")] on interface must have the form [Header(\"Name\", \"Value\")]", firstHeaderWithoutValue.Name));
             var firstHeaderWithColon = classHeaders.FirstOrDefault(x => x.Name.Contains(":"));
             if (firstHeaderWithColon != null)
-                throw new ImplementationCreationException(String.Format("[Header(\"{0}\", \"{1}\")] on interface must not have a colon in the header name", firstHeaderWithColon.Name, firstHeaderWithColon.Value));
+                throw new ImplementationCreationException(string.Format("[Header(\"{0}\", \"{1}\")] on interface must not have a colon in the header name", firstHeaderWithColon.Name, firstHeaderWithColon.Value));
 
             var classAllowAnyStatusCodeAttribute = interfaceTypeInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
             var classSerializationMethodsAttribute = interfaceTypeInfo.GetCustomAttribute<SerializationMethodsAttribute>();
@@ -173,7 +173,7 @@ namespace RestEase.Implementation
             foreach (var parentInterfaceType in interfaceTypeInfo.GetInterfaces())
             {
                 if (parentInterfaceType.GetTypeInfo().GetCustomAttribute<AllowAnyStatusCodeAttribute>() != null)
-                    throw new ImplementationCreationException(String.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", parentInterfaceType.Name));
+                    throw new ImplementationCreationException(string.Format("Parent interface {0} may not have any [AllowAnyStatusCode] attributes", parentInterfaceType.Name));
             }
 
             // Define a readonly field which holds a reference to the IRequester
@@ -212,7 +212,7 @@ namespace RestEase.Implementation
             }
             catch (TypeLoadException e)
             {
-                var msg = String.Format("Unable to create implementation for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)] to your AssemblyInfo.cs", interfaceType.FullName);
+                string msg = string.Format("Unable to create implementation for interface {0}. Ensure that the interface is public, or add [assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)] to your AssemblyInfo.cs", interfaceType.FullName);
                 throw new ImplementationCreationException(msg, e);
             }
 
@@ -333,7 +333,7 @@ namespace RestEase.Implementation
             int methodIndex = 0;
             methodInfoGrouping = new MethodInfoGrouping();
 
-            foreach (var methodInfo in InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetMethods()))
+            foreach (var methodInfo in this.InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetMethods()))
             {
                 // Exclude property getter / setters, etc
                 if (methodInfo.IsSpecialName)
@@ -395,7 +395,7 @@ namespace RestEase.Implementation
                 {
                     var requestAttribute = methodInfo.GetCustomAttribute<RequestAttribute>();
                     if (requestAttribute == null)
-                        throw new ImplementationCreationException(String.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
+                        throw new ImplementationCreationException(string.Format("Method {0} does not have a suitable [Get] / [Post] / etc attribute on it", methodInfo.Name));
 
                     var allowAnyStatusCodeAttribute = methodInfo.GetCustomAttribute<AllowAnyStatusCodeAttribute>();
 
@@ -435,13 +435,13 @@ namespace RestEase.Implementation
 
         private void HandleEvents(Type interfaceType)
         {
-            if (InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetEvents()).Any())
+            if (this.InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetEvents()).Any())
                 throw new ImplementationCreationException("Interfaces must not have any events");
         }
 
         private PropertyGrouping HandleProperties(TypeBuilder typeBuilder, Type interfaceType, FieldBuilder requesterField)
         {
-            var grouping = new PropertyGrouping(InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetProperties()));
+            var grouping = new PropertyGrouping(this.InterfaceAndChildren(interfaceType, x => x.GetTypeInfo().GetProperties()));
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
 
             foreach (var property in grouping.AllPropertiesWithStorage)
@@ -514,7 +514,7 @@ namespace RestEase.Implementation
             }
             // 2. The Path
             // Stack: [this.requester, HttpMethod, path]
-            methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? String.Empty);
+            methodIlGenerator.Emit(OpCodes.Ldstr, requestAttribute.Path ?? string.Empty);
             // 3. The MethodInfo
             methodIlGenerator.Emit(OpCodes.Ldsfld, methodInfoField);
 
@@ -622,7 +622,7 @@ namespace RestEase.Implementation
             foreach (var methodHeader in methodHeaders)
             {
                 if (methodHeader.Name.Contains(":"))
-                    throw new ImplementationCreationException(String.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
+                    throw new ImplementationCreationException(string.Format("[Header(\"{0}\")] on method {1} must not have colon in its name", methodHeader.Name, methodInfo.Name));
                 this.AddMethodHeader(methodIlGenerator, methodHeader);
             }
         }
@@ -665,7 +665,7 @@ namespace RestEase.Implementation
             {
                 var method = MakeQueryMapMethodInfo(queryMap.Parameter.ParameterType);
                 if (method == null)
-                    throw new ImplementationCreationException(String.Format("Method '{0}': [QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents)", methodName));
+                    throw new ImplementationCreationException(string.Format("Method '{0}': [QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents)", methodName));
                 this.AddQueryMap(methodIlGenerator, queryMap.Parameter.ParameterType, (short)queryMap.Index, method, serializationMethods.ResolveQuery(queryMap.Attribute.SerializationMethod));
             }
 
@@ -681,11 +681,10 @@ namespace RestEase.Implementation
                 this.AddQueryParam(methodIlGenerator, plainParameter.Parameter.Name, (short)plainParameter.Index, null, method, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
             }
 
-            if (parameterGrouping.RawQueryString != null)
+            foreach (var rawQueryStringParameter in parameterGrouping.RawQueryStringParameters)
             {
-                var parameter = parameterGrouping.RawQueryString.Value;
-                var method = addRawQueryParameterMethod.MakeGenericMethod(parameter.Parameter.ParameterType);
-                this.AddRawQueryParam(methodIlGenerator, (short)parameter.Index, method);
+                var method = addRawQueryParameterMethod.MakeGenericMethod(rawQueryStringParameter.Parameter.ParameterType);
+                this.AddRawQueryParam(methodIlGenerator, (short)rawQueryStringParameter.Index, method);
             }
 
             foreach (var pathParameter in parameterGrouping.PathParameters)
@@ -702,9 +701,9 @@ namespace RestEase.Implementation
             foreach (var headerParameter in parameterGrouping.HeaderParameters)
             {
                 if (headerParameter.Attribute.Value != null)
-                    throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\", \"{2}\")] must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", methodName, headerParameter.Attribute.Name, headerParameter.Attribute.Value));
+                    throw new ImplementationCreationException(string.Format("Method '{0}': [Header(\"{1}\", \"{2}\")] must have the form [Header(\"Name\")], not [Header(\"Name\", \"Value\")]", methodName, headerParameter.Attribute.Name, headerParameter.Attribute.Value));
                 if (headerParameter.Attribute.Name.Contains(":"))
-                    throw new ImplementationCreationException(String.Format("Method '{0}': [Header(\"{1}\")] must not have a colon in its name", methodName, headerParameter.Attribute.Name));
+                    throw new ImplementationCreationException(string.Format("Method '{0}': [Header(\"{1}\")] must not have a colon in its name", methodName, headerParameter.Attribute.Name));
                 var typedMethod = addHeaderParameterMethod.MakeGenericMethod(headerParameter.Parameter.ParameterType);
                 this.AddHeaderParameter(methodIlGenerator, headerParameter.Attribute, (short)headerParameter.Index, typedMethod);
             }
@@ -809,7 +808,7 @@ namespace RestEase.Implementation
             }
             else
             {
-                throw new ImplementationCreationException(String.Format("Method '{0}': must have a return type of Task<T> or Task", methodInfo.Name));
+                throw new ImplementationCreationException(string.Format("Method '{0}': must have a return type of Task<T> or Task", methodInfo.Name));
             }
         }
 
@@ -991,17 +990,17 @@ namespace RestEase.Implementation
         private void ValidateHttpRequestMessageProperties(IEnumerable<string> keys, string methodName)
         {
             // Check that there are no duplicate param names in the attributes
-            var duplicateKey = keys.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
+            string? duplicateKey = keys.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
             if (duplicateKey != null)
-                throw new ImplementationCreationException(String.Format("Method '{0}': found more than one HTTP request message property for key {1}.", methodName, duplicateKey));
+                throw new ImplementationCreationException(string.Format("Method '{0}': found more than one HTTP request message property for key {1}.", methodName, duplicateKey));
         }
 
         private void ValidatePathProperties(string? basePath, IEnumerable<string> pathProperties)
         {
             // Check that there are no duplicate param names in the attributes
-            var duplicatePropertyKey = pathProperties.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
+            string? duplicatePropertyKey = pathProperties.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
             if (duplicatePropertyKey != null)
-                throw new ImplementationCreationException(String.Format("Found more than one path property for key {0}", duplicatePropertyKey));
+                throw new ImplementationCreationException(string.Format("Found more than one path property for key {0}", duplicatePropertyKey));
 
             if (basePath != null)
             {
@@ -1009,34 +1008,34 @@ namespace RestEase.Implementation
                 // We don't consider path parameters here.
                 var placeholders = pathParamMatch.Matches(basePath).Cast<Match>().Select(x => x.Groups[1].Value).ToList();
 
-                var firstMissingParam = placeholders.Except(pathProperties).FirstOrDefault();
+                string? firstMissingParam = placeholders.Except(pathProperties).FirstOrDefault();
                 if (firstMissingParam != null)
-                    throw new ImplementationCreationException(String.Format("Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in [BasePath(\"{1}\")].", firstMissingParam, basePath));
+                    throw new ImplementationCreationException(string.Format("Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in [BasePath(\"{1}\")].", firstMissingParam, basePath));
             }
         }
 
         private void ValidatePathParams(string? path, IEnumerable<string> pathParams, IEnumerable<string> pathProperties, string methodName)
         {
             if (path == null)
-                path = String.Empty;
+                path = string.Empty;
 
             // Check that there are no duplicate param names in the attributes
-            var duplicateMethodKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
+            string? duplicateMethodKey = pathParams.GroupBy(x => x).FirstOrDefault(x => x.Count() > 1)?.Key;
             if (duplicateMethodKey != null)
-                throw new ImplementationCreationException(String.Format("Method '{0}': found more than one path parameter for key {1}.", methodName, duplicateMethodKey));
+                throw new ImplementationCreationException(string.Format("Method '{0}': found more than one path parameter for key {1}.", methodName, duplicateMethodKey));
 
             // Check that each placeholder has a matching attribute, and vice versa
             // We allow a property param to fill in for a missing path param, but we allow them to duplicate
             // each other (the path param takes precedence), and allow a property param which doesn't have a placeholder.
             var placeholders = pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value).ToList();
 
-            var firstMissingParam = placeholders.Except(pathParams.Concat(pathProperties)).FirstOrDefault();
+            string? firstMissingParam = placeholders.Except(pathParams.Concat(pathProperties)).FirstOrDefault();
             if (firstMissingParam != null)
-                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find a [Path(\"{1}\")] property or parameter for the path placeholder '{{{1}}}'.", methodName, firstMissingParam));
+                throw new ImplementationCreationException(string.Format("Method '{0}': unable to find a [Path(\"{1}\")] property or parameter for the path placeholder '{{{1}}}'.", methodName, firstMissingParam));
 
-            var firstMissingPlaceholder = pathParams.Except(placeholders).FirstOrDefault();
+            string firstMissingPlaceholder = pathParams.Except(placeholders).FirstOrDefault();
             if (firstMissingPlaceholder != null)
-                throw new ImplementationCreationException(String.Format("Method '{0}': unable to find to find a placeholder {{{1}}} for the path parameter '{1}'.", methodName, firstMissingPlaceholder));
+                throw new ImplementationCreationException(string.Format("Method '{0}': unable to find to find a placeholder {{{1}}} for the path parameter '{1}'.", methodName, firstMissingPlaceholder));
         }
 
         private IEnumerable<T> InterfaceAndChildren<T>(Type interfaceType, Func<Type, IEnumerable<T>> selector)

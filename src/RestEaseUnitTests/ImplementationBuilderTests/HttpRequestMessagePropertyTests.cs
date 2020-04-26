@@ -28,10 +28,10 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesPathProperty()
         {
-            var propertyValue = new object();
-            var parameterValue = new object();
+            object propertyValue = new object();
+            object parameterValue = new object();
             var requestInfo =
-                Request<IHttpRequestMessageProperties>(
+                this.Request<IHttpRequestMessageProperties>(
                     x =>
                     {
                         x.PropertyFoo = propertyValue;

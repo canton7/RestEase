@@ -246,7 +246,7 @@ public interface IGitHubApi
 
 IGithubApi api = RestClient.For<IGithubApi>("http://api.github.com");
 
-// Requests http://api.github.com/user?userId=3
+// Requests http://api.github.com/user?userid=3
 await api.FetchUserAsync(3);
 ```
 
@@ -283,7 +283,7 @@ await api.SearchAsync(new[] { "foo", "bar", "baz" });
 ```
 
 If you specify a key that is `null`, i.e. `[Query(null)]`, then the name of the key is not used, and the value is inserted into the query string.
-If you specify a key that is emptystring, then then query key will be left empty.
+If you specify a key that is an empty string `""`, then then query key will be left empty.
 
 ```csharp
 public interface ISomeApi
@@ -303,13 +303,13 @@ If you pass a value which is null, then the key is not inserted. If you pass any
 ```csharp
 public interface ISomeApi
 {
-    [Get("foo")]
-    Task FooAsync([Query()] string foo, [Query] string bar);
+    [Get("path")]
+    Task FooAsync([Query] string foo, [Query] string bar);
 }
 
 ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
 
-// Requests http://api.example.com/foo?bar=
+// Requests http://api.example.com/path?bar=
 await api.FooAsync(null, "");
 ```
 
@@ -335,7 +335,7 @@ await api.FooAsync(254);
 
 1. If you use a [custom serializer](#custom-serializers-and-deserializers), then the format is passed to that serializer, and you can use it as you like.
 2. Otherwise, if the format looks like it could be passed to `string.Format`, then this happens with `param` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:X2}"` or `"hello {0}"`.
-3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
+3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string, IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
 4. Otherwise, the format is ignored.
 
 
@@ -415,7 +415,7 @@ var searchResults = await api.SearchBlogPostsAsync(filters);
 ### Raw Query String Parameters
 
 In rare cases, you may have generated a query string by other means, and want to give this to RestEase.
-To do this, provide a single parameter decorated with `[RawQueryString]`.
+To do this, provide one or more parameters decorated with `[RawQueryString]`.
 
 This parameter can be of any type, and `.ToString()` will be called on it to turn it into a string.
 Its value will be prepended, verbatim, to the query string: you are responsible for any escaping.
@@ -431,7 +431,8 @@ public interface ISomeApi
 }
 
 var api = RestClient.For<ISomeApi>("http://api.example.com");
-var filter = "filter=foo"
+var filter = "filter=foo";
+// Requests http://api.example.com?filter=foo
 var searchResults = await api.SearchAsync(filter);
 ```
 
@@ -525,7 +526,7 @@ await api.FooAsync(1);
 
 1. If you use a [custom serializer](#custom-serializers-and-deserializers), then the format is passed to that serializer, and you can use it as you like.
 2. Otherwise, if the format looks like it could be passed to `string.Format`, then this happens with `param` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:D2}"` or `"hello {0}"`.
-3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"D2"`.
+3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string, IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"D2"`.
 4. Otherwise, the format is ignored.
 
 #### URL Encoding in Path Parameters
@@ -548,8 +549,8 @@ await api.FooAsync("bar/baz");
 
 #### Serialization of Path Parameters
 
-Similar to query paramters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members).
-In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying [a `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
+Similar to query parameters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members).
+In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying a [`RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
 
 For example:
 ```csharp
@@ -568,7 +569,7 @@ public interface ISomeApi
     Task<string> GetAsync([Path(PathSerializationMethod.Serialized)] MyEnum param);
 }
 
-ISomeApi api = new RestClient
+ISomeApi api = new RestClient()
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
 }.For<ISomeApi>("http://api.example.com");
@@ -622,12 +623,14 @@ public interface ISomeApi
 var api = RestClient.For<ISomeApi>("http://api.example.com/user");
 api.AccountId = 3;
 
-// Requests /user/3/profile
+// Requests http://api.example.com/user/3/profile
 var profile = await api.GetProfileAsync();
 
-// Requests /user/4/profile
+// Requests http://api.example.com/user/4/profile
 await api.DeleteAsync(4);
 ```
+
+You can also use [`BasePath`](#base-path) if all of your paths start with `{accountId}`.
 
 #### Formatting Path Properties
 
@@ -702,7 +705,7 @@ public interface ISomeApi
     Task<string> GetAsync();
 }
 
-ISomeApi api = new RestClient
+ISomeApi api = new RestClient()
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
 }.For<ISomeApi>("http://api.example.com");
@@ -735,7 +738,7 @@ await api.GetUsersASync();
 ```
 
 If the path given to `[Get("path")]` (etc) starts with a `/`, then the base path will be ignored.
-If it is absolute, then both the base path and the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
+If it is absolute (e.g. starts with `https://`), then both the base path and the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
 Otherwise, if the base path is absolute, then the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
 
 The base path can contain `{placeholders}`.
@@ -762,7 +765,7 @@ Exactly how this will be serialized depends on the type of parameters:
  - If the type is `String`, then the string will be used directly as the content (using [`StringContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.stringcontent?)).
  - If the type is `byte[]`, then the byte array will be used directory as the content (using [`ByteArrayContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.bytearraycontent)).
  - If the parameter has the attribute `[Body(BodySerializationMethod.UrlEncoded)]`, then the content will be URL-encoded ([see below](#url-encoded-bodies)).
- - If the type is an [`HttpContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpcontent) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios
+ - If the type is an [`HttpContent`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpcontent) (or one of its subclasses), then it will be used directly. This is useful for advanced scenarios.
  - Otherwise, the parameter will be serialized as JSON (by default, or you can customize this if you want, see [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)).
 
 
@@ -793,10 +796,10 @@ var data = new Dictionary<string, object> {
 await api.CollectAsync(data);
  ```
 
-You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(BodySerializationMethod.UrlEncoded)]` on the interface itself:
+You can also control the default body serialization method for an entire API by specifying `[SerializationMethods(Body = BodySerializationMethod.UrlEncoded)]` on the interface itself:
 
 ```csharp
-[SerializationMethods(BodySerializationMethod.UrlEncoded)]
+[SerializationMethods(Body = BodySerializationMethod.UrlEncoded)]
 public interface ISomeApi
 {
     [Post("collect")]
@@ -864,7 +867,7 @@ Specifying headers is actually a surprisingly large topic, and can be done in se
 
 ### Constant Interface Headers
 
-If you want to have a header that applies to every single request, and whose value is fixed, use a constant interface headers.
+If you want to have a header that applies to every single request, and whose value is fixed, use a constant interface header.
 These are specified as `[Header("Name", "Value")]` attributes on the interface.
 
 For example:
@@ -943,7 +946,7 @@ await api.FooAsync();
 ```
 
 1. If the format looks like it could be passed to `string.Format`, then this happens with `SomeHeader` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:X2}"` or `"hello {0}"`.
-2. Otherwise, if `SomeHeader` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `SomeHeader` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
+2. Otherwise, if `SomeHeader` implements `IFormattable`, then its `ToString(string, IFormatProvider)` method is called, with `SomeHeader` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
 3. Otherwise, the format is ignored.
 
 ### Constant Method Headers
@@ -999,7 +1002,7 @@ await api.FooAsync(254);
 ```
 
 1. If the format looks like it could be passed to `string.Format`, then this happens with `someHeader` passed as the first arg, and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"{0}"` or `"{0:X2}"` or `"hello {0}"`.
-2. Otherwise, if `someHeader` implements `IFormattable`, then its `ToString(string IFormatProvider)` method is called, with `someHeader` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
+2. Otherwise, if `someHeader` implements `IFormattable`, then its `ToString(string, IFormatProvider)` method is called, with `someHeader` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"X2"`.
 3. Otherwise, the format is ignored.
 
 ### Redefining Headers
@@ -1278,7 +1281,7 @@ This method wants you to return a `string`, which is the value that will be inse
 There is no default path serializer, as its usage is often very specific.
 In order to use `PathSerializationMethod.Serialized`, you *must* set `RestClient.RequestPathParamSerializer`.
 
-There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have `EnumMember`, `DisplayName` or `Display` attributes specified on their members (evaluated in that order).
+There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have [`EnumMember`](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.serialization.enummemberattribute?view=netframework-4.8), [`DisplayName`](https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.displaynameattribute?view=netframework-4.8) or [`Display`](https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations.displayattribute?view=netframework-4.8) attributes specified on their members (evaluated in that order).
 This can be used as-is or as a reference for your own implementation.
 
 To tell RestEase to use a path serializer, you must create a new `RestClient`, assign its `RequestPathParamSerializer` property, then call `For<T>()` to get an implementation of your interface.
@@ -1300,7 +1303,7 @@ By default, this is `null`.
 RestEase has logic to turn a collection of query parameters into a single suitably-encoded query string.
 However, some servers don't correctly decode query strings, and so users may want to control how query strings are encoded.
 
-To do this, subclass `QueryStringBuilder` and assign it to the `RestClient.QueryStringBuilder` property.
+To do this, subclass [`QueryStringBuilder`](https://github.com/canton7/RestEase/blob/master/src/RestEase/QueryStringBuilder.cs) and assign it to the `RestClient.QueryStringBuilder` property.
 See the method `BuildQueryParam` in [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs) for the default implementation.
 
 
@@ -1394,7 +1397,7 @@ If you need, you can get the `IRequestInfo` for the current request using `(IReq
 Adding to `HttpRequestMessage.Properties`
 -----------------------------------------
 
-In very specific cases (i.e. you use custom `HttpMessageHandler`), it might be useful to pass any object reference into the handler.
+In very specific cases (i.e. you use a custom `HttpMessageHandler`), it might be useful to pass an object reference into the handler.
 In such case `HttpRequestMessage.Properties` can be used.
 This is done by decorating method parameters with `[HttpRequestMessageProperty]`.
 If key parameter is not specified then the name of the parameter will be used.
@@ -1493,7 +1496,7 @@ Add the following line to your `AssemblyInfo.cs`:
 [assembly: InternalsVisibleTo(RestEase.RestClient.FactoryAssemblyName)]
 ```
 
-You place the interface inside any namespace, or nest the interface inside another public type if you wish.
+You can place the interface inside any namespace, or nest the interface inside another public type if you wish.
 
 
 Using Generic Interfaces

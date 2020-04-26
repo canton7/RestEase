@@ -2,11 +2,8 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -44,8 +41,6 @@ namespace RestEaseUnitTests.RequesterTests
             }
         }
 
-        private readonly PublicRequester requester = new PublicRequester(null);
-
         [Fact]
         public void RequestVoidAsyncSendsRequest()
         {
@@ -80,7 +75,7 @@ namespace RestEaseUnitTests.RequesterTests
             {
                 CancellationToken = cancellationToken
             };
-            var result = requester.RequestAsync<string>(requestInfo).Result;
+            string result = requester.RequestAsync<string>(requestInfo).Result;
 
             responseDeserializer.Verify();
 
@@ -105,7 +100,7 @@ namespace RestEaseUnitTests.RequesterTests
         [Fact]
         public void RequestInfoHttpMessagePropertiesAddedToRequestMessage()
         {
-            var messageHandler = new MockHttpMessageHandler { ResponseMessage = Task.FromResult(new HttpResponseMessage())};
+            var messageHandler = new MockHttpMessageHandler { ResponseMessage = Task.FromResult(new HttpResponseMessage()) };
             var httpClient = new HttpClient(messageHandler);
             var requester = new PublicRequester(httpClient);
 
@@ -142,7 +137,7 @@ namespace RestEaseUnitTests.RequesterTests
             };
             var result = requester.RequestWithResponseAsync<string>(requestInfo).Result;
 
-            var deserializedContent = result.GetContent();
+            string deserializedContent = result.GetContent();
 
             responseDeserializer.Verify();
 
@@ -228,7 +223,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
 
             messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
-            var response = requester.SendRequestAsync(requestInfo, true).Result;
+            requester.SendRequestAsync(requestInfo, true).Wait();
             Assert.Equal("http://api.example.com/base/", messageHandler.Request.RequestUri.ToString());
         }
 
@@ -243,7 +238,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
 
-            var response = requester.SendRequestAsync(requestInfo, true).Result;
+            requester.SendRequestAsync(requestInfo, true).Wait();
             Assert.Equal("http://api.example.com/base", messageHandler.Request.RequestUri.ToString());
         }
 
@@ -258,7 +253,7 @@ namespace RestEaseUnitTests.RequesterTests
 
             messageHandler.ResponseMessage = Task.FromResult(new HttpResponseMessage());
 
-            var response = requester.SendRequestAsync(requestInfo, true).Result;
+            requester.SendRequestAsync(requestInfo, true).Wait();
             Assert.Equal("http://api.example.com/base/foo", messageHandler.Request.RequestUri.ToString());
         }
     }

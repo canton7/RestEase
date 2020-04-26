@@ -49,10 +49,7 @@ namespace RestEase
         /// <summary>
         /// Gets a value indicating whether any content is associated with the response
         /// </summary>
-        public bool HasContent
-        {
-            get { return !String.IsNullOrWhiteSpace(this.Content); }
-        }
+        public bool HasContent => !string.IsNullOrWhiteSpace(this.Content);
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>

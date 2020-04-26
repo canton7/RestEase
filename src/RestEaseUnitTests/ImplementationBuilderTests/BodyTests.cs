@@ -1,10 +1,6 @@
 ﻿using Moq;
 using RestEase;
 using RestEase.Implementation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -73,7 +69,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
-            var body = new object();
+            object body = new object();
             implementation.SerializedAsync(body);
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
@@ -92,7 +88,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
 
-            var body = new object();
+            object body = new object();
             implementation.UrlEncodedAsync(body);
 
             Assert.NotNull(requestInfo.BodyParameterInfo);

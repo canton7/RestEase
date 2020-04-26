@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RestEase
 {
@@ -16,7 +17,13 @@ namespace RestEase
         /// <summary>
         /// Gets the raw query parameter, if any
         /// </summary>
-        public string RawQueryParameter { get; }
+        public IEnumerable<string> RawQueryParameters { get; }
+
+        /// <summary>
+        /// Obsolete. Use <see cref="RawQueryParameters"/>
+        /// </summary>
+        [Obsolete("Use RawQueryParameters")]
+        public string RawQueryParameter => this.RawQueryParameters.FirstOrDefault() ?? string.Empty;
 
         /// <summary>
         /// Gets the query parameters (or an empty collection)
@@ -42,11 +49,31 @@ namespace RestEase
         /// Initialises a new instance of the <see cref="QueryStringBuilderInfo"/> class
         /// </summary>
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
-        /// <param name="rawQueryParameter">The raw query parameter, if any</param>
+        /// <param name="rawQueryParameters">The raw query parameters, if any</param>
         /// <param name="queryParams">The query parameters (or an empty collection)</param>
         /// <param name="queryProperties">The query propeorties (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider">Format provider to use to format things</param>
+        public QueryStringBuilderInfo(
+            string initialQueryString,
+            IEnumerable<string> rawQueryParameters,
+            IEnumerable<KeyValuePair<string, string?>> queryParams,
+            IEnumerable<KeyValuePair<string, string?>> queryProperties,
+            IRequestInfo requestInfo,
+            IFormatProvider? formatProvider)
+        {
+            this.InitialQueryString = initialQueryString;
+            this.RawQueryParameters = rawQueryParameters;
+            this.QueryParams = queryParams;
+            this.QueryProperties = queryProperties;
+            this.RequestInfo = requestInfo;
+            this.FormatProvider = formatProvider;
+        }
+
+        /// <summary>
+        /// Obsolete. Use the other constructor.
+        /// </summary>
+        [Obsolete("Use the other constructor")]
         public QueryStringBuilderInfo(
             string initialQueryString,
             string rawQueryParameter,
@@ -54,13 +81,8 @@ namespace RestEase
             IEnumerable<KeyValuePair<string, string?>> queryProperties,
             IRequestInfo requestInfo,
             IFormatProvider? formatProvider)
+            : this(initialQueryString, new[] { rawQueryParameter }, queryParams, queryProperties, requestInfo, formatProvider)
         {
-            this.InitialQueryString = initialQueryString;
-            this.RawQueryParameter = rawQueryParameter;
-            this.QueryParams = queryParams;
-            this.QueryProperties = queryProperties;
-            this.RequestInfo = requestInfo;
-            this.FormatProvider = formatProvider;
         }
     }
 }

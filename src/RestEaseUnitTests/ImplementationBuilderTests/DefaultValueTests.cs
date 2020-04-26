@@ -22,7 +22,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public interface IHasDefaultCancellationToken
         {
             [Get("foo")]
-            Task GetFooAsync(CancellationToken cancellationToken = default(CancellationToken));
+            Task GetFooAsync(CancellationToken cancellationToken = default);
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
@@ -48,7 +48,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesDefaultStructValues()
         {
-            var implementation = this.builder.CreateImplementation<IHasDefaultCancellationToken>(this.requester.Object);
+            this.builder.CreateImplementation<IHasDefaultCancellationToken>(this.requester.Object);
         }
 
     }
