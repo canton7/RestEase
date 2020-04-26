@@ -168,7 +168,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void QueryParamWithImplicitNameCallsCorrectly()
         {
-            var requestInfo = Request<IQueryParamWithImplicitName>(x => x.FooAsync("the value"));
+            var requestInfo = this.Request<IQueryParamWithImplicitName>(x => x.FooAsync("the value"));
 
             Assert.Single(requestInfo.QueryParams);
 
@@ -180,7 +180,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void QueryParamWithUndecoratedParameterCallsCorrectly()
         {
-            var requestInfo = Request<IQueryParamWithUndecoratedParameter>(x => x.FooAsync("the value"));
+            var requestInfo = this.Request<IQueryParamWithUndecoratedParameter>(x => x.FooAsync("the value"));
 
             Assert.Single(requestInfo.QueryParams);
 
@@ -192,7 +192,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesMultipleQueryParamsWithTheSameName()
         {
-            var requestInfo = Request<ITwoQueryParametersWithTheSameName>(x => x.FooAsync("foo value", "bar value"));
+            var requestInfo = this.Request<ITwoQueryParametersWithTheSameName>(x => x.FooAsync("foo value", "bar value"));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -210,7 +210,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void RecordsToStringSerializationMethod()
         {
-            var requestInfo = Request<ISingleParameterWithQueryParamAttributeNoReturn>(x => x.BooAsync("yay"));
+            var requestInfo = this.Request<ISingleParameterWithQueryParamAttributeNoReturn>(x => x.BooAsync("yay"));
 
             Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
@@ -219,7 +219,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void RecordsSerializedSerializationMethod()
         {
-            var requestInfo = Request<ISerializedQueryParam>(x => x.FooAsync("boom"));
+            var requestInfo = this.Request<ISerializedQueryParam>(x => x.FooAsync("boom"));
 
             Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
@@ -228,7 +228,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeader()
         {
-            var requestInfo = Request<IHasNonOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
+            var requestInfo = this.Request<IHasNonOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
 
             Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
@@ -237,7 +237,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsHeaderWhenNoQueryAttributeIsPresent()
         {
-            var requestInfo = Request<IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute>(x => x.FooAsync("boom"));
+            var requestInfo = this.Request<IHasNonOverriddenDefaultQuerySerializationMethodWithNoQueryAttribute>(x => x.FooAsync("boom"));
 
             Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
@@ -246,7 +246,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void DefaultQuerySerializationMethodCanBeOverridden()
         {
-            var requestInfo = Request<IHasOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
+            var requestInfo = this.Request<IHasOverriddenDefaultQuerySerializationMethod>(x => x.FooAsync("boom"));
 
             Assert.Single(requestInfo.QueryParams);
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
@@ -255,7 +255,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void SerializesNullQueryKeys()
         {
-            var requestInfo = Request<IHasNullQueryKey>(x => x.FooAsync("boom"));
+            var requestInfo = this.Request<IHasNullQueryKey>(x => x.FooAsync("boom"));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -266,18 +266,18 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void SerializesEmptystringQueryKeys()
         {
-            var requestInfo = Request<IHasEmptystringQueryKey>(x => x.FooAsync("boom"));
+            var requestInfo = this.Request<IHasEmptystringQueryKey>(x => x.FooAsync("boom"));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
             Assert.Single(queryParams);
-            Assert.Equal(String.Empty, queryParams[0].SerializeToString(null).First().Key);
+            Assert.Equal(string.Empty, queryParams[0].SerializeToString(null).First().Key);
         }
 
         [Fact]
         public void HandlesFormattedQueryParams()
         {
-            var requestInfo = Request<IHasFormat>(x => x.FooAsync(11));
+            var requestInfo = this.Request<IHasFormat>(x => x.FooAsync(11));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -287,7 +287,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void SerializeToStringUsesGivenFormatProvider()
         {
-            var requestInfo = Request<IHasFormat>(x => x.FooAsync(3));
+            var requestInfo = this.Request<IHasFormat>(x => x.FooAsync(3));
             var formatProvider = new Mock<IFormatProvider>();
 
             var param = requestInfo.QueryParams.First();
@@ -299,7 +299,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void SerializesNullQueryValues()
         {
-            var requestInfo = Request<INullableQueryParameters>(x => x.FooAsync(null, null, null));
+            var requestInfo = this.Request<INullableQueryParameters>(x => x.FooAsync(null, null, null));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -314,7 +314,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesQueryProperty()
         {
-            var requestInfo = Request<IHasPathQuery>(x =>
+            var requestInfo = this.Request<IHasPathQuery>(x =>
             {
                 x.Foo = "woo";
                 return x.FooAsync();
@@ -333,7 +333,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesFormattedQueryProperty()
         {
-            var requestInfo = Request<IHasFormattedPathQuery>(x =>
+            var requestInfo = this.Request<IHasFormattedPathQuery>(x =>
             {
                 x.Woo = 10;
                 return x.FooAsync();
@@ -352,7 +352,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesQueryParameterNameUsingAttributeSetter()
         {
-            var requestInfo = Request<IHasQueryParameterNameUsingAttributeSetter>(x => x.FooAsync("foo"));
+            var requestInfo = this.Request<IHasQueryParameterNameUsingAttributeSetter>(x => x.FooAsync("foo"));
 
             var queryParameters = requestInfo.QueryParams.ToList();
 
@@ -366,7 +366,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesQueryParameterNameUsingAttributeConstructor()
         {
-            var requestInfo = Request<IHasQueryParameterNameUsingAttributeConstructor>(x => x.FooAsync("foo"));
+            var requestInfo = this.Request<IHasQueryParameterNameUsingAttributeConstructor>(x => x.FooAsync("foo"));
 
             var queryParameters = requestInfo.QueryParams.ToList();
 
@@ -380,7 +380,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void HandlesSerializedQueryProperty()
         {
-            var requestInfo = Request<IHasSerializedPathQuery>(x =>
+            var requestInfo = this.Request<IHasSerializedPathQuery>(x =>
             {
                 x.Yay = "woop";
                 return x.FooAsync();

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using RestEase;
 using RestEase.Implementation;
 using Xunit;
 using System.Globalization;
+using System.Linq;
 
 namespace RestEaseUnitTests.ImplementationBuilderTests
 {

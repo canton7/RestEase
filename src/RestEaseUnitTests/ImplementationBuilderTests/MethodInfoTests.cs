@@ -2,9 +2,7 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -42,11 +40,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void GetsMethodInfoForOverloadedMethods()
         {
-            var intOverload = Request<IHasOverloads>(x => x.FooAsync(1)).MethodInfo;
+            var intOverload = this.Request<IHasOverloads>(x => x.FooAsync(1)).MethodInfo;
             var expectedIntOverload = typeof(IHasOverloads).GetTypeInfo().GetMethod("FooAsync", new Type[] { typeof(int) });
             Assert.Equal(expectedIntOverload, intOverload);
 
-            var stringOverload = Request<IHasOverloads>(x => x.FooAsync("test")).MethodInfo;
+            var stringOverload = this.Request<IHasOverloads>(x => x.FooAsync("test")).MethodInfo;
             var expectedstringOverload = typeof(IHasOverloads).GetTypeInfo().GetMethod("FooAsync", new Type[] { typeof(string) });
             Assert.Equal(expectedstringOverload, stringOverload);
         }
@@ -54,7 +52,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void GetsMethodInfoFromParentInterface()
         {
-            var methodInfo = Request<IChild>(x => x.FooAsync("testy")).MethodInfo;
+            var methodInfo = this.Request<IChild>(x => x.FooAsync("testy")).MethodInfo;
             var expected = typeof(IParent).GetTypeInfo().GetMethod("FooAsync");
             Assert.Equal(expected, methodInfo);
         }
@@ -62,11 +60,11 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         [Fact]
         public void GetsCorrectGenericMethod()
         {
-            var intOverload = Request<IChildWithTwoGenericParents>(x => x.FooAsync(1)).MethodInfo;
+            var intOverload = this.Request<IChildWithTwoGenericParents>(x => x.FooAsync(1)).MethodInfo;
             var expectedIntOverload = typeof(IGenericParent<int>).GetTypeInfo().GetMethod("FooAsync");
             Assert.Equal(expectedIntOverload, intOverload);
 
-            var stringOverload = Request<IChildWithTwoGenericParents>(x => x.FooAsync("test")).MethodInfo;
+            var stringOverload = this.Request<IChildWithTwoGenericParents>(x => x.FooAsync("test")).MethodInfo;
             var expectedstringOverload = typeof(IGenericParent<string>).GetTypeInfo().GetMethod("FooAsync");
             Assert.Equal(expectedstringOverload, stringOverload);
         }

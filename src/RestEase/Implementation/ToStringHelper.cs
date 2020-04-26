@@ -19,9 +19,9 @@ namespace RestEase.Implementation
             // 3a. The alignment can be a positive or negative integer ('+' is not allowed)
             // 3b. The format string cannot have a single { or }
 
-            var noSingleBraces = @"(?:[^{}]|{{|}})";
-            var placeholder = @"{\d+(?:,-?\d+)?(?::" + noSingleBraces + @"*)?}";
-            var regex = $@"^{noSingleBraces}*(?:{placeholder}{noSingleBraces}*)+$";
+            string noSingleBraces = @"(?:[^{}]|{{|}})";
+            string placeholder = @"{\d+(?:,-?\d+)?(?::" + noSingleBraces + @"*)?}";
+            string regex = $@"^{noSingleBraces}*(?:{placeholder}{noSingleBraces}*)+$";
             stringFormatRegex = new Regex(regex);
         }
 

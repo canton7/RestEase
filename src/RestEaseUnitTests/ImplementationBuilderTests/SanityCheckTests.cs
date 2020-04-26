@@ -2,9 +2,6 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -131,7 +128,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(3));
 
-            var result = implementation.FooAsync().Result;
+            int result = implementation.FooAsync().Result;
 
             Assert.Equal(3, result);
         }

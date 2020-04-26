@@ -2,10 +2,7 @@
 using RestEase.Implementation;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace RestEaseUnitTests.RequesterTests
@@ -17,11 +14,13 @@ namespace RestEaseUnitTests.RequesterTests
         [Fact]
         public void AppliesHeadersFromClass()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
             {
-                new KeyValuePair<string, string>("User-Agent", "RestEase"),
-                new KeyValuePair<string, string>("X-API-Key", "Foo"),
+                ClassHeaders = new List<KeyValuePair<string, string>>()
+                {
+                    new KeyValuePair<string, string>("User-Agent", "RestEase"),
+                    new KeyValuePair<string, string>("X-API-Key", "Foo"),
+                }
             };
 
             var message = new HttpRequestMessage();
@@ -72,17 +71,19 @@ namespace RestEaseUnitTests.RequesterTests
         [Fact]
         public void HeadersFromPropertiesCombineWithHeadersFromClass()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
             {
-                new KeyValuePair<string, string>("This-Will-Stay", "YesIWill"),
-                new KeyValuePair<string, string>("Something", "SomethingElse"),
-                new KeyValuePair<string, string>("User-Agent", "RestEase"),
-                new KeyValuePair<string, string>("X-API-Key", "Foo"),
+                ClassHeaders = new List<KeyValuePair<string, string>>()
+                {
+                    new KeyValuePair<string, string>("This-Will-Stay", "YesIWill"),
+                    new KeyValuePair<string, string>("Something", "SomethingElse"),
+                    new KeyValuePair<string, string>("User-Agent", "RestEase"),
+                    new KeyValuePair<string, string>("X-API-Key", "Foo"),
+                }
             };
 
             requestInfo.AddPropertyHeader<string>("Something", null, null);
-            requestInfo.AddPropertyHeader("User-Agent", String.Empty, null);
+            requestInfo.AddPropertyHeader("User-Agent", string.Empty, null);
             requestInfo.AddPropertyHeader("X-API-Key", "Bar", null);
             requestInfo.AddPropertyHeader("This-Is-New", "YesIAm", null);
 
@@ -146,8 +147,10 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, new object());
 
-            var message = new HttpRequestMessage();
-            message.Content = this.requester.ConstructContent(requestInfo);
+            var message = new HttpRequestMessage
+            {
+                Content = this.requester.ConstructContent(requestInfo)
+            };
             this.requester.ApplyHeaders(requestInfo, message);
 
             Assert.Equal("Content-Type: application/json; charset=utf-8\r\n", message.Content.Headers.ToString());
@@ -156,15 +159,19 @@ namespace RestEaseUnitTests.RequesterTests
         [Fact]
         public void HeadersFromClassOverrideHeadersFromSerializer()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
             {
-                new KeyValuePair<string, string>("Content-Type", "foo/bar"),
+                ClassHeaders = new List<KeyValuePair<string, string>>()
+                {
+                    new KeyValuePair<string, string>("Content-Type", "foo/bar"),
+                }
             };
             requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Serialized, new object());
 
-            var message = new HttpRequestMessage();
-            message.Content = this.requester.ConstructContent(requestInfo);
+            var message = new HttpRequestMessage
+            {
+                Content = this.requester.ConstructContent(requestInfo)
+            };
             this.requester.ApplyHeaders(requestInfo, message);
 
             Assert.Equal("Content-Type: foo/bar\r\n", message.Content.Headers.ToString());
@@ -187,12 +194,14 @@ namespace RestEaseUnitTests.RequesterTests
         [Fact]
         public void SingleOverrideReplacesMultipleHeaders()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.ClassHeaders = new List<KeyValuePair<string, string>>()
+            var requestInfo = new RequestInfo(HttpMethod.Get, "foo")
             {
-                new KeyValuePair<string, string>("User-Agent", "SomethingElse"),
-                new KeyValuePair<string, string>("User-Agent", "RestEase"),
-                new KeyValuePair<string, string>("X-API-Key", "Foo"),
+                ClassHeaders = new List<KeyValuePair<string, string>>()
+                {
+                    new KeyValuePair<string, string>("User-Agent", "SomethingElse"),
+                    new KeyValuePair<string, string>("User-Agent", "RestEase"),
+                    new KeyValuePair<string, string>("X-API-Key", "Foo"),
+                }
             };
 
             requestInfo.AddHeaderParameter<object>("User-Agent", null);
@@ -209,8 +218,10 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddMethodHeader("Content-Type", "text/html");
 
-            var message = new HttpRequestMessage();
-            message.Content = new StringContent("hello");
+            var message = new HttpRequestMessage
+            {
+                Content = new StringContent("hello")
+            };
             this.requester.ApplyHeaders(requestInfo, message);
 
             Assert.Equal("", message.Headers.ToString());
@@ -221,7 +232,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void DoesNotThrowIfContentHeaderAppliedToClassButThereIsNoContent()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            requestInfo.AddPropertyHeader("Content-Type", "text/html", String.Empty);
+            requestInfo.AddPropertyHeader("Content-Type", "text/html", string.Empty);
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);

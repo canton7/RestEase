@@ -23,7 +23,7 @@ namespace RestEase
         /// Obsolete. Use <see cref="RawQueryParameters"/>
         /// </summary>
         [Obsolete("Use RawQueryParameters")]
-        public string RawQueryParameter => RawQueryParameters.FirstOrDefault() ?? string.Empty;
+        public string RawQueryParameter => this.RawQueryParameters.FirstOrDefault() ?? string.Empty;
 
         /// <summary>
         /// Gets the query parameters (or an empty collection)
@@ -81,7 +81,7 @@ namespace RestEase
             IEnumerable<KeyValuePair<string, string?>> queryProperties,
             IRequestInfo requestInfo,
             IFormatProvider? formatProvider)
-            : this(initialQueryString, new[] {  rawQueryParameter }, queryParams, queryProperties, requestInfo, formatProvider)
+            : this(initialQueryString, new[] { rawQueryParameter }, queryParams, queryProperties, requestInfo, formatProvider)
         {
         }
     }

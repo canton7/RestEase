@@ -6,10 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace RestEaseUnitTests.RequesterTests
@@ -80,7 +77,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void UsesRequestBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            var body = new object();
+            object body = new object();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, body);
 
             var requestBodySerializer = new Mock<RequestBodySerializer>();
@@ -99,7 +96,7 @@ namespace RestEaseUnitTests.RequesterTests
         public void ThrowsIfBodyIsUrlEncodedAndBodyDoesNotImplementIDictionary()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            var body = new object();
+            object body = new object();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.UrlEncoded, body);
 
             Assert.Throws<ArgumentException>(() => this.requester.ConstructContent(requestInfo));
@@ -118,7 +115,7 @@ namespace RestEaseUnitTests.RequesterTests
             var content = this.requester.ConstructContent(requestInfo);
 
             Assert.IsType<FormUrlEncodedContent>(content);
-            var encodedContent = ((FormUrlEncodedContent)content).ReadAsStringAsync().Result;
+            string encodedContent = ((FormUrlEncodedContent)content).ReadAsStringAsync().Result;
             Assert.Equal("foo=bar+woo&many=one&many=two", encodedContent);
         }
 
@@ -136,7 +133,7 @@ namespace RestEaseUnitTests.RequesterTests
             var content = this.requester.ConstructContent(requestInfo);
 
             Assert.IsType<FormUrlEncodedContent>(content);
-            var encodedContent = ((FormUrlEncodedContent)content).ReadAsStringAsync().Result;
+            string encodedContent = ((FormUrlEncodedContent)content).ReadAsStringAsync().Result;
             Assert.Equal("foo=bar+woo&many=one&many=two", encodedContent);
         }
 

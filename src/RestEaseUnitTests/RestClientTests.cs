@@ -20,7 +20,7 @@ namespace RestEaseUnitTests
         public void NonGenericInstanceForReturnsSameAsGenericFor()
         {
             var generic = RestClient.For<ISomeApi>("http://example.com");
-            var nonGeneric = new RestClient("http://example.com").For(typeof(ISomeApi));
+            object nonGeneric = new RestClient("http://example.com").For(typeof(ISomeApi));
             Assert.Equal(generic.GetType(), nonGeneric.GetType());
         }
 
@@ -29,7 +29,7 @@ namespace RestEaseUnitTests
         {
             var requester = new Mock<IRequester>().Object;
             var generic = RestClient.For<ISomeApi>("http://example.com");
-            var nonGeneric = RestClient.For(typeof(ISomeApi), requester);
+            object nonGeneric = RestClient.For(typeof(ISomeApi), requester);
             Assert.Equal(generic.GetType(), nonGeneric.GetType());
         }
     }

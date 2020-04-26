@@ -47,14 +47,14 @@ namespace RestEaseUnitTests
         [Fact]
         public void UndecoratedEnumUsesToString()
         {
-            var serialized = serializer.SerializePathParam(Foo.Bar, info);
+            string serialized = serializer.SerializePathParam(Foo.Bar, info);
             Assert.Equal("Bar", serialized);
         }
 
         [Fact]
         public void EnumMemberDecoratedUsesValue()
         {
-            var serialized = serializer.SerializePathParam(Foo.Baz, info);
+            string serialized = serializer.SerializePathParam(Foo.Baz, info);
 
 #if NETCOREAPP1_0
             const string expected = "Baz";
@@ -68,7 +68,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void DisplayDecoratedUsesName()
         {
-            var serialized = serializer.SerializePathParam(Foo.Fizz, info);
+            string serialized = serializer.SerializePathParam(Foo.Fizz, info);
 
             const string expected = "display";
 
@@ -78,7 +78,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void DisplayNameDecoratedUsesName()
         {
-            var serialized = serializer.SerializePathParam(Foo.Buzz, info);
+            string serialized = serializer.SerializePathParam(Foo.Buzz, info);
 
 #if NETCOREAPP2_0
             const string expected = "display_name";
@@ -92,7 +92,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void PrioritisesEnumMemberAboveAll()
         {
-            var serialized = serializer.SerializePathParam(Foo.All, info);
+            string serialized = serializer.SerializePathParam(Foo.All, info);
 
 #if NETCOREAPP1_0
             const string expected = "all_display";
@@ -106,7 +106,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void PrioritisesDisplayNameOverDisplay()
         {
-            var serialized = serializer.SerializePathParam(Foo.DisplayAndName, info);
+            string serialized = serializer.SerializePathParam(Foo.DisplayAndName, info);
 
 #if NETCOREAPP2_0
             const string expected = "display+name_display_name";
@@ -120,7 +120,7 @@ namespace RestEaseUnitTests
         [Fact]
         public void NonEnumValueUsesToString()
         {
-            var serialized = serializer.SerializePathParam(new NotAnEnum(), info);
+            string serialized = serializer.SerializePathParam(new NotAnEnum(), info);
             Assert.Equal("NotAnEnum", serialized);
         }
 

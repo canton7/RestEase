@@ -36,7 +36,7 @@ namespace RestEase.Implementation
                 if (parameter.Parameter.ParameterType == typeof(CancellationToken))
                 {
                     if (this.CancellationToken.HasValue)
-                        throw new ImplementationCreationException(String.Format("Found more than one parameter of type CancellationToken for method {0}", methodName));
+                        throw new ImplementationCreationException(string.Format("Found more than one parameter of type CancellationToken for method {0}", methodName));
                     this.CancellationToken = new IndexedParameter(parameter.Index, parameter.Parameter);
                     continue;
                 }
@@ -45,7 +45,7 @@ namespace RestEase.Implementation
                 if (bodyAttribute != null)
                 {
                     if (this.Body.HasValue)
-                        throw new ImplementationCreationException(String.Format("Method '{0}': found more than one parameter with a [Body] attribute", methodName));
+                        throw new ImplementationCreationException(string.Format("Method '{0}': found more than one parameter with a [Body] attribute", methodName));
                     this.Body = new IndexedParameter<BodyAttribute>(parameter.Index, parameter.Parameter, bodyAttribute);
                     continue;
                 }

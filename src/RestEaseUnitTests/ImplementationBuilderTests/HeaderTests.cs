@@ -80,7 +80,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
             [Get("foo")]
             Task FooAsync([Header("Foo", "Bar")] string foo);
         }
-        
+
         public interface IHasPropertyHeaderWithValue
         {
             [Header("Name", "Value")]
@@ -418,7 +418,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         {
             var implementation = this.builder.CreateImplementation<IHasAuthorizationHeader>(this.requester.Object);
             // Values from http://en.wikipedia.org/wiki/Basic_access_authentication#Client_side
-            var value = Convert.ToBase64String(Encoding.ASCII.GetBytes("Aladdin:open sesame"));
+            string value = Convert.ToBase64String(Encoding.ASCII.GetBytes("Aladdin:open sesame"));
             implementation.Authorization = new AuthenticationHeaderValue("Basic", value);
             IRequestInfo requestInfo = null;
 

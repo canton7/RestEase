@@ -1,12 +1,8 @@
 ﻿using RestEase.Implementation;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using RestEase;
 using Moq;
@@ -362,7 +358,7 @@ namespace RestEaseUnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "&ba r=");
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "?yay?");
-            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, String.Empty, "?baz");
+            requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, string.Empty, "?baz");
             var uri = this.requester.ConstructUri(null, "foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?%26ba+r%3d&%3fyay%3f&=%3fbaz", uri.ToString(), ignoreCase: true);
         }

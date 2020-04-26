@@ -11,7 +11,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
 {
     public class DisposableTests
     {
-        public interface Disposable : IDisposable
+        public interface IDisposableApi : IDisposable
         {
             [Get("foo")]
             Task FooAsync();
@@ -23,7 +23,7 @@ namespace RestEaseUnitTests.ImplementationBuilderTests
         public void DisposingDisposableImplementationDisposesRequester()
         {
             var requester = new Mock<IRequester>();
-            var implementation = this.builder.CreateImplementation<Disposable>(requester.Object);
+            var implementation = this.builder.CreateImplementation<IDisposableApi>(requester.Object);
             implementation.Dispose();
             requester.Verify(x => x.Dispose());
         }

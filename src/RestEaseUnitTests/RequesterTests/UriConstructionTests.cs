@@ -1,10 +1,6 @@
 ﻿using RestEase.Implementation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using RestEase;
 
@@ -137,7 +133,7 @@ namespace RestEaseUnitTests.RequesterTests
         {
             var requester = new PublicRequester(new HttpClient()
             {
-                BaseAddress = baseAddress == null ? null :new Uri(baseAddress),
+                BaseAddress = baseAddress == null ? null : new Uri(baseAddress),
             });
             var requestInfo = new RequestInfo(HttpMethod.Get, path) { BasePath = basePath };
             var uri = requester.ConstructUri(basePath, path, requestInfo);

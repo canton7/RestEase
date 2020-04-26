@@ -89,8 +89,8 @@ namespace RestEase.Implementation
                 var serialized = this.SerializePathParameter(pathParam, requestInfo);
 
                 // Space needs to be treated separately
-                var value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? String.Empty).Replace("+", "%20") : serialized.Value;
-                sb.Replace("{" + (serialized.Key ?? String.Empty) + "}", value);
+                string? value = pathParam.UrlEncode ? WebUtility.UrlEncode(serialized.Value ?? string.Empty).Replace("+", "%20") : serialized.Value;
+                sb.Replace("{" + (serialized.Key ?? string.Empty) + "}", value);
             }
 
             return sb.ToString();
@@ -112,27 +112,27 @@ namespace RestEase.Implementation
                 // If path starts with /, then basePath is ignored but BaseAddress is not.
                 // If basePath is absolute, then BaseAddress is ignored.
 
-                var trimmedPath = (path ?? String.Empty).TrimStart('/');
+                string trimmedPath = (path ?? string.Empty).TrimStart('/');
                 // Here, a leading slash will strip the path from baseAddress
                 var uri = new Uri(trimmedPath, UriKind.RelativeOrAbsolute);
                 if (!uri.IsAbsoluteUri && path?.StartsWith("/") != true && !string.IsNullOrEmpty(basePath))
                 {
-                    var trimmedBasePath = (basePath ?? String.Empty).TrimStart('/');
+                    string? trimmedBasePath = (basePath ?? string.Empty).TrimStart('/');
                     // Need to make sure it ends with a trailing slash, or appending our relative path will strip
                     // the last path component (assuming there is one)
-                    if (!trimmedBasePath.EndsWith("/") && !String.IsNullOrEmpty(uri.OriginalString))
+                    if (!trimmedBasePath.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
                         trimmedBasePath += '/';
                     uri = new Uri(trimmedBasePath + uri.OriginalString, UriKind.RelativeOrAbsolute);
                 }
 
                 if (!uri.IsAbsoluteUri)
                 {
-                    var baseAddress = this.httpClient.BaseAddress?.ToString();
-                    if (!String.IsNullOrEmpty(baseAddress))
+                    string? baseAddress = this.httpClient.BaseAddress?.ToString();
+                    if (!string.IsNullOrEmpty(baseAddress))
                     {
                         // Need to make sure it ends with a trailing slash, or appending our relative path will strip
                         // the last path component (assuming there is one)
-                        if (!baseAddress!.EndsWith("/") && !String.IsNullOrEmpty(uri.OriginalString))
+                        if (!baseAddress!.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
                             baseAddress += '/';
                         uri = new Uri(baseAddress + uri.OriginalString, UriKind.RelativeOrAbsolute);
                     }
@@ -145,10 +145,10 @@ namespace RestEase.Implementation
             catch (FormatException e)
             {
                 // The original exception doesn't actually include the path - which is not helpful to the user
-                throw new FormatException(String.Format("Path '{0}' is not valid: {1}", path, e.Message));
+                throw new FormatException(string.Format("Path '{0}' is not valid: {1}", path, e.Message));
             }
 
-            var query = this.BuildQueryParam(uriBuilder.Query, requestInfo.RawQueryParameters, requestInfo.QueryParams, requestInfo.QueryProperties, requestInfo);
+            string? query = this.BuildQueryParam(uriBuilder.Query, requestInfo.RawQueryParameters, requestInfo.QueryParams, requestInfo.QueryProperties, requestInfo);
 
             // Mono's UriBuilder.Query setter will always add a '?', so we can end up with a double '??'.
             uriBuilder.Query = query.TrimStart('?');
@@ -200,10 +200,10 @@ namespace RestEase.Implementation
                 return Uri.EscapeDataString(data).Replace("%20", "+");
             }
 
-            if (!String.IsNullOrEmpty(initialQueryString))
+            if (!string.IsNullOrEmpty(initialQueryString))
                 AppendQueryString(initialQueryString.Replace("%20", "+"));
 
-            foreach (var serializedRawQueryParameter in serializedRawQueryParameters)
+            foreach (string? serializedRawQueryParameter in serializedRawQueryParameters)
             {
                 AppendQueryString(serializedRawQueryParameter);
             }
@@ -252,11 +252,11 @@ namespace RestEase.Implementation
         {
             foreach (var kvp in DictionaryIterator.Iterate(dictionary))
             {
-                if (kvp.Value != null && !(kvp.Value is string) && kvp.Value is IEnumerable)
+                if (kvp.Value != null && !(kvp.Value is string) && kvp.Value is IEnumerable enumerable)
                 {
-                    foreach (var individualValue in (IEnumerable)kvp.Value)
+                    foreach (object individualValue in enumerable)
                     {
-                        var stringValue = this.ToStringHelper(individualValue);
+                        string? stringValue = this.ToStringHelper(individualValue);
                         yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, stringValue);
                     }
                 }
@@ -383,7 +383,7 @@ namespace RestEase.Implementation
                     requestMessage.Headers.Remove(headersGroup.Key);
 
                 // Null values are used to remove instances of a header, but should not be added
-                var headersToAdd = headersGroup.Select(x => x.Value).Where(x => x != null).ToArray();
+                string[] headersToAdd = headersGroup.Select(x => x.Value).Where(x => x != null).ToArray()!;
                 if (!headersToAdd.Any())
                     continue;
 
@@ -416,7 +416,7 @@ namespace RestEase.Implementation
                 }
 
                 if (!added)
-                    throw new ArgumentException(String.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content, or it's associated with HTTP responses, or it's malformed?", headersGroup.Key));
+                    throw new ArgumentException(string.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content, or it's associated with HTTP responses, or it's malformed?", headersGroup.Key));
             }
         }
 
@@ -436,8 +436,8 @@ namespace RestEase.Implementation
         /// <returns>Resulting HttpResponseMessage</returns>
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
         {
-            var basePath = this.SubstitutePathParameters(requestInfo.BasePath, requestInfo) ?? String.Empty;
-            var path = this.SubstitutePathParameters(requestInfo.Path, requestInfo) ?? String.Empty;
+            string basePath = this.SubstitutePathParameters(requestInfo.BasePath, requestInfo) ?? string.Empty;
+            string path = this.SubstitutePathParameters(requestInfo.Path, requestInfo) ?? string.Empty;
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
@@ -513,7 +513,7 @@ namespace RestEase.Implementation
         {
             using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
             {
-                var content = response.Content == null ?
+                string? content = response.Content == null ?
                     null :
                     await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 T deserializedResponse = this.Deserialize<T>(content, response, requestInfo);
@@ -543,7 +543,7 @@ namespace RestEase.Implementation
         {
             // It's the user's responsibility to dispose the Response<T>, which disposes the HttpResponseMessage
             var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false);
-            var content = response.Content == null ?
+            string? content = response.Content == null ?
                 null :
                 await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
@@ -558,7 +558,7 @@ namespace RestEase.Implementation
         {
             using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
             {
-                var responseString = response.Content == null ?
+                string? responseString = response.Content == null ?
                     null :
                     await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return responseString;

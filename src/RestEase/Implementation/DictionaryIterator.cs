@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using RestEase.Platform;
@@ -41,8 +42,8 @@ namespace RestEase.Implementation
             if (dictionary == null)
                 throw new ArgumentNullException(nameof(dictionary));
 
-            if (dictionary is IDictionary)
-                return IterateNonGeneric((IDictionary)dictionary);
+            if (dictionary is IDictionary nonGeneric)
+                return IterateNonGeneric(nonGeneric);
 
             // 'dictionary' cannot be an interface, so we're safe skipping to see whether
             // dictionary.GetType().GetGenericTypeDefinition() == IDictionary<,>
@@ -74,6 +75,7 @@ namespace RestEase.Implementation
             return (IEnumerable<KeyValuePair<object, object>>)method.Invoke(null, new[] { dictionary });
         }
 
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used via reflection")]
         private static IEnumerable<KeyValuePair<object?, object?>> IterateGenericTyped<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
         {
             foreach (var kvp in dictionary)
