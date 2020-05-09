@@ -6,12 +6,12 @@
         public const QuerySerializationMethod DefaultQuerySerializationMethod = QuerySerializationMethod.ToString;
         public const PathSerializationMethod DefaultPathSerializationMethod = PathSerializationMethod.ToString;
 
-        public SerializationMethodsAttribute ClassAttribute { get; private set; }
+        public SerializationMethodsAttribute? ClassAttribute { get; private set; }
 
-        public SerializationMethodsAttribute MethodAttribute { get; private set; }
+        public SerializationMethodsAttribute? MethodAttribute { get; private set; }
 
 
-        public ResolvedSerializationMethods(SerializationMethodsAttribute classAttribute, SerializationMethodsAttribute methodAttribute)
+        public ResolvedSerializationMethods(SerializationMethodsAttribute? classAttribute, SerializationMethodsAttribute? methodAttribute)
         {
             this.ClassAttribute = classAttribute;
             this.MethodAttribute = methodAttribute;

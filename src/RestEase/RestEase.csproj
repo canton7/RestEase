@@ -32,6 +32,10 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Nullable" Version="1.2.1"/>
+  </ItemGroup>
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
     <PackageReference Include="System.Net.Http" Version="4.1.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.0.12" />
@@ -56,4 +60,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../Common/**/*.cs" />
+  </ItemGroup>
 </Project>
