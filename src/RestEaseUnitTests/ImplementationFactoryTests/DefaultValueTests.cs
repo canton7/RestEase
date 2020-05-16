@@ -26,12 +26,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void PreservesParameterNamesAndDefaultValues()
         {
-            var implementation = this.builder.CreateImplementation<IHasDefaultValue>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasDefaultValue>(this.requester.Object);
 
             var methodInfo = implementation.GetType().GetMethod("GetFooAsync");
             var parameters = methodInfo.GetParameters();
@@ -48,7 +48,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesDefaultStructValues()
         {
-            this.builder.CreateImplementation<IHasDefaultCancellationToken>(this.requester.Object);
+            this.factory.CreateImplementation<IHasDefaultCancellationToken>(this.requester.Object);
         }
 
     }

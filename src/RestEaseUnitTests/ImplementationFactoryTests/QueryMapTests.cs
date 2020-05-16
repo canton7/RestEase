@@ -63,12 +63,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void AddsQueryMapToQueryParams()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -97,7 +97,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AssignsEnumerableQueryMapToQueryParams()
         {
-            var implementation = this.builder.CreateImplementation<IHasEnumerableQueryMap>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasEnumerableQueryMap>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -130,7 +130,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void RecordsToStringSerializationMethod()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -145,7 +145,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void RecordsSerializedSerializationMethod()
         {
-            var implementation = this.builder.CreateImplementation<IHasSerializedSerializationMethod>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasSerializedSerializationMethod>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -160,7 +160,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNullQueryMap()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -175,13 +175,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInvalidQueryMapType()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasInvalidQueryMap>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasInvalidQueryMap>(this.requester.Object));
         }
 
         [Fact]
         public void AllowsMoreThanOneQueryMap()
         {
-            var implementation = this.builder.CreateImplementation<IHasTwoQueryMaps>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasTwoQueryMaps>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -214,7 +214,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsAttribute()
         {
-            var implementation = this.builder.CreateImplementation<IHasNonOverriddenSerializationMethodsAttribute>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasNonOverriddenSerializationMethodsAttribute>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -229,7 +229,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultQuerySerializationMethodCanBeOverridden()
         {
-            var implementation = this.builder.CreateImplementation<IHasOverriddenSerializationMethodsAttribute>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasOverriddenSerializationMethodsAttribute>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -244,7 +244,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void IteratesQueryMapEnumerableObjectValue()
         {
-            var implementation = this.builder.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -277,7 +277,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SerializeToStringUsesGivenFormatProvider()
         {
-            var implementation = this.builder.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))

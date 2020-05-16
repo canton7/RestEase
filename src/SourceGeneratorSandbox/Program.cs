@@ -15,6 +15,7 @@ namespace SourceGeneratorSandbox
         {
             [Get("foo")]
             Task FooAsync(int foo);
+        }
     }
 }
 

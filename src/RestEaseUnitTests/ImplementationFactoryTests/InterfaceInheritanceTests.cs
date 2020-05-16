@@ -77,26 +77,26 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void ImplementsPropertiesFromChild()
         {
             // Does not throw
-            this.builder.CreateImplementation<IPropertyParent>(this.requester.Object);
+            this.factory.CreateImplementation<IPropertyParent>(this.requester.Object);
         }
 
         [Fact]
         public void ImplementsMethodsFromChild()
         {
             // Does not throw
-            this.builder.CreateImplementation<IMethodParent>(this.requester.Object);
+            this.factory.CreateImplementation<IMethodParent>(this.requester.Object);
         }
 
         [Fact]
         public void CombinesHeadersFromChildInterfaces()
         {
-            var impl = this.builder.CreateImplementation<IParentWithInterfaceHeader>(this.requester.Object);
+            var impl = this.factory.CreateImplementation<IParentWithInterfaceHeader>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -118,19 +118,19 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DoesNotAllowAllowAnyStatusCodeOnChildInterfaces()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IParentWithAllowAnyStatusCode>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IParentWithAllowAnyStatusCode>(this.requester.Object));
         }
 
         [Fact]
         public void ValidatesHeadersOnChildProperties()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IParentWithInvalidHeaderProperty>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IParentWithInvalidHeaderProperty>(this.requester.Object));
         }
 
         [Fact]
         public void ValidatesEventsInChildInterfaces()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IParentWithEvent>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IParentWithEvent>(this.requester.Object));
         }
     }
 }

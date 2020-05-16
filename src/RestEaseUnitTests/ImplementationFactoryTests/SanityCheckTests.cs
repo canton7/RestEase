@@ -66,61 +66,61 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void ThrowsIfMethodWithoutAttribute()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IMethodWithoutAttribute>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IMethodWithoutAttribute>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfMethodReturningVoid()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningVoid>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IMethodReturningVoid>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfMethodReturningString()
         {
             // Ideally we would test every object that isn't a Task<T>, but that's somewhat impossible...
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IMethodReturningString>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IMethodReturningString>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfInterfaceHasEvents()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasEvents>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasEvents>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfInterfaceHasProperties()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasProperties>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasProperties>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfRequesterHasNoGetter()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IRequesterPropertyWithoutGetter>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IRequesterPropertyWithoutGetter>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfRequesterHasSetter()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IRequesterPropertyWithSetter>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IRequesterPropertyWithSetter>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfTwoRequesters()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
         }
 
         [Fact]
         public void AllowsGenericApis()
         {
-            var implementation = this.builder.CreateImplementation<IGenericApi<int>>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IGenericApi<int>>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -136,8 +136,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsSameExceptionIfRequestedTwice()
         {
-            var e1 = Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
-            var e2 = Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
+            var e1 = Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
+            var e2 = Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
             Assert.Same(e1, e2);
         }
     }

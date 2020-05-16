@@ -42,12 +42,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void DefaultsToNull()
         {
-            var implementation = this.builder.CreateImplementation<IHasNoBasePath>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasNoBasePath>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -63,7 +63,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ForwardsSimpleBasePath()
         {
-            var implementation = this.builder.CreateImplementation<IHasSimpleBasePath>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasSimpleBasePath>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -79,13 +79,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPlaceholderMissingPathProperty()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasBasePathWithPlaceholderWithoutProperty>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasBasePathWithPlaceholderWithoutProperty>(this.requester.Object));
         }
 
         [Fact]
         public void FowardsBasePathWithPlaceholder()
         {
-            var implementation = this.builder.CreateImplementation<IHasBasePathWithPlaceholder>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasBasePathWithPlaceholder>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 

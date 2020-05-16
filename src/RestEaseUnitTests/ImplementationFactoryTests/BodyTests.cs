@@ -50,18 +50,18 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void ThrowsIfTwoBodies()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasTwoBodies>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasTwoBodies>(this.requester.Object));
         }
 
         [Fact]
         public void BodyWithSerializedClassAsExpected()
         {
-            var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasBody>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -80,7 +80,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void BodyWithUrlEncodedCallsAsExpected()
         {
-            var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasBody>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -100,7 +100,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         public void BodyWithValueTypeCallsAsExpected()
         {
             // Tests that the value is boxed properly
-            var implementation = this.builder.CreateImplementation<IHasBody>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasBody>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -118,7 +118,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultBodySerializationMethodIsSpecifiedBySerializationMethodsHeader()
         {
-            var implementation = this.builder.CreateImplementation<IHasNonOverriddenBodySerializationMethod>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasNonOverriddenBodySerializationMethod>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -134,7 +134,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultQuerySerializationMethodCanBeOverridden()
         {
-            var implementation = this.builder.CreateImplementation<IHasOverriddenBodySerializationMethod>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasOverriddenBodySerializationMethod>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 
@@ -150,7 +150,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void MethodSerializationMethodOverridesInterface()
         {
-            var implementation = this.builder.CreateImplementation<IMethodSerializationAttributeOverridesInterface>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IMethodSerializationAttributeOverridesInterface>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 

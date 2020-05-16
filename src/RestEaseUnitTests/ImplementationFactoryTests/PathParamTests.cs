@@ -161,7 +161,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void HandlesNullPathParams()
@@ -202,32 +202,32 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPathParamPresentInPathButNotInParameters()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInPathButNotParameters>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPathParamInPathButNotParameters>(this.requester.Object));
         }
 
         [Fact]
         public void ThrowsIfPathParamPresentInParametersButNotPath()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasPathParamInParametersButNotPath>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPathParamInParametersButNotPath>(this.requester.Object));
         }
 
         [Fact]
         public void PathParamWithImplicitNameDoesNotFailValidation()
         {
-            this.builder.CreateImplementation<IHasPathParamWithoutExplicitName>(this.requester.Object);
+            this.factory.CreateImplementation<IHasPathParamWithoutExplicitName>(this.requester.Object);
         }
 
         [Fact]
         public void ThrowsIfDuplicatePathParameters()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicatePathParams>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasDuplicatePathParams>(this.requester.Object));
         }
 
         [Fact]
         public void HandlesNullAndEmptyPaths()
         {
             // Do not throw
-            this.builder.CreateImplementation<IHasEmptyGetParams>(this.requester.Object);
+            this.factory.CreateImplementation<IHasEmptyGetParams>(this.requester.Object);
         }
 
         [Fact]
@@ -272,7 +272,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfDuplicatePathProperties()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<IHasDuplicatePathProperties>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasDuplicatePathProperties>(this.requester.Object));
         }
 
         [Fact]
@@ -415,7 +415,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         private IRequestInfo Request<T>(Func<T, Task> selector)
         {
-            var implementation = this.builder.CreateImplementation<T>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 

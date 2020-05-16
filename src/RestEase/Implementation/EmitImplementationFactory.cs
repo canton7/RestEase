@@ -20,7 +20,7 @@ namespace RestEase.Implementation
     /// <summary>
     /// Helper class used to generate interface implementations. Exposed for testing (and very adventurous people) only.
     /// </summary>
-    public class ImplementationFactory
+    public class EmitImplementationFactory
     {
         private static class TypeCreatorRegistry<T>
         {
@@ -33,11 +33,11 @@ namespace RestEase.Implementation
         private readonly Emitter emitter;
 
         /// <summary>
-        /// Singleton instance of <see cref="ImplementationFactory"/>
+        /// Singleton instance of <see cref="EmitImplementationFactory"/>
         /// </summary>
-        public static ImplementationFactory Instance { get; } = new ImplementationFactory();
+        public static EmitImplementationFactory Instance { get; } = new EmitImplementationFactory();
 
-        private ImplementationFactory()
+        private EmitImplementationFactory()
         {
             var assemblyName = new AssemblyName(RestClient.FactoryAssemblyName);
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);

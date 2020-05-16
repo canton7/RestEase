@@ -24,12 +24,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             // We can't really test this well... Just try lots, and see if we have any exceptions
             for (int i = 0; i < 100; i++)
             {
-                var implementationBuilder = ImplementationFactory.Instance;
+                var factory = EmitImplementationFactory.Instance;
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)
                 {
-                    tasks[j] = Task.Run(() => implementationBuilder.CreateImplementation<ISomeApi>(requester.Object));
+                    tasks[j] = Task.Run(() => factory.CreateImplementation<ISomeApi>(requester.Object));
                 }
 
                 Task.WaitAll(tasks);

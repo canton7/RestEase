@@ -35,7 +35,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         public interface IChildWithTwoGenericParents : IGenericParent<int>, IGenericParent<string> { }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void GetsMethodInfoForOverloadedMethods()
@@ -71,7 +71,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         private IRequestInfo Request<T>(Func<T, Task> selector)
         {
-            var implementation = this.builder.CreateImplementation<T>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 

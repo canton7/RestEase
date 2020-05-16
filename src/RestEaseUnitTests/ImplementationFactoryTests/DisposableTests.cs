@@ -17,13 +17,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void DisposingDisposableImplementationDisposesRequester()
         {
             var requester = new Mock<IRequester>();
-            var implementation = this.builder.CreateImplementation<IDisposableApi>(requester.Object);
+            var implementation = this.factory.CreateImplementation<IDisposableApi>(requester.Object);
             implementation.Dispose();
             requester.Verify(x => x.Dispose());
         }

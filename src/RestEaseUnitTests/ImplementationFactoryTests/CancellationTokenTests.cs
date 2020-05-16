@@ -8,7 +8,7 @@ using Xunit;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class CancellationTokenTests
+    public class CancellationTokenTests : ImplementationFactoryTestsBase
     {
         public interface ICancellationTokenOnlyNoReturn
         {
@@ -22,27 +22,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task YayAsync(CancellationToken cancellationToken1, CancellationToken cancellationToken2);
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
-
         [Fact]
         public void CancellationTokenOnlyNoReturnCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<ICancellationTokenOnlyNoReturn>(this.requester.Object);
-
-            var expectedResponse = Task.FromResult(false);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
             var cts = new CancellationTokenSource();
-            var response = implementation.BazAsync(cts.Token);
+            var requestInfo = this.Request<ICancellationTokenOnlyNoReturn>(x => x.BazAsync(cts.Token));
 
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(cts.Token, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -52,7 +37,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void TwoCancellationTokensThrows()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.builder.CreateImplementation<ITwoCancellationTokens>(this.requester.Object));
+            Assert.Throws<ImplementationCreationException>(() => this.CreateImplementation<ITwoCancellationTokens>());
         }
     }
 }

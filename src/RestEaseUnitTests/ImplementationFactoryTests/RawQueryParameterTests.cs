@@ -44,12 +44,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void AddsRawQueryParam()
         {
-            var implementation = this.builder.CreateImplementation<ISimpleRawQueryString>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<ISimpleRawQueryString>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -66,7 +66,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AddsTwoRawQueryParam()
         {
-            var implementation = this.builder.CreateImplementation<ITwoRawQueryStrings>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<ITwoRawQueryStrings>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -85,7 +85,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void CallsToStringOnParam()
         {
-            var implementation = this.builder.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -103,7 +103,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SerializeToStringUsesGivenFormatProvider()
         {
-            var implementation = this.builder.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))

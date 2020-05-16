@@ -81,12 +81,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void NoArgumentsNoReturnCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<INoArgumentsNoReturn>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<INoArgumentsNoReturn>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(false);
             IRequestInfo requestInfo = null;
@@ -109,7 +109,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithReturnCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<INoArgumentsWithReturn>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<INoArgumentsWithReturn>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(3);
             IRequestInfo requestInfo = null;
@@ -132,7 +132,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithResponseCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(new Response<string>("hello", new HttpResponseMessage(), () => null));
             IRequestInfo requestInfo = null;
@@ -155,7 +155,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithResponseMessageCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsHttpResponseMessage>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsHttpResponseMessage>(this.requester.Object);
 
             var expectedResponse = Task.FromResult(new HttpResponseMessage());
             IRequestInfo requestInfo = null;
@@ -178,7 +178,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithRawResponseCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsString>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsString>(this.requester.Object);
 
             var expectedResponse = Task.FromResult("testy");
             IRequestInfo requestInfo = null;
@@ -201,7 +201,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithStreamResponseCallsCorrectly()
         {
-            var implementation = this.builder.CreateImplementation<INoArgumentsReturnsStream>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsStream>(this.requester.Object);
 
             var stream = new MemoryStream();
             var expectedResponse = Task.FromResult<Stream>(stream);
@@ -225,7 +225,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AllHttpMethodsSupported()
         {
-            var implementation = this.builder.CreateImplementation<IAllRequestMethods>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IAllRequestMethods>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -268,7 +268,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AllowsEmptyPath()
         {
-            var implementation = this.builder.CreateImplementation<IHasEmptyPath>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasEmptyPath>(this.requester.Object);
             IRequestInfo requestInfo = null;
 
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))

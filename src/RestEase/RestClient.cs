@@ -186,7 +186,7 @@ namespace RestEase
         public T For<T>()
         {
             var requester = this.CreateRequester();
-            return ImplementationFactory.Instance.CreateImplementation<T>(requester);
+            return EmitImplementationFactory.Instance.CreateImplementation<T>(requester);
         }
 
         private Requester CreateRequester()
@@ -246,7 +246,7 @@ namespace RestEase
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(IRequester requester)
         {
-            return ImplementationFactory.Instance.CreateImplementation<T>(requester);
+            return EmitImplementationFactory.Instance.CreateImplementation<T>(requester);
         }
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void HandlesPathProperty()
@@ -62,7 +62,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         private IRequestInfo Request<T>(Func<T, Task> selector)
         {
-            var implementation = this.builder.CreateImplementation<T>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
 

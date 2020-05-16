@@ -45,18 +45,18 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly ImplementationFactory builder = ImplementationFactory.Instance;
+        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
 
         [Fact]
         public void SupportsGenericMethods()
         {
-            this.builder.CreateImplementation<IHasGenericMethod>(this.requester.Object);
+            this.factory.CreateImplementation<IHasGenericMethod>(this.requester.Object);
         }
 
         [Fact]
         public void SupportsGenericReturnType()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericReturnType>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericReturnType>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
             this.requester.Setup(x => x.RequestAsync<string>(It.IsAny<IRequestInfo>()))
@@ -69,7 +69,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SupportsGenericResponseReturnType()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericResponseReturnType>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericResponseReturnType>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
             this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<IRequestInfo>()))
@@ -82,7 +82,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SupportsGenericMethodParameters()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericParameters>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericParameters>(this.requester.Object);
 
             IRequestInfo requestInfo = null;
             this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
@@ -114,7 +114,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SupportsGenericConstraints()
         {
-            var implementation = this.builder.CreateImplementation<IHasGenericConstraint>(this.requester.Object);
+            var implementation = this.factory.CreateImplementation<IHasGenericConstraint>(this.requester.Object);
             var methodInfo = implementation.GetType().GetMethod("Foo");
             Assert.Equal(new[] { typeof(IInterface), typeof(Base) }, methodInfo.GetGenericArguments()[0].GetGenericParameterConstraints());
             Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, methodInfo.GetGenericArguments()[0].GetGenericParameterAttributes());

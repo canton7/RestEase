@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <TargetFrameworks>netcoreapp3.0;</TargetFrameworks>
+    <AssemblyName>RestEase.SourceGenerator.UnitTests</AssemblyName>
+    <PackageId>RestEase.SourceGenerator.UnitTests</PackageId>
+    <DefineConstants>SOURCE_GENERATOR</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreAdditionalProjectSources>https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RestEase\RestEase.csproj" />
+    <ProjectReference Include="..\RestEase.SourceGenerator\RestEase.SourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" Version="4.7.145" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0-3.20207.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../RestEaseUnitTests/ImplementationFactoryTests/*.cs" LinkBase="ImplementationFactoryTests"/>
+    <Compile Include="../RestEaseUnitTests/Extensions/TypeExtensions.cs" LinkBase="Extensions" />
+  </ItemGroup>
+</Project>
