@@ -1,10 +1,11 @@
 ﻿#if SOURCE_GENERATOR
+extern alias SourceGenerator;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using RestEase;
-using RestEase.SourceGenerator;
+using SourceGenerator::RestEase.SourceGenerator;
 #else
 using System;
 using System.Threading.Tasks;

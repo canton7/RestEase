@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RestEase\RestEase.csproj" />
-    <ProjectReference Include="..\RestEase.SourceGenerator\RestEase.SourceGenerator.csproj" />
+    <ProjectReference Include="..\RestEase.SourceGenerator\RestEase.SourceGenerator.csproj" Aliases="SourceGenerator" />
   </ItemGroup>
 
   <ItemGroup>

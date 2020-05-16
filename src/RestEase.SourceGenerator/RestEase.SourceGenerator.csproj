@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -12,6 +13,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0-3.20207.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0-beta2.final" PrivateAssets="all" />
+    <PackageReference Include="Nullable" Version="1.2.1"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Reflection.cs;../Common/**/*.Emit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="..\Common\Implementation\Analysis\AttributeModel.Roslyn.cs" />
   </ItemGroup>
 
 </Project>
