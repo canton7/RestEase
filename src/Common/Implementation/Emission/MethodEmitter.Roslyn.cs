@@ -1,27 +1,87 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using RestEase.Implementation.Analysis;
+using RestEase.SourceGenerator;
+using RestEase.SourceGenerator.Implementation;
 
 namespace RestEase.Implementation.Emission
 {
     internal class MethodEmitter
     {
         private readonly MethodModel methodModel;
+        private readonly IndentedTextWriter writer;
+        private readonly string qualifiedTypeName;
+        private readonly int index;
+        private readonly string requestInfoLocalName;
 
-        public MethodEmitter(MethodModel methodModel)
+        public MethodEmitter(MethodModel methodModel, IndentedTextWriter writer, string qualifiedTypeName, int index)
         {
             this.methodModel = methodModel;
+            this.writer = writer;
+            this.qualifiedTypeName = qualifiedTypeName;
+            this.index = index;
+            this.requestInfoLocalName = this.GenerateRequestInfoLocalName();
+
+            this.EmitMethodInfoField();
+            this.EmitMethodDeclaration();
+        }
+
+        private string GenerateRequestInfoLocalName()
+        {
+            // We need to pick a name for the requestInfo that they haven't picked for a parameter
+            string name = "requestInfo";
+            if (this.methodModel.MethodSymbol.Parameters.Any(x => x.Name == name))
+            {
+                int i = 0;
+                do
+                {
+                    name = "requestInfo" + i;
+                    i++;
+                } while (this.methodModel.MethodSymbol.Parameters.Any(x => x.Name == name));
+            }
+            return name;
+        }
+
+        private void EmitMethodInfoField()
+        {
+            this.writer.WriteLine("private static global::System.Reflection.MethodInfo methodInfo_" + this.index + ";");
+        }
+
+        private void EmitMethodDeclaration()
+        {
+            // The MethodSymbol represents the interface method, not the implementation, so we can't get ToDisplayString
+            // to give us the explicit interface implementation bit
+            this.writer.Write(this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.MethodReturnType));
+            this.writer.Write(" ");
+            this.writer.Write(this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface));
+            this.writer.Write(".");
+            this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.MethodDeclaration));
+            this.writer.WriteLine("{");
+            this.writer.Indent++;
         }
 
         public void EmitRequestInfoCreation(RequestAttribute requestAttribute)
         {
-            throw new NotImplementedException();
+            this.writer.Write("var " + this.requestInfoLocalName + " = new " + WellKnownNames.Requester + "(");
+            if (WellKnownNames.HttpMethodProperties.TryGetValue(requestAttribute.Method, out string httpMethod))
+            {
+                this.writer.Write(httpMethod);
+            }
+            else
+            {
+                this.writer.Write("new global::System.Net.Http.HttpMethod(" + requestAttribute.Method.Method + ")");
+            }
+            this.writer.Write(", " + QuoteString(requestAttribute.Path ?? string.Empty));
+            this.writer.Write(", " + this.qualifiedTypeName + "." + "methodInfo_" + this.index);
+            this.writer.WriteLine(");");
         }
 
         public void EmitSetCancellationToken(ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".CancellationToken = " + parameter.ParameterSymbol.Name + ";");
         }
 
         public void EmitSetAllowAnyStatusCode()
@@ -109,7 +169,24 @@ namespace RestEase.Implementation.Emission
         public bool TryEmitRequestMethodInvocation()
         {
             // Call the appropriate RequestVoidAsync/RequestAsync method, depending on whether or not we have a return type
-            throw new NotImplementedException();
+            string? methodName = null;
+            string returnType = this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.TypeLookup);
+            if (returnType == "System.Threading.Tasks.Task")
+            {
+                methodName = "RequestVoidAsync";
+            }
+
+            if (methodName != null)
+            {
+                this.writer.WriteLine("return this.requester." + methodName + "(" + this.requestInfoLocalName + ");");
+            }
+
+            // This is also the end of the method
+            this.writer.Indent--;
+            this.writer.WriteLine("}");
+            this.writer.Indent--;
+
+            return methodName != null;
         }
 
         [Conditional("DEBUG")]
@@ -117,5 +194,7 @@ namespace RestEase.Implementation.Emission
         {
             Debug.Assert(condition);
         }
+
+        private static string QuoteString(string s) => "@\"" + s.Replace("\"", "\"\"") + "\"";
     }
 }

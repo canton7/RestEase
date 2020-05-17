@@ -37,7 +37,7 @@ namespace RestEase.Implementation
 
             foreach (var attribute in this.typeModel.AllowAnyStatusCodeAttributes)
             {
-                if (attribute.ContainingType != this.typeModel.Type)
+                if (!attribute.IsDefinedOn(this.typeModel))
                 {
                     this.diagnostics.ReportAllowAnyStatisCodeAttributeNotAllowedOnParentInterface(attribute);
                 }

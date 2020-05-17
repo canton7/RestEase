@@ -37,7 +37,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void TwoCancellationTokensThrows()
         {
+#if SOURCE_GENERATOR
+            var diagnostics = this.GetDiagnostics<ITwoCancellationTokens>();
+            Assert.Single(diagnostics);
+#else
             Assert.Throws<ImplementationCreationException>(() => this.CreateImplementation<ITwoCancellationTokens>());
+#endif
         }
     }
 }

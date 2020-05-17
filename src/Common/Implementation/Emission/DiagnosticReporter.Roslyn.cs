@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Analysis;
 
 namespace RestEase.Implementation.Emission
@@ -8,6 +10,7 @@ namespace RestEase.Implementation.Emission
     internal partial class DiagnosticReporter
     {
         private readonly TypeModel typeModel;
+        public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
 
         public DiagnosticReporter(TypeModel typeModel)
         {
@@ -109,9 +112,17 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void ReportMultipleCancellationTokenParameters(MethodModel method, ParameterModel _)
+        private static readonly DiagnosticDescriptor multipleCancellationTokenParameters = new DiagnosticDescriptor(
+            "REST001",
+            "Methods must not have multiple CancellationToken parameters",
+            "Method '{0}' has already has a CancellationToken parameter, '{1}'",
+            "Category",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+        public void ReportMultipleCancellationTokenParameters(MethodModel method, ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(multipleCancellationTokenParameters, parameter.ParameterSymbol.Locations,
+                method.MethodSymbol.Name, parameter.ParameterSymbol.Name);
         }
 
         public void ReportCancellationTokenMustHaveZeroAttributes(MethodModel method, ParameterModel parameter)
@@ -147,6 +158,10 @@ namespace RestEase.Implementation.Emission
         public void ReportMethodMustHaveValidReturnType(MethodModel method)
         {
             throw new NotImplementedException();
+        }
+        private void AddDiagnostic(DiagnosticDescriptor descriptor, ImmutableArray<Location> locations, params object?[] args)
+        {
+            this.Diagnostics.Add(Diagnostic.Create(descriptor, locations.FirstOrDefault(), args));
         }
     }
 }

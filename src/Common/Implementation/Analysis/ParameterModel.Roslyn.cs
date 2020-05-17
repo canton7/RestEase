@@ -1,9 +1,17 @@
 using System;
+using Microsoft.CodeAnalysis;
 
 namespace RestEase.Implementation.Analysis
 {
     internal partial class ParameterModel
     {
-        public string Name => throw new NotImplementedException();
+        public IParameterSymbol ParameterSymbol { get; }
+
+        public string Name => this.ParameterSymbol.Name;
+
+        public ParameterModel(IParameterSymbol parameterSymbol)
+        {
+            this.ParameterSymbol = parameterSymbol;
+        }
     }
 }

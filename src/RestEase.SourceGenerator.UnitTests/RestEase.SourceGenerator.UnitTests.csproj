@@ -12,6 +12,11 @@
     <RestoreAdditionalProjectSources>https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.0|AnyCPU'">
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\RestEase\RestEase.csproj" />
     <ProjectReference Include="..\RestEase.SourceGenerator\RestEase.SourceGenerator.csproj" Aliases="SourceGenerator" />
@@ -30,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../RestEaseUnitTests/ImplementationFactoryTests/*.cs" LinkBase="ImplementationFactoryTests"/>
+    <Compile Include="../RestEaseUnitTests/ImplementationFactoryTests/*.cs" LinkBase="ImplementationFactoryTests" />
     <Compile Include="../RestEaseUnitTests/Extensions/TypeExtensions.cs" LinkBase="Extensions" />
   </ItemGroup>
 </Project>
