@@ -9,11 +9,16 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class QueryParamTests
+    public class QueryParamTests : ImplementationFactoryTestsBase
     {
+        public QueryParamTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         public interface ISingleParameterWithQueryParamAttributeNoReturn
         {
             [Get("boo")]
@@ -134,27 +139,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
-
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
-
         [Fact]
         public void SingleParameterWithQueryParamAttributeNoReturnCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<ISingleParameterWithQueryParamAttributeNoReturn>(this.requester.Object);
+            var requestInfo = this.Request<ISingleParameterWithQueryParamAttributeNoReturn>(x => x.BooAsync("the value"));
 
-            var expectedResponse = Task.FromResult(false);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.BooAsync("the value");
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Single(requestInfo.QueryParams);
@@ -390,21 +379,6 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
             Assert.Single(queryProperties);
             Assert.Equal(QuerySerializationMethod.Serialized, queryProperties[0].SerializationMethod);
-        }
-
-        private IRequestInfo Request<T>(Func<T, Task> selector)
-        {
-            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            selector(implementation);
-
-            return requestInfo;
         }
     }
 }

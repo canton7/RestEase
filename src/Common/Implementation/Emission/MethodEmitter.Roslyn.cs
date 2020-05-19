@@ -81,7 +81,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitSetCancellationToken(ParameterModel parameter)
         {
-            this.writer.WriteLine(this.requestInfoLocalName + ".CancellationToken = " + parameter.ParameterSymbol.Name + ";");
+            this.writer.WriteLine(this.requestInfoLocalName + ".CancellationToken = " + ReferenceTo(parameter) + ";");
         }
 
         public void EmitSetAllowAnyStatusCode()
@@ -152,8 +152,10 @@ namespace RestEase.Implementation.Emission
         public void EmitAddQueryParameter(ParameterModel parameter, QuerySerializationMethod serializationMethod)
         {
             // The attribute might be null, if it's a plain parameter
-            string? name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName;
-            throw new NotImplementedException();
+            string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName!;
+            parameter.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryParameter(global::RestEase.QuerySerializationMethod." + serializationMethod.ToString() + ", " +
+                QuoteString(name) + ", " + ReferenceTo(parameter) + ", " + QuoteString(parameter.QueryAttribute?.Attribute.Format) + ");");
         }
 
         public void EmitAddHttpRequestMessagePropertyParameter(ParameterModel parameter)
@@ -195,6 +197,7 @@ namespace RestEase.Implementation.Emission
             Debug.Assert(condition);
         }
 
-        private static string QuoteString(string s) => "@\"" + s.Replace("\"", "\"\"") + "\"";
+        private static string QuoteString(string? s) => s == null ? "null" : "@\"" + s.Replace("\"", "\"\"") + "\"";
+        private static string ReferenceTo(ParameterModel parameterModel) => parameterModel.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
     }
 }

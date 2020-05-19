@@ -13,6 +13,7 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat ImplementedInterface { get; }
         public static SymbolDisplayFormat MethodDeclaration { get; }
         public static SymbolDisplayFormat MethodReturnType { get; }
+        public static SymbolDisplayFormat ParameterReference { get; }
 
         static SymbolDisplayFormats()
         {
@@ -52,6 +53,10 @@ namespace RestEase.SourceGenerator.Implementation
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            ParameterReference = new SymbolDisplayFormat(
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
         }
     }
 }

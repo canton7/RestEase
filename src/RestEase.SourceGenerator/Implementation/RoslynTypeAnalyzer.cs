@@ -31,16 +31,16 @@ namespace RestEase.SourceGenerator.Implementation
             return typeModel;
         }
 
-        private MethodModel GetMethod(IMethodSymbol method)
+        private MethodModel GetMethod(IMethodSymbol methodSymbol)
         {
-            var attributes = AttributeInstantiator.Instantiate(method).ToList();
+            var attributes = AttributeInstantiator.Instantiate(methodSymbol).ToList();
 
-            var model = new MethodModel(method)
+            var model = new MethodModel(methodSymbol)
             {
                 RequestAttribute = Get<RequestAttribute>(),
             };
 
-            model.Parameters.AddRange(method.Parameters.Select(this.GetParameter));
+            model.Parameters.AddRange(methodSymbol.Parameters.Select(this.GetParameter));
 
             return model;
 
@@ -53,14 +53,22 @@ namespace RestEase.SourceGenerator.Implementation
 
         private ParameterModel GetParameter(IParameterSymbol parameterSymbol)
         {
-            var symbolDisplayFormat = SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
+            var attributes = AttributeInstantiator.Instantiate(parameterSymbol).ToList();
+
 
             var model = new ParameterModel(parameterSymbol)
             {
-                IsCancellationToken = parameterSymbol.Type.ToDisplayString(symbolDisplayFormat) == "System.Threading.CancellationToken",
+                QueryAttribute = Get<QueryAttribute>(),
+                IsCancellationToken = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "System.Threading.CancellationToken",
             };
 
             return model;
+
+            AttributeModel<T>? Get<T>() where T : Attribute
+            {
+                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
+                return attribute == null ? null : AttributeModel.Create(attribute);
+            }
         }
     }
 }
