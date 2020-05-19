@@ -116,7 +116,7 @@ namespace RestEase.Implementation.Emission
 
         public void ReportMultipleCancellationTokenParameters(MethodModel method, ParameterModel _)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': only a single CancellationToken parameter is allowed");
+            throw new ImplementationCreationException(DiagnosticCode.MultipleCancellationTokenParameters, $"Method '{method.MethodInfo.Name}': only a single CancellationToken parameter is allowed");
         }
 
         public void ReportCancellationTokenMustHaveZeroAttributes(MethodModel method, ParameterModel parameter)

@@ -37,12 +37,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void TwoCancellationTokensThrows()
         {
-#if SOURCE_GENERATOR
-            var diagnostics = this.GetDiagnostics<ITwoCancellationTokens>();
-            Assert.Single(diagnostics);
-#else
-            Assert.Throws<ImplementationCreationException>(() => this.CreateImplementation<ITwoCancellationTokens>());
-#endif
+            this.VerifyDiagnostics<ITwoCancellationTokens>(
+                // (22,65): error REST001: Method 'YayAsync': only a single CancellationToken parameter is allowed, found a duplicate parameter 'cancellationToken2'
+                // CancellationToken cancellationToken2
+                Diagnostic(DiagnosticCode.MultipleCancellationTokenParameters, "CancellationToken cancellationToken2").WithLocation(22, 65)
+            );
         }
     }
 }

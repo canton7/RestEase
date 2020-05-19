@@ -5,6 +5,7 @@
     <TargetFrameworks>netcoreapp3.0;</TargetFrameworks>
     <AssemblyName>RestEase.SourceGenerator.UnitTests</AssemblyName>
     <PackageId>RestEase.SourceGenerator.UnitTests</PackageId>
+    <RootNamespace>RestEaseUnitTests</RootNamespace>
     <DefineConstants>SOURCE_GENERATOR</DefineConstants>
   </PropertyGroup>
 
@@ -35,7 +36,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../RestEaseUnitTests/ImplementationFactoryTests/*.cs" LinkBase="ImplementationFactoryTests" />
+    <Compile Include="../RestEaseUnitTests/ImplementationFactoryTests/**/*.cs" LinkBase="ImplementationFactoryTests" />
     <Compile Include="../RestEaseUnitTests/Extensions/TypeExtensions.cs" LinkBase="Extensions" />
+    <EmbeddedResource Include="../RestEaseUnitTests/ImplementationFactoryTests/*.cs" />
   </ItemGroup>
 </Project>

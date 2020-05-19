@@ -5,23 +5,23 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using RestEase;
-using SourceGenerator::RestEase.SourceGenerator;
 using SourceGenerator::RestEase.SourceGenerator.Implementation;
 using Microsoft.CodeAnalysis.CSharp;
 using System.IO;
 using System.Reflection;
 using Moq;
 using Xunit;
-using Microsoft.CodeAnalysis.Emit;
 using RestEase.Implementation;
-using System.Diagnostics;
 using System.Collections.Generic;
+using RestEaseUnitTests.ImplementationFactoryTests.Helpers;
 #else
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using RestEase;
 using RestEase.Implementation;
+using RestEaseUnitTests.ImplementationFactoryTests.Helpers;
 using Xunit;
 #endif
 
@@ -37,7 +37,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         static ImplementationFactoryTestsBase()
         {
+            var thisAssembly = typeof(ImplementationFactoryTestsBase).Assembly;
             string dotNetDir = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
+
             var project = new AdhocWorkspace()
                 .AddProject("test", LanguageNames.CSharp)
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -45,9 +47,22 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "netstandard.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Runtime.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Net.Http.dll")))
-                .AddMetadataReference(MetadataReference.CreateFromFile(typeof(ImplementationFactoryTestsBase).Assembly.Location))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(RestClient).Assembly.Location));
             compilation = project.GetCompilationAsync().Result;
+
+            var syntaxTrees = new List<SyntaxTree>();
+            foreach (string resourceName in thisAssembly.GetManifestResourceNames())
+            {
+                if (resourceName.EndsWith(".cs"))
+                {
+                    using (var reader = new StreamReader(thisAssembly.GetManifestResourceStream(resourceName)))
+                    {
+                        syntaxTrees.Add(SyntaxFactory.ParseSyntaxTree(reader.ReadToEnd()));
+                    }
+                }
+            }
+
+            compilation = compilation.AddSyntaxTrees(syntaxTrees);
         }
 
         protected T CreateImplementation<T>()
@@ -71,11 +86,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             }
         }
 
-        protected List<Diagnostic> GetDiagnostics<T>()
+        protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
         {
             var namedTypeSymbol = compilation.GetTypeByMetadataName(typeof(T).FullName);
             var (_, diagnostics) = this.implementationFactory.CreateImplementation(namedTypeSymbol);
-            return diagnostics;
+            DiagnosticVerifier.VerifyDiagnostics(diagnostics, expected);
         }
 
 #else
@@ -85,7 +100,29 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         {
             return this.factory.CreateImplementation<T>(this.requester.Object);
         }
+
+        protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
+        {
+            if (expected.Length == 0)
+            {
+                // Check doesn't throw
+                this.CreateImplementation<T>();
+            }
+            else
+            {
+                var ex = Assert.Throws<ImplementationCreationException>(() => this.CreateImplementation<T>());
+                if (!expected.Any(x => x.Code == ex.Code))
+                {
+                    Assert.Equal(expected[0].Code, ex.Code);
+                }
+            }
+        }
 #endif
+
+        protected static DiagnosticResult Diagnostic(DiagnosticCode code, string squiggledText)
+        {
+            return new DiagnosticResult(code, squiggledText);
+        }
 
         protected IRequestInfo Request<T>(T implementation, Func<T, Task> method)
         {

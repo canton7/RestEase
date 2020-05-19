@@ -112,17 +112,16 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        private static readonly DiagnosticDescriptor multipleCancellationTokenParameters = new DiagnosticDescriptor(
-            "REST001",
+        private static readonly DiagnosticDescriptor multipleCancellationTokenParameters = CreateDescriptor(
+            DiagnosticCode.MultipleCancellationTokenParameters,
             "Methods must not have multiple CancellationToken parameters",
-            "Method '{0}' has already has a CancellationToken parameter, '{1}'",
-            "Category",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "Method '{0}': only a single CancellationToken parameter is allowed, found a duplicate parameter '{1}'");
         public void ReportMultipleCancellationTokenParameters(MethodModel method, ParameterModel parameter)
         {
-            this.AddDiagnostic(multipleCancellationTokenParameters, parameter.ParameterSymbol.Locations,
-                method.MethodSymbol.Name, parameter.ParameterSymbol.Name);
+            // If we can (and I'm not sure why we might not be able to), get the location of the entire parameter 'CancellationToken foo',
+            // not just the the name 'foo'.
+            var location = parameter.ParameterSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation() ?? parameter.ParameterSymbol.Locations.FirstOrDefault();
+            this.AddDiagnostic(multipleCancellationTokenParameters, location, method.MethodSymbol.Name, parameter.ParameterSymbol.Name);
         }
 
         public void ReportCancellationTokenMustHaveZeroAttributes(MethodModel method, ParameterModel parameter)
@@ -159,9 +158,17 @@ namespace RestEase.Implementation.Emission
         {
             throw new NotImplementedException();
         }
-        private void AddDiagnostic(DiagnosticDescriptor descriptor, ImmutableArray<Location> locations, params object?[] args)
+
+        private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat) =>
+            new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+
+        private void AddDiagnostic(DiagnosticDescriptor descriptor, ImmutableArray<Location> locations, params object?[] args) =>
+            this.AddDiagnostic(descriptor, locations.FirstOrDefault(), args);
+
+        private void AddDiagnostic(DiagnosticDescriptor descriptor, Location? location, params object?[] args)
         {
-            this.Diagnostics.Add(Diagnostic.Create(descriptor, locations.FirstOrDefault(), args));
+            this.Diagnostics.Add(Diagnostic.Create(descriptor, location ?? Location.None, args));
         }
     }
 }

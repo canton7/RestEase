@@ -8,6 +8,22 @@ namespace RestEase.Implementation
     public class ImplementationCreationException : Exception
     {
         /// <summary>
+        /// Gets the code of this error
+        /// </summary>
+        public DiagnosticCode Code { get; } = DiagnosticCode.None;
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="ImplementationCreationException"/> class
+        /// </summary>
+        /// <param name="code">Code of this error</param>
+        /// <param name="message">Message to use</param>
+        public ImplementationCreationException(DiagnosticCode code, string message)
+            : base(message)
+        {
+            this.Code = code;
+        }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="ImplementationCreationException"/> class
         /// </summary>
         /// <param name="message">Message to use</param>
