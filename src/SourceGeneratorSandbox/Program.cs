@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RestEase;
 
@@ -14,7 +15,8 @@ namespace SourceGeneratorSandbox
         public interface ISomeApi
         {
             [Get("foo")]
-            Task FooAsync(int foo);
+            Task FooAsync(CancellationToken foo, CancellationToken bar);
+
         }
     }
 }

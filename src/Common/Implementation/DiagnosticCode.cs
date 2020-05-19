@@ -1,0 +1,27 @@
+﻿namespace RestEase.Implementation
+{
+    /// <summary>
+    /// Identifies the type of error / diagnostic encountered during emission
+    /// </summary>
+    public enum DiagnosticCode
+    {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        None = 0,
+        MultipleCancellationTokenParameters = 1,
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Extension methods on <see cref="DiagnosticCode"/>
+    /// </summary>
+    public static class DiagnosticCodeExtensions
+    {
+        /// <summary>
+        /// Format the code as e.g. REST001
+        /// </summary>
+        public static string Format(this DiagnosticCode code)
+        {
+            return $"REST{(int)code:D3}";
+        }
+    }
+}
