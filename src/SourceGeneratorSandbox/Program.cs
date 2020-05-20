@@ -12,11 +12,10 @@ namespace SourceGeneratorSandbox
             Console.WriteLine("Hello World!");
         }
 
-        public interface ISomeApi
+        public interface IHasDuplicatePathParams
         {
-            [Get("foo")]
-            Task FooAsync(CancellationToken foo, CancellationToken bar);
-
+            [Get("foo/{bar}")]
+            Task FooAsync([Path] string bar, [Path("bar")] string yay);
         }
     }
 }

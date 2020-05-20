@@ -37,7 +37,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ITestOutputHelper output;
 
-        public ImplementationFactoryTestsBase(ITestOutputHelper output = null)
+        public ImplementationFactoryTestsBase(ITestOutputHelper output)
         {
             this.output = output;
         }
@@ -99,7 +99,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             var (sourceText, _) = this.implementationFactory.CreateImplementation(namedTypeSymbol);
 
             Assert.NotNull(sourceText);
-            this.output?.WriteLine(sourceText.ToString());
+            this.output.WriteLine(sourceText.ToString());
 
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
             var updatedCompilation = executionCompilation.AddSyntaxTrees(syntaxTree);

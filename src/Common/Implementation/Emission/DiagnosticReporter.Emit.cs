@@ -64,7 +64,8 @@ namespace RestEase.Implementation.Emission
 
         public void ReportMissingPathPropertyForBasePathPlaceholder(AttributeModel<BasePathAttribute> _, string basePath, string missingParam)
         {
-            throw new ImplementationCreationException(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder, $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");
+            throw new ImplementationCreationException(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder
+                , $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
@@ -74,12 +75,12 @@ namespace RestEase.Implementation.Emission
 
         public void ReportMultiplePathPropertiesForKey(string key, IEnumerable<PropertyModel> _)
         {
-            throw new ImplementationCreationException($"Found more than one path property for key {key}");
+            throw new ImplementationCreationException(DiagnosticCode.MultiplePathPropertiesForKey, $"Found more than one path property for key {key}");
         }
 
         public void ReportMultiplePathParametersForKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': Found more than one path property for key {key}");
+            throw new ImplementationCreationException(DiagnosticCode.MultiplePathParametersForKey, $"Method '{method.MethodInfo.Name}': Found more than one path property for key '{key}'");
         }
 
         public void ReportHeaderPropertyWithValueMustBeNullable(PropertyModel property)
@@ -96,15 +97,15 @@ namespace RestEase.Implementation.Emission
 
         public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': unable to find a [Path(\"{placeholder}\")] property or parameter for the path placeholder '{{{placeholder}}}'");
+            throw new ImplementationCreationException(DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder, $"Method '{method.MethodInfo.Name}': unable to find a [Path(\"{placeholder}\")] property or parameter for the path placeholder '{{{placeholder}}}'");
         }
 
-        public void ReportMissingPlaceholderForPathParameter(MethodModel method, string placeholder)
+        public void ReportMissingPlaceholderForPathParameter(MethodModel method, string placeholder, IEnumerable<ParameterModel> _)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': unable to find to find a placeholder {{{placeholder}}} for the path parameter '{placeholder}'");
+            throw new ImplementationCreationException(DiagnosticCode.MissingPlaceholderForPathParameter, $"Method '{method.MethodInfo.Name}': unable to find to find a placeholder {{{placeholder}}} for the path parameter '{placeholder}'");
         }
 
-        public void ReportDuplicateHttpRequestMessagePropertyKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
+        public void ReportMultipleHttpRequestMessagePropertiesForKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
         {
             throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': found more than one HTTP request message property for key {key}");
         }
@@ -114,7 +115,7 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' must have zero or one attributes");
         }
 
-        public void ReportMultipleCancellationTokenParameters(MethodModel method, ParameterModel _)
+        public void ReportMultipleCancellationTokenParameters(MethodModel method, IEnumerable<ParameterModel> _)
         {
             throw new ImplementationCreationException(DiagnosticCode.MultipleCancellationTokenParameters, $"Method '{method.MethodInfo.Name}': only a single CancellationToken parameter is allowed");
         }
@@ -129,7 +130,7 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException($"[Header(\"{header.Attribute.Name}\")] on method {method.MethodInfo.Name} must not have colon in its name");
         }
 
-        public void ReportMultipleBodyParameters(MethodModel method, ParameterModel _)
+        public void ReportMultipleBodyParameters(MethodModel method, IEnumerable<ParameterModel> _)
         {
             throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': found more than one parameter with a [Body] attribute");
         }

@@ -6,10 +6,11 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class PathParamTests
+    public class PathParamTests : ImplementationFactoryTestsBase
     {
         public interface IPathParams
         {
@@ -160,8 +161,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public PathParamTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void HandlesNullPathParams()
@@ -202,32 +202,43 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPathParamPresentInPathButNotInParameters()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPathParamInPathButNotParameters>(this.requester.Object));
+            this.VerifyDiagnostics<IHasPathParamInPathButNotParameters>(
+                // (26,14): error REST003: No placeholder {baz} for path parameter 'baz'
+                // Get("foo/{bar}/{baz}")
+                Diagnostic(DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder, @"Get(""foo/{bar}/{baz}"")").WithLocation(26, 14)
+            );
         }
 
         [Fact]
         public void ThrowsIfPathParamPresentInParametersButNotPath()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPathParamInParametersButNotPath>(this.requester.Object));
+            this.VerifyDiagnostics<IHasPathParamInParametersButNotPath>(
+                // (33,54): error REST003: No placeholder {baz} for path parameter 'baz'
+                // [Path("baz")] string baz
+                Diagnostic(DiagnosticCode.MissingPlaceholderForPathParameter, @"[Path(""baz"")] string baz").WithLocation(33, 54)
+            );
         }
 
         [Fact]
         public void PathParamWithImplicitNameDoesNotFailValidation()
         {
-            this.factory.CreateImplementation<IHasPathParamWithoutExplicitName>(this.requester.Object);
+            this.VerifyDiagnostics<IHasPathParamWithoutExplicitName>();
         }
 
         [Fact]
         public void ThrowsIfDuplicatePathParameters()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasDuplicatePathParams>(this.requester.Object));
+            this.VerifyDiagnostics<IHasDuplicatePathParams>(
+                // (45,27): error REST003: Multiple path properties for the key 'bar' are not allowed
+                // [Path] string bar
+                Diagnostic(DiagnosticCode.MultiplePathParametersForKey, "[Path] string bar").WithLocation(45, 27).WithLocation(45, 46)
+            );
         }
 
         [Fact]
         public void HandlesNullAndEmptyPaths()
         {
-            // Do not throw
-            this.factory.CreateImplementation<IHasEmptyGetParams>(this.requester.Object);
+            this.VerifyDiagnostics<IHasEmptyGetParams>();
         }
 
         [Fact]
@@ -272,7 +283,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfDuplicatePathProperties()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasDuplicatePathProperties>(this.requester.Object));
+            this.VerifyDiagnostics<IHasDuplicatePathProperties>(
+                // (77,13): error REST003: Multiple path properties for the key 'foo' are not allowed
+                // [Path("foo")]
+                //             string Foo { get; set; }
+                Diagnostic(DiagnosticCode.MultiplePathPropertiesForKey, "[Path(\"foo\")]\r\n            string Foo { get; set; }").WithLocation(77, 13).WithLocation(80, 13)
+            );
+            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasDuplicatePathProperties>(this.requester.Object));
         }
 
         [Fact]
@@ -411,21 +428,6 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
             Assert.Single(pathProperties);
             Assert.Equal(PathSerializationMethod.Serialized, pathProperties[0].SerializationMethod);
-        }
-
-        private IRequestInfo Request<T>(Func<T, Task> selector)
-        {
-            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            selector(implementation);
-
-            return requestInfo;
         }
     }
 }

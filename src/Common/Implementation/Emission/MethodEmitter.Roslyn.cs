@@ -152,15 +152,16 @@ namespace RestEase.Implementation.Emission
         public void EmitAddPathParameter(ParameterModel parameter, PathSerializationMethod serializationMethod)
         {
             Assert(parameter.PathAttribute != null);
-            var pathParameter = parameter.PathAttribute.Attribute;
-            throw new NotImplementedException();
+            var attribute = parameter.PathAttribute.Attribute;
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddPathParameter(" + EnumValue(serializationMethod) + ", " +
+                QuoteString(parameter.PathAttributeName) + ", " + ReferenceTo(parameter) + ", " +
+                QuoteString(attribute.Format) + ", " + (attribute.UrlEncode ? "true" : "false") + ");");
         }
 
         public void EmitAddQueryParameter(ParameterModel parameter, QuerySerializationMethod serializationMethod)
         {
             // The attribute might be null, if it's a plain parameter
             string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName!;
-            parameter.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
             this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryParameter(" + EnumValue(serializationMethod) + ", " +
                 QuoteString(name) + ", " + ReferenceTo(parameter) + ", " + QuoteString(parameter.QueryAttribute?.Attribute.Format) + ");");
         }

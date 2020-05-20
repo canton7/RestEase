@@ -104,6 +104,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             var model = new ParameterModel(parameterSymbol)
             {
+                PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
                 IsCancellationToken = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "System.Threading.CancellationToken",
             };

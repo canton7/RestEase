@@ -51,8 +51,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                     if (additionalLocations.Length != expected.Locations.Count - 1)
                     {
                         Assert.True(false,
-                            string.Format("Expected {0} additional locations but got {1} for Diagnostic:\r\n{2}\r\n",
+                            string.Format("Expected {0} additional locations but got {1} ({2}) for Diagnostic:\r\n{3}\r\n",
                                 expected.Locations.Count - 1, additionalLocations.Length,
+                                string.Join(", ", additionalLocations.Select(x =>
+                                {
+                                    var start = x.GetLineSpan().StartLinePosition;
+                                    return $"({start.Line + 1},{start.Character + 1})";
+                                })),
                                 FormatDiagnostics(actual)));
                     }
 

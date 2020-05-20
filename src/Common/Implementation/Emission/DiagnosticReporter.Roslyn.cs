@@ -68,11 +68,7 @@ namespace RestEase.Implementation.Emission
             "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base path '{1}'");
         public void ReportMissingPathPropertyForBasePathPlaceholder(AttributeModel<BasePathAttribute> attributeModel, string basePath, string missingParam)
         {
-            // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
-            var location = attributeModel.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation() ??
-                this.typeModel.NamedTypeSymbol.Locations.FirstOrDefault();
-
-            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, location, missingParam, basePath);
+            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, this.typeModel.NamedTypeSymbol), missingParam, basePath);
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
@@ -80,14 +76,22 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void ReportMultiplePathPropertiesForKey(string key, IEnumerable<PropertyModel> _)
+        private static readonly DiagnosticDescriptor multiplePathPropertiesForKey = CreateDescriptor(
+            DiagnosticCode.MultiplePathPropertiesForKey,
+            "There must not be multiple path properties for the same key",
+            "Multiple path properties for the key '{0}' are not allowed");
+        public void ReportMultiplePathPropertiesForKey(string key, IEnumerable<PropertyModel> properties)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(multiplePathPropertiesForKey, properties.SelectMany(x => SymbolLocations(x.PropertySymbol)), key);
         }
 
-        public void ReportMultiplePathParametersForKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
+        private static readonly DiagnosticDescriptor multiplePathParametersForKey = CreateDescriptor(
+            DiagnosticCode.MultiplePathParametersForKey,
+            "There must not be multiple path parameters for the same key",
+            "Multiple path parameters for the key '{0}' are not allowed");
+        public void ReportMultiplePathParametersForKey(MethodModel _, string key, IEnumerable<ParameterModel> parameters)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(multiplePathParametersForKey, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)), key);
         }
 
         public void ReportHeaderPropertyWithValueMustBeNullable(PropertyModel property)
@@ -100,17 +104,26 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
+        private static readonly DiagnosticDescriptor missingPathPropertyOrParameterForPlaceholder = CreateDescriptor(
+            DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder,
+            "All placeholders in a path must have a corresponding path property or path parameter",
+            "No placeholder {{{0}}} for path parameter '{0}'");
         public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
         {
-            throw new NotImplementedException();
+            // We'll put the squiggle on the attribute itself
+            this.AddDiagnostic(missingPathPropertyOrParameterForPlaceholder, AttributeLocations(method.RequestAttribute, method.MethodSymbol), placeholder);
         }
 
-        public void ReportMissingPlaceholderForPathParameter(MethodModel method, string placeholder)
+        private static readonly DiagnosticDescriptor missingPlaceholderForPathParameter = CreateDescriptor(
+            DiagnosticCode.MissingPlaceholderForPathParameter,
+            "All path parameters on a method must have a corresponding placeholder",
+            "No placeholder {{{0}}} for path parameter '{0}'");
+        public void ReportMissingPlaceholderForPathParameter(MethodModel _, string placeholder, IEnumerable<ParameterModel> parameters)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(missingPlaceholderForPathParameter, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)), placeholder);
         }
 
-        public void ReportDuplicateHttpRequestMessagePropertyKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
+        public void ReportMultipleHttpRequestMessagePropertiesForKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
         {
             throw new NotImplementedException();
         }
@@ -123,13 +136,10 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor multipleCancellationTokenParameters = CreateDescriptor(
             DiagnosticCode.MultipleCancellationTokenParameters,
             "Methods must not have multiple CancellationToken parameters",
-            "Method '{0}': only a single CancellationToken parameter is allowed, found a duplicate parameter '{1}'");
-        public void ReportMultipleCancellationTokenParameters(MethodModel method, ParameterModel parameter)
+            "Multiple CancellationTokens are not allowed");
+        public void ReportMultipleCancellationTokenParameters(MethodModel _, IEnumerable<ParameterModel> parameters)
         {
-            // If we can (and I'm not sure why we might not be able to), get the location of the entire parameter 'CancellationToken foo',
-            // not just the the name 'foo'.
-            var location = parameter.ParameterSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation() ?? parameter.ParameterSymbol.Locations.FirstOrDefault();
-            this.AddDiagnostic(multipleCancellationTokenParameters, location, method.MethodSymbol.Name, parameter.ParameterSymbol.Name);
+            this.AddDiagnostic(multipleCancellationTokenParameters, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)));
         }
 
         public void ReportCancellationTokenMustHaveZeroAttributes(MethodModel method, ParameterModel parameter)
@@ -142,7 +152,7 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void ReportMultipleBodyParameters(MethodModel method, ParameterModel _)
+        public void ReportMultipleBodyParameters(MethodModel method, IEnumerable<ParameterModel> _)
         {
             throw new NotImplementedException();
         }
@@ -170,13 +180,32 @@ namespace RestEase.Implementation.Emission
         private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat) =>
             new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-
-        private void AddDiagnostic(DiagnosticDescriptor descriptor, ImmutableArray<Location> locations, params object?[] args) =>
-            this.AddDiagnostic(descriptor, locations.FirstOrDefault(), args);
+        private void AddDiagnostic(DiagnosticDescriptor descriptor, IEnumerable<Location> locations, params object?[] args)
+        {
+            var locationsList = (locations as IReadOnlyList<Location>) ?? locations.ToList();
+            this.Diagnostics.Add(Diagnostic.Create(descriptor, locationsList.Count == 0 ? Location.None : locationsList[0], locationsList.Skip(1), args));
+        }
 
         private void AddDiagnostic(DiagnosticDescriptor descriptor, Location? location, params object?[] args)
         {
             this.Diagnostics.Add(Diagnostic.Create(descriptor, location ?? Location.None, args));
         }
+
+        // Try and get the location of the whole 'Foo foo', and not just 'foo'
+        private static IEnumerable<Location> SymbolLocations(ISymbol symbol)
+        {
+            var declaringReferences = symbol.DeclaringSyntaxReferences;
+            return declaringReferences.Length > 0
+                ? declaringReferences.Select(x => x.GetSyntax().GetLocation())
+                : symbol.Locations;
+        }
+
+        private static IEnumerable<Location> AttributeLocations(AttributeModel? attributeModel, ISymbol fallback)
+        {
+            // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
+            var attributeLocation = attributeModel?.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
+            return attributeLocation != null ? new[] { attributeLocation } : SymbolLocations(fallback);
+        }
+
     }
 }

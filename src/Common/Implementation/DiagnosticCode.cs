@@ -9,6 +9,10 @@
         None = 0,
         MultipleCancellationTokenParameters = 1,
         MissingPathPropertyForBasePathPlaceholder = 2,
+        MissingPathPropertyOrParameterForPlaceholder = 3,
+        MissingPlaceholderForPathParameter = 4,
+        MultiplePathPropertiesForKey = 5,
+        MultiplePathParametersForKey = 6,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

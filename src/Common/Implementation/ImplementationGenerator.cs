@@ -145,7 +145,9 @@ namespace RestEase.Implementation
             {
                 string? path = method.RequestAttribute.Attribute.Path;
                 this.ValidatePathParams(method, path);
-                this.ValidateHttpRequestMessageParameters(method);
+                this.ValidateCancellationTokenParams(method);
+                this.ValidateMultipleBodyParams(method);
+                this.ValidateHttpRequestMessageParams(method);
 
                 methodEmitter.EmitRequestInfoCreation(method.RequestAttribute.Attribute);
 
@@ -211,26 +213,18 @@ namespace RestEase.Implementation
 
         private void GenerateMethodParameters(MethodEmitter methodEmitter, MethodModel method, ResolvedSerializationMethods serializationMethods)
         {
-            bool hasCancellationToken = false;
-            bool hasBodyParameter = false;
             foreach (var parameter in method.Parameters)
             {
                 var attributes = parameter.GetAllSetAttributes().ToList();
 
                 if (parameter.IsCancellationToken)
                 {
-                    if (hasCancellationToken)
-                    {
-                        this.diagnostics.ReportMultipleCancellationTokenParameters(method, parameter);
-                    }
                     if (attributes.Count > 0)
                     {
                         this.diagnostics.ReportCancellationTokenMustHaveZeroAttributes(method, parameter);
                     }
 
                     methodEmitter.EmitSetCancellationToken(parameter);
-
-                    hasCancellationToken = true;
                 }
                 else
                 {
@@ -281,16 +275,9 @@ namespace RestEase.Implementation
                     }
                     else if (parameter.BodyAttribute != null)
                     {
-                        if (hasBodyParameter)
-                        {
-                            this.diagnostics.ReportMultipleBodyParameters(method, parameter);
-                        }
-
                         methodEmitter.EmitSetBodyParameter(
                             parameter,
                             serializationMethods.ResolveBody(parameter.BodyAttribute.Attribute.SerializationMethod));
-
-                        hasBodyParameter = true;
                     }
                     else
                     {
@@ -353,13 +340,32 @@ namespace RestEase.Implementation
             }
 
             var missingPlaceholders = pathParams.Select(x => x.PathAttributeName!).Except(placeholders);
-            foreach (string? missingPlaceholder in missingPlaceholders)
+            foreach (string missingPlaceholder in missingPlaceholders)
             {
-                this.diagnostics.ReportMissingPlaceholderForPathParameter(method, missingPlaceholder);
+                var parameters = pathParams.Where(x => x.PathAttributeName == missingPlaceholder);
+                this.diagnostics.ReportMissingPlaceholderForPathParameter(method, missingPlaceholder, parameters);
             }
         }
 
-        private void ValidateHttpRequestMessageParameters(MethodModel method)
+        private void ValidateCancellationTokenParams(MethodModel method)
+        {
+            var cancellationTokenParams = method.Parameters.Where(x => x.IsCancellationToken).ToList();
+            if (cancellationTokenParams.Count > 1)
+            {
+                this.diagnostics.ReportMultipleCancellationTokenParameters(method, cancellationTokenParams);
+            }
+        }
+
+        private void ValidateMultipleBodyParams(MethodModel method)
+        {
+            var bodyParams = method.Parameters.Where(x => x.BodyAttribute != null).ToList();
+            if (bodyParams.Count > 1)
+            {
+                this.diagnostics.ReportMultipleBodyParameters(method, bodyParams);
+            }
+        }
+
+        private void ValidateHttpRequestMessageParams(MethodModel method)
         {
             // Check that there are no duplicate param names in the attributes
             var requestParams = method.Parameters.Where(x => x.HttpRequestMessagePropertyAttribute != null);
@@ -368,7 +374,7 @@ namespace RestEase.Implementation
                 .Where(x => x.Count() > 1);
             foreach (var @params in duplicateParams)
             {
-                this.diagnostics.ReportDuplicateHttpRequestMessagePropertyKey(method, @params.Key, @params);
+                this.diagnostics.ReportMultipleHttpRequestMessagePropertiesForKey(method, @params.Key, @params);
             }
         }
     }
