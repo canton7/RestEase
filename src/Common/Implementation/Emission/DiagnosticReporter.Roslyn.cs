@@ -62,9 +62,17 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void ReportMissingPathPropertyForBasePathPlaceholder(string missingParam, string basePath)
+        private static readonly DiagnosticDescriptor missingPathPropertyForBasePathPlaceholder = CreateDescriptor(
+            DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
+            "BasePath placeholders must have corresponding path properties",
+            "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base path '{1}'");
+        public void ReportMissingPathPropertyForBasePathPlaceholder(AttributeModel<BasePathAttribute> attributeModel, string basePath, string missingParam)
         {
-            throw new NotImplementedException();
+            // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
+            var location = attributeModel.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation() ??
+                this.typeModel.NamedTypeSymbol.Locations.FirstOrDefault();
+
+            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, location, missingParam, basePath);
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)

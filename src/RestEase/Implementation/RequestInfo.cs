@@ -299,8 +299,7 @@ namespace RestEase.Implementation
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>
         /// <param name="format">Format string to use</param>
-        public void 
-            perty<T>(QuerySerializationMethod serializationMethod, string name, T value, string? format = null)
+        public void AddQueryProperty<T>(QuerySerializationMethod serializationMethod, string name, T value, string? format = null)
         {
             if (this._queryProperties == null)
                 this._queryProperties = new List<QueryParameterInfo>();

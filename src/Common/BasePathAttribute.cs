@@ -5,7 +5,7 @@ namespace RestEase
     /// <summary>
     /// Attribute applied to the interface, giving a path which is prepended to all paths 
     /// </summary>
-    [System.AttributeUsage(AttributeTargets.Interface, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Interface, Inherited = true, AllowMultiple = false)]
     public sealed class BasePathAttribute : Attribute
     {
         /// <summary>

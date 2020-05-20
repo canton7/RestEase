@@ -6,8 +6,8 @@ namespace RestEase.Implementation.Analysis
     {
         private readonly INamedTypeSymbol namedTypeSymbol;
 
-        public AllowAnyStatusCodeAttributeModel(AllowAnyStatusCodeAttribute attribute, INamedTypeSymbol namedTypeSymbol)
-            : base(attribute)
+        public AllowAnyStatusCodeAttributeModel(AllowAnyStatusCodeAttribute attribute, INamedTypeSymbol namedTypeSymbol, AttributeData attributeData)
+            : base(attribute, attributeData)
         {
             this.namedTypeSymbol = namedTypeSymbol;
         }

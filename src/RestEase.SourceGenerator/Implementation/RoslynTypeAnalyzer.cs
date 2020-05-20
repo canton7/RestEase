@@ -23,14 +23,15 @@ namespace RestEase.SourceGenerator.Implementation
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                BasePathAttribute = Get<BasePathAttribute>(),
             };
 
             var allowAnyStatusCodeAttributes = from type in this.InterfaceAndParents()
-                                               let attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.AllowAnyStatusCodeAttribute")
-                                               where attribute != null
-                                               let instantiatedAttribute = AttributeInstantiator.Instantiate(attribute) as AllowAnyStatusCodeAttribute
+                                               let attributeData = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.AllowAnyStatusCodeAttribute")
+                                               where attributeData != null
+                                               let instantiatedAttribute = AttributeInstantiator.Instantiate(attributeData) as AllowAnyStatusCodeAttribute
                                                where instantiatedAttribute != null
-                                               select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type);
+                                               select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type, attributeData);
             typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
 
             foreach (var member in this.namedTypeSymbol.GetMembers())
@@ -50,8 +51,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
             }
         }
 
@@ -61,6 +62,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             var model = new PropertyModel(propertySymbol)
             {
+                PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
                 HasGetter = propertySymbol.GetMethod != null,
                 HasSetter = propertySymbol.SetMethod != null,
@@ -70,8 +72,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
             }
         }
 
@@ -91,8 +93,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
             }
         }
 
@@ -110,8 +112,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
             }
         }
 

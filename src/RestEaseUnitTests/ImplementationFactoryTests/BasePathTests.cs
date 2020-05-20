@@ -1,15 +1,12 @@
-﻿using Moq;
-using RestEase;
+﻿using RestEase;
 using RestEase.Implementation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class BasePathTests
+    public class BasePathTests : ImplementationFactoryTestsBase
     {
         public interface IHasNoBasePath
         {
@@ -41,21 +38,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public BasePathTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void DefaultsToNull()
         {
-            var implementation = this.factory.CreateImplementation<IHasNoBasePath>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasNoBasePath>(x => x.FooAsync());
 
             Assert.Null(requestInfo.BasePath);
         }
@@ -63,15 +51,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ForwardsSimpleBasePath()
         {
-            var implementation = this.factory.CreateImplementation<IHasSimpleBasePath>(this.requester.Object);
 
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasSimpleBasePath>(x => x.FooAsync());
 
             Assert.Equal("foo/bar/baz", requestInfo.BasePath);
         }
@@ -79,21 +60,17 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPlaceholderMissingPathProperty()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasBasePathWithPlaceholderWithoutProperty>(this.requester.Object));
+            this.VerifyDiagnostics<IHasBasePathWithPlaceholderWithoutProperty>(
+                // (23,10): error REST001: Unable to find a [Path("bar")] property for the path placeholder '{bar}' in base path 'foo/{bar}/baz'
+                // BasePath("foo/{bar}/baz")
+                Diagnostic(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder, @"BasePath(""foo/{bar}/baz"")").WithLocation(24, 10)
+            );
         }
 
         [Fact]
         public void FowardsBasePathWithPlaceholder()
         {
-            var implementation = this.factory.CreateImplementation<IHasBasePathWithPlaceholder>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasBasePathWithPlaceholder>(x => x.FooAsync());
 
             Assert.Equal("foo/{bar}/baz", requestInfo.BasePath);
         }

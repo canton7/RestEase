@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator;
 using RestEase.SourceGenerator.Implementation;
@@ -93,7 +94,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitSetBasePath(string basePath)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".BasePath = " + QuoteString(basePath) + ";");
         }
 
         public void EmitAddMethodHeader(AttributeModel<HeaderAttribute> header)
@@ -112,7 +113,9 @@ namespace RestEase.Implementation.Emission
         {
             Assert(property.PropertyModel.PathAttribute != null);
             var attribute = property.PropertyModel.PathAttribute.Attribute;
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddPathProperty(" + EnumValue(serializationMethod) + ", " +
+                QuoteString(property.PropertyModel.PathAttributeName) + ", " + ReferenceTo(property.PropertyModel) + ", " +
+                QuoteString(attribute.Format) + ", " + (attribute.UrlEncode ? "true" : "false") + ");");
         }
 
         public void EmitAddQueryProperty(EmittedProperty property, QuerySerializationMethod serializationMethod)
@@ -120,7 +123,8 @@ namespace RestEase.Implementation.Emission
             Assert(property.PropertyModel.QueryAttribute != null);
             var attribute = property.PropertyModel.QueryAttribute.Attribute;
             this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryProperty(" + EnumValue(serializationMethod) + ", " +
-                QuoteString(property.PropertyModel.QueryAttributeName) + ", " + ReferenceTo(property.PropertyModel) + ", " + QuoteString(attribute.Format) + ");");
+                QuoteString(property.PropertyModel.QueryAttributeName) + ", " + ReferenceTo(property.PropertyModel) + ", " +
+                QuoteString(attribute.Format) + ");");
         }
 
         public void EmitAddHttpRequestMessagePropertyProperty(EmittedProperty property)

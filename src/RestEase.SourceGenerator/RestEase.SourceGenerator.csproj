@@ -20,8 +20,4 @@
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Reflection.cs;../Common/**/*.Emit.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="..\Common\Implementation\Analysis\AttributeModel.Roslyn.cs" />
-  </ItemGroup>
-
 </Project>

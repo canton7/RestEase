@@ -8,6 +8,7 @@
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         None = 0,
         MultipleCancellationTokenParameters = 1,
+        MissingPathPropertyForBasePathPlaceholder = 2,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 
