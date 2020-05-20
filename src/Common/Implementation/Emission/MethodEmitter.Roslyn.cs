@@ -14,14 +14,16 @@ namespace RestEase.Implementation.Emission
         private readonly MethodModel methodModel;
         private readonly IndentedTextWriter writer;
         private readonly string qualifiedTypeName;
+        private readonly string requesterFieldName;
         private readonly int index;
         private readonly string requestInfoLocalName;
 
-        public MethodEmitter(MethodModel methodModel, IndentedTextWriter writer, string qualifiedTypeName, int index)
+        public MethodEmitter(MethodModel methodModel, IndentedTextWriter writer, string qualifiedTypeName, string requesterFieldName, int index)
         {
             this.methodModel = methodModel;
             this.writer = writer;
             this.qualifiedTypeName = qualifiedTypeName;
+            this.requesterFieldName = requesterFieldName;
             this.index = index;
             this.requestInfoLocalName = this.GenerateRequestInfoLocalName();
 
@@ -117,7 +119,8 @@ namespace RestEase.Implementation.Emission
         {
             Assert(property.PropertyModel.QueryAttribute != null);
             var attribute = property.PropertyModel.QueryAttribute.Attribute;
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryProperty(" + EnumValue(serializationMethod) + ", " +
+                QuoteString(property.PropertyModel.QueryAttributeName) + ", " + ReferenceTo(property.PropertyModel) + ", " + QuoteString(attribute.Format) + ");");
         }
 
         public void EmitAddHttpRequestMessagePropertyProperty(EmittedProperty property)
@@ -154,7 +157,7 @@ namespace RestEase.Implementation.Emission
             // The attribute might be null, if it's a plain parameter
             string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName!;
             parameter.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
-            this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryParameter(global::RestEase.QuerySerializationMethod." + serializationMethod.ToString() + ", " +
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryParameter(" + EnumValue(serializationMethod) + ", " +
                 QuoteString(name) + ", " + ReferenceTo(parameter) + ", " + QuoteString(parameter.QueryAttribute?.Attribute.Format) + ");");
         }
 
@@ -180,7 +183,7 @@ namespace RestEase.Implementation.Emission
 
             if (methodName != null)
             {
-                this.writer.WriteLine("return this.requester." + methodName + "(" + this.requestInfoLocalName + ");");
+                this.writer.WriteLine("return this." + this.requesterFieldName + "." + methodName + "(" + this.requestInfoLocalName + ");");
             }
 
             // This is also the end of the method
@@ -199,5 +202,12 @@ namespace RestEase.Implementation.Emission
 
         private static string QuoteString(string? s) => s == null ? "null" : "@\"" + s.Replace("\"", "\"\"") + "\"";
         private static string ReferenceTo(ParameterModel parameterModel) => parameterModel.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
+        private static string ReferenceTo(PropertyModel propertyModel) => "this." + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyReference);
+        private static string EnumValue<T>(T value) where T : struct, Enum
+        {
+            return Enum.IsDefined(typeof(T), value)
+                ? "global::" + typeof(T).FullName + "." + value
+                : "(global::" + typeof(T).FullName + ")" + Convert.ToInt32(value);
+        }
     }
 }

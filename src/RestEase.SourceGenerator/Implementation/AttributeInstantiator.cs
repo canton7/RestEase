@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
@@ -28,13 +29,14 @@ namespace RestEase.SourceGenerator.Implementation
             var attribute = attributeMetadataName switch
             {
                 "RestEase.QueryAttribute" => ParseQueryAttribute(attributeData),
+                "RestEase.SerializationMethodsAttribute" => ParseSerializationMethodsAttribute(attributeData),
                 "RestEase.GetAttribute" => ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x)),
                 _ => null,
             };
 
             return attribute;
         }
-
+        
         private static Attribute? ParseQueryAttribute(AttributeData attributeData)
         {
             QueryAttribute? attribute = null;
@@ -83,13 +85,42 @@ namespace RestEase.SourceGenerator.Implementation
             return attribute;
 
             bool IsString(TypedConstant typedConstant) => typedConstant.Type.SpecialType == SpecialType.System_String;
-            bool IsQuerySerializationMethod(TypedConstant typedConstant) => typedConstant.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.QuerySerializationAttribute";
+            bool IsQuerySerializationMethod(TypedConstant typedConstant) => typedConstant.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.QuerySerializationMethod";
+        }
+
+        private static Attribute? ParseSerializationMethodsAttribute(AttributeData attributeData)
+        {
+            var attribute = attributeData.ConstructorArguments.Length == 0 ? new SerializationMethodsAttribute() : null;
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    if (namedArgument.Key == "Body" &&
+                        namedArgument.Value.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.BodySerializationMethod")
+                    {
+                        attribute.Body = (BodySerializationMethod)namedArgument.Value.Value!;
+                    }
+                    else if (namedArgument.Key == "Query" &&
+                        namedArgument.Value.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.QuerySerializationMethod")
+                    {
+                        attribute.Query = (QuerySerializationMethod)namedArgument.Value.Value!;
+                    }
+                    else if (namedArgument.Key == "Path" &&
+                        namedArgument.Value.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.PathSerializationMethod")
+                    {
+                        attribute.Path = (PathSerializationMethod)namedArgument.Value.Value!;
+                    }
+                }
+            }
+
+            return attribute;
         }
 
         private static Attribute? ParseRequestAttributeSubclass(
-            AttributeData attributeData,
-            Func<RequestAttribute> parameterlessCtor,
-            Func<string, RequestAttribute> pathCtor)
+        AttributeData attributeData,
+        Func<RequestAttribute> parameterlessCtor,
+        Func<string, RequestAttribute> pathCtor)
         {
             RequestAttribute attribute;
             if (attributeData.ConstructorArguments.Length == 0)

@@ -24,6 +24,7 @@ using RestEase;
 using RestEase.Implementation;
 using RestEaseUnitTests.ImplementationFactoryTests.Helpers;
 using Xunit;
+using Xunit.Abstractions;
 #endif
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
@@ -33,11 +34,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ITestOutputHelper output;
 
-        public ImplementationFactoryTestsBase()
-        {
-        }
-
-        public ImplementationFactoryTestsBase(ITestOutputHelper output)
+        public ImplementationFactoryTestsBase(ITestOutputHelper output = null)
         {
             this.output = output;
         }

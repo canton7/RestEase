@@ -1,10 +1,10 @@
-﻿using Moq;
-using RestEase;
+﻿using RestEase;
 using RestEase.Implementation;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
@@ -21,6 +21,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             [Get("yay")]
             Task YayAsync(CancellationToken cancellationToken1, CancellationToken cancellationToken2);
         }
+
+        public CancellationTokenTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void CancellationTokenOnlyNoReturnCallsCorrectly()

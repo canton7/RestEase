@@ -15,10 +15,6 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 {
     public class QueryParamTests : ImplementationFactoryTestsBase
     {
-        public QueryParamTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         public interface ISingleParameterWithQueryParamAttributeNoReturn
         {
             [Get("boo")]
@@ -138,6 +134,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             [Get]
             Task FooAsync();
         }
+
+        public QueryParamTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void SingleParameterWithQueryParamAttributeNoReturnCallsCorrectly()

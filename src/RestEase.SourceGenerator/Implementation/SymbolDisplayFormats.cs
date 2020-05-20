@@ -11,9 +11,11 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat Namespace { get; }
         public static SymbolDisplayFormat ClassDeclaration { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
+        public static SymbolDisplayFormat PropertyDeclaration { get; }
         public static SymbolDisplayFormat MethodDeclaration { get; }
         public static SymbolDisplayFormat MethodReturnType { get; }
         public static SymbolDisplayFormat ParameterReference { get; }
+        public static SymbolDisplayFormat PropertyReference { get; }
 
         static SymbolDisplayFormats()
         {
@@ -31,6 +33,14 @@ namespace RestEase.SourceGenerator.Implementation
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+            PropertyDeclaration = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             MethodDeclaration = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -56,6 +66,9 @@ namespace RestEase.SourceGenerator.Implementation
 
             ParameterReference = new SymbolDisplayFormat(
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+            PropertyReference = new SymbolDisplayFormat(
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
         }
     }

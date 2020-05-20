@@ -76,14 +76,14 @@ namespace RestEase.Implementation.Emission
             ilGenerator.Emit(OpCodes.Ret);
         }
 
-        public EmittedProperty EmitProperty(PropertyModel property)
+        public EmittedProperty EmitProperty(PropertyModel propertyModel)
         {
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
 
-            var propertyBuilder = this.typeBuilder.DefineProperty(property.PropertyInfo.Name, PropertyAttributes.None, property.PropertyInfo.PropertyType, null);
-            var getter = this.typeBuilder.DefineMethod(property.PropertyInfo.GetMethod.Name, attributes, property.PropertyInfo.PropertyType, new Type[0]);
-            var setter = this.typeBuilder.DefineMethod(property.PropertyInfo.SetMethod.Name, attributes, null, new Type[] { property.PropertyInfo.PropertyType });
-            var backingField = this.typeBuilder.DefineField("bk_" + property.PropertyInfo.Name, property.PropertyInfo.PropertyType, FieldAttributes.Private);
+            var propertyBuilder = this.typeBuilder.DefineProperty(propertyModel.PropertyInfo.Name, PropertyAttributes.None, propertyModel.PropertyInfo.PropertyType, null);
+            var getter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.GetMethod.Name, attributes, propertyModel.PropertyInfo.PropertyType, new Type[0]);
+            var setter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.SetMethod.Name, attributes, null, new Type[] { propertyModel.PropertyInfo.PropertyType });
+            var backingField = this.typeBuilder.DefineField("bk_" + propertyModel.PropertyInfo.Name, propertyModel.PropertyInfo.PropertyType, FieldAttributes.Private);
 
             var getterIlGenerator = getter.GetILGenerator();
             getterIlGenerator.Emit(OpCodes.Ldarg_0);
@@ -98,15 +98,15 @@ namespace RestEase.Implementation.Emission
             setterIlGenerator.Emit(OpCodes.Ret);
             propertyBuilder.SetSetMethod(setter);
 
-            return new EmittedProperty(property, backingField);
+            return new EmittedProperty(propertyModel, backingField);
         }
 
-        public void EmitRequesterProperty(PropertyModel property)
+        public void EmitRequesterProperty(PropertyModel propertyModel)
         {
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
             
-            var propertyBuilder = this.typeBuilder.DefineProperty(property.PropertyInfo.Name, PropertyAttributes.None, property.PropertyInfo.PropertyType, null);
-            var getter = this.typeBuilder.DefineMethod(property.PropertyInfo.GetMethod.Name, attributes, property.PropertyInfo.PropertyType, new Type[0]);
+            var propertyBuilder = this.typeBuilder.DefineProperty(propertyModel.PropertyInfo.Name, PropertyAttributes.None, propertyModel.PropertyInfo.PropertyType, null);
+            var getter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.GetMethod.Name, attributes, propertyModel.PropertyInfo.PropertyType, new Type[0]);
             var getterIlGenerator = getter.GetILGenerator();
             getterIlGenerator.Emit(OpCodes.Ldarg_0);
             getterIlGenerator.Emit(OpCodes.Ldfld, this.requesterField);
@@ -129,9 +129,9 @@ namespace RestEase.Implementation.Emission
             ilGenerator.Emit(OpCodes.Ret);
         }
 
-        public MethodEmitter EmitMethod(MethodModel method)
+        public MethodEmitter EmitMethod(MethodModel methodModel)
         { 
-            var methodEmitter = new MethodEmitter(this.typeBuilder, method, this.numMethods, this.requesterField, this.classHeadersField);
+            var methodEmitter = new MethodEmitter(this.typeBuilder, methodModel, this.numMethods, this.requesterField, this.classHeadersField);
             this.numMethods++;
             return methodEmitter;
         }

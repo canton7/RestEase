@@ -1,6 +1,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using RestEase.Implementation.Analysis;
@@ -16,6 +17,7 @@ namespace RestEase.Implementation.Emission
         private readonly int index;
         private readonly string namespaceName;
         private readonly string typeName;
+        private readonly string requesterFieldName;
         private int numMethods;
 
         public TypeEmitter(TypeModel typeModel, int index)
@@ -25,10 +27,26 @@ namespace RestEase.Implementation.Emission
             this.writer = new IndentedTextWriter(this.stringWriter);
             this.namespaceName = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace) + ".RestEaseGeneratedTypes";
             this.typeName = "Implementation_" + this.index + "_" + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassDeclaration);
+            this.requesterFieldName = this.GenerateRequesterFieldName();
 
             this.AddClassDeclaration();
             this.AddInstanceCtor();
             this.AddStaticCtor();
+        }
+
+        private string GenerateRequesterFieldName()
+        {
+            string? name = "requester";
+            if (this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name))
+            {
+                int i = 1;
+                do
+                {
+                    name = "requester" + i;
+                    i++;
+                } while (this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name));
+            }
+            return name;
         }
 
         private void AddClassDeclaration()
@@ -49,16 +67,16 @@ namespace RestEase.Implementation.Emission
             this.writer.Indent++;
 
             // TODO: Do we need a special name for this?
-            this.writer.WriteLine("private readonly global::RestEase.IRequester requester;");
+            this.writer.WriteLine("private readonly global::RestEase.IRequester " + this.requesterFieldName + ";");
         }
 
         private void AddInstanceCtor()
         {
-            this.writer.WriteLine("public " + this.typeName + "(global::RestEase.IRequester requester)");
+            this.writer.WriteLine("public " + this.typeName + "(global::RestEase.IRequester " + this.requesterFieldName + ")");
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
-            this.writer.WriteLine("this.requester = requester;");
+            this.writer.WriteLine("this." + this.requesterFieldName + " = requester;");
 
             this.writer.Indent--;
             this.writer.WriteLine("}");
@@ -69,12 +87,14 @@ namespace RestEase.Implementation.Emission
             // TODO...
         }
 
-        public EmittedProperty EmitProperty(PropertyModel property)
+        public EmittedProperty EmitProperty(PropertyModel propertyModel)
         {
-            throw new NotImplementedException();
+            // Because the property is declared on the interface, we don't get any generated accessibility
+            this.writer.WriteLine("public " + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyDeclaration));
+            return new EmittedProperty(propertyModel);
         }
 
-        public void EmitRequesterProperty(PropertyModel property)
+        public void EmitRequesterProperty(PropertyModel propertyModel)
         {
             throw new NotImplementedException();
         }
@@ -84,10 +104,10 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public MethodEmitter EmitMethod(MethodModel method)
+        public MethodEmitter EmitMethod(MethodModel methodModel)
         {
             this.numMethods++;
-            return new MethodEmitter(method, this.writer, this.namespaceName + "." + this.typeName, this.numMethods);
+            return new MethodEmitter(methodModel, this.writer, this.namespaceName + "." + this.typeName, this.requesterFieldName, this.numMethods);
         }
 
         public EmittedType Generate()

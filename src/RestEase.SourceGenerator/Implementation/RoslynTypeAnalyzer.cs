@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Analysis;
@@ -16,19 +17,53 @@ namespace RestEase.SourceGenerator.Implementation
 
         public TypeModel Analyze()
         {
-            var typeModel = new TypeModel(this.namedTypeSymbol);
+            var attributes = AttributeInstantiator.Instantiate(this.namedTypeSymbol);
+            
+            var typeModel = new TypeModel(this.namedTypeSymbol)
+            {
+                SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+            };
 
             foreach (var member in this.namedTypeSymbol.GetMembers())
             {
                 switch (member)
                 {
-                    case IMethodSymbol method:
+                    case IPropertySymbol property:
+                        typeModel.Properties.Add(this.GetProperty(property));
+                        break;
+                    case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary:
                         typeModel.Methods.Add(this.GetMethod(method));
                         break;
                 }
             }
 
             return typeModel;
+
+            AttributeModel<T>? Get<T>() where T : Attribute
+            {
+                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
+                return attribute == null ? null : AttributeModel.Create(attribute);
+            }
+        }
+
+        private PropertyModel GetProperty(IPropertySymbol propertySymbol)
+        {
+            var attributes = AttributeInstantiator.Instantiate(propertySymbol).ToList();
+
+            var model = new PropertyModel(propertySymbol)
+            {
+                QueryAttribute = Get<QueryAttribute>(),
+                HasGetter = propertySymbol.GetMethod != null,
+                HasSetter = propertySymbol.SetMethod != null,
+            };
+
+            return model;
+
+            AttributeModel<T>? Get<T>() where T : Attribute
+            {
+                var attribute = (T?)attributes.FirstOrDefault(x => x is T);
+                return attribute == null ? null : AttributeModel.Create(attribute);
+            }
         }
 
         private MethodModel GetMethod(IMethodSymbol methodSymbol)
@@ -54,7 +89,6 @@ namespace RestEase.SourceGenerator.Implementation
         private ParameterModel GetParameter(IParameterSymbol parameterSymbol)
         {
             var attributes = AttributeInstantiator.Instantiate(parameterSymbol).ToList();
-
 
             var model = new ParameterModel(parameterSymbol)
             {
