@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RestEaseUnitTests.ImplementationFactoryTests
+namespace RestEaseUnitTests.RequesterTests
 {
     public class DictionaryIteratorTests
     {

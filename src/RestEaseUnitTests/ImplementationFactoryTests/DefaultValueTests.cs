@@ -34,7 +34,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         {
             var implementation = this.CreateImplementation<IHasDefaultValue>();
 
-            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name.EndsWith(".GetFooAsync"));
+            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name.EndsWith("GetFooAsync"));
             var parameters = methodInfo.GetParameters();
 
             Assert.Equal("foo", parameters[0].Name);
