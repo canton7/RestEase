@@ -88,7 +88,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitSetAllowAnyStatusCode()
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AllowAnyStatusCode = true;");
         }
 
         public void EmitSetBasePath(string basePath)
@@ -189,7 +189,6 @@ namespace RestEase.Implementation.Emission
             // This is also the end of the method
             this.writer.Indent--;
             this.writer.WriteLine("}");
-            this.writer.Indent--;
 
             return methodName != null;
         }

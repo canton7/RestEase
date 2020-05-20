@@ -1,12 +1,11 @@
-﻿using Moq;
-using RestEase;
-using RestEase.Implementation;
+﻿using RestEase;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class AllowAnyStatusCodeTests
+    public class AllowAnyStatusCodeTests : ImplementationFactoryTestsBase
     {
         public interface IHasNoAllowAnyStatusCode
         {
@@ -32,21 +31,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task HasAttributeAsync();
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public AllowAnyStatusCodeTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void DefaultsToFalse()
         {
-            var implementation = this.factory.CreateImplementation<IHasNoAllowAnyStatusCode>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasNoAllowAnyStatusCode>(x => x.FooAsync());
 
             Assert.False(requestInfo.AllowAnyStatusCode);
         }
@@ -54,15 +44,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void RespectsAllowAnyStatusCodeOnMethod()
         {
-            var implementation = this.factory.CreateImplementation<IHasMethodWithAllowAnyStatusCode>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasMethodWithAllowAnyStatusCode>(x => x.FooAsync());
 
             Assert.True(requestInfo.AllowAnyStatusCode);
         }
@@ -70,15 +52,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void RespectsAllowAnyStatusCodeOnInterface()
         {
-            var implementation = this.factory.CreateImplementation<IHasAllowAnyStatusCode>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.NoAttributeAsync();
+            var requestInfo = this.Request<IHasAllowAnyStatusCode>(x => x.NoAttributeAsync());
 
             Assert.True(requestInfo.AllowAnyStatusCode);
         }
@@ -86,15 +60,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AllowsAllowAnyStatusCodeOnMethodToOverrideThatOnInterface()
         {
-            var implementation = this.factory.CreateImplementation<IHasAllowAnyStatusCode>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.HasAttributeAsync();
+            var requestInfo = this.Request<IHasAllowAnyStatusCode>(x => x.HasAttributeAsync());
 
             Assert.False(requestInfo.AllowAnyStatusCode);
         }

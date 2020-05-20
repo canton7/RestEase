@@ -112,6 +112,7 @@ namespace RestEase.Implementation.Emission
 
         public EmittedType Generate()
         {
+            this.writer.Indent--;
             this.writer.WriteLine("}");
             this.writer.Indent--;
             this.writer.WriteLine("}");

@@ -24,7 +24,11 @@ namespace RestEase.Implementation
 
         public TypeModel Analyze()
         {
-            var typeModel = new TypeModel(this.interfaceType);
+            var typeModel = new TypeModel(this.interfaceType)
+            {
+                SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                BasePathAttribute = Get<BasePathAttribute>(),
+            };
 
             var headerAttributes = this.InterfaceAndParents(x => x.GetCustomAttributes<HeaderAttribute>())
                 .Select(x => AttributeModel.Create(x));
@@ -36,8 +40,6 @@ namespace RestEase.Implementation
                                                select new AllowAnyStatusCodeAttributeModel(attribute, type.AsType());
             typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
             typeModel.Events.AddRange(this.InterfaceAndParents(x => x.GetEvents()).Select(x => EventModel.Instance));
-            typeModel.SerializationMethodsAttribute = Get<SerializationMethodsAttribute>();
-            typeModel.BasePathAttribute = Get<BasePathAttribute>();
             typeModel.Properties.AddRange(this.InterfaceAndParents(x => x.GetProperties()).Select(this.GetProperty));
 
             foreach (var methodInfo in this.InterfaceAndParents(x => x.GetMethods()))

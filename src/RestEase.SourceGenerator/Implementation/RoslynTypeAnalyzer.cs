@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -23,6 +24,14 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
             };
+
+            var allowAnyStatusCodeAttributes = from type in this.InterfaceAndParents()
+                                               let attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.AllowAnyStatusCodeAttribute")
+                                               where attribute != null
+                                               let instantiatedAttribute = AttributeInstantiator.Instantiate(attribute) as AllowAnyStatusCodeAttribute
+                                               where instantiatedAttribute != null
+                                               select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type);
+            typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
 
             foreach (var member in this.namedTypeSymbol.GetMembers())
             {
@@ -73,6 +82,7 @@ namespace RestEase.SourceGenerator.Implementation
             var model = new MethodModel(methodSymbol)
             {
                 RequestAttribute = Get<RequestAttribute>(),
+                AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
             };
 
             model.Parameters.AddRange(methodSymbol.Parameters.Select(this.GetParameter));
@@ -102,6 +112,15 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 var attribute = (T?)attributes.FirstOrDefault(x => x is T);
                 return attribute == null ? null : AttributeModel.Create(attribute);
+            }
+        }
+
+        private IEnumerable<INamedTypeSymbol> InterfaceAndParents()
+        {
+            yield return this.namedTypeSymbol;
+            foreach (var parent in this.namedTypeSymbol.AllInterfaces)
+            {
+                yield return parent;
             }
         }
     }

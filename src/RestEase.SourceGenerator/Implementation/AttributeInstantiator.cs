@@ -28,6 +28,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             var attribute = attributeMetadataName switch
             {
+                "RestEase.AllowAnyStatusCodeAttribute" => ParseAllowAnyStatusCodeAttribute(attributeData),
                 "RestEase.QueryAttribute" => ParseQueryAttribute(attributeData),
                 "RestEase.SerializationMethodsAttribute" => ParseSerializationMethodsAttribute(attributeData),
                 "RestEase.GetAttribute" => ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x)),
@@ -36,7 +37,35 @@ namespace RestEase.SourceGenerator.Implementation
 
             return attribute;
         }
-        
+
+        private static Attribute? ParseAllowAnyStatusCodeAttribute(AttributeData attributeData)
+        {
+            AllowAnyStatusCodeAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 0)
+            {
+                attribute = new AllowAnyStatusCodeAttribute();
+            }
+            else if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_Boolean)
+            {
+                attribute = new AllowAnyStatusCodeAttribute((bool)attributeData.ConstructorArguments[0].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    if (namedArgument.Key == "AllowAnyStatusCode" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_Boolean)
+                    {
+                        attribute.AllowAnyStatusCode = (bool)namedArgument.Value.Value!;
+                    }
+                }
+            }
+
+            return attribute;
+        }
+
         private static Attribute? ParseQueryAttribute(AttributeData attributeData)
         {
             QueryAttribute? attribute = null;
