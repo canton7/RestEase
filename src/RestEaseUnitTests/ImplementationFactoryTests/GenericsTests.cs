@@ -7,10 +7,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class GenericsTests
+    public class GenericsTests : ImplementationFactoryTestsBase
     {
         public interface IHasGenericMethod
         {
@@ -44,52 +45,34 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task Foo<T>() where T : Base, IInterface, new();
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public GenericsTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void SupportsGenericMethods()
         {
-            this.factory.CreateImplementation<IHasGenericMethod>(this.requester.Object);
+            this.Request<IHasGenericMethod>(x => x.Foo<string>());
         }
 
         [Fact]
         public void SupportsGenericReturnType()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericReturnType>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestAsync<string>(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult("blah"));
-
-            Assert.Equal("blah", implementation.Foo<string>().Result);
+            // This asserts that the response type is as requested
+            this.Request<IHasGenericReturnType, string>(x => x.Foo<string>(), "blah");
         }
 
         [Fact]
         public void SupportsGenericResponseReturnType()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericResponseReturnType>(this.requester.Object);
+            var response = new Response<string>("blah", null, null);
 
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(new Response<string>("blah", null, null)));
-
-            Assert.Equal("blah", implementation.Foo<string>().Result.StringContent);
+            // This asserts that the response type is as requested
+            this.RequestWithResponse<IHasGenericResponseReturnType, string>(x => x.Foo<string>(), response);
         }
 
         [Fact]
         public void SupportsGenericMethodParameters()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericParameters>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.Foo("foo", "bar", new[] { "a", "b" }, new[] { "c", "d" });
+            var requestInfo = this.Request<IHasGenericParameters>(x => x.Foo("foo", "bar", new[] { "a", "b" }, new[] { "c", "d" }));
 
             var pathParams = requestInfo.PathParams.ToArray();
             Assert.Single(pathParams);
@@ -114,7 +97,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SupportsGenericConstraints()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericConstraint>(this.requester.Object);
+            var implementation = this.CreateImplementation<IHasGenericConstraint>();
             var methodInfo = implementation.GetType().GetMethod("Foo");
             Assert.Equal(new[] { typeof(IInterface), typeof(Base) }, methodInfo.GetGenericArguments()[0].GetGenericParameterConstraints());
             Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, methodInfo.GetGenericArguments()[0].GetGenericParameterAttributes());

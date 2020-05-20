@@ -15,9 +15,12 @@ using RestEase.Implementation;
 using System.Collections.Generic;
 using RestEaseUnitTests.ImplementationFactoryTests.Helpers;
 using Xunit.Abstractions;
+using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
+using System.Linq.Expressions;
 #else
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Moq;
 using RestEase;
@@ -150,19 +153,43 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             return new DiagnosticResult(code, squiggledText);
         }
 
-        protected IRequestInfo Request<T>(T implementation, Func<T, Task> method)
+        protected IRequestInfo Request<TType>(
+            TType implementation,
+            Func<TType, Task> method,
+            Expression<Func<IRequester, Task>> requesterMethod)
         {
             IRequestInfo requestInfo = null;
-            var expectedResponse = Task.FromResult(false);
+            var returnValue = Task.FromResult(false);
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+            this.requester.Setup(requesterMethod)
                 .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
+                .Returns(returnValue)
                 .Verifiable();
 
             var response = method(implementation);
 
-            Assert.Equal(expectedResponse, response);
+            Assert.Equal(returnValue, response);
+            this.requester.Verify();
+
+            return requestInfo;
+        }
+
+        protected IRequestInfo Request<TType, TReturnType>(
+            TType implementation,
+            Func<TType, Task<TReturnType>> method,
+            Expression<Func<IRequester, Task<TReturnType>>> requesterMethod,
+            TReturnType returnValue)
+        {
+            IRequestInfo requestInfo = null;
+
+            this.requester.Setup(requesterMethod)
+                .Callback((IRequestInfo r) => requestInfo = r)
+                .ReturnsAsync(returnValue)
+                .Verifiable();
+
+            var response = method(implementation);
+
+            Assert.Equal(returnValue, response.Result);
             this.requester.Verify();
 
             return requestInfo;
@@ -171,7 +198,17 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         protected IRequestInfo Request<T>(Func<T, Task> method)
         {
-            return this.Request(this.CreateImplementation<T>(), method);
+            return this.Request(this.CreateImplementation<T>(), method, x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()));
+        }
+
+        protected IRequestInfo Request<TType, TReturnType>(Func<TType, Task<TReturnType>> method, TReturnType returnValue)
+        {
+            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestAsync<TReturnType>(It.IsAny<IRequestInfo>()), returnValue);
+        }
+
+        protected IRequestInfo RequestWithResponse<TType, TReturnType>(Func<TType, Task<Response<TReturnType>>> method, Response<TReturnType> returnValue)
+        {
+            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestWithResponseAsync<TReturnType>(It.IsAny<IRequestInfo>()), returnValue);
         }
     }
 }
