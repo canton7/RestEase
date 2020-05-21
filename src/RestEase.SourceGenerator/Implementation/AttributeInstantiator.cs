@@ -6,48 +6,69 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace RestEase.SourceGenerator.Implementation
 {
-    public static class AttributeInstantiator
+    internal class AttributeInstantiator
     {
-        private static readonly Assembly assembly = typeof(AttributeInstantiator).Assembly;
+        private readonly WellKnownSymbols wellKnownSymbols;
 
-        public static IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol)
+        public AttributeInstantiator(WellKnownSymbols wellKnownSymbols)
         {
-            return symbol.GetAttributes().Select(x => (Instantiate(x), x));
+            this.wellKnownSymbols = wellKnownSymbols;
         }
 
-        public static Attribute? Instantiate(AttributeData attributeData)
+        public IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol)
         {
-            string? attributeMetadataName = attributeData.AttributeClass?.ToDisplayString(SymbolDisplayFormats.TypeLookup);
-            if (attributeMetadataName == null)
+            return symbol.GetAttributes().Select(x => (this.Instantiate(x), x));
+        }
+
+        public Attribute? Instantiate(AttributeData attributeData)
+        {
+            var attributeClass = attributeData.AttributeClass;
+            if (attributeClass == null)
             {
                 return null;
             }
 
-            var attribute = attributeMetadataName switch
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.AllowAnyStatusCodeAttribute))
             {
-                "RestEase.AllowAnyStatusCodeAttribute" => ParseAllowAnyStatusCodeAttribute(attributeData),
-                "RestEase.BasePathAttribute" => ParseBasePathAttribute(attributeData),
-                "RestEase.PathAttribute" => ParsePathAttribute(attributeData),
-                "RestEase.QueryAttribute" => ParseQueryAttribute(attributeData),
-                "RestEase.SerializationMethodsAttribute" => ParseSerializationMethodsAttribute(attributeData),
-                "RestEase.GetAttribute" => ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x)),
-                _ => null,
-            };
+                return this.ParseAllowAnyStatusCodeAttribute(attributeData);
+            }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.BasePathAttribute))
+            {
+                return this.ParseBasePathAttribute(attributeData);
+            }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.PathAttribute))
+            {
+                return this.ParsePathAttribute(attributeData);
+            }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.QueryAttribute))
+            {
+                return this.ParseQueryAttribute(attributeData);
+            }    
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.SerializationMethodsAttribute))
+            {
+                return this.ParseSerializationMethodsAttribute(attributeData);
+            }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.GetAttribute))
+            {
+                return this.ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x));
+            }
 
-            return attribute;
+            return null;
         }
 
-        private static Attribute? ParseAllowAnyStatusCodeAttribute(AttributeData attributeData)
+        private Attribute? ParseAllowAnyStatusCodeAttribute(AttributeData attributeData)
         {
             AllowAnyStatusCodeAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
             {
                 attribute = new AllowAnyStatusCodeAttribute();
             }
-            else if (attributeData.ConstructorArguments.Length == 1 && IsBool(attributeData.ConstructorArguments[0]))
+            else if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_Boolean)
             {
                 attribute = new AllowAnyStatusCodeAttribute((bool)attributeData.ConstructorArguments[0].Value!);
             }
@@ -56,7 +77,8 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "AllowAnyStatusCode" && IsBool(namedArgument.Value))
+                    if (namedArgument.Key == "AllowAnyStatusCode" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_Boolean)
                     {
                         attribute.AllowAnyStatusCode = (bool)namedArgument.Value.Value!;
                     }
@@ -66,14 +88,15 @@ namespace RestEase.SourceGenerator.Implementation
             return attribute;
         }
 
-        private static Attribute? ParseBasePathAttribute(AttributeData attributeData)
+        private Attribute? ParseBasePathAttribute(AttributeData attributeData)
         {
-            return attributeData.ConstructorArguments.Length == 1 && IsString(attributeData.ConstructorArguments[0])
+            return attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String
                 ? new BasePathAttribute((string)attributeData.ConstructorArguments[0].Value!)
                 : null;
         }
 
-        private static Attribute? ParsePathAttribute(AttributeData attributeData)
+        private Attribute? ParsePathAttribute(AttributeData attributeData)
         {
             PathAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -82,18 +105,19 @@ namespace RestEase.SourceGenerator.Implementation
             }
             else if (attributeData.ConstructorArguments.Length == 1)
             {
-                if (IsString(attributeData.ConstructorArguments[0]))
+                if (attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
                 {
                     attribute = new PathAttribute((string)attributeData.ConstructorArguments[0].Value!);
                 }
-                else if (IsPathSerializationMethod(attributeData.ConstructorArguments[0]))
+                else if (SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.PathSerializationMethod))
                 {
                     attribute = new PathAttribute((PathSerializationMethod)attributeData.ConstructorArguments[0].Value!);
                 }
             }
             else if (attributeData.ConstructorArguments.Length == 2)
             {
-                if (IsString(attributeData.ConstructorArguments[0]) && IsPathSerializationMethod(attributeData.ConstructorArguments[1]))
+                if (attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String &&
+                    SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[1].Type, this.wellKnownSymbols.PathSerializationMethod))
                 {
                     attribute = new PathAttribute((string)attributeData.ConstructorArguments[0].Value!, (PathSerializationMethod)attributeData.ConstructorArguments[1].Value!);
                 }
@@ -103,19 +127,23 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Name" && IsString(namedArgument.Value))
+                    if (namedArgument.Key == "Name" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Name = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == "SerializationMethod" && IsPathSerializationMethod(namedArgument.Value))
+                    else if (namedArgument.Key == "SerializationMethod" &&
+                        SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.PathSerializationMethod))
                     {
                         attribute.SerializationMethod = (PathSerializationMethod)namedArgument.Value.Value!;
                     }
-                    else if (namedArgument.Key == "Format" && IsString(namedArgument.Value))
+                    else if (namedArgument.Key == "Format" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == "UrlEncode" && IsBool(namedArgument.Value))
+                    else if (namedArgument.Key == "UrlEncode" && 
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_Boolean)
                     {
                         attribute.UrlEncode = (bool)namedArgument.Value.Value!;
                     }
@@ -125,7 +153,7 @@ namespace RestEase.SourceGenerator.Implementation
             return attribute;
         }
 
-        private static Attribute? ParseQueryAttribute(AttributeData attributeData)
+        private Attribute? ParseQueryAttribute(AttributeData attributeData)
         {
             QueryAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -134,18 +162,19 @@ namespace RestEase.SourceGenerator.Implementation
             }
             else if (attributeData.ConstructorArguments.Length == 1)
             {
-                if (IsString(attributeData.ConstructorArguments[0]))
+                if (attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
                 {
                     attribute = new QueryAttribute((string?)attributeData.ConstructorArguments[0].Value);
                 }
-                else if (IsQuerySerializationMethod(attributeData.ConstructorArguments[0]))
+                else if (SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.QuerySerializationMethod))
                 {
                     attribute = new QueryAttribute((QuerySerializationMethod)attributeData.ConstructorArguments[0].Value!);
                 }
             }
             else if (attributeData.ConstructorArguments.Length == 2)
             {
-                if (IsString(attributeData.ConstructorArguments[0]) && IsQuerySerializationMethod(attributeData.ConstructorArguments[1]))
+                if (attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String &&
+                    SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[1].Type, this.wellKnownSymbols.QuerySerializationMethod))
                 {
                     attribute = new QueryAttribute((string?)attributeData.ConstructorArguments[0].Value, (QuerySerializationMethod)attributeData.ConstructorArguments[1].Value!);
                 }
@@ -155,15 +184,18 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Name" && IsString(namedArgument.Value))
+                    if (namedArgument.Key == "Name" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Name = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == "SerializationMethod" && IsQuerySerializationMethod(namedArgument.Value))
+                    else if (namedArgument.Key == "SerializationMethod" &&
+                        SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.QuerySerializationMethod))
                     {
                         attribute.SerializationMethod = (QuerySerializationMethod)namedArgument.Value.Value!;
                     }
-                    else if (namedArgument.Key == "Format" && IsString(namedArgument.Value))
+                    else if (namedArgument.Key == "Format" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
                     }
@@ -173,7 +205,7 @@ namespace RestEase.SourceGenerator.Implementation
             return attribute;
         }
 
-        private static Attribute? ParseSerializationMethodsAttribute(AttributeData attributeData)
+        private Attribute? ParseSerializationMethodsAttribute(AttributeData attributeData)
         {
             var attribute = attributeData.ConstructorArguments.Length == 0 ? new SerializationMethodsAttribute() : null;
 
@@ -182,17 +214,17 @@ namespace RestEase.SourceGenerator.Implementation
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
                     if (namedArgument.Key == "Body" &&
-                        namedArgument.Value.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.BodySerializationMethod")
+                        SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.BodySerializationMethod))
                     {
                         attribute.Body = (BodySerializationMethod)namedArgument.Value.Value!;
                     }
                     else if (namedArgument.Key == "Query" &&
-                        namedArgument.Value.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.QuerySerializationMethod")
+                        SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.QuerySerializationMethod))
                     {
                         attribute.Query = (QuerySerializationMethod)namedArgument.Value.Value!;
                     }
                     else if (namedArgument.Key == "Path" &&
-                        namedArgument.Value.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.PathSerializationMethod")
+                        SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.PathSerializationMethod))
                     {
                         attribute.Path = (PathSerializationMethod)namedArgument.Value.Value!;
                     }
@@ -202,7 +234,7 @@ namespace RestEase.SourceGenerator.Implementation
             return attribute;
         }
 
-        private static Attribute? ParseRequestAttributeSubclass(
+        private Attribute? ParseRequestAttributeSubclass(
             AttributeData attributeData,
             Func<RequestAttribute> parameterlessCtor,
             Func<string, RequestAttribute> pathCtor)
@@ -212,7 +244,8 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 attribute = parameterlessCtor();
             }
-            else if (attributeData.ConstructorArguments.Length == 1 && IsString(attributeData.ConstructorArguments[0]))
+            else if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
             {
                 attribute = pathCtor((string)attributeData.ConstructorArguments[0].Value!);
             }
@@ -223,7 +256,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             foreach (var namedArgument in attributeData.NamedArguments)
             {
-                if (namedArgument.Key == "Path" && IsString(namedArgument.Value))
+                if (namedArgument.Key == "Path" &&
+                    namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                 {
                     attribute.Path = (string?)namedArgument.Value.Value;
                 }
@@ -231,10 +265,5 @@ namespace RestEase.SourceGenerator.Implementation
 
             return attribute;
         }
-
-        private static bool IsBool(TypedConstant typedConstant) => typedConstant.Type.SpecialType == SpecialType.System_Boolean;
-        private static bool IsString(TypedConstant typedConstant) => typedConstant.Type.SpecialType == SpecialType.System_String;
-        private static bool IsQuerySerializationMethod(TypedConstant typedConstant) => typedConstant.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.QuerySerializationMethod";
-        private static bool IsPathSerializationMethod(TypedConstant typedConstant) => typedConstant.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.PathSerializationMethod";
     }
 }

@@ -96,7 +96,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         protected T CreateImplementation<T>()
         {
             var namedTypeSymbol = executionCompilation.GetTypeByMetadataName(typeof(T).FullName);
-            var (sourceText, _) = this.implementationFactory.CreateImplementation(namedTypeSymbol);
+            var (sourceText, _) = this.implementationFactory.CreateImplementation(executionCompilation, namedTypeSymbol);
 
             Assert.NotNull(sourceText);
             this.output.WriteLine(sourceText.ToString());
@@ -118,7 +118,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
         {
             var namedTypeSymbol = diagnosticsCompilation.GetTypeByMetadataName(typeof(T).FullName);
-            var (_, diagnostics) = this.implementationFactory.CreateImplementation(namedTypeSymbol);
+            var (_, diagnostics) = this.implementationFactory.CreateImplementation(diagnosticsCompilation, namedTypeSymbol);
             DiagnosticVerifier.VerifyDiagnostics(diagnostics, expected);
         }
 

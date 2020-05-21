@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator;
@@ -14,15 +15,23 @@ namespace RestEase.Implementation.Emission
     {
         private readonly MethodModel methodModel;
         private readonly IndentedTextWriter writer;
+        private readonly WellKnownSymbols wellKnownSymbols;
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
         private readonly int index;
         private readonly string requestInfoLocalName;
 
-        public MethodEmitter(MethodModel methodModel, IndentedTextWriter writer, string qualifiedTypeName, string requesterFieldName, int index)
+        public MethodEmitter(
+            MethodModel methodModel,
+            IndentedTextWriter writer,
+            WellKnownSymbols wellKnownSymbols,
+            string qualifiedTypeName,
+            string requesterFieldName,
+            int index)
         {
             this.methodModel = methodModel;
             this.writer = writer;
+            this.wellKnownSymbols = wellKnownSymbols;
             this.qualifiedTypeName = qualifiedTypeName;
             this.requesterFieldName = requesterFieldName;
             this.index = index;
@@ -180,8 +189,8 @@ namespace RestEase.Implementation.Emission
         {
             // Call the appropriate RequestVoidAsync/RequestAsync method, depending on whether or not we have a return type
             string? methodName = null;
-            string returnType = this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.TypeLookup);
-            if (returnType == "System.Threading.Tasks.Task")
+            var returnType = this.methodModel.MethodSymbol.ReturnType;
+            if (SymbolEqualityComparer.Default.Equals(returnType, this.wellKnownSymbols.Task))
             {
                 methodName = "RequestVoidAsync";
             }

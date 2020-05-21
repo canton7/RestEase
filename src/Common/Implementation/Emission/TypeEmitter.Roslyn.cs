@@ -14,15 +14,17 @@ namespace RestEase.Implementation.Emission
         private readonly StringWriter stringWriter = new StringWriter();
         private readonly IndentedTextWriter writer;
         private readonly TypeModel typeModel;
+        private readonly WellKnownSymbols wellKnownSymbols;
         private readonly int index;
         private readonly string namespaceName;
         private readonly string typeName;
         private readonly string requesterFieldName;
         private int numMethods;
 
-        public TypeEmitter(TypeModel typeModel, int index)
+        public TypeEmitter(TypeModel typeModel, WellKnownSymbols wellKnownSymbols, int index)
         {
             this.typeModel = typeModel;
+            this.wellKnownSymbols = wellKnownSymbols;
             this.index = index;
             this.writer = new IndentedTextWriter(this.stringWriter);
             this.namespaceName = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace) + ".RestEaseGeneratedTypes";
@@ -107,7 +109,13 @@ namespace RestEase.Implementation.Emission
         public MethodEmitter EmitMethod(MethodModel methodModel)
         {
             this.numMethods++;
-            return new MethodEmitter(methodModel, this.writer, this.namespaceName + "." + this.typeName, this.requesterFieldName, this.numMethods);
+            return new MethodEmitter(
+                methodModel,
+                this.writer,
+                this.wellKnownSymbols,
+                this.namespaceName + "." + this.typeName,
+                this.requesterFieldName,
+                this.numMethods);
         }
 
         public EmittedType Generate()

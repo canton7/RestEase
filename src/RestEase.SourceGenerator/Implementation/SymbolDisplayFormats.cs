@@ -7,7 +7,6 @@ namespace RestEase.SourceGenerator.Implementation
 {
     internal static class SymbolDisplayFormats
     {
-        public static SymbolDisplayFormat TypeLookup { get; }
         public static SymbolDisplayFormat Namespace { get; }
         public static SymbolDisplayFormat ClassDeclaration { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
@@ -19,9 +18,6 @@ namespace RestEase.SourceGenerator.Implementation
 
         static SymbolDisplayFormats()
         {
-            TypeLookup = new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-
             Namespace = new SymbolDisplayFormat();
 
             ClassDeclaration = new SymbolDisplayFormat(

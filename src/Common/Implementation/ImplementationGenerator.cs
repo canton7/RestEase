@@ -308,7 +308,7 @@ namespace RestEase.Implementation
                 var missingParams = placeholders.Except(pathProperties.Select(x => x.PathAttributeName!));
                 foreach (string missingParam in missingParams)
                 {
-                    this.diagnostics.ReportMissingPathPropertyForBasePathPlaceholder(this.typeModel.BasePathAttribute!, basePath, missingParam);
+                    this.diagnostics.ReportMissingPathPropertyForBasePathPlaceholder(this.typeModel, this.typeModel.BasePathAttribute!, basePath, missingParam);
                 }
             }
         }

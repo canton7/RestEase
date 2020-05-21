@@ -106,7 +106,7 @@ namespace RestEase.SourceGenerator
 
         private void ProcessType(INamedTypeSymbol namedTypeSymbol)
         {
-            var (sourceText, diagnostics) = this.factory.CreateImplementation(namedTypeSymbol);
+            var (sourceText, diagnostics) = this.factory.CreateImplementation(this.context.Compilation, namedTypeSymbol);
             foreach (var diagnostic in diagnostics)
             {
                 this.context.ReportDiagnostic(diagnostic);

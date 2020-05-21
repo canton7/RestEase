@@ -62,7 +62,7 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException($"Property {property.PropertyInfo.Name}: there must not be more than one property of type {nameof(IRequester)}");
         }
 
-        public void ReportMissingPathPropertyForBasePathPlaceholder(AttributeModel<BasePathAttribute> _, string basePath, string missingParam)
+        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel _, AttributeModel<BasePathAttribute> _2, string basePath, string missingParam)
         {
             throw new ImplementationCreationException(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder
                 , $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");

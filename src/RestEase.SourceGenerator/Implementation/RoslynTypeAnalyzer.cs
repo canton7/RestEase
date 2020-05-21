@@ -10,15 +10,19 @@ namespace RestEase.SourceGenerator.Implementation
     internal class RoslynTypeAnalyzer
     {
         private readonly INamedTypeSymbol namedTypeSymbol;
+        private readonly WellKnownSymbols wellKnownSymbols;
+        private readonly AttributeInstantiator attributeInstantiator;
 
-        public RoslynTypeAnalyzer(INamedTypeSymbol namedTypeSymbol)
+        public RoslynTypeAnalyzer(INamedTypeSymbol namedTypeSymbol, WellKnownSymbols wellKnownSymbols)
         {
             this.namedTypeSymbol = namedTypeSymbol;
+            this.wellKnownSymbols = wellKnownSymbols;
+            this.attributeInstantiator = new AttributeInstantiator(wellKnownSymbols);
         }
 
         public TypeModel Analyze()
         {
-            var attributes = AttributeInstantiator.Instantiate(this.namedTypeSymbol);
+            var attributes = this.attributeInstantiator.Instantiate(this.namedTypeSymbol);
             
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
@@ -27,9 +31,10 @@ namespace RestEase.SourceGenerator.Implementation
             };
 
             var allowAnyStatusCodeAttributes = from type in this.InterfaceAndParents()
-                                               let attributeData = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "RestEase.AllowAnyStatusCodeAttribute")
+                                               let attributeData = type.GetAttributes()
+                                                   .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.AllowAnyStatusCodeAttribute))
                                                where attributeData != null
-                                               let instantiatedAttribute = AttributeInstantiator.Instantiate(attributeData) as AllowAnyStatusCodeAttribute
+                                               let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData) as AllowAnyStatusCodeAttribute
                                                where instantiatedAttribute != null
                                                select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type, attributeData);
             typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
@@ -58,7 +63,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         private PropertyModel GetProperty(IPropertySymbol propertySymbol)
         {
-            var attributes = AttributeInstantiator.Instantiate(propertySymbol).ToList();
+            var attributes = this.attributeInstantiator.Instantiate(propertySymbol).ToList();
 
             var model = new PropertyModel(propertySymbol)
             {
@@ -79,7 +84,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         private MethodModel GetMethod(IMethodSymbol methodSymbol)
         {
-            var attributes = AttributeInstantiator.Instantiate(methodSymbol).ToList();
+            var attributes = this.attributeInstantiator.Instantiate(methodSymbol).ToList();
 
             var model = new MethodModel(methodSymbol)
             {
@@ -100,13 +105,13 @@ namespace RestEase.SourceGenerator.Implementation
 
         private ParameterModel GetParameter(IParameterSymbol parameterSymbol)
         {
-            var attributes = AttributeInstantiator.Instantiate(parameterSymbol).ToList();
+            var attributes = this.attributeInstantiator.Instantiate(parameterSymbol).ToList();
 
             var model = new ParameterModel(parameterSymbol)
             {
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
-                IsCancellationToken = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormats.TypeLookup) == "System.Threading.CancellationToken",
+                IsCancellationToken = SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, this.wellKnownSymbols.CancellationToken),
             };
 
             return model;

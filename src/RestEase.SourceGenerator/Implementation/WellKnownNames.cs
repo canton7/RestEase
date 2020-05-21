@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 
-namespace RestEase.SourceGenerator
+namespace RestEase.SourceGenerator.Implementation
 {
     internal static class WellKnownNames
     {

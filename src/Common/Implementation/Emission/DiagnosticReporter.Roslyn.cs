@@ -9,13 +9,7 @@ namespace RestEase.Implementation.Emission
 {
     internal partial class DiagnosticReporter
     {
-        private readonly TypeModel typeModel;
         public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
-
-        public DiagnosticReporter(TypeModel typeModel)
-        {
-            this.typeModel = typeModel;
-        }
 
         public void ReportHeaderOnInterfaceMustHaveValue(AttributeModel<HeaderAttribute> header)
         {
@@ -66,9 +60,9 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
             "BasePath placeholders must have corresponding path properties",
             "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base path '{1}'");
-        public void ReportMissingPathPropertyForBasePathPlaceholder(AttributeModel<BasePathAttribute> attributeModel, string basePath, string missingParam)
+        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel typeModel, AttributeModel<BasePathAttribute> attributeModel, string basePath, string missingParam)
         {
-            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, this.typeModel.NamedTypeSymbol), missingParam, basePath);
+            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, basePath);
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
@@ -173,6 +167,19 @@ namespace RestEase.Implementation.Emission
         }
 
         public void ReportMethodMustHaveValidReturnType(MethodModel method)
+        {
+            throw new NotImplementedException();
+        }
+
+        // -----------------------------------------------------------
+        // Not shared with the Emit DiagnosticReporter
+
+        public void ReportCouldNotFindRestEaseType(string metadataName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReportCouldNotFindSystemType(string metadataName)
         {
             throw new NotImplementedException();
         }
