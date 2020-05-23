@@ -182,7 +182,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitAddRawQueryStringParameter(ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddRawQueryParameter(" + ReferenceTo(parameter) + ");");
         }
 
         public bool TryEmitRequestMethodInvocation()

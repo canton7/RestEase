@@ -52,6 +52,10 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 return this.ParseSerializationMethodsAttribute(attributeData);
             }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.RawQueryStringAttribute))
+            {
+                return this.ParseRawQueryStringAttribute(attributeData);
+            }
             if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.GetAttribute))
             {
                 return this.ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x));
@@ -232,6 +236,13 @@ namespace RestEase.SourceGenerator.Implementation
             }
 
             return attribute;
+        }
+
+        private Attribute? ParseRawQueryStringAttribute(AttributeData attributeData)
+        {
+            return attributeData.ConstructorArguments.Length == 0
+                ? new RawQueryStringAttribute()
+                : null;
         }
 
         private Attribute? ParseRequestAttributeSubclass(

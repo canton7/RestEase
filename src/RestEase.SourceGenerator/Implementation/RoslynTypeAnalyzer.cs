@@ -111,6 +111,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
+                RawQueryStringAttribute = Get<RawQueryStringAttribute>(),
                 IsCancellationToken = SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, this.wellKnownSymbols.CancellationToken),
             };
 

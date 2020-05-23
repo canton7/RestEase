@@ -40,6 +40,9 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? bodySerializationMethod;
         public INamedTypeSymbol? BodySerializationMethod => this.bodySerializationMethod ??= this.LookupLocal("RestEase." + nameof(RestEase.BodySerializationMethod));
 
+        private INamedTypeSymbol? rawQueryStringAttribute;
+        public INamedTypeSymbol? RawQueryStringAttribute => this.rawQueryStringAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.RawQueryStringAttribute));
+
         private INamedTypeSymbol? cancellationToken;
         public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupSystem("System.Threading.CancellationToken");
 

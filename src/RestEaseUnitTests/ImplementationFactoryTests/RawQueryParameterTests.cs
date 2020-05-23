@@ -6,10 +6,11 @@ using RestEase.Implementation;
 using Xunit;
 using System.Globalization;
 using System.Linq;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class RawQueryParameterTests
+    public class RawQueryParameterTests : ImplementationFactoryTestsBase
     {
         public class HasToString : IFormattable
         {
@@ -43,20 +44,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([RawQueryString] HasToString value);
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public RawQueryParameterTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void AddsRawQueryParam()
         {
-            var implementation = this.factory.CreateImplementation<ISimpleRawQueryString>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("test=test2");
+            var requestInfo = this.Request<ISimpleRawQueryString>(x => x.FooAsync("test=test2"));
 
             Assert.NotNull(requestInfo.RawQueryParameters);
             Assert.Single(requestInfo.RawQueryParameters);
@@ -66,14 +59,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AddsTwoRawQueryParam()
         {
-            var implementation = this.factory.CreateImplementation<ITwoRawQueryStrings>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("test=test2", "test3=test4");
+            var requestInfo = this.Request<ITwoRawQueryStrings>(x => x.FooAsync("test=test2", "test3=test4"));
 
             Assert.NotNull(requestInfo.RawQueryParameters);
             var rawQueryParameters = requestInfo.RawQueryParameters.ToList();
@@ -85,14 +71,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void CallsToStringOnParam()
         {
-            var implementation = this.factory.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new HasToString());
+            var requestInfo = this.Request<ICustomRawQueryString>(x => x.FooAsync(new HasToString()));
 
             Assert.NotNull(requestInfo.RawQueryParameters);
             var rawQueryParameters = requestInfo.RawQueryParameters.ToList();
@@ -103,18 +82,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SerializeToStringUsesGivenFormatProvider()
         {
-            var implementation = this.factory.CreateImplementation<ICustomRawQueryString>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             var hasToString = new HasToString();
-            implementation.FooAsync(hasToString);
+            var requestInfo = this.Request<ICustomRawQueryString>(x => x.FooAsync(hasToString));
 
             var formatProvider = new Mock<IFormatProvider>();
 
+            Assert.Single(requestInfo.RawQueryParameters);
             requestInfo.RawQueryParameters.First().SerializeToString(formatProvider.Object);
 
             Assert.Equal(formatProvider.Object, hasToString.LastFormatProvider);
