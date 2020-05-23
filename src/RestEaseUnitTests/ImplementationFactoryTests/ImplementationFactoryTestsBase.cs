@@ -119,7 +119,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         {
             var namedTypeSymbol = diagnosticsCompilation.GetTypeByMetadataName(typeof(T).FullName);
             var (_, diagnostics) = this.implementationFactory.CreateImplementation(diagnosticsCompilation, namedTypeSymbol);
-            DiagnosticVerifier.VerifyDiagnostics(diagnostics, expected);
+            int lineOffset = namedTypeSymbol.DeclaringSyntaxReferences[0].GetSyntax().GetLocation().GetLineSpan().StartLinePosition.Line;
+            DiagnosticVerifier.VerifyDiagnostics(diagnostics, expected, lineOffset);
         }
 
 #else

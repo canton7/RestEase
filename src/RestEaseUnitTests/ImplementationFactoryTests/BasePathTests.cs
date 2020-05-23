@@ -24,7 +24,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [BasePath("foo/{bar}/baz")]
         public interface IHasBasePathWithPlaceholderWithoutProperty
         {
-            [Get("foo")]
+            [Get("{bar}")]
             Task FooAsync([Path] string bar);
         }
 
@@ -61,9 +61,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         public void ThrowsIfPlaceholderMissingPathProperty()
         {
             this.VerifyDiagnostics<IHasBasePathWithPlaceholderWithoutProperty>(
-                // (23,10): error REST001: Unable to find a [Path("bar")] property for the path placeholder '{bar}' in base path 'foo/{bar}/baz'
+                // (1,10): Error REST001: Unable to find a [Path("bar")] property for the path placeholder '{bar}' in base path 'foo/{bar}/baz'
                 // BasePath("foo/{bar}/baz")
-                Diagnostic(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder, @"BasePath(""foo/{bar}/baz"")").WithLocation(24, 10)
+                Diagnostic(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder, @"BasePath(""foo/{bar}/baz"")").WithLocation(1, 10)
             );
         }
 

@@ -10,20 +10,26 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
 {
     public static class DiagnosticVerifier
     {
-        public static void VerifyDiagnostics(IEnumerable<Diagnostic> diagnostics, params DiagnosticResult[] expected)
+        public static void VerifyDiagnostics(
+            IEnumerable<Diagnostic> diagnostics,
+            DiagnosticResult[] expected,
+            int lineOffset)
         {
             var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
-            VerifyDiagnosticResults(sortedDiagnostics, expected);
+            VerifyDiagnosticResults(sortedDiagnostics, expected, lineOffset);
         }
 
-        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, params DiagnosticResult[] expectedResults)
+        private static void VerifyDiagnosticResults(
+            IEnumerable<Diagnostic> actualResults,
+            DiagnosticResult[] expectedResults,
+            int lineOffset)
         {
             int expectedCount = expectedResults.Count();
             int actualCount = actualResults.Count();
 
             if (expectedCount != actualCount)
             {
-                string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(actualResults.ToArray()) : "    NONE.";
+                string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(lineOffset, actualResults.ToArray()) : "    NONE.";
 
                 Assert.True(false,
                     string.Format("Mismatch between number of diagnostics returned, expected \"{0}\" actual \"{1}\"\r\n\r\nDiagnostics:\r\n{2}\r\n", expectedCount, actualCount, diagnosticsOutput));
@@ -40,12 +46,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                     {
                         Assert.True(false,
                             string.Format("Expected:\nA project diagnostic with No location\nActual:\n{0}",
-                            FormatDiagnostics(actual)));
+                            FormatDiagnostics(lineOffset, actual)));
                     }
                 }
                 else
                 {
-                    VerifyDiagnosticLocation(actual, actual.Location, expected.Locations.First());
+                    VerifyDiagnosticLocation(actual, actual.Location, expected.Locations.First(), lineOffset);
                     var additionalLocations = actual.AdditionalLocations.ToArray();
 
                     if (additionalLocations.Length != expected.Locations.Count - 1)
@@ -56,14 +62,14 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                                 string.Join(", ", additionalLocations.Select(x =>
                                 {
                                     var start = x.GetLineSpan().StartLinePosition;
-                                    return $"({start.Line + 1},{start.Character + 1})";
+                                    return $"({start.Line + 1 - lineOffset},{start.Character + 1})";
                                 })),
-                                FormatDiagnostics(actual)));
+                                FormatDiagnostics(lineOffset, actual)));
                     }
 
                     for (int j = 0; j < additionalLocations.Length; ++j)
                     {
-                        VerifyDiagnosticLocation(actual, additionalLocations[j], expected.Locations[j + 1]);
+                        VerifyDiagnosticLocation(actual, additionalLocations[j], expected.Locations[j + 1], lineOffset);
                     }
                 }
 
@@ -71,7 +77,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                 {
                     Assert.True(false,
                         string.Format("Expected diagnostic id to be \"{0}\" ({1}) was \"{2}\"\r\n\r\nDiagnostic:\r\n{3}\r\n",
-                            expected.Code.Format(), expected.Code, actual.Id, FormatDiagnostics(actual)));
+                            expected.Code.Format(), expected.Code, actual.Id, FormatDiagnostics(lineOffset, actual)));
                 }
 
                 var expectedSeverity = expected.IsError ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
@@ -79,7 +85,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                 {
                     Assert.True(false,
                         string.Format("Expected diagnostic severity to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n{2}\r\n",
-                            expectedSeverity, actual.Severity, FormatDiagnostics(actual)));
+                            expectedSeverity, actual.Severity, FormatDiagnostics(lineOffset, actual)));
                 }
 
                 string squiggledText = GetSquiggledText(actual);
@@ -87,7 +93,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                 {
                     Assert.True(false,
                         string.Format("Expected squiggled text to be \"{0}\", was \"{1}\"\r\n\r\nDiagnostic:\r\n{2}\r\n",
-                        expected.SquiggledText, squiggledText, FormatDiagnostics(actual)));
+                        expected.SquiggledText, squiggledText, FormatDiagnostics(lineOffset, actual)));
                 }
 
                 //if (actual.GetMessage() != expected.Message)
@@ -102,10 +108,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
         /// <summary>
         /// Helper method to VerifyDiagnosticResult that checks the location of a diagnostic and compares it with the location in the expected DiagnosticResult.
         /// </summary>
-        /// <param name="diagnostic">The diagnostic that was found in the code</param>
-        /// <param name="actual">The Location of the Diagnostic found in the code</param>
-        /// <param name="expected">The DiagnosticResultLocation that should have been found</param>
-        private static void VerifyDiagnosticLocation(Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected)
+        private static void VerifyDiagnosticLocation(
+            Diagnostic diagnostic,
+            Location actual,
+            DiagnosticResultLocation expected,
+            int lineOffset)
         {
             var actualSpan = actual.GetLineSpan();
 
@@ -118,11 +125,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
             // Only check line position if there is an actual line in the real diagnostic
             if (actualLinePosition.Line > 0)
             {
-                if (actualLinePosition.Line + 1 != expected.Line)
+                if (actualLinePosition.Line + 1 - lineOffset != expected.Line)
                 {
                     Assert.True(false,
                         string.Format("Expected diagnostic to be on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n{2}\r\n",
-                            expected.Line, actualLinePosition.Line + 1, FormatDiagnostics(diagnostic)));
+                            expected.Line, actualLinePosition.Line + 1 - lineOffset, FormatDiagnostics(lineOffset, diagnostic)));
                 }
             }
 
@@ -133,19 +140,25 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
                 {
                     Assert.True(false,
                         string.Format("Expected diagnostic to start at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n{2}\r\n",
-                            expected.Column, actualLinePosition.Character + 1, FormatDiagnostics(diagnostic)));
+                            expected.Column, actualLinePosition.Character + 1, FormatDiagnostics(lineOffset, diagnostic)));
                 }
             }
         }
 
-        private static string FormatDiagnostics(params Diagnostic[] diagnostics)
+        private static string FormatDiagnostics(int lineOffset, params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
             for (int i = 0; i < diagnostics.Length; ++i)
             {
-                builder.AppendFormat("// {0}", diagnostics[i].ToString()).AppendLine();
-
                 var location = diagnostics[i].Location;
+                var mappedSpan = location.GetMappedLineSpan().Span;
+                builder.AppendFormat("// ({0},{1}): {2} {3}: {4}",
+                    mappedSpan.Start.Line + 1 - lineOffset,
+                    mappedSpan.Start.Character + 1,
+                    diagnostics[i].Severity,
+                    diagnostics[i].Id,
+                    diagnostics[i].GetMessage(null)).AppendLine();
+
                 if (location == Location.None)
                 {
                     builder.AppendFormat("// {0}.{1}", diagnostics[i].Descriptor.Title, diagnostics[i].Id);

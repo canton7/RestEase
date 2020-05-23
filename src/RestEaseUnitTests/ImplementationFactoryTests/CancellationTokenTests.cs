@@ -40,9 +40,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         public void TwoCancellationTokensThrows()
         {
             this.VerifyDiagnostics<ITwoCancellationTokens>(
-                // (22,65): error REST001: Method 'YayAsync': only a single CancellationToken parameter is allowed, found a duplicate parameter 'cancellationToken2'
-                // CancellationToken cancellationToken2
-                Diagnostic(DiagnosticCode.MultipleCancellationTokenParameters, "CancellationToken cancellationToken2").WithLocation(22, 65)
+                // (4,27): Error REST001: Method 'YayAsync': only a single CancellationToken parameter is allowed, found a duplicate parameter 'cancellationToken2'
+                // CancellationToken cancellationToken1
+                Diagnostic(DiagnosticCode.MultipleCancellationTokenParameters, "CancellationToken cancellationToken1").WithLocation(4, 27).WithLocation(4, 65)
             );
         }
     }
