@@ -90,6 +90,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 RequestAttribute = Get<RequestAttribute>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
+                SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
             };
 
             model.Parameters.AddRange(methodSymbol.Parameters.Select(this.GetParameter));
@@ -112,6 +113,7 @@ namespace RestEase.SourceGenerator.Implementation
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
                 RawQueryStringAttribute = Get<RawQueryStringAttribute>(),
+                BodyAttribute = Get<BodyAttribute>(),
                 IsCancellationToken = SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, this.wellKnownSymbols.CancellationToken),
             };
 

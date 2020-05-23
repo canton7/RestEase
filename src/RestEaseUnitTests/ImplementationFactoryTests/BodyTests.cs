@@ -3,10 +3,11 @@ using RestEase;
 using RestEase.Implementation;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class BodyTests
+    public class BodyTests : ImplementationFactoryTestsBase
     {
         public interface IHasTwoBodies
         {
@@ -48,29 +49,23 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([Body(BodySerializationMethod.Serialized)] string foo);
         }
 
-
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public BodyTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void ThrowsIfTwoBodies()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasTwoBodies>(this.requester.Object));
+            this.VerifyDiagnostics<IHasTwoBodies>(
+                // (4,27): Error REST007: Found more than one parameter with a [Body] attribute
+                // [Body] string body1
+                Diagnostic(DiagnosticCode.MultipleBodyParameters, "[Body] string body1").WithLocation(4, 27).WithLocation(4, 48)
+            );
         }
 
         [Fact]
         public void BodyWithSerializedClassAsExpected()
         {
-            var implementation = this.factory.CreateImplementation<IHasBody>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             object body = new object();
-            implementation.SerializedAsync(body);
+            var requestInfo = this.Request<IHasBody>(x => x.SerializedAsync(body));
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
@@ -80,16 +75,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void BodyWithUrlEncodedCallsAsExpected()
         {
-            var implementation = this.factory.CreateImplementation<IHasBody>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             object body = new object();
-            implementation.UrlEncodedAsync(body);
+            var requestInfo = this.Request<IHasBody>(x => x.UrlEncodedAsync(body));
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
@@ -100,15 +87,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         public void BodyWithValueTypeCallsAsExpected()
         {
             // Tests that the value is boxed properly
-            var implementation = this.factory.CreateImplementation<IHasBody>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.ValueTypeAsync(3);
+            var requestInfo = this.Request<IHasBody>(x => x.ValueTypeAsync(3));
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
@@ -118,15 +97,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultBodySerializationMethodIsSpecifiedBySerializationMethodsHeader()
         {
-            var implementation = this.factory.CreateImplementation<IHasNonOverriddenBodySerializationMethod>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("yay");
+            var requestInfo = this.Request<IHasNonOverriddenBodySerializationMethod>(x => x.FooAsync("yay"));
 
             Assert.Equal(BodySerializationMethod.UrlEncoded, requestInfo.BodyParameterInfo.SerializationMethod);
         }
@@ -134,15 +105,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultQuerySerializationMethodCanBeOverridden()
         {
-            var implementation = this.factory.CreateImplementation<IHasOverriddenBodySerializationMethod>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("yay");
+            var requestInfo = this.Request<IHasOverriddenBodySerializationMethod>(x => x.FooAsync("yay"));
 
             Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
         }
@@ -150,15 +113,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void MethodSerializationMethodOverridesInterface()
         {
-            var implementation = this.factory.CreateImplementation<IMethodSerializationAttributeOverridesInterface>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("yay");
+            var requestInfo = this.Request<IMethodSerializationAttributeOverridesInterface>(x => x.FooAsync("yay"));
 
             Assert.Equal(BodySerializationMethod.Serialized, requestInfo.BodyParameterInfo.SerializationMethod);
         }

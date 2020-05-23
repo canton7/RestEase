@@ -11,7 +11,7 @@ namespace RestEase
         /// <summary>
         /// Gets the serialization method to use. Defaults to BodySerializationMethod.Serialized
         /// </summary>
-        public BodySerializationMethod SerializationMethod { get; private set; }
+        public BodySerializationMethod SerializationMethod { get; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="BodyAttribute"/> class

@@ -143,7 +143,8 @@ namespace RestEase.Implementation.Emission
 
         public void EmitSetBodyParameter(ParameterModel parameter, BodySerializationMethod serializationMethod)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".SetBodyParameterInfo(" + EnumValue(serializationMethod) + ", " +
+                ReferenceTo(parameter) + ");");
         }
 
         public bool TryEmitAddQueryMapParameter(ParameterModel parameter, QuerySerializationMethod serializationMethod)

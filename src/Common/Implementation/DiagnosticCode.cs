@@ -13,6 +13,7 @@
         MissingPlaceholderForPathParameter = 4,
         MultiplePathPropertiesForKey = 5,
         MultiplePathParametersForKey = 6,
+        MultipleBodyParameters = 7,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

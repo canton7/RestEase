@@ -132,7 +132,7 @@ namespace RestEase.Implementation.Emission
 
         public void ReportMultipleBodyParameters(MethodModel method, IEnumerable<ParameterModel> _)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': found more than one parameter with a [Body] attribute");
+            throw new ImplementationCreationException(DiagnosticCode.MultipleBodyParameters, $"Method '{method.MethodInfo.Name}': found more than one parameter with a [Body] attribute");
         }
 
         public void ReportQueryMapParameterIsNotADictionary(MethodModel method, ParameterModel _)

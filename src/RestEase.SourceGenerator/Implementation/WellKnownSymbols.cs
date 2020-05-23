@@ -43,6 +43,9 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? rawQueryStringAttribute;
         public INamedTypeSymbol? RawQueryStringAttribute => this.rawQueryStringAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.RawQueryStringAttribute));
 
+        private INamedTypeSymbol? bodyAttribute;
+        public INamedTypeSymbol? BodyAttribute => this.bodyAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.BodyAttribute));
+
         private INamedTypeSymbol? cancellationToken;
         public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupSystem("System.Threading.CancellationToken");
 

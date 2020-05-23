@@ -146,9 +146,13 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void ReportMultipleBodyParameters(MethodModel method, IEnumerable<ParameterModel> _)
+        private static readonly DiagnosticDescriptor multipleBodyParameters = CreateDescriptor(
+            DiagnosticCode.MultipleBodyParameters,
+            "There must not be multiple body parameters",
+            "Found more than one parameter with a [Body] attribute");
+        public void ReportMultipleBodyParameters(MethodModel _, IEnumerable<ParameterModel> parameters)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(multipleBodyParameters, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)));
         }
 
         public void ReportQueryMapParameterIsNotADictionary(MethodModel method, ParameterModel _)
