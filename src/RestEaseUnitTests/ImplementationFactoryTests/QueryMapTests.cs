@@ -7,10 +7,11 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class QueryMapTests
+    public class QueryMapTests : ImplementationFactoryTestsBase
     {
         public interface IHasInvalidQueryMap
         {
@@ -30,10 +31,16 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([QueryMap] IDictionary<string, string> map);
         }
 
-        public interface IHasEnumerableQueryMap
+        public interface IHasArrayQueryMap
         {
             [Get("foo")]
             Task FooAsync([QueryMap] IDictionary<string, string[]> map);
+        }
+
+        public interface IHasEnumerableQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] IDictionary<string, List<string>> map);
         }
 
         public interface IHasSerializedSerializationMethod
@@ -62,26 +69,18 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([QueryMap] IDictionary<string, object> map);
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public QueryMapTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void AddsQueryMapToQueryParams()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             var queryMap = new Dictionary<string, string>()
             {
                 { "foo", "bar" },
                 { "bar", "yay" }
             };
 
-            implementation.FooAsync(queryMap);
+            var requestInfo = this.Request<IHasGenericQueryMap>(x => x.FooAsync(queryMap));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -95,22 +94,41 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         [Fact]
-        public void AssignsEnumerableQueryMapToQueryParams()
+        public void AssignsArrayQueryMapToQueryParams()
         {
-            var implementation = this.factory.CreateImplementation<IHasEnumerableQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             var queryMap = new Dictionary<string, string[]>()
             {
                 { "foo", new[] {  "bar1", "bar2" } },
                 { "bar", new[] {  "yay1", "yay2" } }
             };
 
-            implementation.FooAsync(queryMap);
+            var requestInfo = this.Request<IHasArrayQueryMap>(x => x.FooAsync(queryMap));
+            
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            var queryParam0 = queryParams[0].SerializeToString(null).ToArray();
+            Assert.Equal("foo", queryParam0[0].Key);
+            Assert.Equal("bar1", queryParam0[0].Value);
+            Assert.Equal("foo", queryParam0[1].Key);
+            Assert.Equal("bar2", queryParam0[1].Value);
+
+            var queryParam1 = queryParams[1].SerializeToString(null).ToArray();
+            Assert.Equal("bar", queryParam1[0].Key);
+            Assert.Equal("yay1", queryParam1[0].Value);
+            Assert.Equal("bar", queryParam1[1].Key);
+            Assert.Equal("yay2", queryParam1[1].Value);
+        }
+
+        [Fact]
+        public void AssignsEnumerableQueryMapToQueryParams()
+        {
+            var queryMap = new Dictionary<string, List<string>>()
+            {
+                { "foo", new List<string>() { "bar1", "bar2" } },
+                { "bar", new List<string>() { "yay1", "yay2" } }
+            };
+
+            var requestInfo = this.Request<IHasEnumerableQueryMap>(x => x.FooAsync(queryMap));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -130,14 +148,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void RecordsToStringSerializationMethod()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+            var requestInfo = this.Request<IHasGenericQueryMap>(x => x.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } }));
 
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
@@ -145,14 +156,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void RecordsSerializedSerializationMethod()
         {
-            var implementation = this.factory.CreateImplementation<IHasSerializedSerializationMethod>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+            var requestInfo = this.Request< IHasSerializedSerializationMethod >(x => x.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } }));
 
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
@@ -160,14 +164,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNullQueryMap()
         {
-            var implementation = this.factory.CreateImplementation<IHasGenericQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(null);
+            var requestInfo = this.Request<IHasGenericQueryMap>(x => x.FooAsync(null));
 
             Assert.Empty(requestInfo.QueryParams);
         }
@@ -175,19 +172,16 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInvalidQueryMapType()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasInvalidQueryMap>(this.requester.Object));
+            this.VerifyDiagnostics<IHasInvalidQueryMap>(
+                // (4,27): Error REST013: [QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)
+                // [QueryMap] string map
+                Diagnostic(DiagnosticCode.QueryMapParameterIsNotADictionary, "[QueryMap] string map").WithLocation(4, 27)
+            );
         }
 
         [Fact]
         public void AllowsMoreThanOneQueryMap()
         {
-            var implementation = this.factory.CreateImplementation<IHasTwoQueryMaps>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             var queryMap1 = new Dictionary<string, string>()
             {
                 { "foo", "bar" }
@@ -198,7 +192,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 { "foo", "yay" }
             };
 
-            implementation.FooAsync(queryMap1, queryMap2);
+            var requestInfo = this.Request<IHasTwoQueryMaps>(x => x.FooAsync(queryMap1, queryMap2));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -214,14 +208,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultQuerySerializationMethodIsSpecifiedBySerializationMethodsAttribute()
         {
-            var implementation = this.factory.CreateImplementation<IHasNonOverriddenSerializationMethodsAttribute>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+            var requestInfo = this.Request<IHasNonOverriddenSerializationMethodsAttribute>(x =>
+                x.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } }));
 
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }
@@ -229,14 +217,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DefaultQuerySerializationMethodCanBeOverridden()
         {
-            var implementation = this.factory.CreateImplementation<IHasOverriddenSerializationMethodsAttribute>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } });
+            var requestInfo = this.Request<IHasOverriddenSerializationMethodsAttribute>(x =>
+                x.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } }));
 
             Assert.Equal(QuerySerializationMethod.ToString, requestInfo.QueryParams.First().SerializationMethod);
         }
@@ -244,18 +226,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void IteratesQueryMapEnumerableObjectValue()
         {
-            var implementation = this.factory.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(new Dictionary<string, object>()
+            var requestInfo = this.Request<IHasObjectQueryMap>(x => x.FooAsync(new Dictionary<string, object>()
             {
                 { "foo", "bar" },
                 { "baz", new[] { "a", "b", "c" } }
-            });
+            }));
 
             var queryParams = requestInfo.QueryParams.ToList();
 
@@ -277,18 +252,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SerializeToStringUsesGivenFormatProvider()
         {
-            var implementation = this.factory.CreateImplementation<IHasObjectQueryMap>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
             var queryMap = new Dictionary<string, object>()
             {
                 { "foo", 3.3 }
             };
-            implementation.FooAsync(queryMap);
+            var requestInfo = this.Request<IHasObjectQueryMap>(x => x.FooAsync(queryMap));
 
             var formatProvider = new Mock<IFormatProvider>();
 

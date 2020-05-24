@@ -64,6 +64,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "netstandard.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Runtime.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Net.Http.dll")))
+                .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Collections.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(RestClient).Assembly.Location))
                 .AddMetadataReference(MetadataReference.CreateFromFile(thisAssembly.Location));
             executionCompilation = executionProject.GetCompilationAsync().Result;

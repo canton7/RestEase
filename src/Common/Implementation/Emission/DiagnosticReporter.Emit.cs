@@ -142,7 +142,7 @@ namespace RestEase.Implementation.Emission
 
         public void ReportQueryMapParameterIsNotADictionary(MethodModel method, ParameterModel _)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': [QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents)");
+            throw new ImplementationCreationException(DiagnosticCode.QueryMapParameterIsNotADictionary, $"Method '{method.MethodInfo.Name}': [QueryMap] parameter is not of type IDictionary or IDictionary<TKey, TValue> (or one of their descendents)");
         }
 
         public void ReportHeaderParameterMustNotHaveValue(MethodModel method, ParameterModel parameter)

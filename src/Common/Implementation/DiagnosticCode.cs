@@ -19,6 +19,7 @@
         HeaderMustNotHaveColonInName = 10,
         PropertyMustBeReadWrite = 11,
         HeaderPropertyWithValueMustBeNullable = 12,
+        QueryMapParameterIsNotADictionary = 13,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

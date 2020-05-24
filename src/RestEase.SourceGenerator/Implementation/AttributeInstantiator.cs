@@ -68,6 +68,10 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 return this.ParseHttpRequestMessagePropertyAttribute(attributeData);
             }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.QueryMapAttribute))
+            {
+                return this.ParseQueryMapAttribute(attributeData);
+            }
             if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.GetAttribute))
             {
                 return this.ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x));
@@ -93,7 +97,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "AllowAnyStatusCode" &&
+                    if (namedArgument.Key == nameof(AllowAnyStatusCodeAttribute.AllowAnyStatusCode) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_Boolean)
                     {
                         attribute.AllowAnyStatusCode = (bool)namedArgument.Value.Value!;
@@ -143,22 +147,22 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Name" &&
+                    if (namedArgument.Key == nameof(PathAttribute.Name) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Name = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == "SerializationMethod" &&
+                    else if (namedArgument.Key == nameof(PathAttribute.SerializationMethod) &&
                         SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.PathSerializationMethod))
                     {
                         attribute.SerializationMethod = (PathSerializationMethod)namedArgument.Value.Value!;
                     }
-                    else if (namedArgument.Key == "Format" &&
+                    else if (namedArgument.Key == nameof(PathAttribute.Format) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == "UrlEncode" && 
+                    else if (namedArgument.Key == nameof(PathAttribute.UrlEncode) && 
                         namedArgument.Value.Type.SpecialType == SpecialType.System_Boolean)
                     {
                         attribute.UrlEncode = (bool)namedArgument.Value.Value!;
@@ -200,17 +204,17 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Name" &&
+                    if (namedArgument.Key == nameof(QueryAttribute.Name) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Name = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == "SerializationMethod" &&
+                    else if (namedArgument.Key == nameof(QueryAttribute.SerializationMethod) &&
                         SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.QuerySerializationMethod))
                     {
                         attribute.SerializationMethod = (QuerySerializationMethod)namedArgument.Value.Value!;
                     }
-                    else if (namedArgument.Key == "Format" &&
+                    else if (namedArgument.Key == nameof(QueryAttribute.Format) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
@@ -229,17 +233,17 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Body" &&
+                    if (namedArgument.Key == nameof(SerializationMethodsAttribute.Body) &&
                         SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.BodySerializationMethod))
                     {
                         attribute.Body = (BodySerializationMethod)namedArgument.Value.Value!;
                     }
-                    else if (namedArgument.Key == "Query" &&
+                    else if (namedArgument.Key == nameof(SerializationMethodsAttribute.Query) &&
                         SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.QuerySerializationMethod))
                     {
                         attribute.Query = (QuerySerializationMethod)namedArgument.Value.Value!;
                     }
-                    else if (namedArgument.Key == "Path" &&
+                    else if (namedArgument.Key == nameof(SerializationMethodsAttribute.Path) &&
                         SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.PathSerializationMethod))
                     {
                         attribute.Path = (PathSerializationMethod)namedArgument.Value.Value!;
@@ -294,7 +298,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Format" &&
+                    if (namedArgument.Key == nameof(HeaderAttribute.Format) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
@@ -322,10 +326,38 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == "Key" &&
+                    if (namedArgument.Key == nameof(HttpRequestMessagePropertyAttribute.Key) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Key = (string?)namedArgument.Value.Value;
+                    }
+                }
+            }
+
+            return attribute;
+        }
+
+        private Attribute? ParseQueryMapAttribute(AttributeData attributeData)
+        {
+            QueryMapAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 0)
+            {
+                attribute = new QueryMapAttribute();
+            }
+            else if (attributeData.ConstructorArguments.Length == 1 &&
+                SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.QuerySerializationMethod))
+            {
+                attribute = new QueryMapAttribute((QuerySerializationMethod)attributeData.ConstructorArguments[0].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    if (namedArgument.Key == nameof(QueryMapAttribute.SerializationMethod) &&
+                        SymbolEqualityComparer.Default.Equals(namedArgument.Value.Type, this.wellKnownSymbols.QueryMapAttribute))
+                    {
+                        attribute.SerializationMethod = (QuerySerializationMethod)namedArgument.Value.Value!;
                     }
                 }
             }
@@ -338,7 +370,7 @@ namespace RestEase.SourceGenerator.Implementation
             Func<RequestAttribute> parameterlessCtor,
             Func<string, RequestAttribute> pathCtor)
         {
-            RequestAttribute attribute;
+            RequestAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
             {
                 attribute = parameterlessCtor();
@@ -348,17 +380,16 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 attribute = pathCtor((string)attributeData.ConstructorArguments[0].Value!);
             }
-            else
-            {
-                return null;
-            }
 
-            foreach (var namedArgument in attributeData.NamedArguments)
+            if (attribute != null)
             {
-                if (namedArgument.Key == "Path" &&
-                    namedArgument.Value.Type.SpecialType == SpecialType.System_String)
+                foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    attribute.Path = (string?)namedArgument.Value.Value;
+                    if (namedArgument.Key == nameof(RequestAttribute.Path) &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
+                    {
+                        attribute.Path = (string?)namedArgument.Value.Value;
+                    }
                 }
             }
 

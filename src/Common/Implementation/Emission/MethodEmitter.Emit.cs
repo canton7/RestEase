@@ -404,7 +404,6 @@ namespace RestEase.Implementation.Emission
             if (typeOfT == null)
             {
                 return MethodInfos.RequestInfo_AddQueryMap.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value);
-
             }
             else
             {

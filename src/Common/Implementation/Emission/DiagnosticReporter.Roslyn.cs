@@ -187,9 +187,13 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(multipleBodyParameters, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)));
         }
 
-        public void ReportQueryMapParameterIsNotADictionary(MethodModel method, ParameterModel _)
+        private static readonly DiagnosticDescriptor queryMapParameterIsNotADictionary = CreateDescriptor(
+            DiagnosticCode.QueryMapParameterIsNotADictionary,
+            "QueryMap parameters must be dictionaries",
+            "[QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)");
+        public void ReportQueryMapParameterIsNotADictionary(MethodModel method, ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(queryMapParameterIsNotADictionary, SymbolLocations(parameter.ParameterSymbol));
         }
 
         private static readonly DiagnosticDescriptor headerParameterMustNotHaveValue = CreateDescriptor(

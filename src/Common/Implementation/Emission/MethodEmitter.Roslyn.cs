@@ -1,5 +1,6 @@
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -164,7 +165,13 @@ namespace RestEase.Implementation.Emission
 
         public bool TryEmitAddQueryMapParameter(ParameterModel parameter, QuerySerializationMethod serializationMethod)
         {
-            throw new NotImplementedException();
+            string? methodName = this.GetQueryMapMethodName(parameter.ParameterSymbol.Type);
+            if (methodName == null)
+                return false;
+
+            this.writer.WriteLine(this.requestInfoLocalName + "." + methodName + "(" +
+                EnumValue(serializationMethod) + ", " + ReferenceTo(parameter) + ");");
+            return true;
         }
 
         public void EmitAddHeaderParameter(ParameterModel parameter)
@@ -238,6 +245,70 @@ namespace RestEase.Implementation.Emission
             return Enum.IsDefined(typeof(T), value)
                 ? "global::" + typeof(T).FullName + "." + value
                 : "(global::" + typeof(T).FullName + ")" + Convert.ToInt32(value);
+        }
+
+        private string? GetQueryMapMethodName(ITypeSymbol queryMapType)
+        {
+            if (!(queryMapType is INamedTypeSymbol namedQueryMapType))
+                return null;
+
+            var nullableDictionaryTypes = this.DictionaryTypesOfType(namedQueryMapType);
+            if (nullableDictionaryTypes == null)
+                return null;
+
+            var dictionaryTypes = nullableDictionaryTypes.Value;
+
+            ITypeSymbol? collectionType = null;
+            // Don't want to count string as an IEnumerable<char>...
+            if (dictionaryTypes.Value.SpecialType != SpecialType.System_String &&
+                dictionaryTypes.Value is INamedTypeSymbol value)
+            {
+                collectionType = this.CollectionTypeOfType(value);
+            }
+            else if (dictionaryTypes.Value is IArrayTypeSymbol arraySymbol)
+            {
+                collectionType = arraySymbol.ElementType;
+            }
+
+            // AddQueryCollectionMap sometimes needs explicit type parameters, so we'll specify them in all cases
+            if (collectionType == null)
+            {
+                return "AddQueryMap<" + dictionaryTypes.Key.ToDisplayString(SymbolDisplayFormats.TypeParameter) +
+                    ", " + dictionaryTypes.Value.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">";
+            }
+            else
+            {
+                return "AddQueryCollectionMap<" + dictionaryTypes.Key.ToDisplayString(SymbolDisplayFormats.TypeParameter) +
+                    ", " + dictionaryTypes.Value.ToDisplayString(SymbolDisplayFormats.TypeParameter) +
+                    ", " + collectionType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">";
+            }
+        }
+
+        private KeyValuePair<ITypeSymbol, ITypeSymbol>? DictionaryTypesOfType(INamedTypeSymbol input)
+        {
+            foreach (var baseType in input.AllInterfaces.Prepend(input))
+            {
+                if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IDictionaryKV))
+                {
+                    return new KeyValuePair<ITypeSymbol, ITypeSymbol>(
+                        baseType.TypeArguments[0], baseType.TypeArguments[1]);
+                }
+            }
+
+            return null;
+        }
+
+        private ITypeSymbol? CollectionTypeOfType(INamedTypeSymbol input)
+        {
+            foreach (var baseType in input.AllInterfaces.Prepend(input))
+            {
+                if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IEnumerableT))
+                {
+                    return baseType.TypeArguments[0];
+                }
+            }
+
+            return null;
         }
     }
 }

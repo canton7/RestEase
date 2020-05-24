@@ -129,6 +129,7 @@ namespace RestEase.SourceGenerator.Implementation
                 QueryAttribute = Get<QueryAttribute>(),
                 HttpRequestMessagePropertyAttribute = Get<HttpRequestMessagePropertyAttribute>(),
                 RawQueryStringAttribute = Get<RawQueryStringAttribute>(),
+                QueryMapAttribute = Get<QueryMapAttribute>(),
                 BodyAttribute = Get<BodyAttribute>(),
                 IsCancellationToken = SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, this.wellKnownSymbols.CancellationToken),
             };

@@ -52,11 +52,20 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? httpRequestMessagePropertyAttribute;
         public INamedTypeSymbol? HttpRequestMessagePropertyAttribute => this.httpRequestMessagePropertyAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.HttpRequestMessagePropertyAttribute));
 
+        private INamedTypeSymbol? queryMapAttribute;
+        public INamedTypeSymbol? QueryMapAttribute => this.queryMapAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.QueryMapAttribute));
+
         private INamedTypeSymbol? cancellationToken;
         public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupSystem("System.Threading.CancellationToken");
 
         private INamedTypeSymbol? task;
         public INamedTypeSymbol? Task => this.task ??= this.LookupSystem("System.Threading.Tasks.Task");
+
+        private INamedTypeSymbol? ienumerableT;
+        public INamedTypeSymbol? IEnumerableT => this.ienumerableT ??= this.LookupSystem("System.Collections.Generic.IEnumerable`1");
+
+        private INamedTypeSymbol? idictionaryKV;
+        public INamedTypeSymbol? IDictionaryKV => this.idictionaryKV ??= this.LookupSystem("System.Collections.Generic.IDictionary`2");
 
         public WellKnownSymbols(Compilation compilation, DiagnosticReporter diagnosticReporter)
         {
