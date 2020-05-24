@@ -14,6 +14,11 @@
         MultiplePathPropertiesForKey = 5,
         MultiplePathParametersForKey = 6,
         MultipleBodyParameters = 7,
+        HeaderOnInterfaceMustHaveValue = 8,
+        HeaderParameterMustNotHaveValue = 9,
+        HeaderMustNotHaveColonInName = 10,
+        PropertyMustBeReadWrite = 11,
+        HeaderPropertyWithValueMustBeNullable = 12,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

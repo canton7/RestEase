@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator;
 using RestEase.SourceGenerator.Implementation;
+using static RestEase.SourceGenerator.Implementation.EmitUtils;
 
 namespace RestEase.Implementation.Emission
 {
@@ -18,6 +19,7 @@ namespace RestEase.Implementation.Emission
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
+        private readonly string? classHeadersFieldName;
         private readonly int index;
         private readonly string requestInfoLocalName;
 
@@ -27,6 +29,7 @@ namespace RestEase.Implementation.Emission
             WellKnownSymbols wellKnownSymbols,
             string qualifiedTypeName,
             string requesterFieldName,
+            string? classHeadersFieldName,
             int index)
         {
             this.methodModel = methodModel;
@@ -34,6 +37,7 @@ namespace RestEase.Implementation.Emission
             this.wellKnownSymbols = wellKnownSymbols;
             this.qualifiedTypeName = qualifiedTypeName;
             this.requesterFieldName = requesterFieldName;
+            this.classHeadersFieldName = classHeadersFieldName;
             this.index = index;
             this.requestInfoLocalName = this.GenerateRequestInfoLocalName();
 
@@ -77,7 +81,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitRequestInfoCreation(RequestAttribute requestAttribute)
         {
-            this.writer.Write("var " + this.requestInfoLocalName + " = new " + WellKnownNames.Requester + "(");
+            this.writer.Write("var " + this.requestInfoLocalName + " = new " + WellKnownNames.RequestInfo + "(");
             if (WellKnownNames.HttpMethodProperties.TryGetValue(requestAttribute.Method, out string httpMethod))
             {
                 this.writer.Write(httpMethod);
@@ -89,6 +93,12 @@ namespace RestEase.Implementation.Emission
             this.writer.Write(", " + QuoteString(requestAttribute.Path ?? string.Empty));
             this.writer.Write(", " + this.qualifiedTypeName + "." + "methodInfo_" + this.index);
             this.writer.WriteLine(");");
+
+            if (this.classHeadersFieldName != null)
+            {
+                this.writer.WriteLine(this.requestInfoLocalName + ".ClassHeaders = " + this.qualifiedTypeName + "." +
+                    this.classHeadersFieldName + ";");
+            }
         }
 
         public void EmitSetCancellationToken(ParameterModel parameter)
@@ -108,14 +118,17 @@ namespace RestEase.Implementation.Emission
 
         public void EmitAddMethodHeader(AttributeModel<HeaderAttribute> header)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddMethodHeader(" + QuoteString(header.Attribute.Name) + ", " +
+                QuoteString(header.Attribute.Value) + ");");
         }
 
         public void EmitAddHeaderProperty(EmittedProperty property)
         {
             Assert(property.PropertyModel.HeaderAttribute != null);
             var attribute = property.PropertyModel.HeaderAttribute.Attribute;
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddPropertyHeader(" + QuoteString(attribute.Name) + ", " +
+                ReferenceTo(property.PropertyModel) + ", " + QuoteString(attribute.Value) + ", " +
+                QuoteString(attribute.Format) + ");");
         }
 
         public void EmitAddPathProperty(EmittedProperty property, PathSerializationMethod serializationMethod)
@@ -156,7 +169,8 @@ namespace RestEase.Implementation.Emission
         {
             Assert(parameter.HeaderAttribute != null);
             var header = parameter.HeaderAttribute.Attribute;
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddHeaderParameter(" + QuoteString(header.Name) + ", " +
+                ReferenceTo(parameter) + ", " + QuoteString(header.Format) + ");");
         }
 
         public void EmitAddPathParameter(ParameterModel parameter, PathSerializationMethod serializationMethod)
@@ -214,7 +228,6 @@ namespace RestEase.Implementation.Emission
             Debug.Assert(condition);
         }
 
-        private static string QuoteString(string? s) => s == null ? "null" : "@\"" + s.Replace("\"", "\"\"") + "\"";
         private static string ReferenceTo(ParameterModel parameterModel) => parameterModel.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
         private static string ReferenceTo(PropertyModel propertyModel) => "this." + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyReference);
         private static string EnumValue<T>(T value) where T : struct, Enum

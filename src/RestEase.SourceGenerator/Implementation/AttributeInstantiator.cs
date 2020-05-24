@@ -60,6 +60,10 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 return this.ParseBodyAttribute(attributeData);
             }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.HeaderAttribute))
+            {
+                return this.ParseHeaderAttribute(attributeData);
+            }
             if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.GetAttribute))
             {
                 return this.ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x));
@@ -260,6 +264,38 @@ namespace RestEase.SourceGenerator.Implementation
                 SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.BodySerializationMethod))
             {
                 attribute = new BodyAttribute((BodySerializationMethod)attributeData.ConstructorArguments[0].Value!);
+            }
+
+            return attribute;
+        }
+
+        private Attribute? ParseHeaderAttribute(AttributeData attributeData)
+        {
+            HeaderAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new HeaderAttribute((string)attributeData.ConstructorArguments[0].Value!);
+            }
+            else if (attributeData.ConstructorArguments.Length == 2 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String &&
+                attributeData.ConstructorArguments[1].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new HeaderAttribute(
+                    (string)attributeData.ConstructorArguments[0].Value!,
+                    (string)attributeData.ConstructorArguments[1].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    if (namedArgument.Key == "Format" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
+                    {
+                        attribute.Format = (string?)namedArgument.Value.Value;
+                    }
+                }
             }
 
             return attribute;

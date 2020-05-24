@@ -11,14 +11,43 @@ namespace RestEase.Implementation.Emission
     {
         public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
 
-        public void ReportHeaderOnInterfaceMustHaveValue(AttributeModel<HeaderAttribute> header)
+        private static readonly DiagnosticDescriptor headerMustNotHaveColonInName = CreateDescriptor(
+            DiagnosticCode.HeaderMustNotHaveColonInName,
+            "Header attributes must not have colons in their names",
+            "Header attribute name '{0}' must not contain a colon");
+        public void ReportHeaderOnInterfaceMustNotHaveColonInName(TypeModel typeModel, AttributeModel<HeaderAttribute> header)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(headerMustNotHaveColonInName, AttributeLocations(header, typeModel.NamedTypeSymbol), header.Attribute!.Name);
         }
 
-        public void ReportHeaderOnInterfaceMustNotHaveColonInName(AttributeModel<HeaderAttribute> header)
+        public void ReportPropertyHeaderMustNotHaveColonInName(PropertyModel property)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(
+                headerMustNotHaveColonInName,
+                AttributeLocations(property.HeaderAttribute, property.PropertySymbol),
+                property.HeaderAttribute!.Attribute.Name);
+        }
+
+        public void ReportHeaderOnMethodMustNotHaveColonInName(MethodModel method, AttributeModel<HeaderAttribute> header)
+        {
+            this.AddDiagnostic(headerMustNotHaveColonInName, AttributeLocations(header, method.MethodSymbol), header.Attribute!.Name);
+        }
+
+        public void ReportHeaderParameterMustNotHaveColonInName(MethodModel _, ParameterModel parameter)
+        {
+            this.AddDiagnostic(
+                headerMustNotHaveColonInName,
+                AttributeLocations(parameter.HeaderAttribute, parameter.ParameterSymbol),
+                parameter.HeaderAttribute!.Attribute.Name);
+        }
+
+        private static readonly DiagnosticDescriptor headerOnInterfaceMustHaveValue = CreateDescriptor(
+            DiagnosticCode.HeaderOnInterfaceMustHaveValue,
+            "Header attributes on the interface must have a value",
+            "Header on interface must have a value (i.e. be of the form [Header(\"{0}\", \"Value Here\")])");
+        public void ReportHeaderOnInterfaceMustHaveValue(TypeModel typeModel, AttributeModel<HeaderAttribute> header)
+        {
+            this.AddDiagnostic(headerOnInterfaceMustHaveValue, AttributeLocations(header, typeModel.NamedTypeSymbol), header.Attribute.Name);
         }
 
         public void ReportAllowAnyStatisCodeAttributeNotAllowedOnParentInterface(AllowAnyStatusCodeAttributeModel attribute)
@@ -46,9 +75,14 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
+        private static readonly DiagnosticDescriptor propertyMustBeReadWrite = CreateDescriptor(
+            DiagnosticCode.PropertyMustBeReadWrite,
+            "Property must be read/write",
+            "Property must have a getter and a setter");
         public void ReportPropertyMustBeReadWrite(PropertyModel property)
         {
-            throw new NotImplementedException();
+            // We don't want to include the headers in the squiggle
+            this.AddDiagnostic(propertyMustBeReadWrite, property.PropertySymbol.Locations);
         }
 
         public void ReportMultipleRequesterPropertiesNotAllowed(PropertyModel property)
@@ -88,14 +122,17 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(multiplePathParametersForKey, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)), key);
         }
 
+        private static readonly DiagnosticDescriptor headerPropertyWithValueMustBeNullable = CreateDescriptor(
+            DiagnosticCode.HeaderPropertyWithValueMustBeNullable,
+            "Property header which has a default value must be of a type which is nullable",
+            "[Header(\"{0}\", \"{1}\")] on property (i.e. containing a default value) can only be used if the property type is nullable");
         public void ReportHeaderPropertyWithValueMustBeNullable(PropertyModel property)
         {
-            throw new NotImplementedException();
-        }
-
-        public void ReportHeaderPropertyNameMustContainColon(PropertyModel property)
-        {
-            throw new NotImplementedException();
+            var attribute = property.HeaderAttribute!.Attribute;
+            this.AddDiagnostic(
+                headerPropertyWithValueMustBeNullable,
+                AttributeLocations(property.HeaderAttribute, property.PropertySymbol),
+                attribute.Name, attribute.Value);
         }
 
         private static readonly DiagnosticDescriptor missingPathPropertyOrParameterForPlaceholder = CreateDescriptor(
@@ -141,11 +178,6 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void ReportHeaderOnMethodMustNotHaveColonInName(MethodModel method, AttributeModel<HeaderAttribute> header)
-        {
-            throw new NotImplementedException();
-        }
-
         private static readonly DiagnosticDescriptor multipleBodyParameters = CreateDescriptor(
             DiagnosticCode.MultipleBodyParameters,
             "There must not be multiple body parameters",
@@ -160,14 +192,17 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
+        private static readonly DiagnosticDescriptor headerParameterMustNotHaveValue = CreateDescriptor(
+            DiagnosticCode.HeaderParameterMustNotHaveValue,
+            "Header attributes on parameters must not have values",
+            "Header attribute must have the form [Header(\"{0}\")], not [Header(\"{0}\", \"{1}\")]");
         public void ReportHeaderParameterMustNotHaveValue(MethodModel method, ParameterModel parameter)
         {
-            throw new NotImplementedException();
-        }
-
-        public void ReportHeaderParameterMustNotHaveColonInName(MethodModel method, ParameterModel parameter)
-        {
-            throw new NotImplementedException();
+            var attribute = parameter.HeaderAttribute!.Attribute;
+            this.AddDiagnostic(
+                headerParameterMustNotHaveValue,
+                AttributeLocations(parameter.HeaderAttribute, method.MethodSymbol),
+                attribute.Name, attribute.Value);
         }
 
         public void ReportMethodMustHaveValidReturnType(MethodModel method)

@@ -30,6 +30,16 @@ namespace RestEase.SourceGenerator.Implementation
                 BasePathAttribute = Get<BasePathAttribute>(),
             };
 
+            var headerAttributes = from type in this.InterfaceAndParents()
+                                   let attributeDatas = type.GetAttributes()
+                                       .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.HeaderAttribute))
+                                   from attributeData in attributeDatas
+                                   let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData) as HeaderAttribute
+                                   where instantiatedAttribute != null
+                                   select AttributeModel.Create(instantiatedAttribute, attributeData);
+
+            typeModel.HeaderAttributes.AddRange(headerAttributes);
+
             var allowAnyStatusCodeAttributes = from type in this.InterfaceAndParents()
                                                let attributeData = type.GetAttributes()
                                                    .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.AllowAnyStatusCodeAttribute))
@@ -67,6 +77,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             var model = new PropertyModel(propertySymbol)
             {
+                HeaderAttribute = Get<HeaderAttribute>(),
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
                 HasGetter = propertySymbol.GetMethod != null,
@@ -92,6 +103,8 @@ namespace RestEase.SourceGenerator.Implementation
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
             };
+            model.HeaderAttributes.AddRange(attributes.Where(x => x.attribute is HeaderAttribute)
+                .Select(x => AttributeModel.Create((HeaderAttribute)x.attribute!, x.attributeData)));
 
             model.Parameters.AddRange(methodSymbol.Parameters.Select(this.GetParameter));
 
@@ -110,6 +123,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             var model = new ParameterModel(parameterSymbol)
             {
+                HeaderAttribute = Get<HeaderAttribute>(),
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
                 RawQueryStringAttribute = Get<RawQueryStringAttribute>(),

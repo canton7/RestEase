@@ -9,7 +9,8 @@ namespace RestEase.Implementation.Analysis
 
         public string Name => this.PropertySymbol.Name;
 
-        public bool IsNullable => throw new NotImplementedException();
+        public bool IsNullable => this.PropertySymbol.Type.IsReferenceType ||
+            this.PropertySymbol.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
         public PropertyModel(IPropertySymbol propertySymbol)
         {

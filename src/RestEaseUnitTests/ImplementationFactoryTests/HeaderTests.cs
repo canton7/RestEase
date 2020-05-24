@@ -9,10 +9,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class HeaderTests
+    public class HeaderTests : ImplementationFactoryTestsBase
     {
         [Header("Class Header 1", "Yes")]
         [Header("Class Header 2", "Yes")]
@@ -166,40 +167,26 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([Header("Foo", Format = "X2")] int foo);
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public HeaderTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void HandlesClassHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasClassHeaders>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasClassHeaders>(x => x.FooAsync());
             var expected = new[]
             {
                 new KeyValuePair<string, string>("Class Header 1", "Yes"),
                 new KeyValuePair<string, string>("Class Header 2", "Yes"),
             };
 
+            Assert.NotNull(requestInfo.ClassHeaders);
             Assert.Equal(expected, requestInfo.ClassHeaders.OrderBy(x => x.Key));
         }
 
         [Fact]
         public void HandlesMethodHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasMethodHeaders>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasMethodHeaders>(x => x.FooAsync());
             var expected = new[]
             {
                 new KeyValuePair<string, string>("Method Header 1", "Yes"),
@@ -212,14 +199,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesParamHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasParamHeaders>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("value 1", "value 2");
+            var requestInfo = this.Request<IHasParamHeaders>(x => x.FooAsync("value 1", "value 2"));
 
             var headerParams = requestInfo.HeaderParams.ToList();
 
@@ -237,14 +217,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNullParamHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasParamHeaders>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync("value 1", null);
+            var requestInfo = this.Request<IHasParamHeaders>(x => x.FooAsync("value 1", null));
 
             var headerParams = requestInfo.HeaderParams.ToList();
 
@@ -258,15 +231,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNonStringParamHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasParamHeaderOfNonStringType>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(3);
+            var requestInfo = this.Request<IHasParamHeaderOfNonStringType>(x => x.FooAsync(3));
 
             var headerParams = requestInfo.HeaderParams.ToList();
 
@@ -280,56 +245,77 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfParamHeaderHasValue()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasParamHeaderWithValue>(this.requester.Object));
+            this.VerifyDiagnostics<IHasParamHeaderWithValue>(
+                // (4,28): Error REST009: Header attribute must have the form [Header("Param Header")], not [Header("Param Header", "ShouldNotBeSet")]
+                // Header("Param Header", "ShouldNotBeSet")
+                Diagnostic(DiagnosticCode.HeaderParameterMustNotHaveValue, @"Header(""Param Header"", ""ShouldNotBeSet"")").WithLocation(4, 28)
+            );
         }
 
         [Fact]
         public void ThrowsIfClassHeaderDoesNotHaveValue()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasClassHeaderWithoutValue>(this.requester.Object));
+            this.VerifyDiagnostics<IHasClassHeaderWithoutValue>(
+                // (1,10): Error REST008: Header on interface must have a value (i.e. be of the form [Header("Foo", "Value Here")])
+                // Header("Foo")
+                Diagnostic(DiagnosticCode.HeaderOnInterfaceMustHaveValue, @"Header(""Foo"")").WithLocation(1, 10)
+            );
         }
 
         [Fact]
         public void ThrowsIfClassHeaderHasColon()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasClassHeaderWithColon>(this.requester.Object));
+            this.VerifyDiagnostics<IHasClassHeaderWithColon>(
+                // (1,10): Error REST010: Header attribute name 'Foo: Bar' must not contain a colon
+                // Header("Foo: Bar", "Bar")
+                Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Foo: Bar"", ""Bar"")").WithLocation(1, 10)
+            );
         }
 
         [Fact]
         public void ThrowsIfMethodHeaderHasColon()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasMethodHeaderWithColon>(this.requester.Object));
+            this.VerifyDiagnostics<IHasMethodHeaderWithColon>(
+                // (4,14): Error REST010: Header attribute name 'Foo: Bar' must not contain a colon
+                // Header("Foo: Bar", "Baz")
+                Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Foo: Bar"", ""Baz"")").WithLocation(4, 14)
+            );
         }
 
         [Fact]
         public void ThrowsIfHeaderParamHasColon()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasHeaderParamWithColon>(this.requester.Object));
+            this.VerifyDiagnostics<IHasHeaderParamWithColon>(
+                // (4,28): Error REST010: Header attribute name 'Foo: Bar' must not contain a colon
+                // Header("Foo: Bar")
+                Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Foo: Bar"")").WithLocation(4, 28)
+            );
         }
 
         [Fact]
         public void ThrowsIfHeaderParamHasValue()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasHeaderParamWithValue>(this.requester.Object));
+            this.VerifyDiagnostics<IHasHeaderParamWithValue>(
+                // (4,28): Error REST009: Header attribute must have the form [Header("Foo")], not [Header("Foo", "Bar")]
+                // Header("Foo", "Bar")
+                Diagnostic(DiagnosticCode.HeaderParameterMustNotHaveValue, @"Header(""Foo"", ""Bar"")").WithLocation(4, 28)
+            );
         }
 
         [Fact]
         public void ThrowsIfPropertyHeaderIsValueTypeAndHasValue()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPropertyHeaderWithValue>(this.requester.Object));
+            this.VerifyDiagnostics<IHasPropertyHeaderWithValue>(
+                // (3,14): Error REST012: [Header("Name", "Value")] on property (i.e. containing a default value) can only be used if the property type is nullable
+                // Header("Name", "Value")
+                Diagnostic(DiagnosticCode.HeaderPropertyWithValueMustBeNullable, @"Header(""Name"", ""Value"")").WithLocation(3, 14)
+            );
         }
 
         [Fact]
         public void UsesSpecifiedDefaultForNullableProperty()
         {
-            var implementation = this.factory.CreateImplementation<IHasNullablePropertyHeaderWithValue>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasNullablePropertyHeaderWithValue>(x => x.FooAsync());
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
@@ -342,14 +328,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void UsesSpecifiedDefaultForObjectProperty()
         {
-            var implementation = this.factory.CreateImplementation<IHasObjectPropertyHeaderWithValue>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasObjectPropertyHeaderWithValue>(x => x.FooAsync());
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
@@ -362,33 +341,41 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPropertyHeaderHasColon()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPropertyHeaderWithColon>(this.requester.Object));
+            this.VerifyDiagnostics<IHasPropertyHeaderWithColon>(
+                // (3,14): Error REST010: Header attribute name 'Name: Value' must not contain a colon
+                // Header("Name: Value")
+                Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Name: Value"")").WithLocation(3, 14)
+            );
         }
 
         [Fact]
         public void ThrowsIfPropertyHeaderOnlyHasGetter()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPropertyHeaderWithGetterOnly>(this.requester.Object));
+            this.VerifyDiagnostics<IHasPropertyHeaderWithGetterOnly>(
+                // (4,20): Error REST011: Property must have a getter and a setter
+                // Header
+                Diagnostic(DiagnosticCode.PropertyMustBeReadWrite, "Header").WithLocation(4, 20)
+            );
         }
 
         [Fact]
         public void ThrowsIfPropertyHeaderOnlyHasSetter()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasPropertyHeaderWithSetterOnly>(this.requester.Object));
+            this.VerifyDiagnostics<IHasPropertyHeaderWithSetterOnly>(
+                // (4,20): Error REST011: Property must have a getter and a setter
+                // Header
+                Diagnostic(DiagnosticCode.PropertyMustBeReadWrite, "Header").WithLocation(4, 20)
+            );
         }
 
         [Fact]
         public void HandlesPropertyHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasPropertyHeader>(this.requester.Object);
-            implementation.ApiKey = "Foo Bar";
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasPropertyHeader>(x =>
+            {
+                x.ApiKey = "Foo Bar";
+                return x.FooAsync();
+            });
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
@@ -402,7 +389,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void PropertyHeadersBehaveAsReadHeaders()
         {
-            var implementation = this.factory.CreateImplementation<IHasPropertyHeader>(this.requester.Object);
+            var implementation = this.CreateImplementation<IHasPropertyHeader>();
 
             Assert.Null(implementation.ApiKey);
 
@@ -416,17 +403,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void SpecifyingAuthorizationHeaderWorksAsExpected()
         {
-            var implementation = this.factory.CreateImplementation<IHasAuthorizationHeader>(this.requester.Object);
             // Values from http://en.wikipedia.org/wiki/Basic_access_authentication#Client_side
             string value = Convert.ToBase64String(Encoding.ASCII.GetBytes("Aladdin:open sesame"));
-            implementation.Authorization = new AuthenticationHeaderValue("Basic", value);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasAuthorizationHeader>(x =>
+            {
+                x.Authorization = new AuthenticationHeaderValue("Basic", value);
+                return x.FooAsync();
+            });
 
             var propertyHeaders = requestInfo.PropertyHeaders.ToList();
 
@@ -440,21 +423,17 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNullHeaderValues()
         {
-            this.factory.CreateImplementation<IHasNullHeaderValues>(this.requester.Object);
+            this.VerifyDiagnostics<IHasNullHeaderValues>();
         }
 
         [Fact]
         public void HandlesFormattedPathHeader()
         {
-            var implementation = this.factory.CreateImplementation<IHasFormattedPathHeader>(this.requester.Object);
-            implementation.Foo = 10;
-
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasFormattedPathHeader>(x =>
+            {
+                x.Foo = 10;
+                return x.FooAsync();
+            });
 
             Assert.Single(requestInfo.PropertyHeaders);
             var serialized = requestInfo.PropertyHeaders.First().SerializeToString(CultureInfo.InvariantCulture);
@@ -465,14 +444,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesFormattedHeaderParam()
         {
-            var implementation = this.factory.CreateImplementation<IHasFormattedHeaderParam>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync(12);
+            var requestInfo = this.Request<IHasFormattedHeaderParam>(x => x.FooAsync(12));
 
             Assert.Single(requestInfo.HeaderParams);
             var serialized = requestInfo.HeaderParams.First().SerializeToString(null);
@@ -483,16 +455,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void FormattedPathHeaderUsesGivenFormatProvider()
         {
-            var implementation = this.factory.CreateImplementation<IHasFormattedPathHeader>(this.requester.Object);
-            implementation.Foo = 10;
             var formatProvider = new Mock<IFormatProvider>();
-
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            implementation.FooAsync();
+            var requestInfo = this.Request<IHasFormattedPathHeader>(x => x.FooAsync());
 
             Assert.Single(requestInfo.PropertyHeaders);
             var serialized = requestInfo.PropertyHeaders.First().SerializeToString(formatProvider.Object);

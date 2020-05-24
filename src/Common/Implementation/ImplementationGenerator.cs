@@ -27,11 +27,11 @@ namespace RestEase.Implementation
             {
                 if (header.Attribute.Value == null)
                 {
-                    this.diagnostics.ReportHeaderOnInterfaceMustHaveValue(header);
+                    this.diagnostics.ReportHeaderOnInterfaceMustHaveValue(this.typeModel, header);
                 }
                 if (header.Attribute.Name.Contains(":"))
                 {
-                    this.diagnostics.ReportHeaderOnInterfaceMustNotHaveColonInName(header);
+                    this.diagnostics.ReportHeaderOnInterfaceMustNotHaveColonInName(this.typeModel, header);
                 }
             }
 
@@ -107,7 +107,7 @@ namespace RestEase.Implementation
                         }
                         if (headerAttribute.Name.Contains(":"))
                         {
-                            this.diagnostics.ReportHeaderPropertyNameMustContainColon(property);
+                            this.diagnostics.ReportPropertyHeaderMustNotHaveColonInName(property);
                         }
                     }
 

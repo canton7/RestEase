@@ -2,10 +2,12 @@ using System;
 using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator.Implementation;
+using static RestEase.SourceGenerator.Implementation.EmitUtils;
 
 namespace RestEase.Implementation.Emission
 {
@@ -18,7 +20,9 @@ namespace RestEase.Implementation.Emission
         private readonly int index;
         private readonly string namespaceName;
         private readonly string typeName;
+        private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
+        private readonly string? classHeadersFieldName;
         private int numMethods;
 
         public TypeEmitter(TypeModel typeModel, WellKnownSymbols wellKnownSymbols, int index)
@@ -29,22 +33,27 @@ namespace RestEase.Implementation.Emission
             this.writer = new IndentedTextWriter(this.stringWriter);
             this.namespaceName = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace) + ".RestEaseGeneratedTypes";
             this.typeName = "Implementation_" + this.index + "_" + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassDeclaration);
-            this.requesterFieldName = this.GenerateRequesterFieldName();
+            this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeName;
+            this.requesterFieldName = this.GenerateFieldName("requester");
+            if (this.typeModel.HeaderAttributes.Count > 0)
+            {
+                this.classHeadersFieldName = this.GenerateFieldName("classHeaders");
+            }
 
             this.AddClassDeclaration();
             this.AddInstanceCtor();
             this.AddStaticCtor();
         }
 
-        private string GenerateRequesterFieldName()
+        private string GenerateFieldName(string baseName)
         {
-            string? name = "requester";
+            string? name = baseName;
             if (this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name))
             {
                 int i = 1;
                 do
                 {
-                    name = "requester" + i;
+                    name = baseName + i;
                     i++;
                 } while (this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name));
             }
@@ -68,7 +77,11 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
-            // TODO: Do we need a special name for this?
+            if (this.classHeadersFieldName != null)
+            {
+                this.writer.WriteLine("private static readonly global::System.Collections.Generic.KeyValuePair<string, string>[] " +
+                    this.classHeadersFieldName + ";");
+            }
             this.writer.WriteLine("private readonly global::RestEase.IRequester " + this.requesterFieldName + ";");
         }
 
@@ -86,7 +99,27 @@ namespace RestEase.Implementation.Emission
 
         private void AddStaticCtor()
         {
-            // TODO...
+            if (this.classHeadersFieldName == null)
+                return;
+
+            this.writer.WriteLine("static " + this.typeName + "()");
+            this.writer.WriteLine("{");
+            this.writer.Indent++;
+
+            this.writer.WriteLine(this.qualifiedTypeName + "." + this.classHeadersFieldName +
+                " = new global::System.Collections.Generic.KeyValuePair<string, string>[]");
+            this.writer.WriteLine("{");
+            this.writer.Indent++;
+            foreach (var header in this.typeModel.HeaderAttributes)
+            {
+                this.writer.WriteLine("new global::System.Collections.Generic.KeyValuePair<string, string>(" +
+                    QuoteString(header.Attribute.Name) + ", " + QuoteString(header.Attribute.Value) + "),");
+            }
+            this.writer.Indent--;
+            this.writer.WriteLine("};");
+
+            this.writer.Indent--;
+            this.writer.WriteLine("}");
         }
 
         public EmittedProperty EmitProperty(PropertyModel propertyModel)
@@ -113,8 +146,9 @@ namespace RestEase.Implementation.Emission
                 methodModel,
                 this.writer,
                 this.wellKnownSymbols,
-                this.namespaceName + "." + this.typeName,
+                this.qualifiedTypeName,
                 this.requesterFieldName,
+                this.classHeadersFieldName,
                 this.numMethods);
         }
 
