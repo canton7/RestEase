@@ -5,8 +5,6 @@ namespace RestEase.SourceGenerator.Implementation
 {
     internal static class WellKnownNames
     {
-        public const string RequestInfo = "global::RestEase.Implementation.RequestInfo";
-
         public static IReadOnlyDictionary<HttpMethod, string> HttpMethodProperties { get; } = new Dictionary<HttpMethod, string>()
         {
             { HttpMethod.Delete, "global::System.Net.Http.HttpMethod.Delete" },

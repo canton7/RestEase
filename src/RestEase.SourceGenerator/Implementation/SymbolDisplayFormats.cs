@@ -15,6 +15,7 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat MethodReturnType { get; }
         public static SymbolDisplayFormat ParameterReference { get; }
         public static SymbolDisplayFormat PropertyReference { get; }
+        public static SymbolDisplayFormat TypeofParameter { get; }
         public static SymbolDisplayFormat TypeParameter { get; }
 
         static SymbolDisplayFormats()
@@ -66,6 +67,11 @@ namespace RestEase.SourceGenerator.Implementation
 
             PropertyReference = new SymbolDisplayFormat(
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+            TypeofParameter = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
             TypeParameter = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,

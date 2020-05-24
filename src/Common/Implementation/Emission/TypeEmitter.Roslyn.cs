@@ -1,5 +1,6 @@
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -23,7 +24,8 @@ namespace RestEase.Implementation.Emission
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
         private readonly string? classHeadersFieldName;
-        private int numMethods;
+
+        private readonly List<string> generatedFieldNames = new List<string>();
 
         public TypeEmitter(TypeModel typeModel, WellKnownSymbols wellKnownSymbols, int index)
         {
@@ -48,15 +50,16 @@ namespace RestEase.Implementation.Emission
         private string GenerateFieldName(string baseName)
         {
             string? name = baseName;
-            if (this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name))
+            if (this.generatedFieldNames.Contains(name) || this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name))
             {
                 int i = 1;
                 do
                 {
                     name = baseName + i;
                     i++;
-                } while (this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name));
+                } while (this.generatedFieldNames.Contains(name) || this.typeModel.NamedTypeSymbol.GetMembers().Any(x => x.Name == name));
             }
+            this.generatedFieldNames.Add(name);
             return name;
         }
 
@@ -146,7 +149,6 @@ namespace RestEase.Implementation.Emission
 
         public MethodEmitter EmitMethod(MethodModel methodModel)
         {
-            this.numMethods++;
             return new MethodEmitter(
                 methodModel,
                 this.writer,
@@ -154,7 +156,7 @@ namespace RestEase.Implementation.Emission
                 this.qualifiedTypeName,
                 this.requesterFieldName,
                 this.classHeadersFieldName,
-                this.numMethods);
+                this.GenerateFieldName("methodInfo_" + methodModel.MethodSymbol.Name));
         }
 
         public EmittedType Generate()

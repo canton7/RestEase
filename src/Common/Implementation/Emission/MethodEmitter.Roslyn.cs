@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RestEase.Implementation.Analysis;
@@ -21,7 +22,7 @@ namespace RestEase.Implementation.Emission
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
         private readonly string? classHeadersFieldName;
-        private readonly int index;
+        private readonly string methodInfoFieldName;
         private readonly string requestInfoLocalName;
 
         public MethodEmitter(
@@ -31,7 +32,7 @@ namespace RestEase.Implementation.Emission
             string qualifiedTypeName,
             string requesterFieldName,
             string? classHeadersFieldName,
-            int index)
+            string methodInfoFieldName)
         {
             this.methodModel = methodModel;
             this.writer = writer;
@@ -39,7 +40,7 @@ namespace RestEase.Implementation.Emission
             this.qualifiedTypeName = qualifiedTypeName;
             this.requesterFieldName = requesterFieldName;
             this.classHeadersFieldName = classHeadersFieldName;
-            this.index = index;
+            this.methodInfoFieldName = methodInfoFieldName;
             this.requestInfoLocalName = this.GenerateRequestInfoLocalName();
 
             this.EmitMethodInfoField();
@@ -64,7 +65,7 @@ namespace RestEase.Implementation.Emission
 
         private void EmitMethodInfoField()
         {
-            this.writer.WriteLine("private static global::System.Reflection.MethodInfo methodInfo_" + this.index + ";");
+            this.writer.WriteLine("private static global::System.Reflection.MethodInfo " + this.methodInfoFieldName + ";");
         }
 
         private void EmitMethodDeclaration()
@@ -78,11 +79,27 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.MethodDeclaration));
             this.writer.WriteLine("{");
             this.writer.Indent++;
+
+            this.writer.WriteLine("if (" + this.qualifiedTypeName + "." + this.methodInfoFieldName + " == null)");
+            this.writer.WriteLine("{");
+            this.writer.Indent++;
+
+            this.writer.WriteLine(this.qualifiedTypeName + "." + this.methodInfoFieldName +
+                " = global::RestEase.Implementation.ImplementationHelpers.GetInterfaceMethodInfo(");
+            this.writer.Indent++;
+            this.writer.WriteLine("typeof(" + this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + "),");
+            this.writer.WriteLine(QuoteString(this.methodModel.MethodSymbol.Name) + ", ");
+            this.writer.WriteLine(this.methodModel.MethodSymbol.TypeParameters.Length + ", ");
+            this.writer.WriteLine("new global::System.Type[] { " + string.Join(", ", this.methodModel.MethodSymbol.Parameters
+                .Select(x => "typeof(" + x.Type.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + ")")) + " });");
+            this.writer.Indent--;
+            this.writer.Indent--;
+            this.writer.WriteLine("}");
         }
 
         public void EmitRequestInfoCreation(RequestAttribute requestAttribute)
         {
-            this.writer.Write("var " + this.requestInfoLocalName + " = new " + WellKnownNames.RequestInfo + "(");
+            this.writer.Write("var " + this.requestInfoLocalName + " = new global::RestEase.Implementation.RequestInfo(");
             if (WellKnownNames.HttpMethodProperties.TryGetValue(requestAttribute.Method, out string httpMethod))
             {
                 this.writer.Write(httpMethod);
@@ -92,7 +109,7 @@ namespace RestEase.Implementation.Emission
                 this.writer.Write("new global::System.Net.Http.HttpMethod(" + requestAttribute.Method.Method + ")");
             }
             this.writer.Write(", " + QuoteString(requestAttribute.Path ?? string.Empty));
-            this.writer.Write(", " + this.qualifiedTypeName + "." + "methodInfo_" + this.index);
+            this.writer.Write(", " + this.qualifiedTypeName + "." + this.methodInfoFieldName);
             this.writer.WriteLine(");");
 
             if (this.classHeadersFieldName != null)

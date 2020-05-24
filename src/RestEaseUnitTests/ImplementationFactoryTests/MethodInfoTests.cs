@@ -2,13 +2,15 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class MethodInfoTests
+    public class MethodInfoTests : ImplementationFactoryTestsBase
     {
         public interface IHasOverloads
         {
@@ -34,8 +36,16 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         public interface IChildWithTwoGenericParents : IGenericParent<int>, IGenericParent<string> { }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public interface IHasTwoMethodsWithDifferentArity
+        {
+            [Get]
+            Task FooAsync();
+
+            [Get]
+            Task FooAsync<T>();
+        }
+
+        public MethodInfoTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void GetsMethodInfoForOverloadedMethods()
@@ -69,19 +79,20 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Assert.Equal(expectedstringOverload, stringOverload);
         }
 
-        private IRequestInfo Request<T>(Func<T, Task> selector)
+        [Fact]
+        public void GetsMethodWithCorrectArity()
         {
-            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
+            var zeroArity = this.Request<IHasTwoMethodsWithDifferentArity>(x => x.FooAsync()).MethodInfo;
+            var expectedZeroArity = typeof(IHasTwoMethodsWithDifferentArity)
+                .GetTypeInfo().GetDeclaredMethods("FooAsync").FirstOrDefault(x => x.GetGenericArguments().Length == 0);
+            Assert.Equal(expectedZeroArity, zeroArity);
 
-            IRequestInfo requestInfo = null;
+            var oneArity = this.Request<IHasTwoMethodsWithDifferentArity>(x => x.FooAsync<int>()).MethodInfo;
+            var expectedOneArity = typeof(IHasTwoMethodsWithDifferentArity)
+                .GetTypeInfo().GetDeclaredMethods("FooAsync").FirstOrDefault(x => x.GetGenericArguments().Length == 1);
+            Assert.Equal(expectedOneArity, oneArity);
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            selector(implementation);
-
-            return requestInfo;
+            Assert.NotEqual(zeroArity, oneArity);
         }
     }
 }
