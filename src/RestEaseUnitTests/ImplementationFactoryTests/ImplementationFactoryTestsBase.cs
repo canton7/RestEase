@@ -34,7 +34,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 {
     public abstract class ImplementationFactoryTestsBase
     {
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
+        protected readonly Mock<IRequester> Requester = new Mock<IRequester>(MockBehavior.Strict);
         private readonly ITestOutputHelper output;
 
         public ImplementationFactoryTestsBase(ITestOutputHelper output)
@@ -112,7 +112,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 var implementationType = assembly.GetCustomAttributes<RestEaseInterfaceImplementationAttribute>()
                     .FirstOrDefault(x => x.InterfaceType == typeof(T))?.ImplementationType;
                 Assert.NotNull(implementationType);
-                return (T)Activator.CreateInstance(implementationType, this.requester.Object);
+                return (T)Activator.CreateInstance(implementationType, this.Requester.Object);
             }
         }
 
@@ -129,7 +129,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         protected T CreateImplementation<T>()
         {
-            return this.factory.CreateImplementation<T>(this.requester.Object);
+            return this.factory.CreateImplementation<T>(this.Requester.Object);
         }
 
         protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
@@ -163,7 +163,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             IRequestInfo requestInfo = null;
             var returnValue = Task.FromResult(false);
 
-            this.requester.Setup(requesterMethod)
+            this.Requester.Setup(requesterMethod)
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(returnValue)
                 .Verifiable();
@@ -171,7 +171,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             var response = method(implementation);
 
             Assert.Equal(returnValue, response);
-            this.requester.Verify();
+            this.Requester.Verify();
 
             return requestInfo;
         }
@@ -184,7 +184,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         {
             IRequestInfo requestInfo = null;
 
-            this.requester.Setup(requesterMethod)
+            this.Requester.Setup(requesterMethod)
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .ReturnsAsync(returnValue)
                 .Verifiable();
@@ -192,7 +192,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             var response = method(implementation);
 
             Assert.Equal(returnValue, response.Result);
-            this.requester.Verify();
+            this.Requester.Verify();
 
             return requestInfo;
         }

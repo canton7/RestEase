@@ -6,10 +6,11 @@ using Moq;
 using RestEase;
 using RestEase.Implementation;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class DisposableTests
+    public class DisposableTests : ImplementationFactoryTestsBase
     {
         public interface IDisposableApi : IDisposable
         {
@@ -17,15 +18,16 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public DisposableTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void DisposingDisposableImplementationDisposesRequester()
         {
-            var requester = new Mock<IRequester>();
-            var implementation = this.factory.CreateImplementation<IDisposableApi>(requester.Object);
+            var implementation = this.CreateImplementation<IDisposableApi>();
+
+            this.Requester.Setup(x => x.Dispose()).Verifiable();
             implementation.Dispose();
-            requester.Verify(x => x.Dispose());
+            this.Requester.Verify();
         }
     }
 }

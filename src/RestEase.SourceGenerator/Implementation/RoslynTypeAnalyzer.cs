@@ -49,7 +49,7 @@ namespace RestEase.SourceGenerator.Implementation
                                                select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type, attributeData);
             typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
 
-            foreach (var member in this.namedTypeSymbol.GetMembers())
+            foreach (var member in this.InterfaceAndParents().SelectMany(x => x.GetMembers()))
             {
                 switch (member)
                 {
@@ -103,6 +103,7 @@ namespace RestEase.SourceGenerator.Implementation
                 RequestAttribute = Get<RequestAttribute>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                IsDisposeMethod = SymbolEqualityComparer.Default.Equals(methodSymbol, this.wellKnownSymbols.IDisposable_Dispose),
             };
             model.HeaderAttributes.AddRange(attributes.Where(x => x.attribute is HeaderAttribute)
                 .Select(x => AttributeModel.Create((HeaderAttribute)x.attribute!, x.attributeData)));

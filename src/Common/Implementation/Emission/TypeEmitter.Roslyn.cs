@@ -134,9 +134,14 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
-        public void EmitDisposeMethod(MethodModel methodModel)
+        public void EmitDisposeMethod(MethodModel _)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine("void global::System.IDisposable.Dispose()");
+            this.writer.WriteLine("{");
+            this.writer.Indent++;
+            this.writer.WriteLine("this." + this.requesterFieldName + ".Dispose();");
+            this.writer.Indent--;
+            this.writer.WriteLine("}");
         }
 
         public MethodEmitter EmitMethod(MethodModel methodModel)

@@ -67,6 +67,10 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? idictionaryKV;
         public INamedTypeSymbol? IDictionaryKV => this.idictionaryKV ??= this.LookupSystem("System.Collections.Generic.IDictionary`2");
 
+        private IMethodSymbol? idisposable_dispose;
+        public IMethodSymbol? IDisposable_Dispose => this.idisposable_dispose ??= this.LookupSystem("System.IDisposable")?
+            .GetMembers("Dispose").OfType<IMethodSymbol>().FirstOrDefault();
+
         public WellKnownSymbols(Compilation compilation, DiagnosticReporter diagnosticReporter)
         {
             this.restEaseAssembly = GetReferencedAssemblies(compilation.Assembly)
