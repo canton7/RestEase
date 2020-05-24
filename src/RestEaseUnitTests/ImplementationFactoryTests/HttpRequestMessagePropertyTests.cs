@@ -5,10 +5,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class HttpRequestMessagePropertyTests
+    public class HttpRequestMessagePropertyTests : ImplementationFactoryTestsBase
     {
         public interface IHttpRequestMessageProperties
         {
@@ -22,8 +23,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([HttpRequestMessageProperty] object foo, [HttpRequestMessageProperty("bar-parameter")] decimal valueType);
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public HttpRequestMessagePropertyTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void HandlesPathProperty()
@@ -58,21 +58,6 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             var propertyParam2 = httpRequestMessageProperties[3];
             Assert.Equal("bar-parameter", propertyParam2.Key);
             Assert.Equal(123.456m, propertyParam2.Value);
-        }
-
-        private IRequestInfo Request<T>(Func<T, Task> selector)
-        {
-            var implementation = this.factory.CreateImplementation<T>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(false));
-
-            selector(implementation);
-
-            return requestInfo;
         }
     }
 }

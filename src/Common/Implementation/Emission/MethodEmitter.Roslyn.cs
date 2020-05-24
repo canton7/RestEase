@@ -151,7 +151,9 @@ namespace RestEase.Implementation.Emission
 
         public void EmitAddHttpRequestMessagePropertyProperty(EmittedProperty property)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddHttpRequestMessagePropertyProperty(" +
+                QuoteString(property.PropertyModel.HttpRequestMessagePropertyAttributeKey) + ", " +
+                ReferenceTo(property.PropertyModel) + ");");
         }
 
         public void EmitSetBodyParameter(ParameterModel parameter, BodySerializationMethod serializationMethod)
@@ -192,7 +194,8 @@ namespace RestEase.Implementation.Emission
 
         public void EmitAddHttpRequestMessagePropertyParameter(ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine(this.requestInfoLocalName + ".AddHttpRequestMessagePropertyParameter(" +
+                QuoteString(parameter.HttpRequestMessagePropertyAttributeKey) + ", " + ReferenceTo(parameter) + ");");
         }
 
         public void EmitAddRawQueryStringParameter(ParameterModel parameter)

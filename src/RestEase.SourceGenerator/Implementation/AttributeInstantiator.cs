@@ -64,6 +64,10 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 return this.ParseHeaderAttribute(attributeData);
             }
+            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.HttpRequestMessagePropertyAttribute))
+            {
+                return this.ParseHttpRequestMessagePropertyAttribute(attributeData);
+            }
             if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.GetAttribute))
             {
                 return this.ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x));
@@ -294,6 +298,34 @@ namespace RestEase.SourceGenerator.Implementation
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
+                    }
+                }
+            }
+
+            return attribute;
+        }
+
+        private Attribute? ParseHttpRequestMessagePropertyAttribute(AttributeData attributeData)
+        {
+            HttpRequestMessagePropertyAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 0)
+            {
+                attribute = new HttpRequestMessagePropertyAttribute();
+            }
+            else if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new HttpRequestMessagePropertyAttribute((string)attributeData.ConstructorArguments[0].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    if (namedArgument.Key == "Key" &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
+                    {
+                        attribute.Key = (string?)namedArgument.Value.Value;
                     }
                 }
             }

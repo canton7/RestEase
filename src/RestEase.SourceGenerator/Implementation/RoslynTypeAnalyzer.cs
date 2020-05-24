@@ -80,6 +80,7 @@ namespace RestEase.SourceGenerator.Implementation
                 HeaderAttribute = Get<HeaderAttribute>(),
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
+                HttpRequestMessagePropertyAttribute = Get<HttpRequestMessagePropertyAttribute>(),
                 HasGetter = propertySymbol.GetMethod != null,
                 HasSetter = propertySymbol.SetMethod != null,
             };
@@ -126,6 +127,7 @@ namespace RestEase.SourceGenerator.Implementation
                 HeaderAttribute = Get<HeaderAttribute>(),
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
+                HttpRequestMessagePropertyAttribute = Get<HttpRequestMessagePropertyAttribute>(),
                 RawQueryStringAttribute = Get<RawQueryStringAttribute>(),
                 BodyAttribute = Get<BodyAttribute>(),
                 IsCancellationToken = SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, this.wellKnownSymbols.CancellationToken),

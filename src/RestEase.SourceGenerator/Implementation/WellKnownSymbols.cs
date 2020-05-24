@@ -49,6 +49,9 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? headerAttribute;
         public INamedTypeSymbol? HeaderAttribute => this.headerAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.HeaderAttribute));
 
+        private INamedTypeSymbol? httpRequestMessagePropertyAttribute;
+        public INamedTypeSymbol? HttpRequestMessagePropertyAttribute => this.httpRequestMessagePropertyAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.HttpRequestMessagePropertyAttribute));
+
         private INamedTypeSymbol? cancellationToken;
         public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupSystem("System.Threading.CancellationToken");
 
