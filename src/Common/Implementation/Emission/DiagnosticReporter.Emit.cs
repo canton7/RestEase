@@ -43,14 +43,14 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException(DiagnosticCode.HeaderOnInterfaceMustHaveValue, $"[Header(\"{header.Attribute.Name}\")] on interface must have the form [Header(\"Name\", \"Value\")]");
         }
 
-        public void ReportAllowAnyStatisCodeAttributeNotAllowedOnParentInterface(AllowAnyStatusCodeAttributeModel attribute)
+        public void ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(TypeModel _, AllowAnyStatusCodeAttributeModel attribute)
         {
-            throw new ImplementationCreationException($"Parent interface {attribute.ContainingType.Name} may not have any [AllowAnyStatusCode] attributes");
+            throw new ImplementationCreationException(DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface, $"Parent interface {attribute.ContainingType.Name} may not have any [AllowAnyStatusCode] attributes");
         }
 
         public void ReportEventNotAllowed(EventModel _)
         {
-            throw new ImplementationCreationException("Interfaces must not have any events");
+            throw new ImplementationCreationException(DiagnosticCode.EventsNotAllowed, "Interfaces must not have any events");
         }
 
         public void ReportRequesterPropertyMustHaveZeroAttributes(PropertyModel property, List<AttributeModel> attributes)

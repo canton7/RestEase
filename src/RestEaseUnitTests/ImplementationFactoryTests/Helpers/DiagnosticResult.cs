@@ -32,11 +32,6 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
 
         public DiagnosticResultLocation(int line, int column)
         {
-            if (line < -1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(line), "line must be >= -1");
-            }
-
             if (column < -1)
             {
                 throw new ArgumentOutOfRangeException(nameof(column), "column must be >= -1");

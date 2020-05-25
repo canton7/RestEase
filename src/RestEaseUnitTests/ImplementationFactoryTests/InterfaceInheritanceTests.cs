@@ -7,10 +7,11 @@ using Moq;
 using RestEase;
 using RestEase.Implementation;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class InterfaceInheritanceTests
+    public class InterfaceInheritanceTests : ImplementationFactoryTestsBase
     {
         public interface IPropertyChild
         {
@@ -76,36 +77,26 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         {
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public InterfaceInheritanceTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void ImplementsPropertiesFromChild()
         {
             // Does not throw
-            this.factory.CreateImplementation<IPropertyParent>(this.requester.Object);
+            this.VerifyDiagnostics<IPropertyParent>();
         }
 
         [Fact]
         public void ImplementsMethodsFromChild()
         {
             // Does not throw
-            this.factory.CreateImplementation<IMethodParent>(this.requester.Object);
+            this.VerifyDiagnostics<IMethodParent>();
         }
 
         [Fact]
         public void CombinesHeadersFromChildInterfaces()
         {
-            var impl = this.factory.CreateImplementation<IParentWithInterfaceHeader>(this.requester.Object);
-
-            IRequestInfo requestInfo = null;
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback<IRequestInfo>(r => requestInfo = r)
-                .Returns(Task.FromResult(false));
-            impl.FooAsync();
-
-            Assert.NotNull(requestInfo);
-
+            var requestInfo = this.Request<IParentWithInterfaceHeader>(x => x.FooAsync());
             var classHeaders = requestInfo.ClassHeaders.ToList();
 
             Assert.Equal("X-Foo", classHeaders[0].Key);
@@ -118,19 +109,31 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void DoesNotAllowAllowAnyStatusCodeOnChildInterfaces()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IParentWithAllowAnyStatusCode>(this.requester.Object));
+            this.VerifyDiagnostics<IParentWithAllowAnyStatusCode>(
+                // (-4,10): Error REST014: Parent interface (of tyoe 'IParentWithAllowAnyStatusCode') may not have an [AllowAnyStatusCode] attribute
+                // AllowAnyStatusCode
+                Diagnostic(DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface, "AllowAnyStatusCode").WithLocation(-4, 10)
+            );
         }
 
         [Fact]
         public void ValidatesHeadersOnChildProperties()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IParentWithInvalidHeaderProperty>(this.requester.Object));
+            this.VerifyDiagnostics<IParentWithInvalidHeaderProperty>(
+                // (-3,14): Error REST010: Header attribute name 'X-Foo:' must not contain a colon
+                // Header("X-Foo:")
+                Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""X-Foo:"")").WithLocation(-3, 14)
+            );
         }
 
         [Fact]
         public void ValidatesEventsInChildInterfaces()
         {
-            Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IParentWithEvent>(this.requester.Object));
+            this.VerifyDiagnostics<IParentWithEvent>(
+                // (-2,32): Error REST015: Intarfaces must not have any events
+                // Foo,
+                Diagnostic(DiagnosticCode.EventsNotAllowed, "Foo").WithLocation(-2, 32)
+            );
         }
     }
 }

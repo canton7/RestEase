@@ -50,14 +50,25 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(headerOnInterfaceMustHaveValue, AttributeLocations(header, typeModel.NamedTypeSymbol), header.Attribute.Name);
         }
 
-        public void ReportAllowAnyStatisCodeAttributeNotAllowedOnParentInterface(AllowAnyStatusCodeAttributeModel attribute)
+        private static readonly DiagnosticDescriptor allowAnyStatusCodeAttributeNotAllowedOnParentInterface = CreateDescriptor(
+            DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface,
+            "Parent interfaces may not have any [AllowAnyStatusCode] attributes",
+            "Parent interface (of type '{0}') may not have an [AllowAnyStatusCode] attribute");
+        public void ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(TypeModel typeModel, AllowAnyStatusCodeAttributeModel attribute)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(
+                allowAnyStatusCodeAttributeNotAllowedOnParentInterface,
+                AttributeLocations(attribute, attribute.DefinedOn),
+                typeModel.NamedTypeSymbol.Name);
         }
 
-        public void ReportEventNotAllowed(EventModel _)
+        private static readonly DiagnosticDescriptor eventsNotAllowed = CreateDescriptor(
+            DiagnosticCode.EventsNotAllowed,
+            "Interfaces must not have any events",
+            "Intarfaces must not have any events");
+        public void ReportEventNotAllowed(EventModel eventModel)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(eventsNotAllowed, eventModel.EventSymbol.Locations);
         }
 
         public void ReportRequesterPropertyMustHaveZeroAttributes(PropertyModel property, List<AttributeModel> attributes)
@@ -191,7 +202,7 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.QueryMapParameterIsNotADictionary,
             "QueryMap parameters must be dictionaries",
             "[QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)");
-        public void ReportQueryMapParameterIsNotADictionary(MethodModel method, ParameterModel parameter)
+        public void ReportQueryMapParameterIsNotADictionary(MethodModel _, ParameterModel parameter)
         {
             this.AddDiagnostic(queryMapParameterIsNotADictionary, SymbolLocations(parameter.ParameterSymbol));
         }

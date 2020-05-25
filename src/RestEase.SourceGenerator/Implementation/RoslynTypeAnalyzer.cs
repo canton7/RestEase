@@ -59,6 +59,9 @@ namespace RestEase.SourceGenerator.Implementation
                     case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary:
                         typeModel.Methods.Add(this.GetMethod(method));
                         break;
+                    case IEventSymbol evt:
+                        typeModel.Events.Add(new EventModel(evt));
+                        break;
                 }
             }
 

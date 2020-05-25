@@ -39,7 +39,7 @@ namespace RestEase.Implementation
             {
                 if (!attribute.IsDefinedOn(this.typeModel))
                 {
-                    this.diagnostics.ReportAllowAnyStatisCodeAttributeNotAllowedOnParentInterface(attribute);
+                    this.diagnostics.ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(this.typeModel, attribute);
                 }
             }
 
