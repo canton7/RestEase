@@ -12,7 +12,7 @@ namespace RestEase
         /// <summary>
         /// Gets the HTTP method to use (Get/Post/etc)
         /// </summary>
-        public HttpMethod Method { get; private set; }
+        public HttpMethod Method { get; }
 
         /// <summary>
         /// Gets or sets the path to request. This is relative to the base path configured when RestService.For was called, and can contain placeholders

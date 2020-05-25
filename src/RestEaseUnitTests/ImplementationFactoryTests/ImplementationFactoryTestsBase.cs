@@ -15,12 +15,14 @@ using RestEase.Implementation;
 using System.Collections.Generic;
 using RestEaseUnitTests.ImplementationFactoryTests.Helpers;
 using Xunit.Abstractions;
-using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using System.Linq.Expressions;
+using System.Net.Http;
 #else
 using System;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using RestEase;
@@ -176,7 +178,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             return requestInfo;
         }
 
-        protected IRequestInfo Request<TType, TReturnType>(
+        private IRequestInfo Request<TType, TReturnType>(
             TType implementation,
             Func<TType, Task<TReturnType>> method,
             Expression<Func<IRequester, Task<TReturnType>>> requesterMethod,
@@ -211,6 +213,21 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         protected IRequestInfo RequestWithResponse<TType, TReturnType>(Func<TType, Task<Response<TReturnType>>> method, Response<TReturnType> returnValue)
         {
             return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestWithResponseAsync<TReturnType>(It.IsAny<IRequestInfo>()), returnValue);
+        }
+
+        protected IRequestInfo RequestWithResponseMessage<TType>(Func<TType, Task<HttpResponseMessage>> method, HttpResponseMessage returnValue)
+        {
+            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestWithResponseMessageAsync(It.IsAny<IRequestInfo>()), returnValue);
+        }
+
+        protected IRequestInfo RequestRaw<TType>(Func<TType, Task<string>> method, string returnValue)
+        {
+            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestRawAsync(It.IsAny<IRequestInfo>()), returnValue);
+        }
+
+        protected IRequestInfo RequestStream<TType>(Func<TType, Task<Stream>> method, Stream returnValue)
+        {
+            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestStreamAsync(It.IsAny<IRequestInfo>()), returnValue);
         }
     }
 }

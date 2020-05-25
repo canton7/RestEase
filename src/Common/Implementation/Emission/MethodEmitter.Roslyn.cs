@@ -236,6 +236,32 @@ namespace RestEase.Implementation.Emission
             {
                 methodName = "RequestVoidAsync";
             }
+            else if (returnType is INamedTypeSymbol namedReturnType && namedReturnType.IsGenericType &&
+                SymbolEqualityComparer.Default.Equals(namedReturnType.ConstructedFrom, this.wellKnownSymbols.TaskT))
+            {
+                var typeOfT = namedReturnType.TypeArguments[0];
+                if (typeOfT.SpecialType == SpecialType.System_String)
+                {
+                    methodName = "RequestRawAsync";
+                }
+                else if (SymbolEqualityComparer.Default.Equals(typeOfT, this.wellKnownSymbols.HttpResponseMessage))
+                {
+                    methodName = "RequestWithResponseMessageAsync";
+                }
+                else if (SymbolEqualityComparer.Default.Equals(typeOfT, this.wellKnownSymbols.Stream))
+                {
+                    methodName = "RequestStreamAsync";
+                }
+                else if (typeOfT is INamedTypeSymbol namedTypeOfT && namedTypeOfT.IsGenericType &&
+                    SymbolEqualityComparer.Default.Equals(namedTypeOfT.ConstructedFrom, this.wellKnownSymbols.ResponseT))
+                {
+                    methodName = "RequestWithResponseAsync<" + namedTypeOfT.TypeArguments[0].ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">";
+                }
+                else
+                {
+                    methodName = "RequestAsync<" + typeOfT.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">";
+                }
+            }
 
             if (methodName != null)
             {

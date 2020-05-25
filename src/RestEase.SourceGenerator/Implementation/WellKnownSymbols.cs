@@ -28,9 +28,6 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? serializationMethodsAttribute;
         public INamedTypeSymbol? SerializationMethodsAttribute => this.serializationMethodsAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.SerializationMethodsAttribute));
 
-        private INamedTypeSymbol? getAttribute;
-        public INamedTypeSymbol? GetAttribute => this.getAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.GetAttribute));
-
         private INamedTypeSymbol? pathSerializationMethod;
         public INamedTypeSymbol? PathSerializationMethod => this.pathSerializationMethod ??= this.LookupLocal("RestEase." + nameof(RestEase.PathSerializationMethod));
 
@@ -55,17 +52,59 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? queryMapAttribute;
         public INamedTypeSymbol? QueryMapAttribute => this.queryMapAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.QueryMapAttribute));
 
+        private INamedTypeSymbol? responseT;
+        public INamedTypeSymbol? ResponseT => this.responseT ??= this.LookupLocal("RestEase.Response`1");
+
+        private INamedTypeSymbol? requestAttribute;
+        public INamedTypeSymbol? RequestAttribute => this.requestAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.RequestAttribute));
+
+        private INamedTypeSymbol? deleteAttribute;
+        public INamedTypeSymbol? DeleteAttribute => this.deleteAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.DeleteAttribute));
+
+        private INamedTypeSymbol? getAttribute;
+        public INamedTypeSymbol? GetAttribute => this.getAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.GetAttribute));
+
+        private INamedTypeSymbol? headAttribute;
+        public INamedTypeSymbol? HeadAttribute => this.headAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.HeadAttribute));
+
+        private INamedTypeSymbol? optionsAttribute;
+        public INamedTypeSymbol? OptionsAttribute => this.optionsAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.OptionsAttribute));
+
+        private INamedTypeSymbol? postAttribute;
+        public INamedTypeSymbol? PostAttribute => this.postAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.PostAttribute));
+
+        private INamedTypeSymbol? putAttribute;
+        public INamedTypeSymbol? PutAttribute => this.putAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.PutAttribute));
+
+        private INamedTypeSymbol? traceAttribute;
+        public INamedTypeSymbol? TraceAttribute => this.traceAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.TraceAttribute));
+
+        private INamedTypeSymbol? patchAttribute;
+        public INamedTypeSymbol? PatchAttribute => this.patchAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.PatchAttribute));
+
         private INamedTypeSymbol? cancellationToken;
         public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupSystem("System.Threading.CancellationToken");
 
         private INamedTypeSymbol? task;
         public INamedTypeSymbol? Task => this.task ??= this.LookupSystem("System.Threading.Tasks.Task");
 
+        private INamedTypeSymbol? taskT;
+        public INamedTypeSymbol? TaskT => this.taskT ??= this.LookupSystem("System.Threading.Tasks.Task`1");
+
         private INamedTypeSymbol? ienumerableT;
         public INamedTypeSymbol? IEnumerableT => this.ienumerableT ??= this.LookupSystem("System.Collections.Generic.IEnumerable`1");
 
         private INamedTypeSymbol? idictionaryKV;
         public INamedTypeSymbol? IDictionaryKV => this.idictionaryKV ??= this.LookupSystem("System.Collections.Generic.IDictionary`2");
+
+        private INamedTypeSymbol? httpMethod;
+        public INamedTypeSymbol? HttpMethod => this.httpMethod ??= this.LookupSystem("System.Net.Http.HttpMethod");
+
+        private INamedTypeSymbol? httpResponseMessage;
+        public INamedTypeSymbol? HttpResponseMessage => this.httpResponseMessage ??= this.LookupSystem("System.Net.Http.HttpResponseMessage");
+
+        private INamedTypeSymbol? stream;
+        public INamedTypeSymbol? Stream => this.stream ??= this.LookupSystem("System.IO.Stream");
 
         private IMethodSymbol? idisposable_dispose;
         public IMethodSymbol? IDisposable_Dispose => this.idisposable_dispose ??= this.LookupSystem("System.IDisposable")?

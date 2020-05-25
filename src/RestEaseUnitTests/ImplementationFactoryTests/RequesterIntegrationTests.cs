@@ -6,10 +6,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class RequesterIntegrationTests
+    public class RequesterIntegrationTests : ImplementationFactoryTestsBase
     {
         public interface INoArgumentsNoReturn
         {
@@ -49,6 +50,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         public interface IAllRequestMethods
         {
+            [Request("GET", "foo")]
+            Task RequestAsync();
+
             [Delete("foo")]
             Task DeleteAsync();
 
@@ -80,26 +84,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
-        private readonly Mock<IRequester> requester = new Mock<IRequester>(MockBehavior.Strict);
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        public RequesterIntegrationTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void NoArgumentsNoReturnCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<INoArgumentsNoReturn>(this.requester.Object);
+            var requestInfo = this.Request<INoArgumentsNoReturn>(x => x.FooAsync());
 
-            var expectedResponse = Task.FromResult(false);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.FooAsync();
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -109,20 +100,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithReturnCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<INoArgumentsWithReturn>(this.requester.Object);
+            var requestInfo = this.Request<INoArgumentsWithReturn, int>(x => x.BarAsync(), 3);
 
-            var expectedResponse = Task.FromResult(3);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestAsync<int>(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.BarAsync();
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -132,20 +111,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithResponseCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsResponse>(this.requester.Object);
+            var response = new Response<string>("hello", new HttpResponseMessage(), () => null);
+            var requestInfo = this.RequestWithResponse<INoArgumentsReturnsResponse, string>(x => x.FooAsync(), response);
 
-            var expectedResponse = Task.FromResult(new Response<string>("hello", new HttpResponseMessage(), () => null));
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestWithResponseAsync<string>(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.FooAsync();
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -155,20 +123,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithResponseMessageCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsHttpResponseMessage>(this.requester.Object);
-
-            var expectedResponse = Task.FromResult(new HttpResponseMessage());
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestWithResponseMessageAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.FooAsync();
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
+            var response = new HttpResponseMessage();
+            var requestInfo = this.RequestWithResponseMessage<INoArgumentsReturnsHttpResponseMessage>(x => x.FooAsync(), response);
+            
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -178,20 +135,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithRawResponseCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsString>(this.requester.Object);
+            var requestInfo = this.RequestRaw<INoArgumentsReturnsString>(x => x.FooAsync(), "testy");
 
-            var expectedResponse = Task.FromResult("testy");
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestRawAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.FooAsync();
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -201,21 +146,8 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void NoArgumentsWithStreamResponseCallsCorrectly()
         {
-            var implementation = this.factory.CreateImplementation<INoArgumentsReturnsStream>(this.requester.Object);
+            var requestInfo = this.RequestStream<INoArgumentsReturnsStream>(x => x.FooAsync(), new MemoryStream());
 
-            var stream = new MemoryStream();
-            var expectedResponse = Task.FromResult<Stream>(stream);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestStreamAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(expectedResponse)
-                .Verifiable();
-
-            var response = implementation.FooAsync();
-
-            Assert.Equal(expectedResponse, response);
-            this.requester.Verify();
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);
@@ -225,12 +157,16 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AllHttpMethodsSupported()
         {
-            var implementation = this.factory.CreateImplementation<IAllRequestMethods>(this.requester.Object);
+            var implementation = this.CreateImplementation<IAllRequestMethods>();
             IRequestInfo requestInfo = null;
 
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
+            this.Requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
                 .Callback((IRequestInfo r) => requestInfo = r)
                 .Returns(Task.FromResult(false));
+
+            implementation.RequestAsync();
+            Assert.Equal(HttpMethod.Get, requestInfo.Method);
+            Assert.Equal("foo", requestInfo.Path);
 
             implementation.DeleteAsync();
             Assert.Equal(HttpMethod.Delete, requestInfo.Method);
@@ -268,14 +204,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void AllowsEmptyPath()
         {
-            var implementation = this.factory.CreateImplementation<IHasEmptyPath>(this.requester.Object);
-            IRequestInfo requestInfo = null;
-
-            this.requester.Setup(x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()))
-                .Callback((IRequestInfo r) => requestInfo = r)
-                .Returns(Task.FromResult(0));
-
-            var response = implementation.FooAsync();
+            var requestInfo = this.Request<IHasEmptyPath>(x => x.FooAsync());
 
             Assert.Equal("", requestInfo.Path);
         }

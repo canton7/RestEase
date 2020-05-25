@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,10 +14,41 @@ namespace RestEase.SourceGenerator.Implementation
     internal class AttributeInstantiator
     {
         private readonly WellKnownSymbols wellKnownSymbols;
+        private readonly Dictionary<INamedTypeSymbol, Func<AttributeData, Attribute?>> lookup;
 
         public AttributeInstantiator(WellKnownSymbols wellKnownSymbols)
         {
             this.wellKnownSymbols = wellKnownSymbols;
+
+            this.lookup = new Dictionary<INamedTypeSymbol, Func<AttributeData, Attribute?>>(19, SymbolEqualityComparer.Default);
+            Add(this.wellKnownSymbols.AllowAnyStatusCodeAttribute, this.ParseAllowAnyStatusCodeAttribute);
+            Add(this.wellKnownSymbols.BasePathAttribute, this.ParseBasePathAttribute);
+            Add(this.wellKnownSymbols.PathAttribute, this.ParsePathAttribute);
+            Add(this.wellKnownSymbols.QueryAttribute, this.ParseQueryAttribute);
+            Add(this.wellKnownSymbols.SerializationMethodsAttribute, this.ParseSerializationMethodsAttribute);
+            Add(this.wellKnownSymbols.RawQueryStringAttribute, this.ParseRawQueryStringAttribute);
+            Add(this.wellKnownSymbols.BodyAttribute, this.ParseBodyAttribute);
+            Add(this.wellKnownSymbols.HeaderAttribute, this.ParseHeaderAttribute);
+            Add(this.wellKnownSymbols.HttpRequestMessagePropertyAttribute, this.ParseHttpRequestMessagePropertyAttribute);
+            Add(this.wellKnownSymbols.QueryMapAttribute, this.ParseQueryMapAttribute);
+            Add(this.wellKnownSymbols.RequestAttribute, this.ParseRequestAttribute);
+            Add(this.wellKnownSymbols.DeleteAttribute, x => this.ParseRequestAttributeSubclass(x, () => new DeleteAttribute(), s => new DeleteAttribute(s)));
+            Add(this.wellKnownSymbols.GetAttribute, x => this.ParseRequestAttributeSubclass(x, () => new GetAttribute(), s => new GetAttribute(s)));
+            Add(this.wellKnownSymbols.HeadAttribute, x => this.ParseRequestAttributeSubclass(x, () => new HeadAttribute(), s => new HeadAttribute(s)));
+            Add(this.wellKnownSymbols.OptionsAttribute, x => this.ParseRequestAttributeSubclass(x, () => new OptionsAttribute(), s => new OptionsAttribute(s)));
+            Add(this.wellKnownSymbols.PostAttribute, x => this.ParseRequestAttributeSubclass(x, () => new PostAttribute(), s => new PostAttribute(s)));
+            Add(this.wellKnownSymbols.PutAttribute, x => this.ParseRequestAttributeSubclass(x, () => new PutAttribute(), s => new PutAttribute(s)));
+            Add(this.wellKnownSymbols.TraceAttribute, x => this.ParseRequestAttributeSubclass(x, () => new TraceAttribute(), s => new TraceAttribute(s)));
+            Add(this.wellKnownSymbols.PatchAttribute, x => this.ParseRequestAttributeSubclass(x, () => new PatchAttribute(), s => new PatchAttribute(s)));
+
+
+            void Add(INamedTypeSymbol? symbol, Func<AttributeData, Attribute?> func)
+            {
+                if (symbol != null)
+                {
+                    this.lookup[symbol] = func;
+                }
+            }
         }
 
         public IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol)
@@ -32,49 +64,9 @@ namespace RestEase.SourceGenerator.Implementation
                 return null;
             }
 
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.AllowAnyStatusCodeAttribute))
+            if (this.lookup.TryGetValue(attributeClass, out var parser))
             {
-                return this.ParseAllowAnyStatusCodeAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.BasePathAttribute))
-            {
-                return this.ParseBasePathAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.PathAttribute))
-            {
-                return this.ParsePathAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.QueryAttribute))
-            {
-                return this.ParseQueryAttribute(attributeData);
-            }    
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.SerializationMethodsAttribute))
-            {
-                return this.ParseSerializationMethodsAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.RawQueryStringAttribute))
-            {
-                return this.ParseRawQueryStringAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.BodyAttribute))
-            {
-                return this.ParseBodyAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.HeaderAttribute))
-            {
-                return this.ParseHeaderAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.HttpRequestMessagePropertyAttribute))
-            {
-                return this.ParseHttpRequestMessagePropertyAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.QueryMapAttribute))
-            {
-                return this.ParseQueryMapAttribute(attributeData);
-            }
-            if (SymbolEqualityComparer.Default.Equals(attributeClass, this.wellKnownSymbols.GetAttribute))
-            {
-                return this.ParseRequestAttributeSubclass(attributeData, () => new GetAttribute(), x => new GetAttribute(x));
+                return parser(attributeData);
             }
 
             return null;
@@ -313,7 +305,7 @@ namespace RestEase.SourceGenerator.Implementation
         {
             HttpRequestMessagePropertyAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
-            {
+            { 
                 attribute = new HttpRequestMessagePropertyAttribute();
             }
             else if (attributeData.ConstructorArguments.Length == 1 &&
@@ -365,6 +357,51 @@ namespace RestEase.SourceGenerator.Implementation
             return attribute;
         }
 
+        private Attribute? ParseRequestAttribute(AttributeData attributeData)
+        {
+            RequestAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 1 &&
+                SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.HttpMethod))
+            {
+                attribute = new RequestAttribute((HttpMethod)attributeData.ConstructorArguments[0].Value!);
+            }
+            else if (attributeData.ConstructorArguments.Length == 2 &&
+                SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.HttpMethod) &&
+                attributeData.ConstructorArguments[1].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new RequestAttribute(
+                    (HttpMethod)attributeData.ConstructorArguments[0].Value!,
+                    (string)attributeData.ConstructorArguments[1].Value!);
+            }
+            else if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new RequestAttribute((string)attributeData.ConstructorArguments[0].Value!);
+            }
+            else if (attributeData.ConstructorArguments.Length == 2 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String &&
+                attributeData.ConstructorArguments[1].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new RequestAttribute(
+                    (string)attributeData.ConstructorArguments[0].Value!,
+                    (string)attributeData.ConstructorArguments[1].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    if (namedArgument.Key == nameof(RequestAttribute.Path) &&
+                        namedArgument.Value.Type.SpecialType == SpecialType.System_String)
+                    {
+                        attribute.Path = (string?)namedArgument.Value.Value;
+                    }
+                }
+            }
+
+            return attribute;
+        }
+
         private Attribute? ParseRequestAttributeSubclass(
             AttributeData attributeData,
             Func<RequestAttribute> parameterlessCtor,
@@ -382,6 +419,7 @@ namespace RestEase.SourceGenerator.Implementation
             }
 
             if (attribute != null)
+
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
