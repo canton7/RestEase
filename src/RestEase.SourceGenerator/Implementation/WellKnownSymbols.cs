@@ -56,6 +56,9 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? responseT;
         public INamedTypeSymbol? ResponseT => this.responseT ??= this.LookupLocal("RestEase.Response`1");
 
+        private INamedTypeSymbol? irequester;
+        public INamedTypeSymbol? IRequester => this.irequester ??= this.LookupLocal("RestEase.IRequester");
+
         private INamedTypeSymbol? requestAttribute;
         public INamedTypeSymbol? RequestAttribute => this.requestAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.RequestAttribute));
 

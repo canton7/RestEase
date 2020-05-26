@@ -22,6 +22,7 @@
         QueryMapParameterIsNotADictionary = 13,
         AllowAnyStatusCodeAttributeNotAllowedOnParentInterface = 14,
         EventsNotAllowed = 15,
+        PropertyMustBeReadOnly = 16,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

@@ -81,9 +81,14 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
+        private static readonly DiagnosticDescriptor propertyMustBeReadOnly = CreateDescriptor(
+            DiagnosticCode.PropertyMustBeReadOnly,
+            "Property must be read-only",
+            "Property must have a getter but not a setter");
         public void ReportPropertyMustBeReadOnly(PropertyModel property)
         {
-            throw new NotImplementedException();
+            // We don't want to include the headers in the squiggle
+            this.AddDiagnostic(propertyMustBeReadOnly, property.PropertySymbol.Locations);
         }
 
         private static readonly DiagnosticDescriptor propertyMustBeReadWrite = CreateDescriptor(

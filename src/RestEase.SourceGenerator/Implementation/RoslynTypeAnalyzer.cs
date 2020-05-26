@@ -84,6 +84,7 @@ namespace RestEase.SourceGenerator.Implementation
                 PathAttribute = Get<PathAttribute>(),
                 QueryAttribute = Get<QueryAttribute>(),
                 HttpRequestMessagePropertyAttribute = Get<HttpRequestMessagePropertyAttribute>(),
+                IsRequester = SymbolEqualityComparer.Default.Equals(propertySymbol.Type, this.wellKnownSymbols.IRequester),
                 HasGetter = propertySymbol.GetMethod != null,
                 HasSetter = propertySymbol.SetMethod != null,
             };

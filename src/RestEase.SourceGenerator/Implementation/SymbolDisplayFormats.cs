@@ -7,6 +7,7 @@ namespace RestEase.SourceGenerator.Implementation
 {
     internal static class SymbolDisplayFormats
     {
+        public static SymbolDisplayFormat SymbolName { get; }
         public static SymbolDisplayFormat Namespace { get; }
         public static SymbolDisplayFormat ClassDeclaration { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
@@ -20,6 +21,9 @@ namespace RestEase.SourceGenerator.Implementation
 
         static SymbolDisplayFormats()
         {
+            SymbolName = new SymbolDisplayFormat(
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
             Namespace = new SymbolDisplayFormat();
 
             ClassDeclaration = new SymbolDisplayFormat(

@@ -134,7 +134,9 @@ namespace RestEase.Implementation.Emission
 
         public void EmitRequesterProperty(PropertyModel propertyModel)
         {
-            throw new NotImplementedException();
+            this.writer.WriteLine("public global::RestEase.IRequester " +
+                propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.SymbolName) +
+                " { get { return this." + this.requesterFieldName + "; } }");
         }
 
         public void EmitDisposeMethod(MethodModel _)

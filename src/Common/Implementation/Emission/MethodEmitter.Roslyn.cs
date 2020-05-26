@@ -110,14 +110,7 @@ namespace RestEase.Implementation.Emission
                     this.writer.WriteLine("(" + string.Join(", ", this.methodModel.MethodSymbol.Parameters
                             .Select(x => "default(" + x.Type.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + ")")) + "));");
                 }
-                //this.writer.WriteLine(this.qualifiedTypeName + "." + this.methodInfoFieldName +
-                //    " = global::RestEase.Implementation.ImplementationHelpers.GetInterfaceMethodInfo(");
-                //this.writer.Indent++;
-                //this.writer.WriteLine("typeof(" + this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + "),");
-                //this.writer.WriteLine(QuoteString(this.methodModel.MethodSymbol.Name) + ", ");
-                //this.writer.WriteLine("new global::System.Type[] { " + string.Join(", ", this.methodModel.MethodSymbol.Parameters
-                //    .Select(x => "typeof(" + x.Type.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + ")")) + " });");
-                //this.writer.Indent--;
+
                 this.writer.Indent--;
                 this.writer.WriteLine("}");
             }
