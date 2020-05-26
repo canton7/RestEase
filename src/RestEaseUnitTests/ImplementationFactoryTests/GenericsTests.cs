@@ -98,8 +98,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         public void SupportsGenericConstraints()
         {
             var implementation = this.CreateImplementation<IHasGenericConstraint>();
-            var methodInfo = implementation.GetType().GetMethod("Foo");
-            Assert.Equal(new[] { typeof(IInterface), typeof(Base) }, methodInfo.GetGenericArguments()[0].GetGenericParameterConstraints());
+            var methodInfo = implementation.GetType().GetTypeInfo().DeclaredMethods.Single(x => x.Name.EndsWith(".Foo"));
+            var constraints = methodInfo.GetGenericArguments()[0].GetGenericParameterConstraints();
+            Assert.Equal(2, constraints.Length);
+            Assert.Contains(typeof(Base), constraints);
+            Assert.Contains(typeof(IInterface), constraints);
             Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, methodInfo.GetGenericArguments()[0].GetGenericParameterAttributes());
         }
     }

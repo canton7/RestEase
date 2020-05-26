@@ -45,6 +45,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync<T>();
         }
 
+        public interface IHasGenericParameter
+        {
+            [Get]
+            Task FooAsync<T>(T arg);
+        }
+
         public MethodInfoTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -93,6 +99,14 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Assert.Equal(expectedOneArity, oneArity);
 
             Assert.NotEqual(zeroArity, oneArity);
+        }
+
+        [Fact]
+        public void GetsMethodWithGenericParameter()
+        {
+            var methodInfo = this.Request<IHasGenericParameter>(x => x.FooAsync(3)).MethodInfo;
+            var expected = typeof(IHasGenericParameter).GetTypeInfo().GetDeclaredMethods("FooAsync").Single();
+            Assert.Equal(expected, methodInfo);
         }
     }
 }
