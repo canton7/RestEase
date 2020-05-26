@@ -10,6 +10,7 @@ namespace RestEase.SourceGenerator.Implementation
 {
     internal class WellKnownSymbols
     {
+        private readonly Compilation compilation;
         private readonly IAssemblySymbol restEaseAssembly;
         private readonly DiagnosticReporter diagnosticReporter;
 
@@ -58,6 +59,7 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? requestAttribute;
         public INamedTypeSymbol? RequestAttribute => this.requestAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.RequestAttribute));
 
+
         private INamedTypeSymbol? deleteAttribute;
         public INamedTypeSymbol? DeleteAttribute => this.deleteAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.DeleteAttribute));
 
@@ -83,35 +85,42 @@ namespace RestEase.SourceGenerator.Implementation
         public INamedTypeSymbol? PatchAttribute => this.patchAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.PatchAttribute));
 
         private INamedTypeSymbol? cancellationToken;
-        public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupSystem("System.Threading.CancellationToken");
+        public INamedTypeSymbol? CancellationToken => this.cancellationToken ??= this.LookupKnownSystem("System.Threading.CancellationToken");
 
         private INamedTypeSymbol? task;
-        public INamedTypeSymbol? Task => this.task ??= this.LookupSystem("System.Threading.Tasks.Task");
+        public INamedTypeSymbol? Task => this.task ??= this.LookupKnownSystem("System.Threading.Tasks.Task");
 
         private INamedTypeSymbol? taskT;
-        public INamedTypeSymbol? TaskT => this.taskT ??= this.LookupSystem("System.Threading.Tasks.Task`1");
+        public INamedTypeSymbol? TaskT => this.taskT ??= this.LookupKnownSystem("System.Threading.Tasks.Task`1");
 
         private INamedTypeSymbol? ienumerableT;
-        public INamedTypeSymbol? IEnumerableT => this.ienumerableT ??= this.LookupSystem("System.Collections.Generic.IEnumerable`1");
+        public INamedTypeSymbol? IEnumerableT => this.ienumerableT ??= this.LookupKnownSystem("System.Collections.Generic.IEnumerable`1");
 
         private INamedTypeSymbol? idictionaryKV;
-        public INamedTypeSymbol? IDictionaryKV => this.idictionaryKV ??= this.LookupSystem("System.Collections.Generic.IDictionary`2");
+        public INamedTypeSymbol? IDictionaryKV => this.idictionaryKV ??= this.LookupKnownSystem("System.Collections.Generic.IDictionary`2");
 
         private INamedTypeSymbol? httpMethod;
-        public INamedTypeSymbol? HttpMethod => this.httpMethod ??= this.LookupSystem("System.Net.Http.HttpMethod");
+        public INamedTypeSymbol? HttpMethod => this.httpMethod ??= this.LookupKnownSystem("System.Net.Http.HttpMethod");
 
         private INamedTypeSymbol? httpResponseMessage;
-        public INamedTypeSymbol? HttpResponseMessage => this.httpResponseMessage ??= this.LookupSystem("System.Net.Http.HttpResponseMessage");
+        public INamedTypeSymbol? HttpResponseMessage => this.httpResponseMessage ??= this.LookupKnownSystem("System.Net.Http.HttpResponseMessage");
 
         private INamedTypeSymbol? stream;
-        public INamedTypeSymbol? Stream => this.stream ??= this.LookupSystem("System.IO.Stream");
+        public INamedTypeSymbol? Stream => this.stream ??= this.LookupKnownSystem("System.IO.Stream");
 
-        private IMethodSymbol? idisposable_dispose;
-        public IMethodSymbol? IDisposable_Dispose => this.idisposable_dispose ??= this.LookupSystem("System.IDisposable")?
+        private IMethodSymbol? idisposable_Dispose;
+        public IMethodSymbol? IDisposable_Dispose => this.idisposable_Dispose ??= this.LookupKnownSystem("System.IDisposable")?
             .GetMembers("Dispose").OfType<IMethodSymbol>().FirstOrDefault();
+
+        private bool? hasMethodBase_GetCurrentMethod;
+        public bool HasMethodBase_GetCurrentMethod => this.hasMethodBase_GetCurrentMethod ??= this.GetHasMethodBase_GetCurrentMethod();
+
+        private bool? hasExpression;
+        public bool HasExpression => this.hasExpression ??= this.GetHasExpression();
 
         public WellKnownSymbols(Compilation compilation, DiagnosticReporter diagnosticReporter)
         {
+            this.compilation = compilation;
             this.restEaseAssembly = GetReferencedAssemblies(compilation.Assembly)
                 .Single(x => x.Name == "RestEase");
             this.diagnosticReporter = diagnosticReporter;
@@ -132,7 +141,7 @@ namespace RestEase.SourceGenerator.Implementation
             return type;
         }
 
-        private INamedTypeSymbol? LookupSystem(string metadataName)
+        private INamedTypeSymbol? LookupKnownSystem(string metadataName)
         {
             // We search the assemblies that the RestEase assembly references. That way we can be fairly sure
             // that noone's created a time with the same name.
@@ -148,6 +157,33 @@ namespace RestEase.SourceGenerator.Implementation
 
             this.diagnosticReporter.ReportCouldNotFindSystemType(metadataName);
             return null;
+        }
+
+        private bool GetHasMethodBase_GetCurrentMethod()
+        {
+            var type = this.compilation.GetTypeByMetadataName("System.Reflection.MethodBase");
+            if (type != null)
+            {
+                var method = type.GetMembers("GetCurrentMethod").OfType<IMethodSymbol>().SingleOrDefault();
+                if (method != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool GetHasExpression()
+        {
+            var type = this.compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression");
+            if (type != null)
+            {
+                return true;
+            }
+
+            this.diagnosticReporter.ReportExpressionsNotAvailable();
+            return false;
         }
     }
 }

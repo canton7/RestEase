@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq.Expressions;
 using System.Reflection;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
@@ -10,42 +12,33 @@ namespace RestEase.Implementation
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class ImplementationHelpers
     {
+#if !NETSTANDARD1_1
         /// <summary>
         /// Internal method. Do not call.
         /// </summary>
-        public static MethodInfo GetInterfaceMethodInfo(
-            Type interfaceType,
-            string name,
-            int genericParameterCount,
-            Type[] types)
+        public static MethodInfo GetInterfaceMethodInfo(MethodBase currentMethod, Type interfaceType)
         {
-            // .NET Core has a nice GetMethod overload which takes genericParameterCount, but we don't (currently)
-            // target that.
-            var methods = interfaceType.GetTypeInfo().GetDeclaredMethods(name);
-            foreach (var method in methods)
+            var map = currentMethod.DeclaringType.GetInterfaceMap(interfaceType);
+            for (int i = 0; i < map.InterfaceMethods.Length; i++)
             {
-                if (method.GetGenericArguments().Length != genericParameterCount)
-                    continue;
-                var parameters = method.GetParameters();
-                if (parameters.Length != types.Length)
-                    continue;
-
-                bool match = true;
-                for (int i = 0; i < parameters.Length; i++)
+                if (map.TargetMethods[i] == currentMethod)
                 {
-                    if (parameters[i].ParameterType != types[i])
-                    {
-                        match = false;
-                        break;
-                    }
+                    return map.InterfaceMethods[i];
                 }
-                if (!match)
-                    continue;
-
-                return method;
             }
 
-            throw new ImplementationCreationException($"Unable to locate MethodInfo for {interfaceType}.{name}. This is a bug");
+            throw new ImplementationCreationException($"Could not find interface type for {currentMethod.DeclaringType}.{currentMethod.Name} on {interfaceType.Name}. This is a bug");
+        }
+#endif
+
+        /// <summary>
+        /// Internal method. Do not call.
+        /// </summary>
+        public static MethodInfo GetInterfaceMethodInfo<TInterface, TReturn>(
+            Expression<Func<TInterface, TReturn>> expr)
+        {
+            var methodInfo = ((MethodCallExpression)expr.Body).Method;
+            return methodInfo.IsGenericMethod ? methodInfo.GetGenericMethodDefinition() : methodInfo;
         }
     }
 }

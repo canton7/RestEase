@@ -179,6 +179,7 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.MultipleCancellationTokenParameters,
             "Methods must not have multiple CancellationToken parameters",
             "Multiple CancellationTokens are not allowed");
+
         public void ReportMultipleCancellationTokenParameters(MethodModel _, IEnumerable<ParameterModel> parameters)
         {
             this.AddDiagnostic(multipleCancellationTokenParameters, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)));
@@ -235,6 +236,12 @@ namespace RestEase.Implementation.Emission
 
         public void ReportCouldNotFindSystemType(string metadataName)
         {
+            throw new NotImplementedException();
+        }
+
+        public void ReportExpressionsNotAvailable()
+        {
+            // This is only a warning, saying MethodInfo will be null
             throw new NotImplementedException();
         }
 
