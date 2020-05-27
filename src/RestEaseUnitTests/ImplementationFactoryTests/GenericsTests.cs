@@ -45,6 +45,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task Foo<T>() where T : Base, IInterface, new();
         }
 
+        public interface IGenericApi<T>
+        {
+            [Get("foo")]
+            Task<T> FooAsync();
+        }
+
         public GenericsTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -104,6 +110,19 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Assert.Contains(typeof(Base), constraints);
             Assert.Contains(typeof(IInterface), constraints);
             Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, methodInfo.GetGenericArguments()[0].GetGenericParameterAttributes());
+        }
+
+
+        [Fact]
+        public void AllowsGenericApis()
+        {
+            this.Requester.Setup(x => x.RequestAsync<int>(It.IsAny<IRequestInfo>()))
+                .Returns(Task.FromResult(3));
+
+            var implementation = this.CreateImplementation<IGenericApi<int>>();
+            int result = implementation.FooAsync().Result;
+
+            Assert.Equal(3, result);
         }
     }
 }

@@ -25,6 +25,17 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             IRequester Requester { get; set; }
         }
 
+        public interface IHasNoGet
+        {
+            IRequester Requester { set; }
+        }
+
+        public interface ITwoRequesterProperties
+        {
+            IRequester Requester1 { get; }
+            IRequester Requester2 { get; }
+        }
+
         public RequesterPropertyTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -49,6 +60,23 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 // Requester
                 Diagnostic(DiagnosticCode.PropertyMustBeReadOnly, "Requester").WithLocation(3, 24)
             );
+        }
+
+        [Fact]
+        public void ThrowsIfHasNoGet()
+        {
+            this.VerifyDiagnostics<IHasNoGet>(
+                // (3,24): Error REST016: Property must have a getter but not a setter
+                // Requester
+                Diagnostic(DiagnosticCode.PropertyMustBeReadOnly, "Requester").WithLocation(3, 24)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfTwoRequesters()
+        {
+            this.VerifyDiagnostics<ITwoRequesterProperties>();
+            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
         }
     }
 }
