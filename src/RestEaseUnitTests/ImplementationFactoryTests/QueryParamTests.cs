@@ -204,6 +204,24 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         }
 
         [Fact]
+        public void SerializesQueryCollectionParam()
+        {
+            var requestInfo = this.Request<IArrayQueryParam>(x => x.FooAsync(new[] { 1, 2 }));
+
+            Assert.Single(requestInfo.QueryParams);
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            var serialized = queryParams[0].SerializeToString(null).ToList();
+            Assert.Equal(2, serialized.Count);
+
+            Assert.Equal("intArray", serialized[0].Key);
+            Assert.Equal("1", serialized[0].Value);
+
+            Assert.Equal("intArray", serialized[1].Key);
+            Assert.Equal("2", serialized[1].Value);
+        }
+
+        [Fact]
         public void RecordsSerializedSerializationMethod()
         {
             var requestInfo = this.Request<ISerializedQueryParam>(x => x.FooAsync("boom"));

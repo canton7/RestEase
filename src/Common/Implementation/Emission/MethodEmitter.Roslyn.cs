@@ -231,7 +231,10 @@ namespace RestEase.Implementation.Emission
         {
             // The attribute might be null, if it's a plain parameter
             string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName!;
-            this.writer.WriteLine(this.requestInfoLocalName + ".AddQueryParameter(" + EnumValue(serializationMethod) + ", " +
+            var collectionType = this.CollectionTypeOfType(parameter.ParameterSymbol.Type);
+            string methodName = (collectionType == null) ? "AddQueryParameter" : "AddQueryCollectionParameter";
+
+            this.writer.WriteLine(this.requestInfoLocalName + "." + methodName + "(" + EnumValue(serializationMethod) + ", " +
                 QuoteString(name) + ", " + ReferenceTo(parameter) + ", " + QuoteString(parameter.QueryAttribute?.Attribute.Format) + ");");
         }
 
@@ -319,18 +322,7 @@ namespace RestEase.Implementation.Emission
                 return null;
 
             var dictionaryTypes = nullableDictionaryTypes.Value;
-
-            ITypeSymbol? collectionType = null;
-            // Don't want to count string as an IEnumerable<char>...
-            if (dictionaryTypes.Value.SpecialType != SpecialType.System_String &&
-                dictionaryTypes.Value is INamedTypeSymbol value)
-            {
-                collectionType = this.CollectionTypeOfType(value);
-            }
-            else if (dictionaryTypes.Value is IArrayTypeSymbol arraySymbol)
-            {
-                collectionType = arraySymbol.ElementType;
-            }
+            var collectionType = this.CollectionTypeOfType(dictionaryTypes.Value);
 
             // AddQueryCollectionMap sometimes needs explicit type parameters, so we'll specify them in all cases
             if (collectionType == null)
@@ -360,17 +352,30 @@ namespace RestEase.Implementation.Emission
             return null;
         }
 
-        private ITypeSymbol? CollectionTypeOfType(INamedTypeSymbol input)
+        private ITypeSymbol? CollectionTypeOfType(ITypeSymbol input)
         {
-            foreach (var baseType in input.AllInterfaces.Prepend(input))
+            ITypeSymbol? collectionType = null;
+            // Don't want to count string as an IEnumerable<char>...
+            if (input.SpecialType != SpecialType.System_String &&
+                input is INamedTypeSymbol value)
             {
-                if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IEnumerableT))
+                foreach (var baseType in input.AllInterfaces.Prepend(input))
                 {
-                    return baseType.TypeArguments[0];
+                    if (baseType is INamedTypeSymbol namedBaseType &&
+                        namedBaseType.IsGenericType &&
+                        SymbolEqualityComparer.Default.Equals(namedBaseType.ConstructedFrom, this.wellKnownSymbols.IEnumerableT))
+                    {
+                        collectionType = namedBaseType.TypeArguments[0];
+                        break;
+                    }
                 }
             }
+            else if (input is IArrayTypeSymbol arraySymbol)
+            {
+                collectionType = arraySymbol.ElementType;
+            }
 
-            return null;
+            return collectionType;
         }
     }
 }
