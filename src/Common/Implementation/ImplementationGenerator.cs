@@ -69,7 +69,7 @@ namespace RestEase.Implementation
                 {
                     if (hasRequester)
                     {
-                        this.diagnostics.ReportMultipleRequesterPropertiesNotAllowed(property);
+                        this.diagnostics.ReportMultipleRequesterProperties(property);
                     }
 
                     if (attributes.Count > 0)
@@ -92,8 +92,7 @@ namespace RestEase.Implementation
                     {
                         this.diagnostics.ReportPropertyMustHaveOneAttribute(property);
                     }
-                    
-                    if (!property.HasGetter || !property.HasSetter)
+                    else if (!property.HasGetter || !property.HasSetter)
                     {
                         this.diagnostics.ReportPropertyMustBeReadWrite(property);
                     }

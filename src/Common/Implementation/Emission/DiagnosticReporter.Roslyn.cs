@@ -65,7 +65,7 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor eventsNotAllowed = CreateDescriptor(
             DiagnosticCode.EventsNotAllowed,
             "Interfaces must not have any events",
-            "Intarfaces must not have any events");
+            "Interface must not have any events");
         public void ReportEventNotAllowed(EventModel eventModel)
         {
             this.AddDiagnostic(eventsNotAllowed, eventModel.EventSymbol.Locations);
@@ -76,9 +76,13 @@ namespace RestEase.Implementation.Emission
             throw new NotImplementedException();
         }
 
+        private static readonly DiagnosticDescriptor propertyMustHaveOneAttribute = CreateDescriptor(
+            DiagnosticCode.PropertyMustHaveOneAttribute,
+            "Properties must have exactly one attribute",
+            "Property must have exactly one attribute");
         public void ReportPropertyMustHaveOneAttribute(PropertyModel property)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(propertyMustHaveOneAttribute, property.PropertySymbol.Locations);
         }
 
         private static readonly DiagnosticDescriptor propertyMustBeReadOnly = CreateDescriptor(
@@ -101,9 +105,13 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(propertyMustBeReadWrite, property.PropertySymbol.Locations);
         }
 
-        public void ReportMultipleRequesterPropertiesNotAllowed(PropertyModel property)
+        private static readonly DiagnosticDescriptor multipleRequesterProperties = CreateDescriptor(
+            DiagnosticCode.MultipleRequesterProperties,
+            "Only a single IRequester priority is allowed",
+            "There must not be more than one property of type IRequester");
+        public void ReportMultipleRequesterProperties(PropertyModel property)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(multipleRequesterProperties, property.PropertySymbol.Locations);
         }
 
         private static readonly DiagnosticDescriptor missingPathPropertyForBasePathPlaceholder = CreateDescriptor(
@@ -115,9 +123,13 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, basePath);
         }
 
+        private static readonly DiagnosticDescriptor methodMustHaveRequestAttribute = CreateDescriptor(
+            DiagnosticCode.MethodMustHaveRequestAttribute,
+            "All methods must have a suitable [Get] / [Post] / etc attribute",
+            "Method does not have a suitable [Get] / [Post] / etc attribute");
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(methodMustHaveRequestAttribute, method.MethodSymbol.Locations);
         }
 
         private static readonly DiagnosticDescriptor multiplePathPropertiesForKey = CreateDescriptor(
@@ -226,9 +238,13 @@ namespace RestEase.Implementation.Emission
                 attribute.Name, attribute.Value);
         }
 
+        private static readonly DiagnosticDescriptor methodMustHaveValidReturnType = CreateDescriptor(
+            DiagnosticCode.MethodMustHaveValidReturnType,
+            "Methods must have a return type of Task or Task<T>",
+            "Method must have a return type of Task or Task<T>");
         public void ReportMethodMustHaveValidReturnType(MethodModel method)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(methodMustHaveValidReturnType, method.MethodSymbol.Locations);
         }
 
         // -----------------------------------------------------------

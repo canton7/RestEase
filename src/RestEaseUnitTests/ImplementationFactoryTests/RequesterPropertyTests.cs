@@ -75,8 +75,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfTwoRequesters()
         {
-            this.VerifyDiagnostics<ITwoRequesterProperties>();
-            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<ITwoRequesterProperties>(this.requester.Object));
+            this.VerifyDiagnostics<ITwoRequesterProperties>(
+                // (4,24): Error REST017: There must not be more than one property of type IRequester
+                // Requester2
+                Diagnostic(DiagnosticCode.MultipleRequesterProperties, "Requester2").WithLocation(4, 24)
+            );
         }
     }
 }

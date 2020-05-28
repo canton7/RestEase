@@ -23,6 +23,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             [Get("foo")]
             Task GetAsync();
 
+            [Get]
             void ReturnsVoid();
         }
 
@@ -31,6 +32,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             [Get("foo")]
             Task GetAsync();
 
+            [Get]
             string ReturnsString();
         }
 
@@ -49,37 +51,52 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMethodWithoutAttribute()
         {
-            this.VerifyDiagnostics<IMethodWithoutAttribute>();
-            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IMethodWithoutAttribute>(this.requester.Object));
+            this.VerifyDiagnostics<IMethodWithoutAttribute>(
+                // (6,18): Error REST018: Method does not have a suitable [Get] / [Post] / etc attribute
+                // SomethingElseAsync
+                Diagnostic(DiagnosticCode.MethodMustHaveRequestAttribute, "SomethingElseAsync").WithLocation(6, 18)
+            );
         }
 
         [Fact]
         public void ThrowsIfMethodReturningVoid()
         {
-            this.VerifyDiagnostics<IMethodReturningVoid>();
-            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IMethodReturningVoid>(this.requester.Object));
+            this.VerifyDiagnostics<IMethodReturningVoid>(
+                // (7,18): Error REST019: Method must have a return type of Task or Task<T>
+                // ReturnsVoid
+                Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsVoid").WithLocation(7, 18)
+            );
         }
 
         [Fact]
         public void ThrowsIfMethodReturningString()
         {
             // Ideally we would test every object that isn't a Task<T>, but that's somewhat impossible...
-            this.VerifyDiagnostics<IMethodReturningString>();
-            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IMethodReturningString>(this.requester.Object));
+            this.VerifyDiagnostics<IMethodReturningString>(
+                // (7,20): Error REST019: Method must have a return type of Task or Task<T>
+                // ReturnsString
+                Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsString").WithLocation(7, 20)
+            );
         }
 
         [Fact]
         public void ThrowsIfInterfaceHasEvents()
         {
-            this.VerifyDiagnostics<IHasEvents>();
-            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasEvents>(this.requester.Object));
+            this.VerifyDiagnostics<IHasEvents>(
+                // (3,32): Error REST015: Intarface must not have any events
+                // Foo
+                Diagnostic(DiagnosticCode.EventsNotAllowed, "Foo").WithLocation(3, 32)
+            );
         }
 
         [Fact]
         public void ThrowsIfInterfaceHasProperties()
         {
-            this.VerifyDiagnostics<IHasProperties>();
-            //Assert.Throws<ImplementationCreationException>(() => this.factory.CreateImplementation<IHasProperties>(this.requester.Object));
+            this.VerifyDiagnostics<IHasProperties>(
+                // (3,18): Error REST020: Property must have exactly one attribute
+                // SomeProperty
+                Diagnostic(DiagnosticCode.PropertyMustHaveOneAttribute, "SomeProperty").WithLocation(3, 18)
+            );
         }
 
 #if !SOURCE_GENERATOR

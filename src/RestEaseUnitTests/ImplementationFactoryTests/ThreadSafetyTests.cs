@@ -6,6 +6,7 @@ using Xunit;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
+#if !SOURCE_GENERATOR
     public class ThreadSafetyTests
     {
         public interface ISomeApi
@@ -36,4 +37,5 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             }
         }
     }
+#endif
 }

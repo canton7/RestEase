@@ -60,12 +60,12 @@ namespace RestEase.Implementation.Emission
 
         public void ReportPropertyMustHaveOneAttribute(PropertyModel property)
         {
-            throw new ImplementationCreationException($"Property {property.PropertyInfo.Name} must have exactly one attribute");
+            throw new ImplementationCreationException(DiagnosticCode.PropertyMustHaveOneAttribute, $"Property {property.PropertyInfo.Name} must have exactly one attribute");
         }
 
         public void ReportPropertyMustBeReadOnly(PropertyModel property)
         {
-            throw new ImplementationCreationException($"Property {property.PropertyInfo.Name} must have a getter but not a setter");
+            throw new ImplementationCreationException(DiagnosticCode.PropertyMustBeReadOnly, $"Property {property.PropertyInfo.Name} must have a getter but not a setter");
         }
 
         public void ReportPropertyMustBeReadWrite(PropertyModel property)
@@ -73,20 +73,20 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException(DiagnosticCode.PropertyMustBeReadWrite, $"Property {property.PropertyInfo.Name} must have a getter and a setter");
         }
 
-        public void ReportMultipleRequesterPropertiesNotAllowed(PropertyModel property)
+        public void ReportMultipleRequesterProperties(PropertyModel property)
         {
-            throw new ImplementationCreationException($"Property {property.PropertyInfo.Name}: there must not be more than one property of type {nameof(IRequester)}");
+            throw new ImplementationCreationException(DiagnosticCode.MultipleRequesterProperties, $"Property {property.PropertyInfo.Name}: there must not be more than one property of type {nameof(IRequester)}");
         }
 
         public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel _, AttributeModel<BasePathAttribute> _2, string basePath, string missingParam)
         {
-            throw new ImplementationCreationException(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder
-                , $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");
+            throw new ImplementationCreationException(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
+                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
         {
-            throw new ImplementationCreationException($"Method {method.MethodInfo.Name} does not have a suitable [Get] / [Post] / etc attribute on it");
+            throw new ImplementationCreationException(DiagnosticCode.MethodMustHaveRequestAttribute, $"Method {method.MethodInfo.Name} does not have a suitable [Get] / [Post] / etc attribute on it");
         }
 
         public void ReportMultiplePathPropertiesForKey(string key, IEnumerable<PropertyModel> _)
@@ -153,7 +153,7 @@ namespace RestEase.Implementation.Emission
 
         public void ReportMethodMustHaveValidReturnType(MethodModel method)
         {
-            throw new ImplementationCreationException($"Method '{method.MethodInfo.Name}': must have a return type of Task<T> or Task");
+            throw new ImplementationCreationException(DiagnosticCode.MethodMustHaveValidReturnType, $"Method '{method.MethodInfo.Name}': must have a return type of Task<T> or Task");
         }
     }
 }

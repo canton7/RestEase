@@ -23,6 +23,10 @@
         AllowAnyStatusCodeAttributeNotAllowedOnParentInterface = 14,
         EventsNotAllowed = 15,
         PropertyMustBeReadOnly = 16,
+        MultipleRequesterProperties = 17,
+        MethodMustHaveRequestAttribute = 18,
+        MethodMustHaveValidReturnType = 19,
+        PropertyMustHaveOneAttribute = 20,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 
