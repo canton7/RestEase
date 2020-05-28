@@ -115,8 +115,6 @@ namespace RestEase.SourceGenerator.Implementation
         public IMethodSymbol? IDisposable_Dispose => this.idisposable_Dispose ??= this.LookupKnownSystem("System.IDisposable")?
             .GetMembers("Dispose").OfType<IMethodSymbol>().FirstOrDefault();
 
-        private bool? hasMethodBase_GetCurrentMethod;
-        public bool HasMethodBase_GetCurrentMethod => this.hasMethodBase_GetCurrentMethod ??= this.GetHasMethodBase_GetCurrentMethod();
 
         private bool? hasExpression;
         public bool HasExpression => this.hasExpression ??= this.GetHasExpression();
@@ -160,21 +158,6 @@ namespace RestEase.SourceGenerator.Implementation
 
             this.diagnosticReporter.ReportCouldNotFindSystemType(metadataName);
             return null;
-        }
-
-        private bool GetHasMethodBase_GetCurrentMethod()
-        {
-            var type = this.compilation.GetTypeByMetadataName("System.Reflection.MethodBase");
-            if (type != null)
-            {
-                var method = type.GetMembers("GetCurrentMethod").OfType<IMethodSymbol>().SingleOrDefault();
-                if (method != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private bool GetHasExpression()

@@ -10,6 +10,7 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat SymbolName { get; }
         public static SymbolDisplayFormat Namespace { get; }
         public static SymbolDisplayFormat ClassDeclaration { get; }
+        public static SymbolDisplayFormat ConstructorName { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
         public static SymbolDisplayFormat PropertyDeclaration { get; }
         public static SymbolDisplayFormat MethodDeclaration { get; }
@@ -30,6 +31,8 @@ namespace RestEase.SourceGenerator.Implementation
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
                     | SymbolDisplayGenericsOptions.IncludeTypeConstraints
                     | SymbolDisplayGenericsOptions.IncludeVariance);
+
+            ConstructorName = new SymbolDisplayFormat();
 
             ImplementedInterface = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,

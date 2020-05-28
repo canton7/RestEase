@@ -20,6 +20,7 @@ namespace RestEase.Implementation.Emission
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly int index;
         private readonly string namespaceName;
+        private readonly string typeNamePrefix;
         private readonly string typeName;
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
@@ -34,7 +35,9 @@ namespace RestEase.Implementation.Emission
             this.index = index;
             this.writer = new IndentedTextWriter(this.stringWriter);
             this.namespaceName = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace) + ".RestEaseGeneratedTypes";
-            this.typeName = "Implementation_" + this.index + "_" + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassDeclaration);
+            this.typeNamePrefix = "Implementation_" + this.index + "_";
+            this.typeName = this.typeNamePrefix + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassDeclaration);
+            string constructorName = this.typeNamePrefix + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ConstructorName);
             this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeName;
             this.requesterFieldName = this.GenerateFieldName("requester");
             if (this.typeModel.HeaderAttributes.Count > 0)
@@ -43,8 +46,8 @@ namespace RestEase.Implementation.Emission
             }
 
             this.AddClassDeclaration();
-            this.AddInstanceCtor();
-            this.AddStaticCtor();
+            this.AddInstanceCtor(constructorName);
+            this.AddStaticCtor(constructorName);
         }
 
         private string GenerateFieldName(string baseName)
@@ -65,10 +68,12 @@ namespace RestEase.Implementation.Emission
 
         private void AddClassDeclaration()
         {
+            string typeofInterfaceName = GetGenericTypeDefinitionTypeof(this.typeModel.NamedTypeSymbol);
             string interfaceName = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ImplementedInterface);
+            string typeofName = this.typeNamePrefix + GetGenericTypeDefinitionTypeof(this.typeModel.NamedTypeSymbol, SymbolDisplayTypeQualificationStyle.NameOnly);
 
             this.writer.WriteLine("[assembly: global::RestEase.Implementation.RestEaseInterfaceImplementationAttribute(" +
-                "typeof(" + interfaceName + "), typeof(global::" + this.namespaceName + "." + this.typeName + "))]");
+                "typeof(" + typeofInterfaceName + "), typeof(global::" + this.namespaceName + "." + typeofName + "))]");
 
             this.writer.WriteLine("namespace " + this.namespaceName);
             this.writer.WriteLine("{");
@@ -88,9 +93,10 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("private readonly global::RestEase.IRequester " + this.requesterFieldName + ";");
         }
 
-        private void AddInstanceCtor()
+        private void AddInstanceCtor(string constructorName)
         {
-            this.writer.WriteLine("public " + this.typeName + "(global::RestEase.IRequester " + this.requesterFieldName + ")");
+            this.writer.WriteLine("public " + constructorName + "(global::RestEase.IRequester " + this.requesterFieldName + ")");
+            ;
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
@@ -100,12 +106,12 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("}");
         }
 
-        private void AddStaticCtor()
+        private void AddStaticCtor(string constructorName)
         {
             if (this.classHeadersFieldName == null)
                 return;
 
-            this.writer.WriteLine("static " + this.typeName + "()");
+            this.writer.WriteLine("static " + constructorName + "()");
             this.writer.WriteLine("{");
             this.writer.Indent++;
 

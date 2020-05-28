@@ -80,36 +80,27 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
-            if (this.wellKnownSymbols.HasMethodBase_GetCurrentMethod || this.wellKnownSymbols.HasExpression)
+            // I originally tried using MethodBase.GetCurrentMethod and Type.GetInterfaceMap, but that hit problems when
+            // the interface type was generic. They should be automatically referencing System.Linq.Expressions.dll on
+            // netstandard / netcoreapp, so just go with that for everything.
+            if (this.wellKnownSymbols.HasExpression)
             {
                 this.writer.WriteLine("if (" + this.qualifiedTypeName + "." + this.methodInfoFieldName + " == null)");
                 this.writer.WriteLine("{");
                 this.writer.Indent++;
 
-                // MethodBase.GetCurrentMethod isn't available in .net standard < 2.0 and .net core < 2.0
-                if (this.wellKnownSymbols.HasMethodBase_GetCurrentMethod)
+                this.writer.Write(this.qualifiedTypeName + "." + this.methodInfoFieldName +
+                    " = global::RestEase.Implementation.ImplementationHelpers.GetInterfaceMethodInfo" +
+                    "<" + this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ", " +
+                    this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">(x => x." +
+                    this.methodModel.MethodSymbol.Name);
+                if (this.methodModel.MethodSymbol.TypeArguments.Length > 0)
                 {
-                    this.writer.WriteLine(this.qualifiedTypeName + "." + this.methodInfoFieldName +
-                        " = global::RestEase.Implementation.ImplementationHelpers.GetInterfaceMethodInfo(" +
-                        "global::System.Reflection.MethodBase.GetCurrentMethod(), typeof(" +
-                        this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.TypeofParameter) +
-                        "));");
+                    this.writer.Write("<" + string.Join(", ", this.methodModel.MethodSymbol.TypeArguments
+                        .Select(x => x.ToDisplayString(SymbolDisplayFormats.TypeParameter))) + ">");
                 }
-                else
-                {
-                    this.writer.Write(this.qualifiedTypeName + "." + this.methodInfoFieldName +
-                        " = global::RestEase.Implementation.ImplementationHelpers.GetInterfaceMethodInfo" +
-                        "<" + this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ", " +
-                        this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">(x => x." +
-                        this.methodModel.MethodSymbol.Name);
-                    if (this.methodModel.MethodSymbol.TypeArguments.Length > 0)
-                    {
-                        this.writer.Write("<" + string.Join(", ", this.methodModel.MethodSymbol.TypeArguments
-                            .Select(x => x.ToDisplayString(SymbolDisplayFormats.TypeParameter))) + ">");
-                    }
-                    this.writer.WriteLine("(" + string.Join(", ", this.methodModel.MethodSymbol.Parameters
-                            .Select(x => "default(" + x.Type.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + ")")) + "));");
-                }
+                this.writer.WriteLine("(" + string.Join(", ", this.methodModel.MethodSymbol.Parameters
+                        .Select(x => "default(" + x.Type.ToDisplayString(SymbolDisplayFormats.TypeofParameter) + ")")) + "));");
 
                 this.writer.Indent--;
                 this.writer.WriteLine("}");

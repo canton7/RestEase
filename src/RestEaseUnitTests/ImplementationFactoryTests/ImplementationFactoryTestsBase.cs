@@ -79,6 +79,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "netstandard.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Runtime.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Net.Http.dll")))
+                .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Linq.Expressions.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(RestClient).Assembly.Location));
             diagnosticsCompilation = diagnosticsProject.GetCompilationAsync().Result;
 
@@ -99,7 +100,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
         protected T CreateImplementation<T>()
         {
-            var namedTypeSymbol = executionCompilation.GetTypeByMetadataName(typeof(T).FullName);
+            var typeToSearch = typeof(T).IsGenericType ? typeof(T).GetGenericTypeDefinition() : typeof(T);
+            string metadataName = typeToSearch.FullName;
+            var namedTypeSymbol = executionCompilation.GetTypeByMetadataName(metadataName);
             var (sourceText, _) = this.implementationFactory.CreateImplementation(executionCompilation, namedTypeSymbol);
 
             Assert.NotNull(sourceText);
@@ -113,8 +116,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 Assert.True(emitResult.Success, "Emit failed:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
                 var assembly = Assembly.Load(peStream.GetBuffer());
                 var implementationType = assembly.GetCustomAttributes<RestEaseInterfaceImplementationAttribute>()
-                    .FirstOrDefault(x => x.InterfaceType == typeof(T))?.ImplementationType;
+                    .FirstOrDefault(x => x.InterfaceType == typeToSearch)?.ImplementationType;
                 Assert.NotNull(implementationType);
+                if (typeof(T).IsGenericType)
+                {
+                    implementationType = implementationType.MakeGenericType(typeof(T).GetGenericArguments());
+                }
                 return (T)Activator.CreateInstance(implementationType, this.Requester.Object);
             }
         }
