@@ -23,6 +23,30 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([HttpRequestMessageProperty] object foo, [HttpRequestMessageProperty("bar-parameter")] decimal valueType);
         }
 
+        public interface IHasMultiplePropertiesForKey
+        {
+            [HttpRequestMessageProperty]
+            string Foo { get; set; }
+
+            [HttpRequestMessageProperty("Foo")]
+            string Baz { get; set; }
+        }
+
+        public interface IHasMultipleParametersForKey
+        {
+            [Get]
+            Task FooAsync([HttpRequestMessageProperty] string a, [HttpRequestMessageProperty("a")] string b);
+        }
+
+        public interface IHasDuplicatePropertyAndParameterForKey
+        {
+            [HttpRequestMessageProperty]
+            string Bar { get; set; }
+
+            [Get]
+            Task BarAsync([HttpRequestMessageProperty("Bar")] string bar);
+        }
+
         public HttpRequestMessagePropertyTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -58,6 +82,40 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             var propertyParam2 = httpRequestMessageProperties[3];
             Assert.Equal("bar-parameter", propertyParam2.Key);
             Assert.Equal(123.456m, propertyParam2.Value);
+        }
+
+        [Fact]
+        public void ThrowsIfMultiplePropertiesForKey()
+        {
+            this.VerifyDiagnostics<IHasMultiplePropertiesForKey>(
+                // (3,13): Error REST022: Multiple properties found for HttpRequestMessageProperty key 'Foo'
+                // [HttpRequestMessageProperty]
+                //         string Foo { get; set; }
+                Diagnostic(DiagnosticCode.MultipleHttpRequestMessagePropertiesForKey, @"[HttpRequestMessageProperty]
+            string Foo { get; set; }").WithLocation(3, 13).WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfMultipleParametersForKey()
+        {
+             this.VerifyDiagnostics<IHasMultipleParametersForKey>(
+                 // (4,27): Error REST024: Multiple parameters found for HttpRequestMessageProperty key 'a'
+                 // [HttpRequestMessageProperty] string a
+                 Diagnostic(DiagnosticCode.MultipleHttpRequestMessageParametersForKey, "[HttpRequestMessageProperty] string a")
+                     .WithLocation(4, 27).WithLocation(4, 66)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfDuplicateParameterAndPropertyForKey()
+        {
+            this.VerifyDiagnostics<IHasDuplicatePropertyAndParameterForKey>(
+                // (7,27): Error REST023: Method parameter has the same HttpRequestMessageProperty key 'Bar' as property 'Bar'
+                // [HttpRequestMessageProperty("Bar")] string bar
+                Diagnostic(DiagnosticCode.HttpRequestMessageParamDuplicatesPropertyForKey, @"[HttpRequestMessageProperty(""Bar"")] string bar")
+                    .WithLocation(7, 27)
+            );
         }
     }
 }

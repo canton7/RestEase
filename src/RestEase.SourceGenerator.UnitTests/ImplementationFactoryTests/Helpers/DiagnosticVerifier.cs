@@ -15,12 +15,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
             DiagnosticResult[] expected,
             int lineOffset)
         {
-            var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+            var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToList();
             VerifyDiagnosticResults(sortedDiagnostics, expected, lineOffset);
         }
 
         private static void VerifyDiagnosticResults(
-            IEnumerable<Diagnostic> actualResults,
+            List<Diagnostic> actualResults,
             DiagnosticResult[] expectedResults,
             int lineOffset)
         {
@@ -37,7 +37,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
 
             for (int i = 0; i < expectedResults.Length; i++)
             {
-                var actual = actualResults.ElementAt(i);
+                var actual = actualResults[i];
                 var expected = expectedResults[i];
 
                 if (expected.Locations.Count == 0)

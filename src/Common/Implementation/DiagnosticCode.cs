@@ -27,6 +27,15 @@
         MethodMustHaveRequestAttribute = 18,
         MethodMustHaveValidReturnType = 19,
         PropertyMustHaveOneAttribute = 20,
+        RequesterPropertyMustHaveZeroAttributes = 21,
+        MultipleHttpRequestMessagePropertiesForKey = 22,
+        HttpRequestMessageParamDuplicatesPropertyForKey = 23,
+        MultipleHttpRequestMessageParametersForKey = 24,
+        ParameterMustHaveZeroOrOneAttributes = 25,
+        CancellationTokenMustHaveZeroAttributes = 26,
+        CouldNotFindRestEaseType = 27,
+        CouldNotFindSystemType = 28,
+        ExpressionsNotAvailable = 29,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

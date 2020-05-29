@@ -36,6 +36,13 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             IRequester Requester2 { get; }
         }
 
+        public interface IHasRequesterPropertyWithAttribute
+        {
+            [Header("Foo")]
+            [HttpRequestMessageProperty]
+            IRequester Requester { get; }
+        }
+
         public RequesterPropertyTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -79,6 +86,17 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 // (4,24): Error REST017: There must not be more than one property of type IRequester
                 // Requester2
                 Diagnostic(DiagnosticCode.MultipleRequesterProperties, "Requester2").WithLocation(4, 24)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfHasAttributes()
+        {
+            this.VerifyDiagnostics<IHasRequesterPropertyWithAttribute>(
+                // (3,14): Error REST021: IRequester property must not have any attribtues
+                // Header("Foo")
+                Diagnostic(DiagnosticCode.RequesterPropertyMustHaveZeroAttributes, @"Header(""Foo"")")
+                    .WithLocation(3, 14).WithLocation(4, 14)
             );
         }
     }

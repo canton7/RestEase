@@ -19,7 +19,7 @@ namespace RestEase.SourceGenerator.Implementation
             var typeModel = analyzer.Analyze();
             var generator = new ImplementationGenerator(typeModel, emitter, diagnosticReporter);
             var emittedType = generator.Generate();
-            return (diagnosticReporter.Diagnostics.Count > 0 ? null : emittedType.SourceText, diagnosticReporter.Diagnostics);
+            return (diagnosticReporter.HasErrors ? null : emittedType.SourceText, diagnosticReporter.Diagnostics);
         }
     }
 }

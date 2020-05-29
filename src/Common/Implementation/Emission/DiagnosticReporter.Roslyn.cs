@@ -10,6 +10,7 @@ namespace RestEase.Implementation.Emission
     internal partial class DiagnosticReporter
     {
         public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
+        public bool HasErrors { get; private set; }
 
         private static readonly DiagnosticDescriptor headerMustNotHaveColonInName = CreateDescriptor(
             DiagnosticCode.HeaderMustNotHaveColonInName,
@@ -17,7 +18,10 @@ namespace RestEase.Implementation.Emission
             "Header attribute name '{0}' must not contain a colon");
         public void ReportHeaderOnInterfaceMustNotHaveColonInName(TypeModel typeModel, AttributeModel<HeaderAttribute> header)
         {
-            this.AddDiagnostic(headerMustNotHaveColonInName, AttributeLocations(header, typeModel.NamedTypeSymbol), header.Attribute!.Name);
+            this.AddDiagnostic(
+                headerMustNotHaveColonInName,
+                AttributeLocations(header, typeModel.NamedTypeSymbol),
+                header.Attribute!.Name);
         }
 
         public void ReportPropertyHeaderMustNotHaveColonInName(PropertyModel property)
@@ -30,7 +34,10 @@ namespace RestEase.Implementation.Emission
 
         public void ReportHeaderOnMethodMustNotHaveColonInName(MethodModel method, AttributeModel<HeaderAttribute> header)
         {
-            this.AddDiagnostic(headerMustNotHaveColonInName, AttributeLocations(header, method.MethodSymbol), header.Attribute!.Name);
+            this.AddDiagnostic(
+                headerMustNotHaveColonInName,
+                AttributeLocations(header, method.MethodSymbol),
+                header.Attribute!.Name);
         }
 
         public void ReportHeaderParameterMustNotHaveColonInName(MethodModel _, ParameterModel parameter)
@@ -71,11 +78,6 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(eventsNotAllowed, eventModel.EventSymbol.Locations);
         }
 
-        public void ReportRequesterPropertyMustHaveZeroAttributes(PropertyModel property, List<AttributeModel> attributes)
-        {
-            throw new NotImplementedException();
-        }
-
         private static readonly DiagnosticDescriptor propertyMustHaveOneAttribute = CreateDescriptor(
             DiagnosticCode.PropertyMustHaveOneAttribute,
             "Properties must have exactly one attribute",
@@ -105,9 +107,20 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(propertyMustBeReadWrite, property.PropertySymbol.Locations);
         }
 
+        private static readonly DiagnosticDescriptor requesterPropertyMustHaveZeroAttributes = CreateDescriptor(
+            DiagnosticCode.RequesterPropertyMustHaveZeroAttributes,
+            "IRequester properties must not have any attributes",
+            "IRequester property must not have any attribtues");
+        public void ReportRequesterPropertyMustHaveZeroAttributes(PropertyModel propertyModel, List<AttributeModel> attributes)
+        {
+            this.AddDiagnostic(
+                requesterPropertyMustHaveZeroAttributes,
+                AttributeLocations(attributes, propertyModel.PropertySymbol));
+        }
+
         private static readonly DiagnosticDescriptor multipleRequesterProperties = CreateDescriptor(
             DiagnosticCode.MultipleRequesterProperties,
-            "Only a single IRequester priority is allowed",
+            "Only a single IRequester property is allowed",
             "There must not be more than one property of type IRequester");
         public void ReportMultipleRequesterProperties(PropertyModel property)
         {
@@ -182,14 +195,52 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(missingPlaceholderForPathParameter, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)), placeholder);
         }
 
-        public void ReportMultipleHttpRequestMessagePropertiesForKey(MethodModel method, string key, IEnumerable<ParameterModel> _)
+        private static readonly DiagnosticDescriptor multipleHttpRequestMessagePropertiesForKey = CreateDescriptor(
+            DiagnosticCode.MultipleHttpRequestMessagePropertiesForKey,
+            "Multiple properties must not have the same HttpRequestMessageProperty key",
+            "Multiple properties found for HttpRequestMessageProperty key '{0}'");
+        public void ReportMultipleHttpRequestMessagePropertiesForKey(string key, IEnumerable<PropertyModel> properties)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(
+                multipleHttpRequestMessagePropertiesForKey,
+                properties.SelectMany(x => SymbolLocations(x.PropertySymbol)),
+                key);
         }
 
-        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel method, ParameterModel parameter, List<AttributeModel> _)
+        private static readonly DiagnosticDescriptor httpRequestMessageParamDuplicatesPropertyForKey = CreateDescriptor(
+            DiagnosticCode.HttpRequestMessageParamDuplicatesPropertyForKey,
+            "Method parameters must not have the same HttpRequsetMessageProperty key as a property",
+            "Method parameter has the same HttpRequestMessageProperty key '{0}' as property '{1}'");
+        public void ReportHttpRequestMessageParamDuplicatesPropertyForKey(MethodModel _, string key, PropertyModel property, ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(
+                httpRequestMessageParamDuplicatesPropertyForKey,
+                SymbolLocations(parameter.ParameterSymbol),
+                key, property.Name);
+        }
+
+        private static readonly DiagnosticDescriptor multipleHttpRequestMessageParametersForKey = CreateDescriptor(
+            DiagnosticCode.MultipleHttpRequestMessageParametersForKey,
+            "Method parameters must not have the same HttpRequestMessageProperty key",
+            "Multiple parameters found for HttpRequestMessageProperty key '{0}'");
+        public void ReportMultipleHttpRequestMessageParametersForKey(MethodModel _, string key, IEnumerable<ParameterModel> parameters)
+        {
+            this.AddDiagnostic(
+                multipleHttpRequestMessageParametersForKey,
+                parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)),
+                key);
+        }
+
+        private static readonly DiagnosticDescriptor parameterMustHaveZeroOrOneAttributes = CreateDescriptor(
+            DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
+            "Method parameters must not have zero or one attributes",
+            "Method parameter '{0}' has no attributes: it must have at least one");
+        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel _, ParameterModel parameter, List<AttributeModel> _2)
+        {
+            this.AddDiagnostic(
+                parameterMustHaveZeroOrOneAttributes,
+                SymbolLocations(parameter.ParameterSymbol),
+                parameter.Name);
         }
 
         private static readonly DiagnosticDescriptor multipleCancellationTokenParameters = CreateDescriptor(
@@ -202,9 +253,16 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(multipleCancellationTokenParameters, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)));
         }
 
-        public void ReportCancellationTokenMustHaveZeroAttributes(MethodModel method, ParameterModel parameter)
+        private static readonly DiagnosticDescriptor cancellationTokenMustHaveZeroAttributes = CreateDescriptor(
+            DiagnosticCode.CancellationTokenMustHaveZeroAttributes,
+            "CancellationToken parameters must have zero attributes",
+            "CancellationToken parameter '{0}' must have zero attributes");
+        public void ReportCancellationTokenMustHaveZeroAttributes(MethodModel _, ParameterModel parameter)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(
+                cancellationTokenMustHaveZeroAttributes,
+                SymbolLocations(parameter.ParameterSymbol),
+                parameter.Name);
         }
 
         private static readonly DiagnosticDescriptor multipleBodyParameters = CreateDescriptor(
@@ -250,34 +308,55 @@ namespace RestEase.Implementation.Emission
         // -----------------------------------------------------------
         // Not shared with the Emit DiagnosticReporter
 
+        private static readonly DiagnosticDescriptor couldNotFindRestEaseType = CreateDescriptor(
+            DiagnosticCode.CouldNotFindRestEaseType,
+            "Unable to find RestEase type",
+            "Unable to find RestEase type '{0}'. Make sure you are referencing a suitably recent version of RestEase");
         public void ReportCouldNotFindRestEaseType(string metadataName)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(couldNotFindRestEaseType, Location.None, metadataName);
         }
 
+        private static readonly DiagnosticDescriptor couldNotFindSystemType = CreateDescriptor(
+            DiagnosticCode.CouldNotFindSystemType,
+            "Unable to find System type type",
+            "Unable to find System type '{0}'. Make sure you are referencing the appropriate assembly");
         public void ReportCouldNotFindSystemType(string metadataName)
         {
-            throw new NotImplementedException();
+            this.AddDiagnostic(couldNotFindSystemType, Location.None, metadataName);
         }
 
+        private static readonly DiagnosticDescriptor expressionsNotAvailable = CreateDescriptor(
+            DiagnosticCode.ExpressionsNotAvailable,
+            "Unable to find System.Linq.Expressions.Expression",
+            "Unable to find System.Linq.Expressions.Expression. IRequestInfo.MethodInfo will be null. Make sure you are referencing System.Linq.Expressions.dll",
+            DiagnosticSeverity.Warning);
         public void ReportExpressionsNotAvailable()
         {
-            // This is only a warning, saying MethodInfo will be null
-            throw new NotImplementedException();
+            this.AddDiagnostic(expressionsNotAvailable, Location.None);
         }
 
-        private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat) =>
-            new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat, DiagnosticSeverity severity = DiagnosticSeverity.Error) =>
+            new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", severity, isEnabledByDefault: true);
 
         private void AddDiagnostic(DiagnosticDescriptor descriptor, IEnumerable<Location> locations, params object?[] args)
         {
             var locationsList = (locations as IReadOnlyList<Location>) ?? locations.ToList();
-            this.Diagnostics.Add(Diagnostic.Create(descriptor, locationsList.Count == 0 ? Location.None : locationsList[0], locationsList.Skip(1), args));
+            this.AddDiagnostic(Diagnostic.Create(descriptor, locationsList.Count == 0 ? Location.None : locationsList[0], locationsList.Skip(1), args));
         }
 
         private void AddDiagnostic(DiagnosticDescriptor descriptor, Location? location, params object?[] args)
         {
-            this.Diagnostics.Add(Diagnostic.Create(descriptor, location ?? Location.None, args));
+            this.AddDiagnostic(Diagnostic.Create(descriptor, location ?? Location.None, args));
+        }
+
+        private void AddDiagnostic(Diagnostic diagnostic)
+        {
+            if (diagnostic.Severity == DiagnosticSeverity.Error)
+            {
+                this.HasErrors = true;
+            }
+            this.Diagnostics.Add(diagnostic);
         }
 
         // Try and get the location of the whole 'Foo foo', and not just 'foo'
@@ -294,6 +373,27 @@ namespace RestEase.Implementation.Emission
             // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
             var attributeLocation = attributeModel?.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
             return attributeLocation != null ? new[] { attributeLocation } : SymbolLocations(fallback);
+        }
+
+        private static IEnumerable<Location> AttributeLocations(IEnumerable<AttributeModel> attributeModels, ISymbol fallback)
+        {
+            var results = new List<Location>();
+            bool anyFailed = false;
+            foreach (var attributeModel in attributeModels)
+            {
+                var location = attributeModel?.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
+                if (location != null)
+                {
+                    results.Add(location);
+                }
+                else
+                {
+                    anyFailed = true;
+                    break;
+                }
+            }
+
+            return anyFailed || results.Count == 0 ? SymbolLocations(fallback) : results;
         }
 
     }

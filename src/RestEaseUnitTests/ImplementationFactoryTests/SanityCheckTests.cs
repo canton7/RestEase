@@ -2,6 +2,7 @@
 using RestEase;
 using RestEase.Implementation;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,6 +35,12 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 
             [Get]
             string ReturnsString();
+        }
+
+        public interface IHasMethodParameterWithMultipleAttributes
+        {
+            [Get]
+            Task FooAsync([Query, HttpRequestMessageProperty] string foo);
         }
 
         public interface IHasEvents
@@ -76,6 +83,17 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
                 // (7,20): Error REST019: Method must have a return type of Task or Task<T>
                 // ReturnsString
                 Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsString").WithLocation(7, 20)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfMethodWithoutAttributes()
+        {
+            this.VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
+                // (4,27): Error REST025: Method parameter 'foo' has no attributes: it must have at least one
+                // [Query, HttpRequestMessageProperty] string foo
+                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, "[Query, HttpRequestMessageProperty] string foo")
+                    .WithLocation(4, 27)
             );
         }
 

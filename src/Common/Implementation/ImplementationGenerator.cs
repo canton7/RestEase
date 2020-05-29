@@ -51,6 +51,7 @@ namespace RestEase.Implementation
             var typeEmitter = this.emitter.EmitType(this.typeModel);
 
             this.ValidatePathProperties();
+            this.ValidateHttpRequestMessageProperties();
             var emittedProperties = this.GenerateProperties(typeEmitter);
             this.GenerateMethods(typeEmitter, emittedProperties);
             return typeEmitter.Generate();
@@ -364,16 +365,43 @@ namespace RestEase.Implementation
             }
         }
 
+        private void ValidateHttpRequestMessageProperties()
+        {
+            var requestProperties = this.typeModel.Properties.Where(x => x.HttpRequestMessagePropertyAttribute != null);
+            var duplicateProperties = requestProperties
+                .GroupBy(x => x.HttpRequestMessagePropertyAttributeKey!)
+                .Where(x => x.Count() > 1);
+            foreach (var properties in duplicateProperties)
+            {
+                this.diagnostics.ReportMultipleHttpRequestMessagePropertiesForKey(properties.Key, properties);
+            }
+        }
+
         private void ValidateHttpRequestMessageParams(MethodModel method)
         {
             // Check that there are no duplicate param names in the attributes
-            var requestParams = method.Parameters.Where(x => x.HttpRequestMessagePropertyAttribute != null);
+            var requestParams = method.Parameters.Where(x => x.HttpRequestMessagePropertyAttribute != null).ToList();
+
+            foreach (var requestParam in requestParams)
+            {
+                var duplicateProperty = this.typeModel.Properties
+                    .FirstOrDefault(x => x.HttpRequestMessagePropertyAttributeKey == requestParam.HttpRequestMessagePropertyAttributeKey);
+                if (duplicateProperty != null)
+                {
+                    this.diagnostics.ReportHttpRequestMessageParamDuplicatesPropertyForKey(
+                        method,
+                        requestParam.HttpRequestMessagePropertyAttributeKey!,
+                        duplicateProperty,
+                        requestParam);
+                }
+            }
+
             var duplicateParams = requestParams
                 .GroupBy(x => x.HttpRequestMessagePropertyAttributeKey!)
                 .Where(x => x.Count() > 1);
             foreach (var @params in duplicateParams)
             {
-                this.diagnostics.ReportMultipleHttpRequestMessagePropertiesForKey(method, @params.Key, @params);
+                this.diagnostics.ReportMultipleHttpRequestMessageParametersForKey(method, @params.Key, @params);
             }
         }
     }
