@@ -3,6 +3,7 @@ require 'json'
 RESTEASE_SLN = 'src/RestEase.sln'
 RESTEASE_DIR = 'src/RestEase'
 TESTS_DIR = 'src/RestEaseUnitTests'
+SOURCE_GENERATOR_TESTS_DIR = 'src/RestEase.SourceGenerator.UnitTests'
 
 RESTEASE_CSPROJ = File.join(RESTEASE_DIR, 'RestEase.csproj')
 NUGET_DIR = File.join(File.dirname(__FILE__), 'NuGet')
@@ -33,7 +34,11 @@ end
 
 desc "Run tests"
 task :test do
+  # AppVeyor doesn't have the VS SDK, so it can't build the Visx if we ask it to test the sln
   Dir.chdir(TESTS_DIR) do
+    sh 'dotnet', 'test'
+  end
+  Dir.chdir(SOURCE_GENERATOR_TESTS_DIR) do
     sh 'dotnet', 'test'
   end
 end
