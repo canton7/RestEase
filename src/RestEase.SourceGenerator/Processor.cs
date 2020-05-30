@@ -11,9 +11,13 @@ namespace RestEase.SourceGenerator
     internal class Processor : SymbolVisitor
     {
         private readonly SourceGeneratorContext context;
-        private readonly RoslynImplementationFactory factory = new RoslynImplementationFactory();
+        private readonly RoslynImplementationFactory factory;
 
-        public Processor(SourceGeneratorContext context) => this.context = context;
+        public Processor(SourceGeneratorContext context)
+        {
+            this.context = context;
+            this.factory = new RoslynImplementationFactory(context.Compilation);
+        }
 
         public void Process()
         {
@@ -52,6 +56,12 @@ namespace RestEase.SourceGenerator
             //}
 
             this.context.Compilation.GlobalNamespace.Accept(this);
+
+            // Report the compilation-level diagnostics
+            foreach (var diagnostic in this.factory.GetCompilationDiagnostics())
+            {
+                this.context.ReportDiagnostic(diagnostic);
+            }
         }
 
         public override void VisitNamespace(INamespaceSymbol symbol)
@@ -106,7 +116,7 @@ namespace RestEase.SourceGenerator
 
         private void ProcessType(INamedTypeSymbol namedTypeSymbol)
         {
-            var (sourceText, diagnostics) = this.factory.CreateImplementation(this.context.Compilation, namedTypeSymbol);
+            var (sourceText, diagnostics) = this.factory.CreateImplementation(namedTypeSymbol);
             foreach (var diagnostic in diagnostics)
             {
                 this.context.ReportDiagnostic(diagnostic);

@@ -37,7 +37,9 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
     public abstract class ImplementationFactoryTestsBase
     {
         protected readonly Mock<IRequester> Requester = new Mock<IRequester>(MockBehavior.Strict);
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly ITestOutputHelper output;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public ImplementationFactoryTestsBase(ITestOutputHelper output)
         {
@@ -47,7 +49,6 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
 #if SOURCE_GENERATOR
         private static readonly Compilation executionCompilation;
         private static readonly Compilation diagnosticsCompilation;
-        private readonly RoslynImplementationFactory implementationFactory = new RoslynImplementationFactory();
 
         static ImplementationFactoryTestsBase()
         {
@@ -102,8 +103,10 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         {
             var typeToSearch = typeof(T).IsGenericType ? typeof(T).GetGenericTypeDefinition() : typeof(T);
             string metadataName = typeToSearch.FullName;
+
+            var factory = new RoslynImplementationFactory(executionCompilation);
             var namedTypeSymbol = executionCompilation.GetTypeByMetadataName(metadataName);
-            var (sourceText, _) = this.implementationFactory.CreateImplementation(executionCompilation, namedTypeSymbol);
+            var (sourceText, _) = factory.CreateImplementation(namedTypeSymbol);
 
             Assert.NotNull(sourceText);
             this.output.WriteLine(sourceText.ToString());
@@ -129,9 +132,11 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
         protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
         {
             var namedTypeSymbol = diagnosticsCompilation.GetTypeByMetadataName(typeof(T).FullName);
-            var (_, diagnostics) = this.implementationFactory.CreateImplementation(diagnosticsCompilation, namedTypeSymbol);
+
+            var factory = new RoslynImplementationFactory(diagnosticsCompilation);
+            var (_, diagnostics) = factory.CreateImplementation(namedTypeSymbol);
             int lineOffset = namedTypeSymbol.DeclaringSyntaxReferences[0].GetSyntax().GetLocation().GetLineSpan().StartLinePosition.Line;
-            DiagnosticVerifier.VerifyDiagnostics(diagnostics, expected, lineOffset);
+            DiagnosticVerifier.VerifyDiagnostics(diagnostics.Concat(factory.GetCompilationDiagnostics()), expected, lineOffset);
         }
 
 #else

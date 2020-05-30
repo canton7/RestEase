@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -10,16 +11,44 @@ namespace RestEase.SourceGenerator.Implementation
 {
     public class RoslynImplementationFactory
     {
-        public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(Compilation compilation, INamedTypeSymbol namedTypeSymbol)
+        private readonly DiagnosticReporter symbolsDiagnosticReporter;
+        private readonly WellKnownSymbols wellKnownSymbols;
+        private readonly Emitter emitter;
+        private readonly HashSet<Diagnostic> symbolsDiagnostics = new HashSet<Diagnostic>();
+
+        public RoslynImplementationFactory(Compilation compilation)
+        {
+            this.symbolsDiagnosticReporter = new DiagnosticReporter();
+            this.wellKnownSymbols = new WellKnownSymbols(compilation, this.symbolsDiagnosticReporter);
+            this.emitter = new Emitter(this.wellKnownSymbols);
+        }
+
+        public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
         {
             var diagnosticReporter = new DiagnosticReporter();
-            var wellKnownSymbols = new WellKnownSymbols(compilation, diagnosticReporter);
-            var emitter = new Emitter(wellKnownSymbols);
-            var analyzer = new RoslynTypeAnalyzer(namedTypeSymbol, wellKnownSymbols);
+            var analyzer = new RoslynTypeAnalyzer(namedTypeSymbol, this.wellKnownSymbols);
             var typeModel = analyzer.Analyze();
-            var generator = new ImplementationGenerator(typeModel, emitter, diagnosticReporter);
+            var generator = new ImplementationGenerator(typeModel, this.emitter, diagnosticReporter);
             var emittedType = generator.Generate();
-            return (diagnosticReporter.HasErrors ? null : emittedType.SourceText, diagnosticReporter.Diagnostics);
+
+            // If there are symbols diagnostic errors, we have to fail this type.
+            // However, we'll then clear the symbols diagnostics, so we can move onto the next type
+            // (which might succeed).
+            // We'll report the symbols diagnostics in one go at the end. We might well end up with duplicates
+            // (WellKnownSymbols will keep reporting the same diagnostics), so use a HashSet.
+
+            this.symbolsDiagnostics.UnionWith(this.symbolsDiagnosticReporter.Diagnostics);
+            bool hasSymbolsErrors = this.symbolsDiagnosticReporter.HasErrors;
+            this.symbolsDiagnosticReporter.Clear();
+
+            return (hasSymbolsErrors || diagnosticReporter.HasErrors
+                ? null
+                : emittedType.SourceText, diagnosticReporter.Diagnostics);
+        }
+
+        public List<Diagnostic> GetCompilationDiagnostics()
+        {
+            return this.symbolsDiagnostics.ToList();
         }
     }
 }

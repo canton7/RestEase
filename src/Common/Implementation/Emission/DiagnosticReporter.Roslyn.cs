@@ -359,6 +359,12 @@ namespace RestEase.Implementation.Emission
             this.Diagnostics.Add(diagnostic);
         }
 
+        public void Clear()
+        {
+            this.Diagnostics.Clear();
+            this.HasErrors = false;
+        }
+
         // Try and get the location of the whole 'Foo foo', and not just 'foo'
         private static IEnumerable<Location> SymbolLocations(ISymbol symbol)
         {
