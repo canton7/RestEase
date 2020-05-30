@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using RestEase.SourceGenerator.Implementation;
 
 namespace RestEase.SourceGenerator
 {

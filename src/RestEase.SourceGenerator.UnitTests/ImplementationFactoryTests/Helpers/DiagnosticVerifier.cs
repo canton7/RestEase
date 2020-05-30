@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation;
 using Xunit;
 
-namespace RestEaseUnitTests.ImplementationFactoryTests.Helpers
+namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
 {
     public static class DiagnosticVerifier
     {

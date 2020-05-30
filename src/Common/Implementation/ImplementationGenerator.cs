@@ -64,7 +64,7 @@ namespace RestEase.Implementation
             bool hasRequester = false;
 
             foreach (var property in this.typeModel.Properties)
-            { 
+            {
                 var attributes = property.GetAllSetAttributes().ToList();
                 if (property.IsRequester)
                 {

@@ -2,7 +2,7 @@ require 'json'
 
 RESTEASE_SLN = 'src/RestEase.sln'
 RESTEASE_DIR = 'src/RestEase'
-TESTS_DIR = 'src/RestEaseUnitTests'
+TESTS_DIR = 'src/RestEase.UnitTests'
 SOURCE_GENERATOR_TESTS_DIR = 'src/RestEase.SourceGenerator.UnitTests'
 
 RESTEASE_CSPROJ = File.join(RESTEASE_DIR, 'RestEase.csproj')

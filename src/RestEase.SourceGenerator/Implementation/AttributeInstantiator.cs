@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace RestEase.SourceGenerator.Implementation
 {
@@ -159,7 +154,7 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
                     }
-                    else if (namedArgument.Key == nameof(PathAttribute.UrlEncode) && 
+                    else if (namedArgument.Key == nameof(PathAttribute.UrlEncode) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_Boolean)
                     {
                         attribute.UrlEncode = (bool)namedArgument.Value.Value!;
@@ -310,7 +305,7 @@ namespace RestEase.SourceGenerator.Implementation
         {
             HttpRequestMessagePropertyAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
-            { 
+            {
                 attribute = new HttpRequestMessagePropertyAttribute();
             }
             else if (attributeData.ConstructorArguments.Length == 1 &&

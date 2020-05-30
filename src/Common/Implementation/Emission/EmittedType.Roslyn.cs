@@ -1,4 +1,3 @@
-using System;
 using Microsoft.CodeAnalysis.Text;
 
 namespace RestEase.Implementation.Emission

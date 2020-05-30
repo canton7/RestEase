@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Analysis;
@@ -26,7 +25,7 @@ namespace RestEase.SourceGenerator.Implementation
         public TypeModel Analyze()
         {
             var attributes = this.attributeInstantiator.Instantiate(this.namedTypeSymbol);
-            
+
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),

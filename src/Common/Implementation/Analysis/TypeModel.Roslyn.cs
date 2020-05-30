@@ -1,5 +1,3 @@
-
-using System;
 using Microsoft.CodeAnalysis;
 
 namespace RestEase.Implementation.Analysis

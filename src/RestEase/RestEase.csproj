@@ -61,6 +61,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Roslyn.cs" />
+    <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Roslyn.cs" LinkBase="Common" />
   </ItemGroup>
 </Project>

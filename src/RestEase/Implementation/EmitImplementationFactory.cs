@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Net.Http;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using RestEase.Platform;
-using System.IO;
-using System.Runtime.ExceptionServices;
 using RestEase.Implementation.Emission;
-using RestEase.Implementation.Analysis;
 
 namespace RestEase.Implementation
 {

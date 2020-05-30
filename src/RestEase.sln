@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30028.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestEase", "RestEase\RestEase.csproj", "{6219B6B7-D110-4F46-B43A-1B41B031F2F3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestEaseUnitTests", "RestEaseUnitTests\RestEaseUnitTests.csproj", "{34672726-3CDF-418B-B630-39B2CF41ACD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestEase.UnitTests", "RestEase.UnitTests\RestEase.UnitTests.csproj", "{34672726-3CDF-418B-B630-39B2CF41ACD4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5197D787-981B-4A51-99D9-9D0FB2680503}"
 	ProjectSection(SolutionItems) = preProject
