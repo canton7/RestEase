@@ -13,6 +13,7 @@ namespace RestEase.SourceGenerator.Implementation
     {
         private readonly DiagnosticReporter symbolsDiagnosticReporter;
         private readonly WellKnownSymbols wellKnownSymbols;
+        private readonly AttributeInstantiator attributeInstantiator;
         private readonly Emitter emitter;
         private readonly HashSet<Diagnostic> symbolsDiagnostics = new HashSet<Diagnostic>();
 
@@ -20,13 +21,14 @@ namespace RestEase.SourceGenerator.Implementation
         {
             this.symbolsDiagnosticReporter = new DiagnosticReporter();
             this.wellKnownSymbols = new WellKnownSymbols(compilation, this.symbolsDiagnosticReporter);
+            this.attributeInstantiator = new AttributeInstantiator(this.wellKnownSymbols);
             this.emitter = new Emitter(this.wellKnownSymbols);
         }
 
         public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
         {
             var diagnosticReporter = new DiagnosticReporter();
-            var analyzer = new RoslynTypeAnalyzer(namedTypeSymbol, this.wellKnownSymbols);
+            var analyzer = new RoslynTypeAnalyzer(namedTypeSymbol, this.wellKnownSymbols, this.attributeInstantiator);
             var typeModel = analyzer.Analyze();
             var generator = new ImplementationGenerator(typeModel, this.emitter, diagnosticReporter);
             var emittedType = generator.Generate();

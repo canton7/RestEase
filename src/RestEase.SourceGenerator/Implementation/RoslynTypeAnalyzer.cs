@@ -13,11 +13,14 @@ namespace RestEase.SourceGenerator.Implementation
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly AttributeInstantiator attributeInstantiator;
 
-        public RoslynTypeAnalyzer(INamedTypeSymbol namedTypeSymbol, WellKnownSymbols wellKnownSymbols)
+        public RoslynTypeAnalyzer(
+            INamedTypeSymbol namedTypeSymbol,
+            WellKnownSymbols wellKnownSymbols,
+            AttributeInstantiator attributeInstantiator)
         {
             this.namedTypeSymbol = namedTypeSymbol;
             this.wellKnownSymbols = wellKnownSymbols;
-            this.attributeInstantiator = new AttributeInstantiator(wellKnownSymbols);
+            this.attributeInstantiator = attributeInstantiator;
         }
 
         public TypeModel Analyze()

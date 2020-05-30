@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace RestEaseUnitTests.ImplementationFactoryTests
 {
-    public class RawQueryParameterTests : ImplementationFactoryTestsBase
+    public class RawQueryStringTests : ImplementationFactoryTestsBase
     {
         public class HasToString : IFormattable
         {
@@ -44,7 +44,7 @@ namespace RestEaseUnitTests.ImplementationFactoryTests
             Task FooAsync([RawQueryString] HasToString value);
         }
 
-        public RawQueryParameterTests(ITestOutputHelper output) : base(output) { }
+        public RawQueryStringTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void AddsRawQueryParam()
