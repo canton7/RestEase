@@ -16,6 +16,8 @@ namespace SourceGeneratorSandbox
         {
             [Get("foo/{bar}")]
             Task FooAsync([Path] string bar, [Path("bar")] string yay);
+
+            Task YayAsync([Path] string bar);
         }
     }
 }

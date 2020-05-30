@@ -25,6 +25,9 @@ namespace RestEase.SourceGenerator.Implementation
             this.emitter = new Emitter(this.wellKnownSymbols);
         }
 
+        public bool IsRestEaseAttribute(INamedTypeSymbol namedTypeSymbol) =>
+            this.attributeInstantiator.IsRestEaseAttribute(namedTypeSymbol);
+
         public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
         {
             var diagnosticReporter = new DiagnosticReporter();
@@ -48,9 +51,6 @@ namespace RestEase.SourceGenerator.Implementation
                 : emittedType.SourceText, diagnosticReporter.Diagnostics);
         }
 
-        public List<Diagnostic> GetCompilationDiagnostics()
-        {
-            return this.symbolsDiagnostics.ToList();
-        }
+        public List<Diagnostic> GetCompilationDiagnostics() => this.symbolsDiagnostics.ToList();
     }
 }

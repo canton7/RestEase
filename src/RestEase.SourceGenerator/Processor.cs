@@ -100,15 +100,12 @@ namespace RestEase.SourceGenerator
             {
                 foreach (var attributeData in memberSymbol.GetAttributes())
                 {
-                    var baseType = attributeData.AttributeClass?.BaseType;
-                    if (baseType != null && baseType.ContainingNamespace.Name == "RestEase" && baseType.Name == "RequestAttribute")
+                    if (attributeData.AttributeClass != null &&
+                        this.factory.IsRestEaseAttribute(attributeData.AttributeClass))
                     {
                         return true;
                     }
                 }
-
-                // We expect every member to have a RequestAttribute
-                return false;
             }
 
             return false;

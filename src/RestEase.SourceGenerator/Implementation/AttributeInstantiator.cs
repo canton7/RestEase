@@ -51,6 +51,11 @@ namespace RestEase.SourceGenerator.Implementation
             }
         }
 
+        public bool IsRestEaseAttribute(INamedTypeSymbol symbol)
+        {
+            return this.lookup.ContainsKey(symbol);
+        }
+
         public IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol)
         {
             return symbol.GetAttributes().Select(x => (this.Instantiate(x), x));
