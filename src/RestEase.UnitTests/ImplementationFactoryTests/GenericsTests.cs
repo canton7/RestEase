@@ -1,5 +1,6 @@
 ﻿using Moq;
 using RestEase.UnitTests.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -47,6 +48,12 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         {
             [Get("foo")]
             Task<T> FooAsync();
+        }
+
+        public interface IGenericApiWithConstraints<T> where T : struct, IEquatable<T>
+        {
+            [Get]
+            Task FooAsync(T param);
         }
 
         public GenericsTests(ITestOutputHelper output) : base(output) { }
@@ -121,6 +128,15 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             int result = implementation.FooAsync().Result;
 
             Assert.Equal(3, result);
+        }
+
+        [Fact]
+        public void SupportsClassTypeConstraints()
+        {
+            var requestInfo = this.Request<IGenericApiWithConstraints<double>>(x => x.FooAsync(3.0));
+
+            Assert.Single(requestInfo.QueryParams);
+            Assert.Equal("3", requestInfo.QueryParams.First().SerializeToString(null).First().Value);
         }
     }
 }

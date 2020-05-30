@@ -6,7 +6,9 @@ namespace RestEase.SourceGenerator.Implementation
     {
         public static SymbolDisplayFormat SymbolName { get; }
         public static SymbolDisplayFormat Namespace { get; }
-        public static SymbolDisplayFormat ClassDeclaration { get; }
+        public static SymbolDisplayFormat ClassNameForReference { get; }
+        public static SymbolDisplayFormat ClassNameForDeclaration { get; }
+        public static SymbolDisplayFormat QualifiedClassNameWithTypeConstraints { get; }
         public static SymbolDisplayFormat ConstructorName { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
         public static SymbolDisplayFormat PropertyDeclaration { get; }
@@ -24,7 +26,16 @@ namespace RestEase.SourceGenerator.Implementation
 
             Namespace = new SymbolDisplayFormat();
 
-            ClassDeclaration = new SymbolDisplayFormat(
+            ClassNameForReference = new SymbolDisplayFormat(
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+            ClassNameForDeclaration = new SymbolDisplayFormat(
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
+                    | SymbolDisplayGenericsOptions.IncludeVariance);
+
+            QualifiedClassNameWithTypeConstraints = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
                     | SymbolDisplayGenericsOptions.IncludeTypeConstraints
                     | SymbolDisplayGenericsOptions.IncludeVariance);

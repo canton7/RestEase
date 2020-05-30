@@ -19,7 +19,6 @@ namespace RestEase.Implementation.Emission
         private readonly int index;
         private readonly string namespaceName;
         private readonly string typeNamePrefix;
-        private readonly string typeName;
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
         private readonly string? classHeadersFieldName;
@@ -34,9 +33,9 @@ namespace RestEase.Implementation.Emission
             this.writer = new IndentedTextWriter(this.stringWriter);
             this.namespaceName = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace) + ".RestEaseGeneratedTypes";
             this.typeNamePrefix = "Implementation_" + this.index + "_";
-            this.typeName = this.typeNamePrefix + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassDeclaration);
             string constructorName = this.typeNamePrefix + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ConstructorName);
-            this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeName;
+            this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeNamePrefix +
+                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassNameForReference);
             this.requesterFieldName = this.GenerateFieldName("requester");
             if (this.typeModel.HeaderAttributes.Count > 0)
             {
@@ -77,9 +76,24 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
-            this.writer.Write("internal class " + this.typeName);
+            // We want class C<T> : I<T> where T : ...
+            // However, ToDisplayString can only get us class C<T> where T : ...
+            // Therefore, string manipulation. Also, we need to get any generic constraints with full namespace
+            // (e.g. IEquatable<T>), but we don't want these for the type name.
+
+            this.writer.Write("internal class " + this.typeNamePrefix +
+                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassNameForDeclaration));
             this.writer.Write(" : ");
-            this.writer.WriteLine(interfaceName);
+            this.writer.Write(interfaceName);
+
+            string classDeclarationWithConstraints = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.QualifiedClassNameWithTypeConstraints);
+            int wherePosition = classDeclarationWithConstraints.IndexOf(" where");
+            if (wherePosition >= 0)
+            {
+                this.writer.Write(classDeclarationWithConstraints.Substring(wherePosition));
+            }
+            this.writer.WriteLine();
+
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
