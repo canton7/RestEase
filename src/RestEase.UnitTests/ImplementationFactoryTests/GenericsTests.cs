@@ -2,6 +2,7 @@
 using RestEase.UnitTests.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -30,6 +31,18 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task<Response<T>> Foo<T>();
         }
 
+        public interface IHasGenericParameter
+        {
+            [Get]
+            Task Foo<T>(T param);
+        }
+
+        public interface IHasGenericParameterConstrainedToEnumerable
+        {
+            [Get]
+            Task Foo<T>(T param) where T : IEnumerable<string>;
+        }
+
         public interface IHasGenericParameters
         {
             [Get("foo/{a}")]
@@ -44,13 +57,25 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task Foo<T>() where T : Base, IInterface, new();
         }
 
-        public interface IGenericApi<T>
+        public interface IGenericType<T>
         {
             [Get("foo")]
             Task<T> FooAsync();
         }
 
-        public interface IGenericApiWithConstraints<T> where T : struct, IEquatable<T>
+        public interface IGenericTypeWithConstraints<T> where T : struct, IEquatable<T>
+        {
+            [Get]
+            Task FooAsync(T param);
+        }
+
+        public interface IGenericTypeWithMultipleConstraints<T1, T2> where T1 : IEquatable<T1>, new() where T2 : IEnumerable<T1>
+        {
+            [Get]
+            Task FooAsync(T1 foo, T2 bar);
+        }
+
+        public interface IGenericTypeWithVariance<in T>
         {
             [Get]
             Task FooAsync(T param);
@@ -78,6 +103,31 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 
             // This asserts that the response type is as requested
             this.RequestWithResponse<IHasGenericResponseReturnType, string>(x => x.Foo<string>(), response);
+        }
+
+        [Fact]
+        public void SerializesGenericCollectionNoConstraint()
+        {
+            var requestInfo = this.Request<IHasGenericParameter>(x => x.Foo(new List<string>() { "foo", "bar" }));
+
+            Assert.Single(requestInfo.QueryParams);
+            var serialized = requestInfo.QueryParams.First().SerializeToString(null).ToList();
+
+            Assert.Single(serialized);
+            Assert.Equal("System.Collections.Generic.List`1[System.String]", serialized[0].Value);
+        }
+
+        [Fact]
+        public void SerializesGenericCollectionWithConstraint()
+        {
+            var requestInfo = this.Request<IHasGenericParameterConstrainedToEnumerable>(x => x.Foo(new List<string>() { "foo", "bar" }));
+
+            Assert.Single(requestInfo.QueryParams);
+            var serialized = requestInfo.QueryParams.First().SerializeToString(null).ToList();
+
+            Assert.Equal(2, serialized.Count);
+            Assert.Equal("foo", serialized[0].Value);
+            Assert.Equal("bar", serialized[1].Value);
         }
 
         [Fact]
@@ -124,7 +174,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             this.Requester.Setup(x => x.RequestAsync<int>(It.IsAny<IRequestInfo>()))
                 .Returns(Task.FromResult(3));
 
-            var implementation = this.CreateImplementation<IGenericApi<int>>();
+            var implementation = this.CreateImplementation<IGenericType<int>>();
             int result = implementation.FooAsync().Result;
 
             Assert.Equal(3, result);
@@ -133,10 +183,47 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void SupportsClassTypeConstraints()
         {
-            var requestInfo = this.Request<IGenericApiWithConstraints<double>>(x => x.FooAsync(3.0));
+            var requestInfo = this.Request<IGenericTypeWithConstraints<double>>(x => x.FooAsync(3.0));
 
             Assert.Single(requestInfo.QueryParams);
             Assert.Equal("3", requestInfo.QueryParams.First().SerializeToString(null).First().Value);
+        }
+
+        [Fact]
+        public void SupportsMultipleLevelsOfClassConstraints()
+        {
+            // TODO: Should this serialize as a collection or not? Currently a mismatch between the two emitters.
+
+            var requestInfo = this.Request<IGenericTypeWithMultipleConstraints<Equatable, List<Equatable>>>(
+                x => x.FooAsync(new Equatable("a"), new List<Equatable>() { new Equatable("b"), new Equatable("c") }));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+            Assert.Equal(2, queryParams.Count);
+            Assert.Equal("a", queryParams[0].SerializeToString(null).First().Value);
+
+            var second = queryParams[1].SerializeToString(null).ToList();
+            Assert.Equal(2, second.Count);
+            Assert.Equal("b", second[0].Value);
+            Assert.Equal("c", second[1].Value);
+        }
+
+        [Fact]
+        public void SupportsClassTypeVariance()
+        {
+            var requestInfo = this.Request<IGenericTypeWithVariance<string>>(x => x.FooAsync("hello"));
+
+            Assert.Single(requestInfo.QueryParams);
+            Assert.Equal("hello", requestInfo.QueryParams.First().SerializeToString(null).First().Value);
+        }
+
+        public class Equatable : IEquatable<Equatable>
+        {
+            private readonly string s;
+
+            public Equatable() { }
+            public Equatable(string s) => this.s = s;
+            public bool Equals(Equatable other) => throw new NotImplementedException();
+            public override string ToString() => this.s;
         }
     }
 }

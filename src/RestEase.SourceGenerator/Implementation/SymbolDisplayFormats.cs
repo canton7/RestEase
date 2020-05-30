@@ -30,15 +30,13 @@ namespace RestEase.SourceGenerator.Implementation
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
             ClassNameForDeclaration = new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
-                    | SymbolDisplayGenericsOptions.IncludeVariance);
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
             QualifiedClassNameWithTypeConstraints = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
-                    | SymbolDisplayGenericsOptions.IncludeTypeConstraints
-                    | SymbolDisplayGenericsOptions.IncludeVariance);
+                    | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
 
             ConstructorName = new SymbolDisplayFormat();
 

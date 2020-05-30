@@ -362,6 +362,19 @@ namespace RestEase.Implementation.Emission
             {
                 collectionType = arraySymbol.ElementType;
             }
+            else if (input is ITypeParameterSymbol typeParameter)
+            {
+                // Are any of its constraints IEnumerable<T>?
+                foreach (var constraint in typeParameter.ConstraintTypes)
+                {
+                    var result = this.CollectionTypeOfType(constraint);
+                    if (result != null)
+                    {
+                        collectionType = result;
+                        break;
+                    }
+                }
+            }
 
             return collectionType;
         }
