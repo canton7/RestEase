@@ -4,8 +4,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
 
+    <!-- See the nuspec -->
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <NuspecFile>RestEase.SourceGenerator.nuspec</NuspecFile>
+    <!--<NuspecBasePath>$(OutputPath)</NuspecBasePath>-->
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+  
   <PropertyGroup>
     <RestoreAdditionalProjectSources>https://dotnet.myget.org/F/roslyn/api/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
   </PropertyGroup>
@@ -13,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0-3.20278.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
-    <PackageReference Include="Nullable" Version="1.2.1" />
+    <PackageReference Include="Nullable" Version="1.2.1" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
