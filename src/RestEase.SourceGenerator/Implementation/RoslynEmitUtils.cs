@@ -2,7 +2,7 @@
 
 namespace RestEase.SourceGenerator.Implementation
 {
-    internal static class EmitUtils
+    internal static class RoslynEmitUtils
     {
         public static string QuoteString(string? s) => s == null ? "null" : "@\"" + s.Replace("\"", "\"\"") + "\"";
 

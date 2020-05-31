@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator.Implementation;
-using static RestEase.SourceGenerator.Implementation.EmitUtils;
+using static RestEase.SourceGenerator.Implementation.RoslynEmitUtils;
 
 namespace RestEase.Implementation.Emission
 {

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using RestEase.Implementation.Analysis;
+using RestEase.Platform;
+using static RestEase.Implementation.EmitEmitUtils;
 
 namespace RestEase.Implementation.Emission
 {
@@ -21,6 +23,8 @@ namespace RestEase.Implementation.Emission
             this.typeBuilder = typeBuilder;
             this.typeModel = typeModel;
 
+            this.SetupType();
+
             // Define a readonly field which holds a reference to the IRequester
             this.requesterField = typeBuilder.DefineField("requester", typeof(IRequester), FieldAttributes.Private | FieldAttributes.InitOnly);
 
@@ -31,6 +35,18 @@ namespace RestEase.Implementation.Emission
 
             this.AddInstanceCtor();
             this.AddStaticCtor();
+        }
+
+        private void SetupType()
+        {
+            this.typeBuilder.AddInterfaceImplementation(this.typeModel.Type);
+
+            if (this.typeModel.Type.GetTypeInfo().IsGenericTypeDefinition)
+            {
+                var genericTypeParameters = this.typeModel.Type.GetTypeInfo().GenericTypeParameters;
+                var builders = this.typeBuilder.DefineGenericParameters(genericTypeParameters.Select(x => x.Name).ToArray());
+                AddGenericTypeConstraints(genericTypeParameters, builders);
+            }
         }
 
         private void AddInstanceCtor()

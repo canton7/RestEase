@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Threading.Tasks;
 using RestEase.Implementation.Analysis;
 using RestEase.Platform;
+using static RestEase.Implementation.EmitEmitUtils;
 
 namespace RestEase.Implementation.Emission
 {
@@ -56,22 +57,7 @@ namespace RestEase.Implementation.Emission
             {
                 var genericArguments = methodInfo.GetGenericArguments();
                 var builders = this.methodBuilder.DefineGenericParameters(genericArguments.Select(x => x.Name).ToArray());
-                for (int j = 0; j < genericArguments.Length; j++)
-                {
-                    var genericArgumentType = genericArguments[j].GetTypeInfo();
-                    var constraints = genericArgumentType.GetGenericParameterConstraints().Select(x => x.GetTypeInfo()).ToList();
-                    builders[j].SetGenericParameterAttributes(genericArgumentType.GenericParameterAttributes);
-                    var baseType = constraints.FirstOrDefault(x => x.IsClass);
-                    if (baseType != null)
-                    {
-                        builders[j].SetBaseTypeConstraint(baseType.AsType());
-                    }
-                    var interfaceTypes = constraints.Where(x => !x.IsClass).Select(x => x.AsType()).ToArray();
-                    if (interfaceTypes.Length > 0)
-                    {
-                        builders[j].SetInterfaceConstraints(interfaceTypes);
-                    }
-                }
+                AddGenericTypeConstraints(genericArguments, builders);
             }
         }
 
