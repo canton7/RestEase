@@ -177,7 +177,7 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor missingPathPropertyOrParameterForPlaceholder = CreateDescriptor(
             DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder,
             "All placeholders in a path must have a corresponding path property or path parameter",
-            "No placeholder {{{0}}} for path parameter '{0}'");
+            "No path property or parameter '{0}' found for placeholder {{{0}}}");
         public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
         {
             // We'll put the squiggle on the attribute itself
@@ -187,7 +187,7 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor missingPlaceholderForPathParameter = CreateDescriptor(
             DiagnosticCode.MissingPlaceholderForPathParameter,
             "All path parameters on a method must have a corresponding placeholder",
-            "No placeholder {{{0}}} for path parameter '{0}'");
+            "No placeholder {{{0}}} found for path parameter '{0}'");
         public void ReportMissingPlaceholderForPathParameter(MethodModel _, string placeholder, IEnumerable<ParameterModel> parameters)
         {
             this.AddDiagnostic(missingPlaceholderForPathParameter, parameters.SelectMany(x => SymbolLocations(x.ParameterSymbol)), placeholder);
