@@ -112,8 +112,9 @@ namespace RestEase.Implementation.Emission
 
         private void AddInstanceCtor(string constructorName)
         {
+            this.writer.WriteLine("[global::System.Obsolete(\"Do not use this type directly. Use RestClient.For<" +
+                this.typeModel.NamedTypeSymbol.Name + ">(...)\", true)]");
             this.writer.WriteLine("public " + constructorName + "(global::RestEase.IRequester " + this.requesterFieldName + ")");
-            ;
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
