@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Tags;
 using RestEase.Implementation.Analysis;
 
 namespace RestEase.Implementation.Emission
@@ -343,8 +345,11 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(expressionsNotAvailable, Location.None);
         }
 
-        private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat, DiagnosticSeverity severity = DiagnosticSeverity.Error) =>
-            new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", severity, isEnabledByDefault: true);
+        private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat, DiagnosticSeverity severity = DiagnosticSeverity.Error)
+        {
+            var tags = severity == DiagnosticSeverity.Error ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
+            return new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", severity, isEnabledByDefault: true, customTags: tags);
+        }
 
         private void AddDiagnostic(DiagnosticDescriptor descriptor, IEnumerable<Location> locations, params object?[] args)
         {
