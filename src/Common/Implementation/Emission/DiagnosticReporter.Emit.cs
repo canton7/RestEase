@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RestEase.Implementation.Analysis;
@@ -177,6 +178,13 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException(
                 DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
                 $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' must have zero or one attributes");
+        }
+
+        public void ReportParameterMustNotBeByRef(MethodModel method, ParameterModel parameter)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.ParameterMustNotBeByRef,
+                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' must not be ref, in or out");
         }
 
         public void ReportMultipleCancellationTokenParameters(MethodModel method, IEnumerable<ParameterModel> _)

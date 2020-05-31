@@ -115,6 +115,7 @@ namespace RestEase.Implementation
                 QueryMapAttribute = Get<QueryMapAttribute>(),
                 BodyAttribute = Get<BodyAttribute>(),
                 IsCancellationToken = parameterInfo.ParameterType == typeof(CancellationToken),
+                IsByRef = parameterInfo.ParameterType.IsByRef,
             };
 
             return model;

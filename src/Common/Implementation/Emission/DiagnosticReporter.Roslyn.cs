@@ -241,6 +241,15 @@ namespace RestEase.Implementation.Emission
                 parameter.Name);
         }
 
+        private static readonly DiagnosticDescriptor parameterMustNotBeByRef = CreateDescriptor(
+            DiagnosticCode.ParameterMustNotBeByRef,
+            "Method parameters must not not be ref, in or out",
+            "Method parameter '{0}' must not be ref, in or out");
+        public void ReportParameterMustNotBeByRef(MethodModel _, ParameterModel parameter)
+        {
+            this.AddDiagnostic(parameterMustNotBeByRef, SymbolLocations(parameter.ParameterSymbol), parameter.Name);
+        }
+
         private static readonly DiagnosticDescriptor multipleCancellationTokenParameters = CreateDescriptor(
             DiagnosticCode.MultipleCancellationTokenParameters,
             "Methods must not have multiple CancellationToken parameters",

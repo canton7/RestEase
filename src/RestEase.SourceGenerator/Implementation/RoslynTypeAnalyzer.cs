@@ -139,6 +139,7 @@ namespace RestEase.SourceGenerator.Implementation
                 QueryMapAttribute = Get<QueryMapAttribute>(),
                 BodyAttribute = Get<BodyAttribute>(),
                 IsCancellationToken = SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, this.wellKnownSymbols.CancellationToken),
+                IsByRef = parameterSymbol.RefKind != RefKind.None,
             };
 
             return model;

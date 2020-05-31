@@ -50,6 +50,24 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             bool SomeProperty { get; }
         }
 
+        public interface IHasRef
+        {
+            [Get]
+            Task FooAsync(ref int foo);
+        }
+
+        public interface IHasOut
+        {
+            [Get]
+            Task FooAsync(out int foo);
+        }
+
+        public interface IHasIn
+        {
+            [Get]
+            Task FooAsync(in int foo);
+        }
+
         public SanityCheckTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -111,6 +129,28 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 // (3,18): Error REST020: Property must have exactly one attribute
                 // SomeProperty
                 Diagnostic(DiagnosticCode.PropertyMustHaveOneAttribute, "SomeProperty").WithLocation(3, 18)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfRefInOrOutParameters()
+        {
+            this.VerifyDiagnostics<IHasRef>(
+                // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
+                // ref int foo
+                Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "ref int foo").WithLocation(4, 27)
+            );
+
+            this.VerifyDiagnostics<IHasIn>(
+                // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
+                // in int foo
+                Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "in int foo").WithLocation(4, 27)
+            );
+
+            this.VerifyDiagnostics<IHasOut>(
+                // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
+                // out int foo
+                Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "out int foo").WithLocation(4, 27)
             );
         }
 

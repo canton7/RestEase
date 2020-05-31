@@ -217,6 +217,11 @@ namespace RestEase.Implementation
             {
                 var attributes = parameter.GetAllSetAttributes().ToList();
 
+                if (parameter.IsByRef)
+                {
+                    this.diagnostics.ReportParameterMustNotBeByRef(method, parameter);
+                }
+
                 if (parameter.IsCancellationToken)
                 {
                     if (attributes.Count > 0)
