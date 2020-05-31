@@ -33,7 +33,9 @@ namespace RestEase.Implementation.Emission
             this.wellKnownSymbols = wellKnownSymbols;
             this.index = index;
             this.writer = new IndentedTextWriter(this.stringWriter);
-            this.namespaceName = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace) + ".RestEaseGeneratedTypes";
+
+            string containingNamespace = this.typeModel.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.Namespace);
+            this.namespaceName = (string.IsNullOrEmpty(containingNamespace) ? "" : containingNamespace + ".") + "RestEaseGeneratedTypes";
             this.typeNamePrefix = "Implementation_" + this.index + "_";
             string constructorName = this.typeNamePrefix + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ConstructorName);
             this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeNamePrefix +
