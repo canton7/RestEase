@@ -15,7 +15,7 @@ namespace SourceGeneratorSandbox
         public interface ISomeApi
         {
             [Get("foo/{bar}")]
-            Task FooAsync([Path] string bar, string yay);
+            Task FooAsync([Path] string bar, string baz);
         }
     }
 }

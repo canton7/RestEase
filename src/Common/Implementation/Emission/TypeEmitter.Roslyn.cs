@@ -78,6 +78,9 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
+            this.writer.WriteLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
+            this.writer.WriteLine("[global::System.Runtime.CompilerServices.CompilerGenerated]");
+
             // We want class C<T> : I<T> where T : ...
             // However, ToDisplayString can only get us class C<T> where T : ...
             // Therefore, string manipulation. Also, we need to get any generic constraints with full namespace
