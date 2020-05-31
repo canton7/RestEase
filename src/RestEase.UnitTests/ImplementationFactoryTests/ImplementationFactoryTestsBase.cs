@@ -140,7 +140,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         }
 
 #else
-        private readonly EmitImplementationFactory factory = EmitImplementationFactory.Instance;
+        private readonly ImplementationFactory factory = ImplementationFactory.Instance;
 
         protected T CreateImplementation<T>()
         {

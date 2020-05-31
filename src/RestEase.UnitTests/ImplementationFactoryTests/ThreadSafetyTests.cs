@@ -24,7 +24,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             // We can't really test this well... Just try lots, and see if we have any exceptions
             for (int i = 0; i < 100; i++)
             {
-                var factory = EmitImplementationFactory.Instance;
+                var factory = ImplementationFactory.Instance;
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)

@@ -6,9 +6,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
     public class ImplementationBuilderTests
     {
         [Fact]
-        public void ImplementationBuildInstanceMustBeASingleton()
+        public void ImplementationFactoryInstanceMustBeASingleton()
         {
-            Assert.Same(EmitImplementationFactory.Instance, EmitImplementationFactory.Instance);
+            Assert.Same(ImplementationFactory.Instance, ImplementationFactory.Instance);
         }
     }
 }
