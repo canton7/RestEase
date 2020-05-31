@@ -2,11 +2,13 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator.Implementation;
-using static RestEase.SourceGenerator.Implementation.RoslynEmitUtils;
+using static RestEase.SourceGenerator.Implementation.RoslynEmitUtils
+    ;
 
 namespace RestEase.Implementation.Emission
 {
@@ -187,7 +189,7 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("}");
             this.writer.Flush();
 
-            var sourceText = SourceText.From(this.stringWriter.ToString());
+            var sourceText = SourceText.From(this.stringWriter.ToString(), Encoding.UTF8);
             return new EmittedType(sourceText);
         }
     }

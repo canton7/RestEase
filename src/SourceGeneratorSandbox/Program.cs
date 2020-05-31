@@ -7,17 +7,15 @@ namespace SourceGeneratorSandbox
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("Hello World!");
+            var impl = RestClient.For<ISomeApi>("https://api.example.com");
         }
 
-        public interface IHasDuplicatePathParams
+        public interface ISomeApi
         {
             [Get("foo/{bar}")]
-            Task FooAsync([Path] string bar, [Path("bar")] string yay);
-
-            Task YayAsync([Path] string bar);
+            Task FooAsync([Path] string bar, string yay);
         }
     }
 }

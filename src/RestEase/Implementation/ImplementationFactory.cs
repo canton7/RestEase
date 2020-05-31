@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 using RestEase.Platform;
 
 namespace RestEase.Implementation
@@ -23,15 +25,18 @@ namespace RestEase.Implementation
         // Protected by implementationFactoryLockObject
         private readonly Dictionary<Type, Type> genericTypeLookup = new Dictionary<Type, Type>();
 
+        private readonly bool useSourceGenerator;
+        private readonly bool useSystemReflectionEmit;
+
         /// <summary>
-        /// Singleton instance of <see cref="ImplementationFactory"/>
+        /// Initialises a new instance of the <see cref="ImplementationFactory"/> class
         /// </summary>
-        public static ImplementationFactory Instance { get; } = new ImplementationFactory();
-
-        private readonly EmitImplementationFactory emitImplementationFactory = new EmitImplementationFactory();
-
-        private ImplementationFactory()
+        /// <param name="useSourceGenerator">True to try and use source generated types</param>
+        /// <param name="useSystemReflectionEmit">True to fall back to S.R.E, false to just use source generated types</param>
+        public ImplementationFactory(bool useSourceGenerator = true, bool useSystemReflectionEmit = true)
         {
+            this.useSourceGenerator = useSourceGenerator;
+            this.useSystemReflectionEmit = useSystemReflectionEmit;
         }
 
         /// <summary>
@@ -108,7 +113,25 @@ namespace RestEase.Implementation
 
         private Type BuildImplementation(Type interfaceType)
         {
-            return this.emitImplementationFactory.BuildEmitImplementation(interfaceType);
+            // interfaceType is either a non-generic type or a generic type definition
+
+            if (this.useSourceGenerator)
+            {
+                var attributes = interfaceType.GetTypeInfo().Assembly.GetCustomAttributes<RestEaseInterfaceImplementationAttribute>();
+                var implementationType = attributes.FirstOrDefault(x => x.InterfaceType == interfaceType)?.ImplementationType;
+                if (implementationType != null)
+                {
+                    return implementationType;
+                }
+            }
+
+            if (this.useSystemReflectionEmit)
+            {
+                return EmitImplementationFactory.Instance.BuildEmitImplementation(interfaceType);
+            }
+
+            throw new ImplementationCreationException($"Unable to create type '{interfaceType.FullName}': source generator " +
+                "not enabled or couldn't find implementation, System.Reflection.Emit not enabled");
         }
     }
 }
