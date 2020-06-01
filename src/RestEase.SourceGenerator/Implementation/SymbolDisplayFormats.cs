@@ -6,8 +6,7 @@ namespace RestEase.SourceGenerator.Implementation
     {
         public static SymbolDisplayFormat SymbolName { get; }
         public static SymbolDisplayFormat Namespace { get; }
-        public static SymbolDisplayFormat ClassNameForReference { get; }
-        public static SymbolDisplayFormat ClassNameForDeclaration { get; }
+        public static SymbolDisplayFormat ClassName { get; }
         public static SymbolDisplayFormat QualifiedClassNameWithTypeConstraints { get; }
         public static SymbolDisplayFormat ConstructorName { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
@@ -17,6 +16,8 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat ParameterReference { get; }
         public static SymbolDisplayFormat PropertyReference { get; }
         public static SymbolDisplayFormat TypeofParameter { get; }
+        public static SymbolDisplayFormat TypeofParameterNoTypeParameters { get; }
+        public static SymbolDisplayFormat TypofParameterNoTypeParametersNoQualificationNoEscape { get; }
         public static SymbolDisplayFormat TypeParameter { get; }
 
         static SymbolDisplayFormats()
@@ -24,26 +25,28 @@ namespace RestEase.SourceGenerator.Implementation
             SymbolName = new SymbolDisplayFormat(
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-            Namespace = new SymbolDisplayFormat();
+            Namespace = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-            ClassNameForReference = new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
-
-            ClassNameForDeclaration = new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+            ClassName = new SymbolDisplayFormat(
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             QualifiedClassNameWithTypeConstraints = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
-                    | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
+                    | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             ConstructorName = new SymbolDisplayFormat();
 
             ImplementedInterface = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             PropertyDeclaration = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -65,14 +68,13 @@ namespace RestEase.SourceGenerator.Implementation
                     | SymbolDisplayParameterOptions.IncludeType
                     | SymbolDisplayParameterOptions.IncludeName
                     | SymbolDisplayParameterOptions.IncludeDefaultValue,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
-                    | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             MethodReturnType = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             ParameterReference = new SymbolDisplayFormat(
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName,
@@ -84,12 +86,20 @@ namespace RestEase.SourceGenerator.Implementation
             TypeofParameter = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+            TypeofParameterNoTypeParameters = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+            TypofParameterNoTypeParametersNoQualificationNoEscape = new SymbolDisplayFormat();
 
             TypeParameter = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
         }
     }
 }

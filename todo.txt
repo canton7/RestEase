@@ -2,8 +2,8 @@
    - Multiple properites/methods with same signature
  - Diagnostics in AttributeInstantiator
  - RequestAttribute subclasses (allow or forbid)
- - Parameters, types, generic type parameters, namespaces called 'event', etc
  - Disable nullability?
  - Enum default value which is out of range
  - Query maps with generic constraints for collections and dictionaries
  - params parameters?
+ - Private interfaces

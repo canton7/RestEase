@@ -90,7 +90,7 @@ namespace RestEase.Implementation.Emission
                     " = global::RestEase.Implementation.ImplementationHelpers.GetInterfaceMethodInfo" +
                     "<" + this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ", " +
                     this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.TypeParameter) + ">(x => x." +
-                    this.methodModel.MethodSymbol.Name);
+                    this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.SymbolName));
                 if (this.methodModel.MethodSymbol.TypeArguments.Length > 0)
                 {
                     this.writer.Write("<" + string.Join(", ", this.methodModel.MethodSymbol.TypeArguments

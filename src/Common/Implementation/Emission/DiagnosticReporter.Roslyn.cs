@@ -347,7 +347,7 @@ namespace RestEase.Implementation.Emission
 
         private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat, DiagnosticSeverity severity = DiagnosticSeverity.Error)
         {
-            var tags = severity == DiagnosticSeverity.Error ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
+            string[] tags = severity == DiagnosticSeverity.Error ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
             return new DiagnosticDescriptor(code.Format(), title, messageFormat, "RestEaseGeneration", severity, isEnabledByDefault: true, customTags: tags);
         }
 

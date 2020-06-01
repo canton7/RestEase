@@ -9,6 +9,13 @@ namespace RestEase.SourceGenerator.Implementation
         private static readonly SymbolDisplayFormat genericTypeofFormat = SymbolDisplayFormats.TypeofParameter
             .WithGenericsOptions(SymbolDisplayGenericsOptions.None);
 
+        public static string AddBareAngles(INamedTypeSymbol symbol, string name)
+        {
+            return symbol.IsGenericType
+                ? name + "<" + new string(',', symbol.TypeParameters.Length - 1) + ">"
+                : name;
+        }
+
         public static string GetGenericTypeDefinitionTypeof(INamedTypeSymbol symbol, SymbolDisplayTypeQualificationStyle? typeQualificationStyle = null)
         {
             var format = genericTypeofFormat;

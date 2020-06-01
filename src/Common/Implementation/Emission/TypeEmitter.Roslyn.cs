@@ -21,6 +21,7 @@ namespace RestEase.Implementation.Emission
         private readonly int index;
         private readonly string namespaceName;
         private readonly string typeNamePrefix;
+        private readonly string typeName;
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
         private readonly string? classHeadersFieldName;
@@ -38,8 +39,11 @@ namespace RestEase.Implementation.Emission
             this.namespaceName = (string.IsNullOrEmpty(containingNamespace) ? "" : containingNamespace + ".") + "RestEaseGeneratedTypes";
             this.typeNamePrefix = "Implementation_" + this.index + "_";
             string constructorName = this.typeNamePrefix + this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ConstructorName);
-            this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeNamePrefix +
-                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassNameForReference);
+            // They might have given the type a name like '@event', or it might have a type parameter like '@event'.
+            // Therefore we need to escape the type parameters, but strip a leading @ from the class name
+            this.typeName = this.typeNamePrefix +
+                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassName).TrimStart('@');
+            this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeName;
             this.requesterFieldName = this.GenerateFieldName("requester");
             if (this.typeModel.HeaderAttributes.Count > 0)
             {
@@ -69,9 +73,13 @@ namespace RestEase.Implementation.Emission
 
         private void AddClassDeclaration()
         {
-            string typeofInterfaceName = GetGenericTypeDefinitionTypeof(this.typeModel.NamedTypeSymbol);
+            string typeofInterfaceName = AddBareAngles(
+                this.typeModel.NamedTypeSymbol,
+                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.TypeofParameterNoTypeParameters));
             string interfaceName = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ImplementedInterface);
-            string typeofName = this.typeNamePrefix + GetGenericTypeDefinitionTypeof(this.typeModel.NamedTypeSymbol, SymbolDisplayTypeQualificationStyle.NameOnly);
+            string typeofName = this.typeNamePrefix + AddBareAngles(
+                this.typeModel.NamedTypeSymbol,
+                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.TypofParameterNoTypeParametersNoQualificationNoEscape));
 
             this.writer.WriteLine("[assembly: global::RestEase.Implementation.RestEaseInterfaceImplementationAttribute(" +
                 "typeof(" + typeofInterfaceName + "), typeof(global::" + this.namespaceName + "." + typeofName + "))]");
@@ -88,10 +96,7 @@ namespace RestEase.Implementation.Emission
             // Therefore, string manipulation. Also, we need to get any generic constraints with full namespace
             // (e.g. IEquatable<T>), but we don't want these for the type name.
 
-            this.writer.Write("internal class " + this.typeNamePrefix +
-                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassNameForDeclaration));
-            this.writer.Write(" : ");
-            this.writer.Write(interfaceName);
+            this.writer.Write("internal class " + this.typeName + " : " + interfaceName);
 
             string classDeclarationWithConstraints = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.QualifiedClassNameWithTypeConstraints);
             int wherePosition = classDeclarationWithConstraints.IndexOf(" where");
