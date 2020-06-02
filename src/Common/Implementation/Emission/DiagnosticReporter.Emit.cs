@@ -14,6 +14,13 @@ namespace RestEase.Implementation.Emission
             this.typeModel = typeModel;
         }
 
+        public void ReportTypeMustBeAccessible(TypeModel typeModel)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.InterfaceTypeMustBeAccessible,
+                $"Type {typeModel.Type} must be public, or internal (if you add [assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)] to your assembly)");
+        }
+
         public void ReportHeaderOnInterfaceMustNotHaveColonInName(TypeModel _, AttributeModel<HeaderAttribute> header)
         {
             string desc = header.Attribute.Value == null

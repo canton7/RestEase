@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Xml.Linq;
 using RestEase.Implementation.Analysis;
 using RestEase.Platform;
 
@@ -28,6 +30,7 @@ namespace RestEase.Implementation
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 BasePathAttribute = Get<BasePathAttribute>(),
+                IsAccessible = IsAccessible(this.interfaceTypeInfo),
             };
 
             var headerAttributes = this.InterfaceAndParents(x => x.GetCustomAttributes<HeaderAttribute>())
@@ -58,6 +61,47 @@ namespace RestEase.Implementation
                 var attribute = this.interfaceTypeInfo.GetCustomAttribute<T>();
                 return attribute == null ? null : AttributeModel.Create(attribute);
             }
+        }
+
+        private static bool IsAccessible(TypeInfo queryTypeInfo)
+        {
+            // One of Public, NotPublic, NestedAssembly
+            TypeAttributes? result = null;
+
+            for (var typeInfo = queryTypeInfo; result == null && typeInfo != null; typeInfo = typeInfo.DeclaringType?.GetTypeInfo())
+            {
+                var attributes = typeInfo.Attributes & TypeAttributes.VisibilityMask;
+                switch (attributes)
+                {
+                    case TypeAttributes.NestedPublic:
+                        break;
+
+                    case TypeAttributes.Public:
+                        result = TypeAttributes.Public;
+                        break;
+
+                    case TypeAttributes.NestedPrivate:
+                    case TypeAttributes.NestedFamily:
+                    case TypeAttributes.NestedFamANDAssem:
+                        result = TypeAttributes.NotPublic;
+                        break;
+
+                    case TypeAttributes.NestedAssembly:
+                    case TypeAttributes.NestedFamORAssem:
+                        result = TypeAttributes.NestedAssembly;
+                        break;
+                }
+            }
+
+            if (result == TypeAttributes.NestedAssembly)
+            {
+                if (queryTypeInfo.Assembly.GetCustomAttributes<InternalsVisibleToAttribute>().Any(x => x.AssemblyName == RestClient.FactoryAssemblyName))
+                {
+                    result = TypeAttributes.Public;
+                }
+            }
+
+            return result == TypeAttributes.Public;
         }
 
         private PropertyModel GetProperty(PropertyInfo propertyInfo)

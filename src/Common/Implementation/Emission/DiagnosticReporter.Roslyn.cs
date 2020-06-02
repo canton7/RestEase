@@ -12,6 +12,15 @@ namespace RestEase.Implementation.Emission
         public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
         public bool HasErrors { get; private set; }
 
+        private static readonly DiagnosticDescriptor typeMustBeAccessible = CreateDescriptor(
+            DiagnosticCode.InterfaceTypeMustBeAccessible,
+            "Types must be public or internal",
+            "Type '{0}' must be public or internal");
+        public void ReportTypeMustBeAccessible(TypeModel typeModel)
+        {
+            this.AddDiagnostic(typeMustBeAccessible, typeModel.NamedTypeSymbol.Locations, typeModel.NamedTypeSymbol.Name);
+        }
+
         private static readonly DiagnosticDescriptor headerMustNotHaveColonInName = CreateDescriptor(
             DiagnosticCode.HeaderMustNotHaveColonInName,
             "Header attributes must not have colons in their names",

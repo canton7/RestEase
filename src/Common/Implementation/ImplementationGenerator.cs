@@ -23,6 +23,11 @@ namespace RestEase.Implementation
 
         public EmittedType Generate()
         {
+            if (!this.typeModel.IsAccessible)
+            {
+                this.diagnostics.ReportTypeMustBeAccessible(this.typeModel);
+            }
+
             foreach (var header in this.typeModel.HeaderAttributes)
             {
                 if (header.Attribute.Value == null)

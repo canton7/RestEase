@@ -8,15 +8,18 @@ namespace RestEase.SourceGenerator.Implementation
 {
     internal class RoslynTypeAnalyzer
     {
+        private readonly Compilation compilation;
         private readonly INamedTypeSymbol namedTypeSymbol;
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly AttributeInstantiator attributeInstantiator;
 
         public RoslynTypeAnalyzer(
+            Compilation compilation,
             INamedTypeSymbol namedTypeSymbol,
             WellKnownSymbols wellKnownSymbols,
             AttributeInstantiator attributeInstantiator)
         {
+            this.compilation = compilation;
             this.namedTypeSymbol = namedTypeSymbol;
             this.wellKnownSymbols = wellKnownSymbols;
             this.attributeInstantiator = attributeInstantiator;
@@ -30,6 +33,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 BasePathAttribute = Get<BasePathAttribute>(),
+                IsAccessible = this.compilation.IsSymbolAccessibleWithin(this.namedTypeSymbol, this.compilation.Assembly)
             };
 
             var headerAttributes = from type in this.InterfaceAndParents()

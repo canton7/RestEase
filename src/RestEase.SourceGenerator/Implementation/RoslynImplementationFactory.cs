@@ -9,6 +9,7 @@ namespace RestEase.SourceGenerator.Implementation
 {
     public class RoslynImplementationFactory
     {
+        private readonly Compilation compilation;
         private readonly DiagnosticReporter symbolsDiagnosticReporter;
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly AttributeInstantiator attributeInstantiator;
@@ -17,6 +18,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         public RoslynImplementationFactory(Compilation compilation)
         {
+            this.compilation = compilation;
             this.symbolsDiagnosticReporter = new DiagnosticReporter();
             this.wellKnownSymbols = new WellKnownSymbols(compilation, this.symbolsDiagnosticReporter);
             this.attributeInstantiator = new AttributeInstantiator(this.wellKnownSymbols);
@@ -29,7 +31,7 @@ namespace RestEase.SourceGenerator.Implementation
         public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
         {
             var diagnosticReporter = new DiagnosticReporter();
-            var analyzer = new RoslynTypeAnalyzer(namedTypeSymbol, this.wellKnownSymbols, this.attributeInstantiator);
+            var analyzer = new RoslynTypeAnalyzer(this.compilation, namedTypeSymbol, this.wellKnownSymbols, this.attributeInstantiator);
             var typeModel = analyzer.Analyze();
             var generator = new ImplementationGenerator(typeModel, this.emitter, diagnosticReporter);
             var emittedType = generator.Generate();

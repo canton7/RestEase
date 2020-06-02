@@ -68,6 +68,33 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync(in int foo);
         }
 
+        private interface IPrivateInterface
+        {
+            [Get]
+            Task FooAsync();
+        }
+
+        interface IImplicitPrivateInterface
+        {
+            [Get]
+            Task FooAsync();
+        }
+
+        private class PrivateClass
+        {
+            public interface IPublicInterfaceInPrivateClass
+            {
+                [Get]
+                Task FooAsync();
+            }
+        }
+
+        internal interface IInternalInterface
+        {
+            [Get]
+            Task FooAsync();
+        }
+
         public SanityCheckTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -151,6 +178,46 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
                 // out int foo
                 Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "out int foo").WithLocation(4, 27)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfInterfaceIsPrivate()
+        {
+            this.VerifyDiagnostics<IPrivateInterface>(
+                // (1,27): Error REST031: Type 'IPrivateInterface' must be public or internal
+                // IPrivateInterface
+                Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, "IPrivateInterface").WithLocation(1, 27)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfInterfaceIsImplicitPrivate()
+        {
+            this.VerifyDiagnostics<IImplicitPrivateInterface>(
+                // (1,19): Error REST031: Type 'IImplicitPrivateInterface' must be public or internal
+                // IImplicitPrivateInterface
+                Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, "IImplicitPrivateInterface").WithLocation(1, 19)
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfPublicInterfaceInPrivateClass()
+        {
+            this.VerifyDiagnostics<PrivateClass.IPublicInterfaceInPrivateClass>(
+                // (1,30): Error REST031: Type 'IPublicInterfaceInPrivateClass' must be public or internal
+                // IPublicInterfaceInPrivateClass
+                Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, "IPublicInterfaceInPrivateClass").WithLocation(1, 30)
+            );
+        }
+
+        [Fact]
+        public void HandlesInternalInterface()
+        {
+            this.VerifyDiagnostics<IInternalInterface>(
+#if !SOURCE_GENERATOR
+                Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
+#endif
             );
         }
 
