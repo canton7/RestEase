@@ -21,6 +21,17 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task GetFooAsync(CancellationToken cancellationToken = default);
         }
 
+        public enum SomeEnum
+        {
+            A, B, C
+        }
+
+        public interface IHasEnumOutOfRange
+        {
+            [Get]
+            Task FooAsync(SomeEnum e = (SomeEnum)100);
+        }
+
         public DefaultValueTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -50,5 +61,17 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             this.CreateImplementation<IHasDefaultCancellationToken>();
         }
 
+        [Fact]
+        public void HandlesOutOfRangeEnums()
+        {
+            var implementation = this.CreateImplementation<IHasEnumOutOfRange>();
+
+            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name.EndsWith("FooAsync"));
+            var parameters = methodInfo.GetParameters();
+
+            Assert.Equal("e", parameters[0].Name);
+            Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, parameters[0].Attributes);
+            Assert.Equal((SomeEnum)100, parameters[0].DefaultValue);
+        }
     }
 }

@@ -3,6 +3,5 @@
  - Diagnostics in AttributeInstantiator
  - RequestAttribute subclasses (allow or forbid)
  - Disable nullability?
- - Enum default value which is out of range
  - Query maps with generic constraints for collections and dictionaries
  - params parameters?
