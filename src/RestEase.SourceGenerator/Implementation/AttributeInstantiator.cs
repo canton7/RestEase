@@ -361,19 +361,6 @@ namespace RestEase.SourceGenerator.Implementation
         {
             RequestAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 1 &&
-                SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.HttpMethod))
-            {
-                attribute = new RequestAttribute((HttpMethod)attributeData.ConstructorArguments[0].Value!);
-            }
-            else if (attributeData.ConstructorArguments.Length == 2 &&
-                SymbolEqualityComparer.Default.Equals(attributeData.ConstructorArguments[0].Type, this.wellKnownSymbols.HttpMethod) &&
-                attributeData.ConstructorArguments[1].Type.SpecialType == SpecialType.System_String)
-            {
-                attribute = new RequestAttribute(
-                    (HttpMethod)attributeData.ConstructorArguments[0].Value!,
-                    (string)attributeData.ConstructorArguments[1].Value!);
-            }
-            else if (attributeData.ConstructorArguments.Length == 1 &&
                 attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
             {
                 attribute = new RequestAttribute((string)attributeData.ConstructorArguments[0].Value!);
@@ -391,7 +378,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == nameof(RequestAttribute.Path) &&
+                    if (namedArgument.Key == nameof(RequestAttributeBase.Path) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Path = (string?)namedArgument.Value.Value;
@@ -404,10 +391,10 @@ namespace RestEase.SourceGenerator.Implementation
 
         private Attribute? ParseRequestAttributeSubclass(
             AttributeData attributeData,
-            Func<RequestAttribute> parameterlessCtor,
-            Func<string, RequestAttribute> pathCtor)
+            Func<RequestAttributeBase> parameterlessCtor,
+            Func<string, RequestAttributeBase> pathCtor)
         {
-            RequestAttribute? attribute = null;
+            RequestAttributeBase? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
             {
                 attribute = parameterlessCtor();
@@ -423,7 +410,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key == nameof(RequestAttribute.Path) &&
+                    if (namedArgument.Key == nameof(RequestAttributeBase.Path) &&
                         namedArgument.Value.Type.SpecialType == SpecialType.System_String)
                     {
                         attribute.Path = (string?)namedArgument.Value.Value;

@@ -129,7 +129,7 @@ namespace RestEase.Implementation
         {
             var model = new MethodModel(methodInfo)
             {
-                RequestAttribute = Get<RequestAttribute>(),
+                RequestAttribute = Get<RequestAttributeBase>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 IsDisposeMethod = methodInfo == MethodInfos.IDisposable_Dispose,

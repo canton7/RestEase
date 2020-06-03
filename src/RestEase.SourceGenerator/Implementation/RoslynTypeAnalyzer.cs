@@ -110,7 +110,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             var model = new MethodModel(methodSymbol)
             {
-                RequestAttribute = Get<RequestAttribute>(),
+                RequestAttribute = Get<RequestAttributeBase>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 IsDisposeMethod = SymbolEqualityComparer.Default.Equals(methodSymbol, this.wellKnownSymbols.IDisposable_Dispose),

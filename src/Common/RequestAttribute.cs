@@ -4,10 +4,9 @@ using System.Net.Http;
 namespace RestEase
 {
     /// <summary>
-    /// Base class for all request attributes, or for custom HTTP methods which aren't represented by subclasses
+    /// Base class for all request attributes
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public class RequestAttribute : Attribute
+    public abstract class RequestAttributeBase : Attribute
     {
         /// <summary>
         /// Gets the HTTP method to use (Get/Post/etc)
@@ -19,26 +18,24 @@ namespace RestEase
         /// </summary>
         public string? Path { get; set; }
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod
-        /// </summary>
-        /// <param name="method">HttpMethod to use</param>
-        public RequestAttribute(HttpMethod method)
+        internal RequestAttributeBase(HttpMethod method)
         {
             this.Method = method;
         }
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod and relative path
-        /// </summary>
-        /// <param name="method">HttpMethod to use</param>
-        /// <param name="path">Relative path to use</param>
-        public RequestAttribute(HttpMethod method, string path)
-            : this(method)
+        internal RequestAttributeBase(HttpMethod method, string path)
         {
+            this.Method = method;
             this.Path = path;
         }
+    }
 
+    /// <summary>
+    /// Attribute for custom HTTP methods which aren't represented by other subclasses of RequestAttributeBase
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    public sealed class RequestAttribute : RequestAttributeBase
+    {
         /// <summary>
         /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod.
         /// </summary>
@@ -47,7 +44,7 @@ namespace RestEase
         /// </remarks>
         /// <param name="httpMethod">HTTP Method to use, e.g. "PATCH"</param>
         public RequestAttribute(string httpMethod)
-            : this(new HttpMethod(httpMethod))
+            : base(new HttpMethod(httpMethod))
         {
         }
 
@@ -60,7 +57,7 @@ namespace RestEase
         /// <param name="httpMethod">HTTP Method to use, e.g. "PATCH"</param>
         /// <param name="path">Relative path to use</param>
         public RequestAttribute(string httpMethod, string path)
-            : this(new HttpMethod(httpMethod), path)
+            : base(new HttpMethod(httpMethod), path)
         {
         }
     }
@@ -69,7 +66,7 @@ namespace RestEase
     /// Delete request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class DeleteAttribute : RequestAttribute
+    public sealed class DeleteAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="DeleteAttribute"/> class
@@ -87,7 +84,7 @@ namespace RestEase
     /// Get request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class GetAttribute : RequestAttribute
+    public sealed class GetAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="GetAttribute"/> class
@@ -105,7 +102,7 @@ namespace RestEase
     /// Head request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class HeadAttribute : RequestAttribute
+    public sealed class HeadAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="HeadAttribute"/> class
@@ -123,7 +120,7 @@ namespace RestEase
     /// Options request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class OptionsAttribute : RequestAttribute
+    public sealed class OptionsAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="OptionsAttribute"/> class
@@ -141,7 +138,7 @@ namespace RestEase
     /// Post request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class PostAttribute : RequestAttribute
+    public sealed class PostAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="PostAttribute"/> class
@@ -159,7 +156,7 @@ namespace RestEase
     /// Put request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class PutAttribute : RequestAttribute
+    public sealed class PutAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="PutAttribute"/> class
@@ -177,7 +174,7 @@ namespace RestEase
     /// Trace request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class TraceAttribute : RequestAttribute
+    public sealed class TraceAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="TraceAttribute"/> class
@@ -195,7 +192,7 @@ namespace RestEase
     /// Patch request
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public sealed class PatchAttribute : RequestAttribute
+    public sealed class PatchAttribute : RequestAttributeBase
     {
         /// <summary>
         /// Gets a static instance of <see cref="HttpMethod"/> corresponding to a PATCH request

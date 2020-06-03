@@ -104,7 +104,7 @@ namespace RestEase.Implementation.Emission
             }
         }
 
-        public void EmitRequestInfoCreation(RequestAttribute requestAttribute)
+        public void EmitRequestInfoCreation(RequestAttributeBase requestAttribute)
         {
             this.writer.Write("var " + this.requestInfoLocalName + " = new global::RestEase.Implementation.RequestInfo(");
             if (WellKnownNames.HttpMethodProperties.TryGetValue(requestAttribute.Method, out string httpMethod))

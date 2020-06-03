@@ -4,7 +4,7 @@ namespace RestEase.Implementation.Analysis
 {
     internal partial class MethodModel
     {
-        public AttributeModel<RequestAttribute>? RequestAttribute { get; set; }
+        public AttributeModel<RequestAttributeBase>? RequestAttribute { get; set; }
         public AttributeModel<AllowAnyStatusCodeAttribute>? AllowAnyStatusCodeAttribute { get; set; }
         public AttributeModel<SerializationMethodsAttribute>? SerializationMethodsAttribute { get; set; }
         public List<AttributeModel<HeaderAttribute>> HeaderAttributes { get; } = new List<AttributeModel<HeaderAttribute>>();

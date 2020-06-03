@@ -1,7 +1,6 @@
  - Interface inheritance:
    - Multiple properites/methods with same signature
  - Diagnostics in AttributeInstantiator
- - RequestAttribute subclasses (allow or forbid)
  - Disable nullability?
  - Query maps with generic constraints for collections and dictionaries
  - params parameters?

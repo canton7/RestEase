@@ -105,7 +105,7 @@ namespace RestEase.Implementation.Emission
             this.ilGenerator.MarkLabel(branchTarget);
         }
 
-        public void EmitRequestInfoCreation(RequestAttribute requestAttribute)
+        public void EmitRequestInfoCreation(RequestAttributeBase requestAttribute)
         {
             this.ilGenerator.Emit(OpCodes.Ldarg_0);
             this.ilGenerator.Emit(OpCodes.Ldfld, this.requesterField);
