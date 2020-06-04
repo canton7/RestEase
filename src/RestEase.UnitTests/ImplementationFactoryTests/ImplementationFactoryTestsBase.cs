@@ -108,11 +108,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             var namedTypeSymbol = executionCompilation.GetTypeByMetadataName(metadataName);
             var (sourceText, diagnostics) = factory.CreateImplementation(namedTypeSymbol);
 
-            if (sourceText == null)
-            {
-                DiagnosticVerifier.VerifyDiagnostics(diagnostics.Concat(factory.GetCompilationDiagnostics()), Array.Empty<DiagnosticResult>(), 0);
-                Assert.NotNull(sourceText); // Just in case there are no diagnostics
-            }
+            var allDiagnostics = diagnostics.Concat(factory.GetCompilationDiagnostics()).ToList();
+            Assert.True(allDiagnostics.Count == 0, "Unexpected diagnostics:\r\n\r\n" + string.Join("\r\n", allDiagnostics.Select(x => x.ToString())));
+            Assert.NotNull(sourceText); // Just in case there are no diagnostics
 
             this.output.WriteLine(sourceText.ToString());
 
@@ -121,6 +119,8 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             using (var peStream = new MemoryStream())
             {
                 var emitResult = updatedCompilation.Emit(peStream);
+
+                //Assert.True(emitResult.Diagnostics.Length == 0, "Unexpected compiler diagnostics:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
                 Assert.True(emitResult.Success, "Emit failed:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
                 var assembly = Assembly.Load(peStream.GetBuffer());
                 var implementationType = assembly.GetCustomAttributes<RestEaseInterfaceImplementationAttribute>()
