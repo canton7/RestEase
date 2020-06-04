@@ -106,9 +106,14 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 
             var factory = new RoslynImplementationFactory(executionCompilation);
             var namedTypeSymbol = executionCompilation.GetTypeByMetadataName(metadataName);
-            var (sourceText, _) = factory.CreateImplementation(namedTypeSymbol);
+            var (sourceText, diagnostics) = factory.CreateImplementation(namedTypeSymbol);
 
-            Assert.NotNull(sourceText);
+            if (sourceText == null)
+            {
+                DiagnosticVerifier.VerifyDiagnostics(diagnostics.Concat(factory.GetCompilationDiagnostics()), Array.Empty<DiagnosticResult>(), 0);
+                Assert.NotNull(sourceText); // Just in case there are no diagnostics
+            }
+
             this.output.WriteLine(sourceText.ToString());
 
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);

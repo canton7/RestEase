@@ -68,6 +68,18 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync([QueryMap] IDictionary<string, object> map);
         }
 
+        public interface IHasGenericDictionaryQueryMap
+        {
+            [Get]
+            Task FooAsync<TDictionary>([QueryMap] TDictionary map) where TDictionary : IDictionary<string, string>;
+        }
+
+        public interface IHasGenericCollectionQueryMap
+        {
+            [Get]
+            Task FooAsync<TCollection>([QueryMap] IDictionary<string, TCollection> map) where TCollection : IEnumerable<string>;
+        }
+
         public QueryMapTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -246,6 +258,42 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 
             Assert.Equal("baz", queryParam1[2].Key);
             Assert.Equal("c", queryParam1[2].Value);
+        }
+
+        [Fact]
+        public void HandlesGenericDictionary()
+        {
+            var requestInfo = this.Request<IHasGenericDictionaryQueryMap>(x => x.FooAsync(new Dictionary<string, string>()
+            {
+                { "key", "value" }
+            }));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Single(queryParam0);
+            Assert.Equal("key", queryParam0[0].Key);
+            Assert.Equal("value", queryParam0[0].Value);
+        }
+
+        [Fact]
+        public void HandlesDictionaryWithGenericCollection()
+        {
+            var requestInfo = this.Request<IHasGenericCollectionQueryMap>(x => x.FooAsync(new Dictionary<string, string[]>()
+            {
+                { "key", new[] { "v1", "v2" } },
+            }));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Equal(2, queryParam0.Count);
+            Assert.Equal("key", queryParam0[0].Key);
+            Assert.Equal("v1", queryParam0[0].Value);
+            Assert.Equal("key", queryParam0[1].Key);
+            Assert.Equal("v2", queryParam0[1].Value);
         }
 
         [Fact]

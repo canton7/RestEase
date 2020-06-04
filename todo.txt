@@ -2,4 +2,3 @@
    - Multiple properites/methods with same signature
  - Diagnostics in AttributeInstantiator
  - Disable nullability?
- - Query maps with generic constraints for collections and dictionaries

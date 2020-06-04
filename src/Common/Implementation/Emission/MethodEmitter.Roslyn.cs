@@ -302,10 +302,7 @@ namespace RestEase.Implementation.Emission
 
         private string? GetQueryMapMethodName(ITypeSymbol queryMapType)
         {
-            if (!(queryMapType is INamedTypeSymbol namedQueryMapType))
-                return null;
-
-            var nullableDictionaryTypes = this.DictionaryTypesOfType(namedQueryMapType);
+            var nullableDictionaryTypes = this.DictionaryTypesOfType(queryMapType);
             if (nullableDictionaryTypes == null)
                 return null;
 
@@ -326,18 +323,35 @@ namespace RestEase.Implementation.Emission
             }
         }
 
-        private KeyValuePair<ITypeSymbol, ITypeSymbol>? DictionaryTypesOfType(INamedTypeSymbol input)
+        private KeyValuePair<ITypeSymbol, ITypeSymbol>? DictionaryTypesOfType(ITypeSymbol input)
         {
-            foreach (var baseType in input.AllInterfaces.Prepend(input))
+            KeyValuePair<ITypeSymbol, ITypeSymbol>? result = null;
+            if (input is INamedTypeSymbol value)
             {
-                if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IDictionaryKV))
+                foreach (var baseType in value.AllInterfaces.Prepend(value))
                 {
-                    return new KeyValuePair<ITypeSymbol, ITypeSymbol>(
-                        baseType.TypeArguments[0], baseType.TypeArguments[1]);
+                    if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IDictionaryKV))
+                    {
+                        result = new KeyValuePair<ITypeSymbol, ITypeSymbol>(
+                            baseType.TypeArguments[0], baseType.TypeArguments[1]);
+                        break;
+                    }
+                }
+            }
+            else if (input is ITypeParameterSymbol typeParameter)
+            {
+                // Are any of its constraints suitable dictionaries
+                foreach (var constraint in typeParameter.ConstraintTypes)
+                {
+                    result = this.DictionaryTypesOfType(constraint);
+                    if (result != null)
+                    {
+                        break;
+                    }
                 }
             }
 
-            return null;
+            return result;
         }
 
         private ITypeSymbol? CollectionTypeOfType(ITypeSymbol input)
@@ -367,10 +381,9 @@ namespace RestEase.Implementation.Emission
                 // Are any of its constraints IEnumerable<T>?
                 foreach (var constraint in typeParameter.ConstraintTypes)
                 {
-                    var result = this.CollectionTypeOfType(constraint);
-                    if (result != null)
+                    collectionType = this.CollectionTypeOfType(constraint);
+                    if (collectionType != null)
                     {
-                        collectionType = result;
                         break;
                     }
                 }
