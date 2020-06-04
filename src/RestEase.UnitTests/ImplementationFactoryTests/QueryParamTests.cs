@@ -133,6 +133,12 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
+        public interface IHasParams
+        {
+            [Get]
+            Task FooAsync(params string[] q);
+        }
+
         public QueryParamTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -393,6 +399,22 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 
             Assert.Single(queryProperties);
             Assert.Equal(QuerySerializationMethod.Serialized, queryProperties[0].SerializationMethod);
+        }
+
+        [Fact]
+        public void HandlesParamsArray()
+        {
+            var requestInfo = this.Request<IHasParams>(x => x.FooAsync("a", "b", "c"));
+
+            var queryParameters = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParameters);
+
+            var serialized = queryParameters[0].SerializeToString(null).ToList();
+            Assert.Equal(3, serialized.Count);
+            Assert.Equal("a", serialized[0].Value);
+            Assert.Equal("b", serialized[1].Value);
+            Assert.Equal("c", serialized[2].Value);
         }
     }
 }
