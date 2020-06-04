@@ -74,7 +74,7 @@ namespace RestEase.Implementation.Emission
         {
             this.AddDiagnostic(
                 allowAnyStatusCodeAttributeNotAllowedOnParentInterface,
-                AttributeLocations(attribute, attribute.DefinedOn),
+                AttributeLocations(attribute, attribute.DeclaredOn),
                 typeModel.NamedTypeSymbol.Name);
         }
 

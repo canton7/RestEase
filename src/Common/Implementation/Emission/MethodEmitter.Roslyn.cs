@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator.Implementation;
 using static RestEase.SourceGenerator.Implementation.RoslynEmitUtils;
@@ -69,11 +70,21 @@ namespace RestEase.Implementation.Emission
         {
             // The MethodSymbol represents the interface method, not the implementation, so we can't get ToDisplayString
             // to give us the explicit interface implementation bit
-            this.writer.Write(this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.MethodReturnType));
-            this.writer.Write(" ");
-            this.writer.Write(this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface));
-            this.writer.Write(".");
-            this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.MethodDeclaration));
+            if (this.methodModel.IsExplicit)
+            {
+                this.writer.Write(this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.MethodOrPropertyReturnType));
+                this.writer.Write(" ");
+                this.writer.Write(this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface));
+                this.writer.Write(".");
+                this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.ExplicitMethodDeclaration));
+            }
+            else
+            {
+                this.writer.Write("public ");
+                this.writer.Write(this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.MethodOrPropertyReturnType));
+                this.writer.Write(" ");
+                this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.ImplicitMethodDeclaration));
+            }
             this.writer.WriteLine("{");
             this.writer.Indent++;
 
@@ -292,7 +303,13 @@ namespace RestEase.Implementation.Emission
         }
 
         private static string ReferenceTo(ParameterModel parameterModel) => parameterModel.ParameterSymbol.ToDisplayString(SymbolDisplayFormats.ParameterReference);
-        private static string ReferenceTo(PropertyModel propertyModel) => "this." + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyReference);
+        private static string ReferenceTo(PropertyModel propertyModel)
+        {
+            return propertyModel.IsExplicit
+                ? "((" + propertyModel.PropertySymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface) +
+                    ")this)." + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyReference)
+                : "this." + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyReference);
+        }
         private static string EnumValue<T>(T value) where T : struct, Enum
         {
             return Enum.IsDefined(typeof(T), value)

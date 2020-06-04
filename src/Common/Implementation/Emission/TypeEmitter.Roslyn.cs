@@ -159,7 +159,21 @@ namespace RestEase.Implementation.Emission
         public EmittedProperty EmitProperty(PropertyModel propertyModel)
         {
             // Because the property is declared on the interface, we don't get any generated accessibility
-            this.writer.WriteLine("public " + propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyDeclaration));
+            if (propertyModel.IsExplicit)
+            {
+                this.writer.Write(propertyModel.PropertySymbol.Type.ToDisplayString(SymbolDisplayFormats.MethodOrPropertyReturnType));
+                this.writer.Write(" ");
+                this.writer.Write(propertyModel.PropertySymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface));
+                this.writer.Write(".");
+                this.writer.WriteLine(propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyDeclaration));
+            }
+            else
+            {
+                this.writer.Write("public ");
+                this.writer.Write(propertyModel.PropertySymbol.Type.ToDisplayString(SymbolDisplayFormats.MethodOrPropertyReturnType));
+                this.writer.Write(" ");
+                this.writer.WriteLine(propertyModel.PropertySymbol.ToDisplayString(SymbolDisplayFormats.PropertyDeclaration));
+            }
             return new EmittedProperty(propertyModel);
         }
 

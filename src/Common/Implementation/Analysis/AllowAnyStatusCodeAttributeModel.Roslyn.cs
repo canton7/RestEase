@@ -4,14 +4,15 @@ namespace RestEase.Implementation.Analysis
 {
     internal partial class AllowAnyStatusCodeAttributeModel
     {
-        public INamedTypeSymbol DefinedOn { get; }
+        public INamedTypeSymbol DeclaredOn { get; }
 
         public AllowAnyStatusCodeAttributeModel(AllowAnyStatusCodeAttribute attribute, INamedTypeSymbol namedTypeSymbol, AttributeData attributeData)
             : base(attribute, attributeData)
         {
-            this.DefinedOn = namedTypeSymbol;
+            this.DeclaredOn = namedTypeSymbol;
         }
 
-        public bool IsDefinedOn(TypeModel typeModel) => SymbolEqualityComparer.Default.Equals(this.DefinedOn, typeModel.NamedTypeSymbol);
+        public bool IsDeclaredOn(TypeModel typeModel) =>
+            SymbolEqualityComparer.Default.Equals(this.DeclaredOn, typeModel.NamedTypeSymbol);
     }
 }

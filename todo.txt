@@ -1,4 +1,6 @@
  - Interface inheritance:
    - Multiple properites/methods with same signature
+   - Inherits the same interface twice with different type parameters
+   - ref/in/etc
  - Diagnostics in AttributeInstantiator
  - Disable nullability?

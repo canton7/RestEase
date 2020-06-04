@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
@@ -25,6 +27,31 @@ namespace RestEase.Implementation
                 if (interfaceTypes.Length > 0)
                 {
                     builders[i].SetInterfaceConstraints(interfaceTypes);
+                }
+            }
+        }
+
+        public static string FriendlyNameForType(Type type)
+        {
+            var sb = new StringBuilder();
+            Impl(type.GetTypeInfo());
+            return sb.ToString();
+
+            void Impl(TypeInfo typeInfo)
+            {
+                if (typeInfo.IsGenericType)
+                {
+                    sb.Append(type.GetGenericTypeDefinition().FullName);
+                    sb.Append("<");
+                    foreach (var arg in typeInfo.GetGenericArguments())
+                    {
+                        Impl(arg.GetTypeInfo());
+                    }
+                    sb.Append(">");
+                }
+                else
+                {
+                    sb.Append(type.FullName);
                 }
             }
         }

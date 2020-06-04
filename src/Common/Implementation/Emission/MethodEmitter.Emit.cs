@@ -29,15 +29,33 @@ namespace RestEase.Implementation.Emission
             this.methodModel = methodModel;
             this.requesterField = requesterField;
             this.classHeadersField = classHeadersField;
-            this.methodBuilder = typeBuilder.DefineMethod(
-                methodModel.MethodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual,
-                methodModel.MethodInfo.ReturnType,
-                methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
+
+            if (methodModel.IsExplicit)
+            {
+                this.methodBuilder = typeBuilder.DefineMethod(
+                    FriendlyNameForType(methodModel.MethodInfo.DeclaringType) + "." + methodModel.MethodInfo.Name,
+                    MethodAttributes.Private | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot
+                    | MethodAttributes.Virtual,
+                    methodModel.MethodInfo.ReturnType,
+                    methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
+            }
+            else
+            {
+                this.methodBuilder = typeBuilder.DefineMethod(
+                    methodModel.MethodInfo.Name,
+                    MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot
+                    | MethodAttributes.Virtual,
+                    methodModel.MethodInfo.ReturnType,
+                    methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
+            }
 
             this.AddGenericTypeParameters();
             this.AddParameters();
 
-            typeBuilder.DefineMethodOverride(this.methodBuilder, methodModel.MethodInfo);
+            if (methodModel.IsExplicit)
+            {
+                typeBuilder.DefineMethodOverride(this.methodBuilder, methodModel.MethodInfo);
+            }
             this.ilGenerator = this.methodBuilder.GetILGenerator();
 
             this.methodInfoField = typeBuilder.DefineField(

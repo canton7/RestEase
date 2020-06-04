@@ -10,5 +10,8 @@ namespace RestEase.Implementation.Analysis
         {
             this.MethodSymbol = methodSymbol;
         }
+
+        public bool IsDeclaredOn(TypeModel typeModel) =>
+            SymbolEqualityComparer.Default.Equals(typeModel.NamedTypeSymbol, this.MethodSymbol.ContainingType);
     }
 }

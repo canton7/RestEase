@@ -12,6 +12,6 @@ namespace RestEase.Implementation.Analysis
             this.ContainingType = containingType;
         }
 
-        public bool IsDefinedOn(TypeModel typeModel) => this.ContainingType == typeModel.Type;
+        public bool IsDeclaredOn(TypeModel typeModel) => this.ContainingType == typeModel.Type;
     }
 }

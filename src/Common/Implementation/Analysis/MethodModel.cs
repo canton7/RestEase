@@ -11,5 +11,8 @@ namespace RestEase.Implementation.Analysis
         public bool IsDisposeMethod { get; set; }
 
         public List<ParameterModel> Parameters { get; } = new List<ParameterModel>();
+
+        // Set by the ImplementationGenerator, not the TypeAnalyzer
+        public bool IsExplicit { get; set; }
     }
 }

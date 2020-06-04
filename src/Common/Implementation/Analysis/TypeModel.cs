@@ -7,7 +7,7 @@ namespace RestEase.Implementation.Analysis
     {
         public List<AttributeModel<HeaderAttribute>> HeaderAttributes { get; } = new List<AttributeModel<HeaderAttribute>>();
         public List<AllowAnyStatusCodeAttributeModel> AllowAnyStatusCodeAttributes { get; } = new List<AllowAnyStatusCodeAttributeModel>();
-        public AllowAnyStatusCodeAttributeModel? TypeAllowAnyStatusCodeAttribute => this.AllowAnyStatusCodeAttributes.FirstOrDefault(x => x.IsDefinedOn(this));
+        public AllowAnyStatusCodeAttributeModel? TypeAllowAnyStatusCodeAttribute => this.AllowAnyStatusCodeAttributes.FirstOrDefault(x => x.IsDeclaredOn(this));
         public AttributeModel<SerializationMethodsAttribute>? SerializationMethodsAttribute { get; set; }
         public AttributeModel<BasePathAttribute>? BasePathAttribute { get; set; }
         public bool IsAccessible { get; set; }

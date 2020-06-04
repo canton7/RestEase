@@ -42,7 +42,7 @@ namespace RestEase.Implementation
 
             foreach (var attribute in this.typeModel.AllowAnyStatusCodeAttributes)
             {
-                if (!attribute.IsDefinedOn(this.typeModel))
+                if (!attribute.IsDeclaredOn(this.typeModel))
                 {
                     this.diagnostics.ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(this.typeModel, attribute);
                 }
@@ -65,6 +65,18 @@ namespace RestEase.Implementation
         private List<EmittedProperty> GenerateProperties(TypeEmitter typeEmitter)
         {
             var emittedProperties = new List<EmittedProperty>(this.typeModel.Properties.Count);
+
+            var signatureGrouping = this.typeModel.Properties.GroupBy(x => x.Name);
+            foreach (var propertiesWithSignature in signatureGrouping)
+            {
+                if (propertiesWithSignature.Count() > 1)
+                {
+                    foreach (var property in propertiesWithSignature)
+                    {
+                        property.IsExplicit = !property.IsDeclaredOn(this.typeModel);
+                    }
+                }
+            }
 
             bool hasRequester = false;
 
@@ -125,6 +137,18 @@ namespace RestEase.Implementation
 
         private void GenerateMethods(TypeEmitter typeEmitter, List<EmittedProperty> emittedProperties)
         {
+            var signatureGrouping = this.typeModel.Methods.GroupBy(x => x, MethodSignatureEqualityComparer.Instance);
+            foreach (var methodsWithSignature in signatureGrouping)
+            {
+                if (methodsWithSignature.Count() > 1)
+                {
+                    foreach (var method in methodsWithSignature)
+                    {
+                        method.IsExplicit = !method.IsDeclaredOn(this.typeModel);
+                    }
+                }
+            }
+
             foreach (var method in this.typeModel.Methods)
             {
                 if (method.IsDisposeMethod)

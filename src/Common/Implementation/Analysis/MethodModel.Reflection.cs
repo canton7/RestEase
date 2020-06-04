@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 
 namespace RestEase.Implementation.Analysis
@@ -10,5 +11,7 @@ namespace RestEase.Implementation.Analysis
         {
             this.MethodInfo = methodInfo;
         }
+
+        public bool IsDeclaredOn(TypeModel typeModel) => this.MethodInfo.DeclaringType == typeModel.Type;
     }
 }

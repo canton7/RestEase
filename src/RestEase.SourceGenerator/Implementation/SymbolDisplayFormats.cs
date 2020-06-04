@@ -11,8 +11,9 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat ConstructorName { get; }
         public static SymbolDisplayFormat ImplementedInterface { get; }
         public static SymbolDisplayFormat PropertyDeclaration { get; }
-        public static SymbolDisplayFormat MethodDeclaration { get; }
-        public static SymbolDisplayFormat MethodReturnType { get; }
+        public static SymbolDisplayFormat ImplicitMethodDeclaration { get; }
+        public static SymbolDisplayFormat ExplicitMethodDeclaration { get; }
+        public static SymbolDisplayFormat MethodOrPropertyReturnType { get; }
         public static SymbolDisplayFormat ParameterReference { get; }
         public static SymbolDisplayFormat PropertyReference { get; }
         public static SymbolDisplayFormat TypeofParameter { get; }
@@ -52,15 +53,15 @@ namespace RestEase.SourceGenerator.Implementation
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions: SymbolDisplayMemberOptions.IncludeType,
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-            MethodDeclaration = new SymbolDisplayFormat(
+            ImplicitMethodDeclaration = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
-                    | SymbolDisplayGenericsOptions.IncludeVariance,
+                    | SymbolDisplayGenericsOptions.IncludeVariance
+                    | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters
                     | SymbolDisplayMemberOptions.IncludeConstantValue
                     | SymbolDisplayMemberOptions.IncludeRef,
@@ -70,7 +71,20 @@ namespace RestEase.SourceGenerator.Implementation
                     | SymbolDisplayParameterOptions.IncludeDefaultValue,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-            MethodReturnType = new SymbolDisplayFormat(
+            ExplicitMethodDeclaration = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
+                    | SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters
+                    | SymbolDisplayMemberOptions.IncludeConstantValue
+                    | SymbolDisplayMemberOptions.IncludeRef,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut
+                    | SymbolDisplayParameterOptions.IncludeType
+                    | SymbolDisplayParameterOptions.IncludeName,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+            MethodOrPropertyReturnType = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,

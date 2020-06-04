@@ -94,12 +94,52 @@ namespace RestEase.Implementation.Emission
 
         public EmittedProperty EmitProperty(PropertyModel propertyModel)
         {
-            MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
+            MethodAttributes attributes;
+            string namePrefix = "";
+            string fieldName;
+            if (propertyModel.IsExplicit)
+            {
+                attributes = MethodAttributes.Private | MethodAttributes.Final | MethodAttributes.HideBySig
+                    | MethodAttributes.SpecialName | MethodAttributes.NewSlot | MethodAttributes.Virtual;
+                string declaringTypeName = FriendlyNameForType(propertyModel.PropertyInfo.DeclaringType);
+                namePrefix = declaringTypeName + ".";
+                fieldName = "<" + declaringTypeName + "." + propertyModel.Name + ">k__BackingField";
+            }
+            else
+            {
+                attributes = MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig
+                    | MethodAttributes.SpecialName | MethodAttributes.NewSlot | MethodAttributes.Virtual;
+                fieldName = "<" + propertyModel.Name + ">k__BackingField";
+            }
 
-            var propertyBuilder = this.typeBuilder.DefineProperty(propertyModel.PropertyInfo.Name, PropertyAttributes.None, propertyModel.PropertyInfo.PropertyType, null);
-            var getter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.GetMethod.Name, attributes, propertyModel.PropertyInfo.PropertyType, new Type[0]);
-            var setter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.SetMethod.Name, attributes, null, new Type[] { propertyModel.PropertyInfo.PropertyType });
-            var backingField = this.typeBuilder.DefineField("bk_" + propertyModel.PropertyInfo.Name, propertyModel.PropertyInfo.PropertyType, FieldAttributes.Private);
+            var propertyBuilder = this.typeBuilder.DefineProperty(
+                namePrefix + propertyModel.PropertyInfo.Name,
+                PropertyAttributes.None,
+                propertyModel.PropertyInfo.PropertyType,
+                null);
+
+            var getter = this.typeBuilder.DefineMethod(
+                namePrefix + propertyModel.PropertyInfo.GetMethod.Name,
+                attributes,
+                propertyModel.PropertyInfo.PropertyType,
+                new Type[0]);
+
+            var setter = this.typeBuilder.DefineMethod(
+               namePrefix + propertyModel.PropertyInfo.SetMethod.Name,
+               attributes,
+               null,
+               new Type[] { propertyModel.PropertyInfo.PropertyType });
+
+            if (propertyModel.IsExplicit)
+            {
+                this.typeBuilder.DefineMethodOverride(getter, propertyModel.PropertyInfo.GetMethod);
+                this.typeBuilder.DefineMethodOverride(setter, propertyModel.PropertyInfo.SetMethod);
+            }
+
+            var backingField = this.typeBuilder.DefineField(
+                fieldName,
+                propertyModel.PropertyInfo.PropertyType,
+                FieldAttributes.Private);
 
             var getterIlGenerator = getter.GetILGenerator();
             getterIlGenerator.Emit(OpCodes.Ldarg_0);

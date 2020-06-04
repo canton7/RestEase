@@ -15,5 +15,8 @@ namespace RestEase.Implementation.Analysis
         {
             this.PropertySymbol = propertySymbol;
         }
+
+        public bool IsDeclaredOn(TypeModel typeModel) =>
+            SymbolEqualityComparer.Default.Equals(typeModel.NamedTypeSymbol, this.PropertySymbol.ContainingType);
     }
 }

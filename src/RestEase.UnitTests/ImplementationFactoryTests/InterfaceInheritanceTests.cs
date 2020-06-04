@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using RestEase.Implementation;
 using Xunit;
@@ -73,6 +74,34 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         {
         }
 
+        public interface ISameSignatureGenericB1
+        {
+            [Get]
+            Task FooAsync<T1, T2>(T1 a, T2 b);
+        }
+        public interface ISameSignatureGenericB2
+        {
+            [Get]
+            Task FooAsync<T1, T2>(T1 a, T2 b);
+        }
+        public interface IParentsSameSignatureGeneric : ISameSignatureGenericB1, ISameSignatureGenericB2 { }
+
+        public interface ISamePropertyNameDifferentTypesB1
+        {
+            [Query]
+            string Foo { get; set; }
+        }
+        public interface ISamePropertyNameDifferentTypesB2
+        {
+            [Query]
+            int Foo { get; set; }
+        }
+        public interface IParentsSamePropertyDifferentTypes : ISamePropertyNameDifferentTypesB1, ISamePropertyNameDifferentTypesB2
+        {
+            [Get]
+            Task FooAsync();
+        }
+
         public InterfaceInheritanceTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -130,6 +159,32 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 // Foo,
                 Diagnostic(DiagnosticCode.EventsNotAllowed, "Foo").WithLocation(-2, 32)
             );
+        }
+
+        [Fact]
+        public void HandlesParentsSameSignatureGeneric()
+        {
+            var implementation = this.CreateImplementation<IParentsSameSignatureGeneric>();
+
+            var methods = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.Contains(methods, x => x.Name.EndsWith("ISameSignatureGenericB1.FooAsync"));
+            Assert.Contains(methods, x => x.Name.EndsWith("ISameSignatureGenericB2.FooAsync"));
+        }
+
+        [Fact]
+        public void HandlesParentsSamePropertyDifferentTypes()
+        {
+            var implementation = this.CreateImplementation<IParentsSamePropertyDifferentTypes>();
+
+            ((ISamePropertyNameDifferentTypesB1)implementation).Foo = "test";
+            ((ISamePropertyNameDifferentTypesB2)implementation).Foo = 3;
+
+            Assert.Equal("test", ((ISamePropertyNameDifferentTypesB1)implementation).Foo);
+            Assert.Equal(3, ((ISamePropertyNameDifferentTypesB2)implementation).Foo);
+
+            var properties = implementation.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.Contains(properties, x => x.Name.EndsWith("ISamePropertyNameDifferentTypesB1.Foo"));
+            Assert.Contains(properties, x => x.Name.EndsWith("ISamePropertyNameDifferentTypesB2.Foo"));
         }
     }
 }
