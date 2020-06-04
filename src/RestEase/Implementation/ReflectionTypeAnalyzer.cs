@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -93,7 +94,14 @@ namespace RestEase.Implementation
                 }
             }
 
-            if (result == TypeAttributes.NestedAssembly)
+            if (result == null)
+            {
+                // Not sure how we got here. Try and generate an implementation for it, which may fail (in which case we'll
+                // produce another error message)
+                Debug.Assert(false);
+                result = TypeAttributes.Public;
+            }
+            else if (result == TypeAttributes.NestedAssembly)
             {
                 if (queryTypeInfo.Assembly.GetCustomAttributes<InternalsVisibleToAttribute>().Any(x => x.AssemblyName == RestClient.FactoryAssemblyName))
                 {
