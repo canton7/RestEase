@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Threading.Tasks;
 using RestEase.Implementation.Analysis;
 using RestEase.Platform;
+using static RestEase.Implementation.EmitEmitUtils;
 
 namespace RestEase.Implementation.Emission
 {
@@ -28,15 +29,33 @@ namespace RestEase.Implementation.Emission
             this.methodModel = methodModel;
             this.requesterField = requesterField;
             this.classHeadersField = classHeadersField;
-            this.methodBuilder = typeBuilder.DefineMethod(
-                methodModel.MethodInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual,
-                methodModel.MethodInfo.ReturnType,
-                methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
+
+            if (methodModel.IsExplicit)
+            {
+                this.methodBuilder = typeBuilder.DefineMethod(
+                    FriendlyNameForType(methodModel.MethodInfo.DeclaringType) + "." + methodModel.MethodInfo.Name,
+                    MethodAttributes.Private | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot
+                    | MethodAttributes.Virtual,
+                    methodModel.MethodInfo.ReturnType,
+                    methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
+            }
+            else
+            {
+                this.methodBuilder = typeBuilder.DefineMethod(
+                    methodModel.MethodInfo.Name,
+                    MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot
+                    | MethodAttributes.Virtual,
+                    methodModel.MethodInfo.ReturnType,
+                    methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
+            }
 
             this.AddGenericTypeParameters();
             this.AddParameters();
 
-            typeBuilder.DefineMethodOverride(this.methodBuilder, methodModel.MethodInfo);
+            if (methodModel.IsExplicit)
+            {
+                typeBuilder.DefineMethodOverride(this.methodBuilder, methodModel.MethodInfo);
+            }
             this.ilGenerator = this.methodBuilder.GetILGenerator();
 
             this.methodInfoField = typeBuilder.DefineField(
@@ -56,22 +75,7 @@ namespace RestEase.Implementation.Emission
             {
                 var genericArguments = methodInfo.GetGenericArguments();
                 var builders = this.methodBuilder.DefineGenericParameters(genericArguments.Select(x => x.Name).ToArray());
-                for (int j = 0; j < genericArguments.Length; j++)
-                {
-                    var genericArgumentType = genericArguments[j].GetTypeInfo();
-                    var constraints = genericArgumentType.GetGenericParameterConstraints().Select(x => x.GetTypeInfo()).ToList();
-                    builders[j].SetGenericParameterAttributes(genericArgumentType.GenericParameterAttributes);
-                    var baseType = constraints.FirstOrDefault(x => x.IsClass);
-                    if (baseType != null)
-                    {
-                        builders[j].SetBaseTypeConstraint(baseType.AsType());
-                    }
-                    var interfaceTypes = constraints.Where(x => !x.IsClass).Select(x => x.AsType()).ToArray();
-                    if (interfaceTypes.Length > 0)
-                    {
-                        builders[j].SetInterfaceConstraints(interfaceTypes);
-                    }
-                }
+                AddGenericTypeConstraints(genericArguments, builders);
             }
         }
 
@@ -119,7 +123,7 @@ namespace RestEase.Implementation.Emission
             this.ilGenerator.MarkLabel(branchTarget);
         }
 
-        public void EmitRequestInfoCreation(RequestAttribute requestAttribute)
+        public void EmitRequestInfoCreation(RequestAttributeBase requestAttribute)
         {
             this.ilGenerator.Emit(OpCodes.Ldarg_0);
             this.ilGenerator.Emit(OpCodes.Ldfld, this.requesterField);
@@ -404,7 +408,6 @@ namespace RestEase.Implementation.Emission
             if (typeOfT == null)
             {
                 return MethodInfos.RequestInfo_AddQueryMap.MakeGenericMethod(dictionaryTypes.Key, dictionaryTypes.Value);
-
             }
             else
             {

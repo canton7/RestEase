@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RestEase
+﻿namespace RestEase
 {
     /// <summary>
     /// Helper used to create a properly encoded query string for a request

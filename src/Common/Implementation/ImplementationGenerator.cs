@@ -23,23 +23,28 @@ namespace RestEase.Implementation
 
         public EmittedType Generate()
         {
+            if (!this.typeModel.IsAccessible)
+            {
+                this.diagnostics.ReportTypeMustBeAccessible(this.typeModel);
+            }
+
             foreach (var header in this.typeModel.HeaderAttributes)
             {
                 if (header.Attribute.Value == null)
                 {
-                    this.diagnostics.ReportHeaderOnInterfaceMustHaveValue(header);
+                    this.diagnostics.ReportHeaderOnInterfaceMustHaveValue(this.typeModel, header);
                 }
                 if (header.Attribute.Name.Contains(":"))
                 {
-                    this.diagnostics.ReportHeaderOnInterfaceMustNotHaveColonInName(header);
+                    this.diagnostics.ReportHeaderOnInterfaceMustNotHaveColonInName(this.typeModel, header);
                 }
             }
 
             foreach (var attribute in this.typeModel.AllowAnyStatusCodeAttributes)
             {
-                if (attribute.ContainingType != this.typeModel.Type)
+                if (!attribute.IsDeclaredOn(this.typeModel))
                 {
-                    this.diagnostics.ReportAllowAnyStatisCodeAttributeNotAllowedOnParentInterface(attribute);
+                    this.diagnostics.ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(this.typeModel, attribute);
                 }
             }
 
@@ -51,6 +56,7 @@ namespace RestEase.Implementation
             var typeEmitter = this.emitter.EmitType(this.typeModel);
 
             this.ValidatePathProperties();
+            this.ValidateHttpRequestMessageProperties();
             var emittedProperties = this.GenerateProperties(typeEmitter);
             this.GenerateMethods(typeEmitter, emittedProperties);
             return typeEmitter.Generate();
@@ -60,16 +66,28 @@ namespace RestEase.Implementation
         {
             var emittedProperties = new List<EmittedProperty>(this.typeModel.Properties.Count);
 
+            var signatureGrouping = this.typeModel.Properties.GroupBy(x => x.Name);
+            foreach (var propertiesWithSignature in signatureGrouping)
+            {
+                if (propertiesWithSignature.Count() > 1)
+                {
+                    foreach (var property in propertiesWithSignature)
+                    {
+                        property.IsExplicit = !property.IsDeclaredOn(this.typeModel);
+                    }
+                }
+            }
+
             bool hasRequester = false;
 
             foreach (var property in this.typeModel.Properties)
-            { 
+            {
                 var attributes = property.GetAllSetAttributes().ToList();
                 if (property.IsRequester)
                 {
                     if (hasRequester)
                     {
-                        this.diagnostics.ReportMultipleRequesterPropertiesNotAllowed(property);
+                        this.diagnostics.ReportMultipleRequesterProperties(property);
                     }
 
                     if (attributes.Count > 0)
@@ -92,8 +110,7 @@ namespace RestEase.Implementation
                     {
                         this.diagnostics.ReportPropertyMustHaveOneAttribute(property);
                     }
-                    
-                    if (!property.HasGetter || !property.HasSetter)
+                    else if (!property.HasGetter || !property.HasSetter)
                     {
                         this.diagnostics.ReportPropertyMustBeReadWrite(property);
                     }
@@ -107,7 +124,7 @@ namespace RestEase.Implementation
                         }
                         if (headerAttribute.Name.Contains(":"))
                         {
-                            this.diagnostics.ReportHeaderPropertyNameMustContainColon(property);
+                            this.diagnostics.ReportPropertyHeaderMustNotHaveColonInName(property);
                         }
                     }
 
@@ -120,6 +137,18 @@ namespace RestEase.Implementation
 
         private void GenerateMethods(TypeEmitter typeEmitter, List<EmittedProperty> emittedProperties)
         {
+            var signatureGrouping = this.typeModel.Methods.GroupBy(x => x, MethodSignatureEqualityComparer.Instance);
+            foreach (var methodsWithSignature in signatureGrouping)
+            {
+                if (methodsWithSignature.Count() > 1)
+                {
+                    foreach (var method in methodsWithSignature)
+                    {
+                        method.IsExplicit = !method.IsDeclaredOn(this.typeModel);
+                    }
+                }
+            }
+
             foreach (var method in this.typeModel.Methods)
             {
                 if (method.IsDisposeMethod)
@@ -145,7 +174,9 @@ namespace RestEase.Implementation
             {
                 string? path = method.RequestAttribute.Attribute.Path;
                 this.ValidatePathParams(method, path);
-                this.ValidateHttpRequestMessageParameters(method);
+                this.ValidateCancellationTokenParams(method);
+                this.ValidateMultipleBodyParams(method);
+                this.ValidateHttpRequestMessageParams(method);
 
                 methodEmitter.EmitRequestInfoCreation(method.RequestAttribute.Attribute);
 
@@ -211,26 +242,23 @@ namespace RestEase.Implementation
 
         private void GenerateMethodParameters(MethodEmitter methodEmitter, MethodModel method, ResolvedSerializationMethods serializationMethods)
         {
-            bool hasCancellationToken = false;
-            bool hasBodyParameter = false;
             foreach (var parameter in method.Parameters)
             {
                 var attributes = parameter.GetAllSetAttributes().ToList();
 
+                if (parameter.IsByRef)
+                {
+                    this.diagnostics.ReportParameterMustNotBeByRef(method, parameter);
+                }
+
                 if (parameter.IsCancellationToken)
                 {
-                    if (hasCancellationToken)
-                    {
-                        this.diagnostics.ReportMultipleCancellationTokenParameters(method, parameter);
-                    }
                     if (attributes.Count > 0)
                     {
                         this.diagnostics.ReportCancellationTokenMustHaveZeroAttributes(method, parameter);
                     }
 
                     methodEmitter.EmitSetCancellationToken(parameter);
-
-                    hasCancellationToken = true;
                 }
                 else
                 {
@@ -281,16 +309,9 @@ namespace RestEase.Implementation
                     }
                     else if (parameter.BodyAttribute != null)
                     {
-                        if (hasBodyParameter)
-                        {
-                            this.diagnostics.ReportMultipleBodyParameters(method, parameter);
-                        }
-
                         methodEmitter.EmitSetBodyParameter(
                             parameter,
                             serializationMethods.ResolveBody(parameter.BodyAttribute.Attribute.SerializationMethod));
-
-                        hasBodyParameter = true;
                     }
                     else
                     {
@@ -321,7 +342,7 @@ namespace RestEase.Implementation
                 var missingParams = placeholders.Except(pathProperties.Select(x => x.PathAttributeName!));
                 foreach (string missingParam in missingParams)
                 {
-                    this.diagnostics.ReportMissingPathPropertyForBasePathPlaceholder(missingParam, basePath);
+                    this.diagnostics.ReportMissingPathPropertyForBasePathPlaceholder(this.typeModel, this.typeModel.BasePathAttribute!, basePath, missingParam);
                 }
             }
         }
@@ -353,22 +374,68 @@ namespace RestEase.Implementation
             }
 
             var missingPlaceholders = pathParams.Select(x => x.PathAttributeName!).Except(placeholders);
-            foreach (string? missingPlaceholder in missingPlaceholders)
+            foreach (string missingPlaceholder in missingPlaceholders)
             {
-                this.diagnostics.ReportMissingPlaceholderForPathParameter(method, missingPlaceholder);
+                var parameters = pathParams.Where(x => x.PathAttributeName == missingPlaceholder);
+                this.diagnostics.ReportMissingPlaceholderForPathParameter(method, missingPlaceholder, parameters);
             }
         }
 
-        private void ValidateHttpRequestMessageParameters(MethodModel method)
+        private void ValidateCancellationTokenParams(MethodModel method)
+        {
+            var cancellationTokenParams = method.Parameters.Where(x => x.IsCancellationToken).ToList();
+            if (cancellationTokenParams.Count > 1)
+            {
+                this.diagnostics.ReportMultipleCancellationTokenParameters(method, cancellationTokenParams);
+            }
+        }
+
+        private void ValidateMultipleBodyParams(MethodModel method)
+        {
+            var bodyParams = method.Parameters.Where(x => x.BodyAttribute != null).ToList();
+            if (bodyParams.Count > 1)
+            {
+                this.diagnostics.ReportMultipleBodyParameters(method, bodyParams);
+            }
+        }
+
+        private void ValidateHttpRequestMessageProperties()
+        {
+            var requestProperties = this.typeModel.Properties.Where(x => x.HttpRequestMessagePropertyAttribute != null);
+            var duplicateProperties = requestProperties
+                .GroupBy(x => x.HttpRequestMessagePropertyAttributeKey!)
+                .Where(x => x.Count() > 1);
+            foreach (var properties in duplicateProperties)
+            {
+                this.diagnostics.ReportMultipleHttpRequestMessagePropertiesForKey(properties.Key, properties);
+            }
+        }
+
+        private void ValidateHttpRequestMessageParams(MethodModel method)
         {
             // Check that there are no duplicate param names in the attributes
-            var requestParams = method.Parameters.Where(x => x.HttpRequestMessagePropertyAttribute != null);
+            var requestParams = method.Parameters.Where(x => x.HttpRequestMessagePropertyAttribute != null).ToList();
+
+            foreach (var requestParam in requestParams)
+            {
+                var duplicateProperty = this.typeModel.Properties
+                    .FirstOrDefault(x => x.HttpRequestMessagePropertyAttributeKey == requestParam.HttpRequestMessagePropertyAttributeKey);
+                if (duplicateProperty != null)
+                {
+                    this.diagnostics.ReportHttpRequestMessageParamDuplicatesPropertyForKey(
+                        method,
+                        requestParam.HttpRequestMessagePropertyAttributeKey!,
+                        duplicateProperty,
+                        requestParam);
+                }
+            }
+
             var duplicateParams = requestParams
                 .GroupBy(x => x.HttpRequestMessagePropertyAttributeKey!)
                 .Where(x => x.Count() > 1);
             foreach (var @params in duplicateParams)
             {
-                this.diagnostics.ReportDuplicateHttpRequestMessagePropertyKey(method, @params.Key, @params);
+                this.diagnostics.ReportMultipleHttpRequestMessageParametersForKey(method, @params.Key, @params);
             }
         }
     }

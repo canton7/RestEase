@@ -2,18 +2,17 @@ using System;
 
 namespace RestEase.Implementation.Analysis
 {
-    internal partial class AttributeModel<T> where T : Attribute
+    internal abstract partial class AttributeModel
     {
-        public override string AttributeName => this.Attribute.GetType().Name;
+        public static AttributeModel<T> Create<T>(T attribute) where T : Attribute => new AttributeModel<T>(attribute);
+    }
 
+
+    internal partial class AttributeModel<T> : AttributeModel where T : Attribute
+    {
         public AttributeModel(T attribute)
         {
             this.Attribute = attribute;
         }
-    }
-
-    internal partial class AttributeModel
-    {
-        public static AttributeModel<T> Create<T>(T attribute) where T : Attribute => new AttributeModel<T>(attribute);
     }
 }

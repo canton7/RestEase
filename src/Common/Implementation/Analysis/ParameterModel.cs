@@ -15,6 +15,7 @@ namespace RestEase.Implementation.Analysis
         public AttributeModel<QueryMapAttribute>? QueryMapAttribute { get; set; }
         public AttributeModel<BodyAttribute>? BodyAttribute { get; set; }
         public bool IsCancellationToken { get; set; }
+        public bool IsByRef { get; set; }
 
         public IEnumerable<AttributeModel> GetAllSetAttributes()
         {

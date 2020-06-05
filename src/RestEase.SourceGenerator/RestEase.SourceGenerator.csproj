@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- See the nuspec -->
+    <Version>0.0.0</Version>
+    <NuspecFile>RestEase.SourceGenerator.nuspec</NuspecFile>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <RestoreAdditionalProjectSources>https://dotnet.myget.org/F/roslyn/api/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0-3.20278.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Reflection.cs;../Common/**/*.Emit.cs" LinkBase="Common" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="tools\**" />
+  </ItemGroup>
+
+</Project>

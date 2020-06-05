@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.0.0</Version>
+    <TargetFrameworks>netcoreapp3.0;</TargetFrameworks>
+    <AssemblyName>RestEase.SourceGenerator.UnitTests</AssemblyName>
+    <RootNamespace>RestEase.UnitTests</RootNamespace>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>annotations</Nullable>
+    <DefineConstants>SOURCE_GENERATOR</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreAdditionalProjectSources>https://dotnet.myget.org/F/roslyn/api/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.0|AnyCPU'">
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RestEase\RestEase.csproj" />
+    <ProjectReference Include="..\RestEase.SourceGenerator\RestEase.SourceGenerator.csproj" Aliases="SourceGenerator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" Version="4.7.145" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0-3.20278.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../RestEase.UnitTests/ImplementationFactoryTests/**/*.cs" LinkBase="ImplementationFactoryTests" />
+    <Compile Include="../RestEase.UnitTests/Extensions/*.cs" LinkBase="Extensions" />
+    <EmbeddedResource Include="../RestEase.UnitTests/ImplementationFactoryTests/**/*.cs" LinkBase="ImplementationFactoryTests" />
+    <EmbeddedResource Include="../RestEase.UnitTests/Extensions/*.cs" />
+  </ItemGroup>
+</Project>

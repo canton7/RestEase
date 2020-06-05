@@ -15,6 +15,9 @@ namespace RestEase.Implementation.Analysis
         public bool HasGetter { get; set; }
         public bool HasSetter { get; set; }
 
+        // Set by the ImplementationGenerator, not the TypeAnalyzer
+        public bool IsExplicit { get; set; }
+
         public IEnumerable<AttributeModel> GetAllSetAttributes()
         {
             if (this.HeaderAttribute != null)

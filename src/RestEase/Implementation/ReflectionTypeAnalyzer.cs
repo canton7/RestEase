@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Xml.Linq;
 using RestEase.Implementation.Analysis;
 using RestEase.Platform;
 
@@ -24,7 +27,12 @@ namespace RestEase.Implementation
 
         public TypeModel Analyze()
         {
-            var typeModel = new TypeModel(this.interfaceType);
+            var typeModel = new TypeModel(this.interfaceType)
+            {
+                SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                BasePathAttribute = Get<BasePathAttribute>(),
+                IsAccessible = IsAccessible(this.interfaceTypeInfo),
+            };
 
             var headerAttributes = this.InterfaceAndParents(x => x.GetCustomAttributes<HeaderAttribute>())
                 .Select(x => AttributeModel.Create(x));
@@ -36,8 +44,6 @@ namespace RestEase.Implementation
                                                select new AllowAnyStatusCodeAttributeModel(attribute, type.AsType());
             typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
             typeModel.Events.AddRange(this.InterfaceAndParents(x => x.GetEvents()).Select(x => EventModel.Instance));
-            typeModel.SerializationMethodsAttribute = Get<SerializationMethodsAttribute>();
-            typeModel.BasePathAttribute = Get<BasePathAttribute>();
             typeModel.Properties.AddRange(this.InterfaceAndParents(x => x.GetProperties()).Select(this.GetProperty));
 
             foreach (var methodInfo in this.InterfaceAndParents(x => x.GetMethods()))
@@ -56,6 +62,54 @@ namespace RestEase.Implementation
                 var attribute = this.interfaceTypeInfo.GetCustomAttribute<T>();
                 return attribute == null ? null : AttributeModel.Create(attribute);
             }
+        }
+
+        private static bool IsAccessible(TypeInfo queryTypeInfo)
+        {
+            // One of Public, NotPublic, NestedAssembly
+            TypeAttributes? result = null;
+
+            for (TypeInfo? typeInfo = queryTypeInfo; result == null && typeInfo != null; typeInfo = typeInfo!.DeclaringType?.GetTypeInfo())
+            {
+                var attributes = typeInfo.Attributes & TypeAttributes.VisibilityMask;
+                switch (attributes)
+                {
+                    case TypeAttributes.NestedPublic:
+                        break;
+
+                    case TypeAttributes.Public:
+                        result = TypeAttributes.Public;
+                        break;
+
+                    case TypeAttributes.NestedPrivate:
+                    case TypeAttributes.NestedFamily:
+                    case TypeAttributes.NestedFamANDAssem:
+                        result = TypeAttributes.NotPublic;
+                        break;
+
+                    case TypeAttributes.NestedAssembly:
+                    case TypeAttributes.NestedFamORAssem:
+                        result = TypeAttributes.NestedAssembly;
+                        break;
+                }
+            }
+
+            if (result == null)
+            {
+                // Not sure how we got here. Try and generate an implementation for it, which may fail (in which case we'll
+                // produce another error message)
+                Debug.Assert(false);
+                result = TypeAttributes.Public;
+            }
+            else if (result == TypeAttributes.NestedAssembly)
+            {
+                if (queryTypeInfo.Assembly.GetCustomAttributes<InternalsVisibleToAttribute>().Any(x => x.AssemblyName == RestClient.FactoryAssemblyName))
+                {
+                    result = TypeAttributes.Public;
+                }
+            }
+
+            return result == TypeAttributes.Public;
         }
 
         private PropertyModel GetProperty(PropertyInfo propertyInfo)
@@ -83,7 +137,7 @@ namespace RestEase.Implementation
         {
             var model = new MethodModel(methodInfo)
             {
-                RequestAttribute = Get<RequestAttribute>(),
+                RequestAttribute = Get<RequestAttributeBase>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 IsDisposeMethod = methodInfo == MethodInfos.IDisposable_Dispose,
@@ -113,6 +167,7 @@ namespace RestEase.Implementation
                 QueryMapAttribute = Get<QueryMapAttribute>(),
                 BodyAttribute = Get<BodyAttribute>(),
                 IsCancellationToken = parameterInfo.ParameterType == typeof(CancellationToken),
+                IsByRef = parameterInfo.ParameterType.IsByRef,
             };
 
             return model;

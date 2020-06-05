@@ -1,3 +1,5 @@
+using System;
+
 namespace RestEase.Implementation.Analysis
 {
     internal abstract partial class AttributeModel
@@ -5,8 +7,10 @@ namespace RestEase.Implementation.Analysis
         public abstract string AttributeName { get; }
     }
 
-    internal partial class AttributeModel<T> : AttributeModel
+    internal partial class AttributeModel<T> : AttributeModel where T : Attribute
     {
         public T Attribute { get; }
+
+        public override string AttributeName => this.Attribute.GetType().Name;
     }
 }

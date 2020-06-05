@@ -11,5 +11,7 @@ namespace RestEase.Implementation.Analysis
         {
             this.ContainingType = containingType;
         }
+
+        public bool IsDeclaredOn(TypeModel typeModel) => this.ContainingType == typeModel.Type;
     }
 }

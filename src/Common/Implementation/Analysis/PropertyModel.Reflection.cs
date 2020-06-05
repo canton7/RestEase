@@ -16,5 +16,7 @@ namespace RestEase.Implementation.Analysis
         {
             this.PropertyInfo = propertyInfo;
         }
+
+        public bool IsDeclaredOn(TypeModel typeModel) => this.PropertyInfo.DeclaringType == typeModel.Type;
     }
 }
