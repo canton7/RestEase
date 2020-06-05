@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Analysis;
+using RestEase.Implementation.Emission;
 
 namespace RestEase.SourceGenerator.Implementation
 {
@@ -12,22 +13,25 @@ namespace RestEase.SourceGenerator.Implementation
         private readonly INamedTypeSymbol namedTypeSymbol;
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly AttributeInstantiator attributeInstantiator;
+        private readonly DiagnosticReporter diagnosticReporter;
 
         public RoslynTypeAnalyzer(
             Compilation compilation,
             INamedTypeSymbol namedTypeSymbol,
             WellKnownSymbols wellKnownSymbols,
-            AttributeInstantiator attributeInstantiator)
+            AttributeInstantiator attributeInstantiator,
+            DiagnosticReporter diagnosticReporter)
         {
             this.compilation = compilation;
             this.namedTypeSymbol = namedTypeSymbol;
             this.wellKnownSymbols = wellKnownSymbols;
             this.attributeInstantiator = attributeInstantiator;
+            this.diagnosticReporter = diagnosticReporter;
         }
 
         public TypeModel Analyze()
         {
-            var attributes = this.attributeInstantiator.Instantiate(this.namedTypeSymbol);
+            var attributes = this.attributeInstantiator.Instantiate(this.namedTypeSymbol, this.diagnosticReporter);
 
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
@@ -40,7 +44,7 @@ namespace RestEase.SourceGenerator.Implementation
                                    let attributeDatas = type.GetAttributes()
                                        .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.HeaderAttribute))
                                    from attributeData in attributeDatas
-                                   let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData) as HeaderAttribute
+                                   let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData, this.diagnosticReporter) as HeaderAttribute
                                    where instantiatedAttribute != null
                                    select AttributeModel.Create(instantiatedAttribute, attributeData);
 
@@ -50,7 +54,7 @@ namespace RestEase.SourceGenerator.Implementation
                                                let attributeData = type.GetAttributes()
                                                    .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.AllowAnyStatusCodeAttribute))
                                                where attributeData != null
-                                               let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData) as AllowAnyStatusCodeAttribute
+                                               let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData, this.diagnosticReporter) as AllowAnyStatusCodeAttribute
                                                where instantiatedAttribute != null
                                                select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type, attributeData);
             typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
@@ -82,7 +86,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         private PropertyModel GetProperty(IPropertySymbol propertySymbol)
         {
-            var attributes = this.attributeInstantiator.Instantiate(propertySymbol).ToList();
+            var attributes = this.attributeInstantiator.Instantiate(propertySymbol, this.diagnosticReporter).ToList();
 
             var model = new PropertyModel(propertySymbol)
             {
@@ -106,7 +110,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         private MethodModel GetMethod(IMethodSymbol methodSymbol)
         {
-            var attributes = this.attributeInstantiator.Instantiate(methodSymbol).ToList();
+            var attributes = this.attributeInstantiator.Instantiate(methodSymbol, this.diagnosticReporter).ToList();
 
             var model = new MethodModel(methodSymbol)
             {
@@ -131,7 +135,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         private ParameterModel GetParameter(IParameterSymbol parameterSymbol)
         {
-            var attributes = this.attributeInstantiator.Instantiate(parameterSymbol).ToList();
+            var attributes = this.attributeInstantiator.Instantiate(parameterSymbol, this.diagnosticReporter).ToList();
 
             var model = new ParameterModel(parameterSymbol)
             {

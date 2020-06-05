@@ -38,6 +38,8 @@
         ExpressionsNotAvailable = 29,
         ParameterMustNotBeByRef = 30,
         InterfaceTypeMustBeAccessible = 31,
+        AttributeConstructorNotRecognised = 32,
+        AttributePropertyNotRecognised = 33,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

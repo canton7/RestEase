@@ -100,6 +100,7 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.PropertyMustBeReadOnly,
             "Property must be read-only",
             "Property must have a getter but not a setter");
+
         public void ReportPropertyMustBeReadOnly(PropertyModel property)
         {
             // We don't want to include the headers in the squiggle
@@ -110,6 +111,7 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.PropertyMustBeReadWrite,
             "Property must be read/write",
             "Property must have a getter and a setter");
+
         public void ReportPropertyMustBeReadWrite(PropertyModel property)
         {
             // We don't want to include the headers in the squiggle
@@ -354,6 +356,26 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(expressionsNotAvailable, Location.None);
         }
 
+        private static readonly DiagnosticDescriptor attributeConstructorNotRecognised = CreateDescriptor(
+            DiagnosticCode.AttributeConstructorNotRecognised,
+            "Attribute constructor not recognised",
+            "Constructor for attribute type '{0}' not recongised. This attribute will be ignored. Make sure you're referencing an up-to-date version of RestEase",
+            DiagnosticSeverity.Warning);
+        public void ReportAttributeConstructorNotRecognised(AttributeData attributeData)
+        {
+            this.AddDiagnostic(attributeConstructorNotRecognised, AttributeLocations(attributeData), attributeData.AttributeClass?.Name);
+        }
+
+        private static readonly DiagnosticDescriptor attributePropertyNotRecognised = CreateDescriptor(
+            DiagnosticCode.AttributePropertyNotRecognised,
+            "Attribute property not recognised",
+            "Property '{0} for attribute type '{1}' not recongised. This property will be ignored. Make sure you're referencing an up-to-date version of RestEase",
+            DiagnosticSeverity.Warning);
+        public void ReportAttributePropertyNotRecognised(AttributeData attributeData, KeyValuePair<string, TypedConstant> namedArgument)
+        {
+            this.AddDiagnostic(attributePropertyNotRecognised, AttributeLocations(attributeData), namedArgument.Key, attributeData.AttributeClass?.Name);
+        }
+
         private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat, DiagnosticSeverity severity = DiagnosticSeverity.Error)
         {
             string[] tags = severity == DiagnosticSeverity.Error ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
@@ -400,6 +422,12 @@ namespace RestEase.Implementation.Emission
             // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
             var attributeLocation = attributeModel?.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
             return attributeLocation != null ? new[] { attributeLocation } : SymbolLocations(fallback);
+        }
+
+        private static IEnumerable<Location> AttributeLocations(AttributeData attributeData)
+        {
+            var attributeLocation = attributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
+            return new[] { attributeLocation ?? Location.None };
         }
 
         private static IEnumerable<Location> AttributeLocations(IEnumerable<AttributeModel> attributeModels, ISymbol fallback)

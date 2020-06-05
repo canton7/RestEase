@@ -31,7 +31,7 @@ namespace RestEase.SourceGenerator.Implementation
         public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
         {
             var diagnosticReporter = new DiagnosticReporter();
-            var analyzer = new RoslynTypeAnalyzer(this.compilation, namedTypeSymbol, this.wellKnownSymbols, this.attributeInstantiator);
+            var analyzer = new RoslynTypeAnalyzer(this.compilation, namedTypeSymbol, this.wellKnownSymbols, this.attributeInstantiator, diagnosticReporter);
             var typeModel = analyzer.Analyze();
             var generator = new ImplementationGenerator(typeModel, this.emitter, diagnosticReporter);
             var emittedType = generator.Generate();

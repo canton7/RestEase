@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.CodeAnalysis;
+using RestEase.Implementation.Emission;
 
 namespace RestEase.SourceGenerator.Implementation
 {
     internal class AttributeInstantiator
     {
         private readonly WellKnownSymbols wellKnownSymbols;
-        private readonly Dictionary<INamedTypeSymbol, Func<AttributeData, Attribute?>> lookup;
+        private readonly Dictionary<INamedTypeSymbol, Func<AttributeData, DiagnosticReporter, Attribute?>> lookup;
 
         public AttributeInstantiator(WellKnownSymbols wellKnownSymbols)
         {
             this.wellKnownSymbols = wellKnownSymbols;
 
-            this.lookup = new Dictionary<INamedTypeSymbol, Func<AttributeData, Attribute?>>(19, SymbolEqualityComparer.Default);
+            this.lookup = new Dictionary<INamedTypeSymbol, Func<AttributeData, DiagnosticReporter, Attribute?>>(19, SymbolEqualityComparer.Default);
             Add(this.wellKnownSymbols.AllowAnyStatusCodeAttribute, this.ParseAllowAnyStatusCodeAttribute);
             Add(this.wellKnownSymbols.BasePathAttribute, this.ParseBasePathAttribute);
             Add(this.wellKnownSymbols.PathAttribute, this.ParsePathAttribute);
@@ -27,17 +28,17 @@ namespace RestEase.SourceGenerator.Implementation
             Add(this.wellKnownSymbols.HttpRequestMessagePropertyAttribute, this.ParseHttpRequestMessagePropertyAttribute);
             Add(this.wellKnownSymbols.QueryMapAttribute, this.ParseQueryMapAttribute);
             Add(this.wellKnownSymbols.RequestAttribute, this.ParseRequestAttribute);
-            Add(this.wellKnownSymbols.DeleteAttribute, x => this.ParseRequestAttributeSubclass(x, () => new DeleteAttribute(), s => new DeleteAttribute(s)));
-            Add(this.wellKnownSymbols.GetAttribute, x => this.ParseRequestAttributeSubclass(x, () => new GetAttribute(), s => new GetAttribute(s)));
-            Add(this.wellKnownSymbols.HeadAttribute, x => this.ParseRequestAttributeSubclass(x, () => new HeadAttribute(), s => new HeadAttribute(s)));
-            Add(this.wellKnownSymbols.OptionsAttribute, x => this.ParseRequestAttributeSubclass(x, () => new OptionsAttribute(), s => new OptionsAttribute(s)));
-            Add(this.wellKnownSymbols.PostAttribute, x => this.ParseRequestAttributeSubclass(x, () => new PostAttribute(), s => new PostAttribute(s)));
-            Add(this.wellKnownSymbols.PutAttribute, x => this.ParseRequestAttributeSubclass(x, () => new PutAttribute(), s => new PutAttribute(s)));
-            Add(this.wellKnownSymbols.TraceAttribute, x => this.ParseRequestAttributeSubclass(x, () => new TraceAttribute(), s => new TraceAttribute(s)));
-            Add(this.wellKnownSymbols.PatchAttribute, x => this.ParseRequestAttributeSubclass(x, () => new PatchAttribute(), s => new PatchAttribute(s)));
+            Add(this.wellKnownSymbols.DeleteAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new DeleteAttribute(), s => new DeleteAttribute(s)));
+            Add(this.wellKnownSymbols.GetAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new GetAttribute(), s => new GetAttribute(s)));
+            Add(this.wellKnownSymbols.HeadAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new HeadAttribute(), s => new HeadAttribute(s)));
+            Add(this.wellKnownSymbols.OptionsAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new OptionsAttribute(), s => new OptionsAttribute(s)));
+            Add(this.wellKnownSymbols.PostAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new PostAttribute(), s => new PostAttribute(s)));
+            Add(this.wellKnownSymbols.PutAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new PutAttribute(), s => new PutAttribute(s)));
+            Add(this.wellKnownSymbols.TraceAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new TraceAttribute(), s => new TraceAttribute(s)));
+            Add(this.wellKnownSymbols.PatchAttribute, (x, d) => this.ParseRequestAttributeSubclass(x, d, () => new PatchAttribute(), s => new PatchAttribute(s)));
 
 
-            void Add(INamedTypeSymbol? symbol, Func<AttributeData, Attribute?> func)
+            void Add(INamedTypeSymbol? symbol, Func<AttributeData, DiagnosticReporter, Attribute?> func)
             {
                 if (symbol != null)
                 {
@@ -51,12 +52,12 @@ namespace RestEase.SourceGenerator.Implementation
             return this.lookup.ContainsKey(symbol);
         }
 
-        public IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol)
+        public IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol, DiagnosticReporter diagnosticReporter)
         {
-            return symbol.GetAttributes().Select(x => (this.Instantiate(x), x));
+            return symbol.GetAttributes().Select(x => (this.Instantiate(x, diagnosticReporter), x));
         }
 
-        public Attribute? Instantiate(AttributeData attributeData)
+        public Attribute? Instantiate(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             var attributeClass = attributeData.AttributeClass;
             if (attributeClass == null)
@@ -66,13 +67,13 @@ namespace RestEase.SourceGenerator.Implementation
 
             if (this.lookup.TryGetValue(attributeClass, out var parser))
             {
-                return parser(attributeData);
+                return parser(attributeData, diagnosticReporter);
             }
 
             return null;
         }
 
-        private Attribute? ParseAllowAnyStatusCodeAttribute(AttributeData attributeData)
+        private Attribute? ParseAllowAnyStatusCodeAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             AllowAnyStatusCodeAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -94,21 +95,45 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.AllowAnyStatusCode = (bool)namedArgument.Value.Value!;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseBasePathAttribute(AttributeData attributeData)
+        private Attribute? ParseBasePathAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
-            return attributeData.ConstructorArguments.Length == 1 &&
-                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String
-                ? new BasePathAttribute((string)attributeData.ConstructorArguments[0].Value!)
-                : null;
+            BasePathAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new BasePathAttribute((string)attributeData.ConstructorArguments[0].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
+            }
+
+            return attribute;
         }
 
-        private Attribute? ParsePathAttribute(AttributeData attributeData)
+        private Attribute? ParsePathAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             PathAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -159,13 +184,21 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.UrlEncode = (bool)namedArgument.Value.Value!;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseQueryAttribute(AttributeData attributeData)
+        private Attribute? ParseQueryAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             QueryAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -211,15 +244,27 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseSerializationMethodsAttribute(AttributeData attributeData)
+        private Attribute? ParseSerializationMethodsAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
-            var attribute = attributeData.ConstructorArguments.Length == 0 ? new SerializationMethodsAttribute() : null;
+            SerializationMethodsAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 0)
+            {
+                attribute = new SerializationMethodsAttribute();
+            }
 
             if (attribute != null)
             {
@@ -240,20 +285,44 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Path = (PathSerializationMethod)namedArgument.Value.Value!;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseRawQueryStringAttribute(AttributeData attributeData)
+        private Attribute? ParseRawQueryStringAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
-            return attributeData.ConstructorArguments.Length == 0
-                ? new RawQueryStringAttribute()
-                : null;
+            RawQueryStringAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 0)
+            {
+                attribute = new RawQueryStringAttribute();
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
+            }
+
+            return attribute;
         }
 
-        private Attribute? ParseBodyAttribute(AttributeData attributeData)
+        private Attribute? ParseBodyAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             BodyAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -266,10 +335,22 @@ namespace RestEase.SourceGenerator.Implementation
                 attribute = new BodyAttribute((BodySerializationMethod)attributeData.ConstructorArguments[0].Value!);
             }
 
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
+            }
+
             return attribute;
         }
 
-        private Attribute? ParseHeaderAttribute(AttributeData attributeData)
+        private Attribute? ParseHeaderAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             HeaderAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 1 &&
@@ -295,13 +376,21 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Format = (string?)namedArgument.Value.Value;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseHttpRequestMessagePropertyAttribute(AttributeData attributeData)
+        private Attribute? ParseHttpRequestMessagePropertyAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             HttpRequestMessagePropertyAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -323,13 +412,21 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Key = (string?)namedArgument.Value.Value;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseQueryMapAttribute(AttributeData attributeData)
+        private Attribute? ParseQueryMapAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             QueryMapAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 0)
@@ -351,13 +448,21 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.SerializationMethod = (QuerySerializationMethod)namedArgument.Value.Value!;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
         }
 
-        private Attribute? ParseRequestAttribute(AttributeData attributeData)
+        private Attribute? ParseRequestAttribute(AttributeData attributeData, DiagnosticReporter diagnosticReporter)
         {
             RequestAttribute? attribute = null;
             if (attributeData.ConstructorArguments.Length == 1 &&
@@ -383,7 +488,15 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Path = (string?)namedArgument.Value.Value;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
@@ -391,6 +504,7 @@ namespace RestEase.SourceGenerator.Implementation
 
         private Attribute? ParseRequestAttributeSubclass(
             AttributeData attributeData,
+            DiagnosticReporter diagnosticReporter,
             Func<RequestAttributeBase> parameterlessCtor,
             Func<string, RequestAttributeBase> pathCtor)
         {
@@ -415,7 +529,15 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         attribute.Path = (string?)namedArgument.Value.Value;
                     }
+                    else
+                    {
+                        diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument);
+                    }
                 }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData);
             }
 
             return attribute;
