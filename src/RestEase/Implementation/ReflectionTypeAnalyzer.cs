@@ -69,7 +69,7 @@ namespace RestEase.Implementation
             // One of Public, NotPublic, NestedAssembly
             TypeAttributes? result = null;
 
-            for (var typeInfo = queryTypeInfo; result == null && typeInfo != null; typeInfo = typeInfo.DeclaringType?.GetTypeInfo())
+            for (TypeInfo? typeInfo = queryTypeInfo; result == null && typeInfo != null; typeInfo = typeInfo!.DeclaringType?.GetTypeInfo())
             {
                 var attributes = typeInfo.Attributes & TypeAttributes.VisibilityMask;
                 switch (attributes)
