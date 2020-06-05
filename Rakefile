@@ -27,16 +27,17 @@ task :version, [:version] do |t, args|
   version = args[:version]
 
   content = IO.read(RESTEASE_CSPROJ)
-  content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
+  content[/<Version>(.+?)<\/Version>/, 1] = version
   File.open(RESTEASE_CSPROJ, 'w'){ |f| f.write(content) }
 
   sg_content = IO.read(SOURCE_GENERATOR_CSPROJ)
-  sg_content[/<VersionPrefix>(.+?)<\/VersionPrefix>/, 1] = version
+  sg_content[/<Version>(.+?)<\/Version>/, 1] = version
   File.open(SOURCE_GENERATOR_CSPROJ, 'w'){ |f| f.write(sg_content) }
 
   sg_nuspec_content = IO.read(SOURCE_GENERATOR_NUSPEC)
   sg_nuspec_content[/<version>(.+?)<\/version>/, 1] = version
-  sg_nuspec_content[/<dependency id="RestEase" version="(.+?)"/, 1] = version
+  # Be conservative and say we're not compatible with 2.0+
+  sg_nuspec_content[/<dependency id="RestEase" version="(.+?)"/, 1] = "[#{version},2.0)"
   File.open(SOURCE_GENERATOR_NUSPEC, 'w'){ |f| f.write(sg_nuspec_content) }
 end
 
