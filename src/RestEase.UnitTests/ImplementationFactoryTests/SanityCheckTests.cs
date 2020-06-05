@@ -143,7 +143,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ThrowsIfInterfaceHasEvents()
         {
             this.VerifyDiagnostics<IHasEvents>(
-                // (3,32): Error REST015: Intarface must not have any events
+                // (3,32): Error REST015: Interface must not have any events
                 // Foo
                 Diagnostic(DiagnosticCode.EventsNotAllowed, "Foo").WithLocation(3, 32)
             );

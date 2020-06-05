@@ -62,7 +62,12 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 
             var executionProject = new AdhocWorkspace()
                 .AddProject("Execution", LanguageNames.CSharp)
-                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                    .WithSpecificDiagnosticOptions(new KeyValuePair<string, ReportDiagnostic>[]
+                    {
+                        KeyValuePair.Create("CS1701", ReportDiagnostic.Suppress),
+                        KeyValuePair.Create("CS1702", ReportDiagnostic.Suppress),
+                    }))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "netstandard.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Runtime.dll")))
@@ -120,7 +125,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             {
                 var emitResult = updatedCompilation.Emit(peStream);
 
-                //Assert.True(emitResult.Diagnostics.Length == 0, "Unexpected compiler diagnostics:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
+                Assert.True(emitResult.Diagnostics.Length == 0, "Unexpected compiler diagnostics:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
                 Assert.True(emitResult.Success, "Emit failed:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
                 var assembly = Assembly.Load(peStream.GetBuffer());
                 var implementationType = assembly.GetCustomAttributes<RestEaseInterfaceImplementationAttribute>()
@@ -217,10 +222,14 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             return requestInfo;
         }
 
+        protected IRequestInfo Request<T>(T implementation, Func<T, Task> method)
+        {
+            return this.Request(implementation, method, x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()));
+        }
 
         protected IRequestInfo Request<T>(Func<T, Task> method)
         {
-            return this.Request(this.CreateImplementation<T>(), method, x => x.RequestVoidAsync(It.IsAny<IRequestInfo>()));
+            return this.Request(this.CreateImplementation<T>(), method);
         }
 
         protected IRequestInfo Request<TType, TReturnType>(Func<TType, Task<TReturnType>> method, TReturnType returnValue)

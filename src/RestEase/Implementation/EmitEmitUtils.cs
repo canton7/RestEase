@@ -41,17 +41,24 @@ namespace RestEase.Implementation
             {
                 if (typeInfo.IsGenericType)
                 {
-                    sb.Append(type.GetGenericTypeDefinition().FullName);
+                    string fullName = type.GetGenericTypeDefinition().FullName;
+                    sb.Append(fullName.Substring(0, fullName.LastIndexOf('`')));
                     sb.Append("<");
+                    int i = 0;
                     foreach (var arg in typeInfo.GetGenericArguments())
                     {
+                        if (i > 0)
+                        {
+                            sb.Append(",");
+                        }
                         Impl(arg.GetTypeInfo());
+                        i++;
                     }
                     sb.Append(">");
                 }
                 else
                 {
-                    sb.Append(type.FullName);
+                    sb.Append(typeInfo.FullName);
                 }
             }
         }

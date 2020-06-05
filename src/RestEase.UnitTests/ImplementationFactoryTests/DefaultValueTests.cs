@@ -32,6 +32,17 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync(SomeEnum e = (SomeEnum)100);
         }
 
+        public interface IHasDefaultsInExplicitImplementationBase
+        {
+            [Get]
+            Task FooAsync(int foo = 3);
+        }
+        public interface IHasDefaultsInExplicitImplementation : IHasDefaultsInExplicitImplementationBase
+        {
+            [Get]
+            new Task FooAsync(int foo = 4);
+        }
+
         public DefaultValueTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -39,7 +50,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         {
             var implementation = this.CreateImplementation<IHasDefaultValue>();
 
-            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name.EndsWith("GetFooAsync"));
+            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name == "GetFooAsync");
             var parameters = methodInfo.GetParameters();
 
             Assert.Equal("foo", parameters[0].Name);
@@ -66,12 +77,25 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         {
             var implementation = this.CreateImplementation<IHasEnumOutOfRange>();
 
-            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name.EndsWith("FooAsync"));
+            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name == "FooAsync");
             var parameters = methodInfo.GetParameters();
 
             Assert.Equal("e", parameters[0].Name);
             Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, parameters[0].Attributes);
             Assert.Equal((SomeEnum)100, parameters[0].DefaultValue);
+        }
+
+        [Fact]
+        public void HandlesDefaultsInExplicitImplementation()
+        {
+            // We're mainly checking that we don't get compiler warnings with the source generator
+            var implementation = this.CreateImplementation<IHasDefaultsInExplicitImplementation>();
+
+            var requestInfo = this.Request(implementation, x => x.FooAsync());
+            Assert.Equal("4", requestInfo.QueryParams.Single().SerializeToString(null).Single().Value);
+
+            requestInfo = this.Request(implementation, x => ((IHasDefaultsInExplicitImplementationBase)x).FooAsync());
+            Assert.Equal("3", requestInfo.QueryParams.Single().SerializeToString(null).Single().Value);
         }
     }
 }
