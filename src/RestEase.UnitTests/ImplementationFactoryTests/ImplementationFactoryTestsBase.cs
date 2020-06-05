@@ -67,7 +67,8 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                     {
                         KeyValuePair.Create("CS1701", ReportDiagnostic.Suppress),
                         KeyValuePair.Create("CS1702", ReportDiagnostic.Suppress),
-                    }))
+                    })
+                    .WithNullableContextOptions(NullableContextOptions.Enable))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "netstandard.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Runtime.dll")))
@@ -80,7 +81,8 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 
             var diagnosticsProject = new AdhocWorkspace()
                 .AddProject("Diagnostics", LanguageNames.CSharp)
-                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                    .WithNullableContextOptions(NullableContextOptions.Enable))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "netstandard.dll")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(Path.Join(dotNetDir, "System.Runtime.dll")))
@@ -126,7 +128,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 var emitResult = updatedCompilation.Emit(peStream);
 
                 Assert.True(emitResult.Diagnostics.Length == 0, "Unexpected compiler diagnostics:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
-                Assert.True(emitResult.Success, "Emit failed:\r\n\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(x => x.ToString())));
+                Assert.True(emitResult.Success, "Emit failed"); // Just in case it failed without diagnostics...
                 var assembly = Assembly.Load(peStream.GetBuffer());
                 var implementationType = assembly.GetCustomAttributes<RestEaseInterfaceImplementationAttribute>()
                     .FirstOrDefault(x => x.InterfaceType == typeToSearch)?.ImplementationType;

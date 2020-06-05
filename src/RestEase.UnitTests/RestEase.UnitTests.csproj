@@ -6,16 +6,8 @@
          netcoreapp1.0 uses netstandard1.6 (and so the netstandard1.0 library) -->
     <TargetFrameworks>netcoreapp3.0;netcoreapp2.0;netcoreapp1.0;net452</TargetFrameworks>
     <AssemblyName>RestEase.UnitTests</AssemblyName>
-    <PackageId>RestEase.UnitTests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

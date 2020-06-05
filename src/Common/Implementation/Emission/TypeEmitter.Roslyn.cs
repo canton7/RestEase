@@ -81,6 +81,9 @@ namespace RestEase.Implementation.Emission
                 this.typeModel.NamedTypeSymbol,
                 this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.TypofParameterNoTypeParametersNoQualificationNoEscape));
 
+            // We don't want to get involved with NRTs. We'd need to know whether they were supported and switch our generation based on this, which
+            // is too much hassle for something the user doesn't actually see (they see the nullability on the interface).
+            this.writer.WriteLine("#nullable disable");
             this.writer.WriteLine("[assembly: global::RestEase.Implementation.RestEaseInterfaceImplementationAttribute(" +
                 "typeof(" + typeofInterfaceName + "), typeof(global::" + this.namespaceName + "." + typeofName + "))]");
 
