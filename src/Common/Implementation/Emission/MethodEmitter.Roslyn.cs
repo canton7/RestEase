@@ -20,7 +20,7 @@ namespace RestEase.Implementation.Emission
         private readonly string qualifiedTypeName;
         private readonly string requesterFieldName;
         private readonly string? classHeadersFieldName;
-        private readonly string methodInfoFieldName;
+        private readonly string? methodInfoFieldName;
         private readonly string requestInfoLocalName;
 
         public MethodEmitter(
@@ -38,7 +38,7 @@ namespace RestEase.Implementation.Emission
             this.qualifiedTypeName = qualifiedTypeName;
             this.requesterFieldName = requesterFieldName;
             this.classHeadersFieldName = classHeadersFieldName;
-            this.methodInfoFieldName = methodInfoFieldName;
+            this.methodInfoFieldName = this.wellKnownSymbols.HasExpression ? methodInfoFieldName : null;
             this.requestInfoLocalName = this.GenerateRequestInfoLocalName();
 
             this.EmitMethodInfoField();
@@ -63,7 +63,10 @@ namespace RestEase.Implementation.Emission
 
         private void EmitMethodInfoField()
         {
-            this.writer.WriteLine("private static global::System.Reflection.MethodInfo " + this.methodInfoFieldName + ";");
+            if (this.methodInfoFieldName != null)
+            {
+                this.writer.WriteLine("private static global::System.Reflection.MethodInfo " + this.methodInfoFieldName + ";");
+            }
         }
 
         private void EmitMethodDeclaration()
@@ -91,7 +94,7 @@ namespace RestEase.Implementation.Emission
             // I originally tried using MethodBase.GetCurrentMethod and Type.GetInterfaceMap, but that hit problems when
             // the interface type was generic. They should be automatically referencing System.Linq.Expressions.dll on
             // netstandard / netcoreapp, so just go with that for everything.
-            if (this.wellKnownSymbols.HasExpression)
+            if (this.methodInfoFieldName != null)
             {
                 this.writer.WriteLine("if (" + this.qualifiedTypeName + "." + this.methodInfoFieldName + " == null)");
                 this.writer.WriteLine("{");
@@ -127,7 +130,14 @@ namespace RestEase.Implementation.Emission
                 this.writer.Write("new global::System.Net.Http.HttpMethod(" + requestAttribute.Method.Method + ")");
             }
             this.writer.Write(", " + QuoteString(requestAttribute.Path ?? string.Empty));
-            this.writer.Write(", " + this.qualifiedTypeName + "." + this.methodInfoFieldName);
+            if (this.methodInfoFieldName != null)
+            {
+                this.writer.Write(", " + this.qualifiedTypeName + "." + this.methodInfoFieldName);
+            }
+            else
+            {
+                this.writer.Write(", null");
+            }
             this.writer.WriteLine(");");
 
             if (this.classHeadersFieldName != null)
