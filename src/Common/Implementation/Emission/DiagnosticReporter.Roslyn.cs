@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
 using RestEase.Implementation.Analysis;
 
@@ -361,9 +362,12 @@ namespace RestEase.Implementation.Emission
             "Attribute constructor not recognised",
             "Constructor for attribute type '{0}' not recongised. This attribute will be ignored. Make sure you're referencing an up-to-date version of RestEase",
             DiagnosticSeverity.Warning);
-        public void ReportAttributeConstructorNotRecognised(AttributeData attributeData)
+        public void ReportAttributeConstructorNotRecognised(AttributeData attributeData, ISymbol declaringSymbol)
         {
-            this.AddDiagnostic(attributeConstructorNotRecognised, AttributeLocations(attributeData), attributeData.AttributeClass?.Name);
+            this.AddDiagnostic(
+                attributeConstructorNotRecognised,
+                AttributeLocations(attributeData, declaringSymbol),
+                attributeData.AttributeClass?.Name);
         }
 
         private static readonly DiagnosticDescriptor attributePropertyNotRecognised = CreateDescriptor(
@@ -371,9 +375,13 @@ namespace RestEase.Implementation.Emission
             "Attribute property not recognised",
             "Property '{0} for attribute type '{1}' not recongised. This property will be ignored. Make sure you're referencing an up-to-date version of RestEase",
             DiagnosticSeverity.Warning);
-        public void ReportAttributePropertyNotRecognised(AttributeData attributeData, KeyValuePair<string, TypedConstant> namedArgument)
+        public void ReportAttributePropertyNotRecognised(AttributeData attributeData, KeyValuePair<string, TypedConstant> namedArgument, ISymbol declaringSymbol)
         {
-            this.AddDiagnostic(attributePropertyNotRecognised, AttributeLocations(attributeData), namedArgument.Key, attributeData.AttributeClass?.Name);
+            this.AddDiagnostic(
+                attributePropertyNotRecognised,
+                AttributeLocations(attributeData, declaringSymbol),
+                namedArgument.Key,
+                attributeData.AttributeClass?.Name);
         }
 
         private static DiagnosticDescriptor CreateDescriptor(DiagnosticCode code, string title, string messageFormat, DiagnosticSeverity severity = DiagnosticSeverity.Error)
@@ -419,15 +427,14 @@ namespace RestEase.Implementation.Emission
 
         private static IEnumerable<Location> AttributeLocations(AttributeModel? attributeModel, ISymbol fallback)
         {
-            // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
-            var attributeLocation = attributeModel?.AttributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
-            return attributeLocation != null ? new[] { attributeLocation } : SymbolLocations(fallback);
+            return AttributeLocations(attributeModel?.AttributeData, fallback);
         }
 
-        private static IEnumerable<Location> AttributeLocations(AttributeData attributeData)
+        private static IEnumerable<Location> AttributeLocations(AttributeData? attributeData, ISymbol fallback)
         {
-            var attributeLocation = attributeData.ApplicationSyntaxReference?.GetSyntax().GetLocation();
-            return new[] { attributeLocation ?? Location.None };
+            // TODO: This squiggles the 'BasePath(...)' bit. Ideally we'd want '[BasePath(...)]' or perhaps just '...'.
+            var attributeLocation = attributeData?.ApplicationSyntaxReference?.GetSyntax().GetLocation();
+            return attributeLocation != null ? new[] { attributeLocation } : SymbolLocations(fallback);
         }
 
         private static IEnumerable<Location> AttributeLocations(IEnumerable<AttributeModel> attributeModels, ISymbol fallback)
