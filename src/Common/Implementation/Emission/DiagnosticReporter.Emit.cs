@@ -60,11 +60,11 @@ namespace RestEase.Implementation.Emission
                 $"[Header(\"{header.Attribute.Name}\")] on interface must have the form [Header(\"Name\", \"Value\")]");
         }
 
-        public void ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(TypeModel _, AllowAnyStatusCodeAttributeModel attribute)
+        public void ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(TypeModel _, AttributeModel<AllowAnyStatusCodeAttribute> attribute)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface,
-                $"Parent interface {attribute.ContainingType.Name} may not have any [AllowAnyStatusCode] attributes");
+                $"Parent interface {attribute.DeclaringMember!.Name} may not have any [AllowAnyStatusCode] attributes");
         }
 
         public void ReportEventNotAllowed(EventModel _)

@@ -34,15 +34,9 @@ namespace RestEase.Implementation
                 IsAccessible = IsAccessible(this.interfaceTypeInfo),
             };
 
-            var headerAttributes = this.InterfaceAndParents(x => x.GetCustomAttributes<HeaderAttribute>())
-                .Select(x => AttributeModel.Create(x));
-            typeModel.HeaderAttributes.AddRange(headerAttributes);
+            typeModel.HeaderAttributes.AddRange(GetAll<HeaderAttribute>());
+            typeModel.AllowAnyStatusCodeAttributes.AddRange(GetAll<AllowAnyStatusCodeAttribute>());
 
-            var allowAnyStatusCodeAttributes = from type in this.InterfaceAndParents()
-                                               let attribute = type.GetCustomAttribute<AllowAnyStatusCodeAttribute>()
-                                               where attribute != null
-                                               select new AllowAnyStatusCodeAttributeModel(attribute, type.AsType());
-            typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
             typeModel.Events.AddRange(this.InterfaceAndParents(x => x.GetEvents()).Select(x => EventModel.Instance));
             typeModel.Properties.AddRange(this.InterfaceAndParents(x => x.GetProperties()).Select(this.GetProperty));
 
@@ -60,8 +54,11 @@ namespace RestEase.Implementation
             AttributeModel<T>? Get<T>() where T : Attribute
             {
                 var attribute = this.interfaceTypeInfo.GetCustomAttribute<T>();
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                return attribute == null ? null : AttributeModel.Create(attribute, this.interfaceTypeInfo);
             }
+            IEnumerable<AttributeModel<T>> GetAll<T>() where T : Attribute =>
+                this.InterfaceAndParents().SelectMany(x => x.GetCustomAttributes<T>()
+                    .Select(a => AttributeModel.Create(a, x)));
         }
 
         private static bool IsAccessible(TypeInfo queryTypeInfo)
@@ -129,7 +126,7 @@ namespace RestEase.Implementation
             AttributeModel<T>? Get<T>() where T : Attribute
             {
                 var attribute = propertyInfo.GetCustomAttribute<T>();
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                return attribute == null ? null : AttributeModel.Create(attribute, propertyInfo);
             }
         }
 
@@ -142,7 +139,8 @@ namespace RestEase.Implementation
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 IsDisposeMethod = methodInfo == MethodInfos.IDisposable_Dispose,
             };
-            model.HeaderAttributes.AddRange(methodInfo.GetCustomAttributes<HeaderAttribute>().Select(x => AttributeModel.Create(x)));
+            model.HeaderAttributes.AddRange(methodInfo.GetCustomAttributes<HeaderAttribute>()
+                .Select(x => AttributeModel.Create(x, methodInfo)));
 
             model.Parameters.AddRange(methodInfo.GetParameters().Select(this.GetParameter));
 
@@ -151,7 +149,7 @@ namespace RestEase.Implementation
             AttributeModel<T>? Get<T>() where T : Attribute
             {
                 var attribute = methodInfo.GetCustomAttribute<T>();
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                return attribute == null ? null : AttributeModel.Create(attribute, methodInfo);
             }
         }
 
@@ -175,7 +173,7 @@ namespace RestEase.Implementation
             AttributeModel<T>? Get<T>() where T : Attribute
             {
                 var attribute = parameterInfo.GetCustomAttribute<T>();
-                return attribute == null ? null : AttributeModel.Create(attribute);
+                return attribute == null ? null : AttributeModel.Create(attribute, null);
             }
         }
 

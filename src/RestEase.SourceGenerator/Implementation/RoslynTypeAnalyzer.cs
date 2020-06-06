@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Analysis;
 using RestEase.Implementation.Emission;
@@ -31,7 +32,9 @@ namespace RestEase.SourceGenerator.Implementation
 
         public TypeModel Analyze()
         {
-            var attributes = this.attributeInstantiator.Instantiate(this.namedTypeSymbol, this.diagnosticReporter);
+            var attributes = this.attributeInstantiator.Instantiate(this.namedTypeSymbol, this.diagnosticReporter).ToList();
+            var typeAndInterfaceAttributes = attributes.Concat(
+                this.namedTypeSymbol.AllInterfaces.SelectMany(x => this.attributeInstantiator.Instantiate(x, this.diagnosticReporter))).ToList();
 
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
@@ -39,25 +42,8 @@ namespace RestEase.SourceGenerator.Implementation
                 BasePathAttribute = Get<BasePathAttribute>(),
                 IsAccessible = this.compilation.IsSymbolAccessibleWithin(this.namedTypeSymbol, this.compilation.Assembly)
             };
-
-            var headerAttributes = from type in this.InterfaceAndParents()
-                                   let attributeDatas = type.GetAttributes()
-                                       .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.HeaderAttribute))
-                                   from attributeData in attributeDatas
-                                   let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData, this.diagnosticReporter) as HeaderAttribute
-                                   where instantiatedAttribute != null
-                                   select AttributeModel.Create(instantiatedAttribute, attributeData);
-
-            typeModel.HeaderAttributes.AddRange(headerAttributes);
-
-            var allowAnyStatusCodeAttributes = from type in this.InterfaceAndParents()
-                                               let attributeData = type.GetAttributes()
-                                                   .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.wellKnownSymbols.AllowAnyStatusCodeAttribute))
-                                               where attributeData != null
-                                               let instantiatedAttribute = this.attributeInstantiator.Instantiate(attributeData, this.diagnosticReporter) as AllowAnyStatusCodeAttribute
-                                               where instantiatedAttribute != null
-                                               select new AllowAnyStatusCodeAttributeModel(instantiatedAttribute, type, attributeData);
-            typeModel.AllowAnyStatusCodeAttributes.AddRange(allowAnyStatusCodeAttributes);
+            typeModel.HeaderAttributes.AddRange(GetAll<HeaderAttribute>());
+            typeModel.AllowAnyStatusCodeAttributes.AddRange(GetAll<AllowAnyStatusCodeAttribute>());
 
             foreach (var member in this.InterfaceAndParents().SelectMany(x => x.GetMembers()))
             {
@@ -79,9 +65,12 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
-                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
+                var (attribute, attributeData, type) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData, type);
             }
+            IEnumerable<AttributeModel<T>> GetAll<T>() where T : Attribute =>
+                typeAndInterfaceAttributes.Where(x => x.attribute is T)
+                    .Select(x => AttributeModel.Create((T)x.attribute!, x.attributeData, x.declaringSymbol));
         }
 
         private PropertyModel GetProperty(IPropertySymbol propertySymbol)
@@ -103,8 +92,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
-                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
+                var (attribute, attributeData, type) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData, type);
             }
         }
 
@@ -120,7 +109,7 @@ namespace RestEase.SourceGenerator.Implementation
                 IsDisposeMethod = SymbolEqualityComparer.Default.Equals(methodSymbol, this.wellKnownSymbols.IDisposable_Dispose),
             };
             model.HeaderAttributes.AddRange(attributes.Where(x => x.attribute is HeaderAttribute)
-                .Select(x => AttributeModel.Create((HeaderAttribute)x.attribute!, x.attributeData)));
+                .Select(x => AttributeModel.Create((HeaderAttribute)x.attribute, x.attributeData, methodSymbol)));
 
             model.Parameters.AddRange(methodSymbol.Parameters.Select(this.GetParameter));
 
@@ -128,8 +117,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
-                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
+                var (attribute, attributeData, type) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData, type);
             }
         }
 
@@ -154,8 +143,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             AttributeModel<T>? Get<T>() where T : Attribute
             {
-                var (attribute, attributeData) = attributes.FirstOrDefault(x => x.attribute is T);
-                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData);
+                var (attribute, attributeData, type) = attributes.FirstOrDefault(x => x.attribute is T);
+                return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData, type);
             }
         }
 

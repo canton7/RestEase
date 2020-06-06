@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RestEase.Implementation.Emission;
 
 namespace RestEase.SourceGenerator.Implementation
@@ -52,9 +53,11 @@ namespace RestEase.SourceGenerator.Implementation
             return this.lookup.ContainsKey(symbol);
         }
 
-        public IEnumerable<(Attribute? attribute, AttributeData attributeData)> Instantiate(ISymbol symbol, DiagnosticReporter diagnosticReporter)
+        public IEnumerable<(Attribute attribute, AttributeData attributeData, ISymbol declaringSymbol)> Instantiate(ISymbol symbol, DiagnosticReporter diagnosticReporter)
         {
-            return symbol.GetAttributes().Select(x => (this.Instantiate(x, diagnosticReporter), x));
+            return symbol.GetAttributes()
+                .Select(x => (this.Instantiate(x, diagnosticReporter), x, symbol))
+                .Where(x => x.Item1 != null)!;
         }
 
         public Attribute? Instantiate(AttributeData attributeData, DiagnosticReporter diagnosticReporter)

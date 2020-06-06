@@ -7,18 +7,25 @@ namespace RestEase.Implementation.Analysis
     {
         public AttributeData AttributeData { get; }
 
-        protected AttributeModel(AttributeData attributeData)
+        public ISymbol DeclaringSymbol { get; }
+
+        protected AttributeModel(AttributeData attributeData, ISymbol declaringSymbol)
         {
             this.AttributeData = attributeData;
+            this.DeclaringSymbol = declaringSymbol;
         }
 
-        public static AttributeModel<T> Create<T>(T attribute, AttributeData attributeData) where T : Attribute => new AttributeModel<T>(attribute, attributeData);
+        public static AttributeModel<T> Create<T>(T attribute, AttributeData attributeData, ISymbol declaringSymbol) where T : Attribute =>
+            new AttributeModel<T>(attribute, attributeData, declaringSymbol);
+
+        public bool IsDeclaredOn(TypeModel typeModel) =>
+            SymbolEqualityComparer.Default.Equals(this.DeclaringSymbol, typeModel.NamedTypeSymbol);
     }
 
     internal partial class AttributeModel<T> : AttributeModel where T : Attribute
     {
-        public AttributeModel(T attribute, AttributeData attributeData)
-            : base(attributeData)
+        public AttributeModel(T attribute, AttributeData attributeData, ISymbol declaringSymbol)
+            : base(attributeData, declaringSymbol)
         {
             this.Attribute = attribute;
         }

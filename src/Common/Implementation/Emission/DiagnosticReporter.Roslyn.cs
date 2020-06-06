@@ -70,11 +70,11 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface,
             "Parent interfaces may not have any [AllowAnyStatusCode] attributes",
             "Parent interface (of type '{0}') may not have an [AllowAnyStatusCode] attribute");
-        public void ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(TypeModel typeModel, AllowAnyStatusCodeAttributeModel attribute)
+        public void ReportAllowAnyStatusCodeAttributeNotAllowedOnParentInterface(TypeModel typeModel, AttributeModel<AllowAnyStatusCodeAttribute> attribute)
         {
             this.AddDiagnostic(
                 allowAnyStatusCodeAttributeNotAllowedOnParentInterface,
-                AttributeLocations(attribute, attribute.DeclaredOn),
+                AttributeLocations(attribute, attribute.DeclaringSymbol),
                 typeModel.NamedTypeSymbol.Name);
         }
 
