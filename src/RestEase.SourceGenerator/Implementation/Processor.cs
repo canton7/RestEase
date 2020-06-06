@@ -15,46 +15,17 @@ namespace RestEase.SourceGenerator.Implementation
 
         public void Process()
         {
-            //var visitedAssemblies = new HashSet<IAssemblySymbol>();
-            //var assembliesToProcess = new HashSet<IAssemblySymbol>();
-
-            //Visit(visitedAssemblies, assembliesToProcess, this.context.Compilation.Assembly);
-            //static void Visit(HashSet<IAssemblySymbol> visited, HashSet<IAssemblySymbol> toProcess, IAssemblySymbol assembly)
-            //{
-            //    bool hasRestEaseReference = false;
-            //    // For each assembly, if it's got RestEase as a reference, then process it. Recursively visit all of its dependencies
-            //    foreach (var module in assembly.Modules)
-            //    {
-            //        foreach (var referencedAssembly in module.ReferencedAssemblySymbols)
-            //        {
-            //            if (referencedAssembly.Name == "RestEase")
-            //            {
-            //                hasRestEaseReference = true;
-            //            }
-            //            else if (visited.Add(referencedAssembly))
-            //            {
-            //                Visit(visited, toProcess, referencedAssembly);
-            //            }
-            //        }
-            //    }
-
-            //    if (hasRestEaseReference)
-            //    {
-            //        toProcess.Add(assembly);
-            //    }
-            //}
-
-            //foreach (var assemblyToProcess in assembliesToProcess)
-            //{
-            //    assemblyToProcess.GlobalNamespace.Accept(this);
-            //}
-
-            this.context.Compilation.GlobalNamespace.Accept(this);
-
-            // Report the compilation-level diagnostics
-            foreach (var diagnostic in this.factory.GetCompilationDiagnostics())
+            try
             {
-                this.context.ReportDiagnostic(diagnostic);
+                this.context.Compilation.GlobalNamespace.Accept(this);
+            }
+            finally // Just in case we crash...
+            {
+                // Report the compilation-level diagnostics
+                foreach (var diagnostic in this.factory.GetCompilationDiagnostics())
+                {
+                    this.context.ReportDiagnostic(diagnostic);
+                }
             }
         }
 
