@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -23,13 +24,22 @@ namespace RestEase.SourceGenerator.Implementation
             this.wellKnownSymbols = new WellKnownSymbols(compilation, this.symbolsDiagnosticReporter);
             this.attributeInstantiator = new AttributeInstantiator(this.wellKnownSymbols);
             this.emitter = new Emitter(this.wellKnownSymbols);
+
+            // Catch any symbols errors from just instantiating WellKnownSymbols
+            this.symbolsDiagnostics.UnionWith(this.symbolsDiagnosticReporter.Diagnostics);
         }
 
         public bool IsRestEaseAttribute(INamedTypeSymbol namedTypeSymbol) =>
             this.attributeInstantiator.IsRestEaseAttribute(namedTypeSymbol);
 
-        public (SourceText? source, List<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
+        public (SourceText? source, IReadOnlyList<Diagnostic> diagnostics) CreateImplementation(INamedTypeSymbol namedTypeSymbol)
         {
+            // If we've got any symbols errors from just instantiating it, we're going to have a bad time. Give up now.
+            if (this.symbolsDiagnosticReporter.HasErrors)
+            {
+                return (null, Array.Empty<Diagnostic>());
+            }
+
             var diagnosticReporter = new DiagnosticReporter();
             var analyzer = new RoslynTypeAnalyzer(this.compilation, namedTypeSymbol, this.wellKnownSymbols, this.attributeInstantiator, diagnosticReporter);
             var typeModel = analyzer.Analyze();
