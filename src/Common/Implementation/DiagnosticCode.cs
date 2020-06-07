@@ -40,6 +40,7 @@
         InterfaceTypeMustBeAccessible = 31,
         AttributeConstructorNotRecognised = 32,
         AttributePropertyNotRecognised = 33,
+        CouldNotFindRestEaseAssembly = 34,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

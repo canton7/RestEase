@@ -329,6 +329,15 @@ namespace RestEase.Implementation.Emission
         // -----------------------------------------------------------
         // Not shared with the Emit DiagnosticReporter
 
+        private static readonly DiagnosticDescriptor couldNotFindRestEaseAssembly = CreateDescriptor(
+            DiagnosticCode.CouldNotFindRestEaseAssembly,
+            "Unable to find RestEase assembly",
+            "Unable to find the RestEase assembly. Make sure you are referencing a suitably recent version of RestEase");
+        public void ReportCouldNotFindRestEaseAssembly()
+        {
+            this.AddDiagnostic(couldNotFindRestEaseAssembly, Location.None);
+        }
+
         private static readonly DiagnosticDescriptor couldNotFindRestEaseType = CreateDescriptor(
             DiagnosticCode.CouldNotFindRestEaseType,
             "Unable to find RestEase type",

@@ -8,7 +8,7 @@ namespace RestEase.SourceGenerator.Implementation
     internal class WellKnownSymbols
     {
         private readonly Compilation compilation;
-        private readonly IAssemblySymbol restEaseAssembly;
+        private readonly IAssemblySymbol? restEaseAssembly;
         private readonly DiagnosticReporter diagnosticReporter;
 
         private INamedTypeSymbol? allowAnyStatusCodeAttribute;
@@ -119,9 +119,13 @@ namespace RestEase.SourceGenerator.Implementation
         public WellKnownSymbols(Compilation compilation, DiagnosticReporter diagnosticReporter)
         {
             this.compilation = compilation;
-            this.restEaseAssembly = GetReferencedAssemblies(compilation.Assembly)
-                .Single(x => x.Name == "RestEase");
             this.diagnosticReporter = diagnosticReporter;
+            this.restEaseAssembly = GetReferencedAssemblies(compilation.Assembly)
+                .FirstOrDefault(x => x.Name == "RestEase");
+            if (this.restEaseAssembly == null)
+            {
+                this.diagnosticReporter.ReportCouldNotFindRestEaseAssembly();
+            }
         }
 
         private static IEnumerable<IAssemblySymbol> GetReferencedAssemblies(IAssemblySymbol assembly)
@@ -131,6 +135,9 @@ namespace RestEase.SourceGenerator.Implementation
 
         private INamedTypeSymbol? LookupLocal(string metadataName)
         {
+            if (this.restEaseAssembly == null)
+                return null; // They've already got a diagnostic; they don't need more
+
             var type = this.restEaseAssembly.GetTypeByMetadataName(metadataName);
             if (type == null)
             {
@@ -141,8 +148,11 @@ namespace RestEase.SourceGenerator.Implementation
 
         private INamedTypeSymbol? LookupKnownSystem(string metadataName)
         {
+            if (this.restEaseAssembly == null)
+                return null; // We simply can't generate anything in this case anyway
+
             // We search the assemblies that the RestEase assembly references. That way we can be fairly sure
-            // that noone's created a time with the same name.
+            // that noone's created a type with the same name.
             foreach (var assembly in GetReferencedAssemblies(this.restEaseAssembly))
             {
                 // RestEase can reference netstandard, which forwards types
