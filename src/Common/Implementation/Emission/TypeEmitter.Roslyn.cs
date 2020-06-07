@@ -42,7 +42,7 @@ namespace RestEase.Implementation.Emission
             // They might have given the type a name like '@event', or it might have a type parameter like '@event'.
             // Therefore we need to escape the type parameters, but strip a leading @ from the class name
             this.typeName = this.typeNamePrefix +
-                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ClassName).TrimStart('@');
+                this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.TypeNameWithConstraints).TrimStart('@');
             this.qualifiedTypeName = "global::" + this.namespaceName + "." + this.typeName;
             this.requesterFieldName = this.GenerateFieldName("requester");
             if (this.typeModel.HeaderAttributes.Count > 0)
@@ -94,20 +94,8 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
             this.writer.WriteLine("[global::System.Runtime.CompilerServices.CompilerGenerated]");
 
-            // We want class C<T> : I<T> where T : ...
-            // However, ToDisplayString can only get us class C<T> where T : ...
-            // Therefore, string manipulation. Also, we need to get any generic constraints with full namespace
-            // (e.g. IEquatable<T>), but we don't want these for the type name.
-
-            this.writer.Write("internal class " + this.typeName + " : " + interfaceName);
-
-            string classDeclarationWithConstraints = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.QualifiedClassNameWithTypeConstraints);
-            int wherePosition = classDeclarationWithConstraints.IndexOf(" where");
-            if (wherePosition >= 0)
-            {
-                this.writer.Write(classDeclarationWithConstraints.Substring(wherePosition));
-            }
-            this.writer.WriteLine();
+            string interfaceNameWithConstraints = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.QualifiedTypeNameWithTypeConstraints);
+            this.writer.WriteLine("internal class " + this.typeName + " : " + interfaceNameWithConstraints);
 
             this.writer.WriteLine("{");
             this.writer.Indent++;

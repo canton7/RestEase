@@ -17,13 +17,13 @@ namespace RestEase.SourceGenerator.Implementation
         /// <summary>
         /// The name of a class, including type parameters, suitably escaped. E.g. "List&lt;T&gt;"
         /// </summary>
-        public static SymbolDisplayFormat ClassName { get; }
+        public static SymbolDisplayFormat TypeNameWithConstraints { get; }
 
         /// <summary>
         /// The fully-qualified name name of a class, including type parameters and constraints, suitably escaped.
         /// E.g. "global::My.Namespace.Foo&lt;T&gt; where T : global::System.Collections.Generic.IEnumerable&lt;T&gt;"
         /// </summary>
-        public static SymbolDisplayFormat QualifiedClassNameWithTypeConstraints { get; }
+        public static SymbolDisplayFormat QualifiedTypeNameWithTypeConstraints { get; }
 
         /// <summary>
         /// A type name, suitable for appending to a prefix for use as a constructor. No escaping.
@@ -110,11 +110,11 @@ namespace RestEase.SourceGenerator.Implementation
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-            ClassName = new SymbolDisplayFormat(
+            TypeNameWithConstraints = new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-            QualifiedClassNameWithTypeConstraints = new SymbolDisplayFormat(
+            QualifiedTypeNameWithTypeConstraints = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
