@@ -9,6 +9,7 @@
     <!-- See the nuspec -->
     <Version>0.0.0</Version>
     <NuspecFile>RestEase.SourceGenerator.nuspec</NuspecFile>
+    <NuspecProperties>version=$(Version)</NuspecProperties>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
   
