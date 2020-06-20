@@ -27,7 +27,7 @@ May break, as changes are made to the Source Generator tooling.
   </metadata>
 
   <files>
-    <file src="bin\Release\netstandard2.0\RestEase.SourceGenerator.dll" target="analyzers\dotnet\cs "/>
+    <file src="bin\Release\netstandard2.0\RestEase.SourceGenerator.dll" target="analyzers\dotnet\cs" />
     <file src="tools\*.ps1" target="tools\" />
     <file src="..\..\icon.png" target="\" />
   </files>

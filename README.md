@@ -52,8 +52,9 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
     4. [Variable Method Headers](#variable-method-headers)
         1. [Formatting Variable Method Headers](#formatting-variable-method-headers) 
     5. [Redefining Headers](#redefining-headers)
-12. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
-13. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+12. [Using HttpClientFactory](#using-httpclientfactory)
+13. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
+14. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
@@ -61,52 +62,31 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
         3. [Serializing request query parameters: `RequestQueryParamSerializer`](#serializing-request-query-parameters-requestqueryparamserializer)
         4. [Serializing request path parameters: `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer)
         5. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
-14. [Controlling the Requests](#controlling-the-requests)
+15. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
     3. [Adding to `HttpRequestMessage.Properties`](#adding-to-httprequestmessageproperties)
-15. [Customizing RestEase](#customizing-restease)
-16. [Interface Accessibility](#interface-accessibility)
-17. [Using Generic Interfaces](#using-generic-interfaces)
-18. [Using Generic Methods](#using-generic-methods)
-19. [Interface Inheritance](#interface-inheritance)
+16. [Customizing RestEase](#customizing-restease)
+17. [Interface Accessibility](#interface-accessibility)
+18. [Using Generic Interfaces](#using-generic-interfaces)
+19. [Using Generic Methods](#using-generic-methods)
+20. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-20. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+21. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-21. [FAQs](#faqs)
-22. [Comparison to Refit](#comparison-to-refit)
+22. [FAQs](#faqs)
+23. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
 ------------
 
-[RestEase is available on NuGet](https://www.nuget.org/packages/RestEase).
+[RestEase is available on NuGet](https://www.nuget.org/packages/RestEase). 
+See that page for installation instructions.
 
-Either open the package console and type:
-
-```
-PM> Install-Package RestEase
-```
-
-Or right-click your project -> Manage NuGet Packages... -> Online -> search for RestEase in the top right.
-
-This project uses [SourceLink](https://github.com/dotnet/sourcelink), so you can use the NuGet package but still have access to RestEase's source when debugging.
-Just tick "Enable source link support" in Options -> Debugging in VS 15.3+.
-
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), if you don't have VS 15.3+.
-To setup Visual Studio:
-
-1. Go to Tools -> Options -> Debugger -> General.
-2. Uncheck "Enable Just My Code (Managed only)".
-3. Uncheck "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order (see further on) and only use it's own servers.
-4. Check "Enable source server support".
-5. Uncheck "Require source files to exactly match the original version"
-6. Go to Tools -> Options -> Debugger -> Symbols.
-7. Select a folder for the local symbol/source cache. You may experience silent failures in getting symbols if it doesn't exist or is read-only for some reason.
-8. Add `http://srv.symbolsource.org/pdb/Public` under "Symbol file (.pdb) locations".
-
+If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory).
 
 Quick Start
 -----------
@@ -1072,14 +1052,54 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 
 ```
 
+Using HttpClientFactory
+-----------------------
+
+If you're using ASP.NET Core 2.1 or higher, you can set up RestEase to use HttpClientFactory. Add a reference to [RestEase.HttpClientFactory](https://nuget.org/packages/RestEase.HttpClientFactory), and add something similar to the following to your `ConfigureServices` method:
+
+```cs
+services.AddRestEaseClient<ISomeApi>("https://api.example.com");
+```
+
+If you want to configure the `RestClient` instance, for example to set a custom serializer, pass in an `Action<RestClient>`:
+
+```cs
+services.AddRestEaseClient<ISomeApi>("https://api.example.com", client =>
+{
+    client.RequestPathParamSerializer = new StringEnumRequestPathParamSerializer();
+});
+```
+
+An `IHttpClientBuilder` is returned, which you can call further methods on if needed:
+
+```cs
+services.AddRestEaseClient<ISomeApi>("https://api.example.com")
+    .AddHttpMessageHandler<SomeHandler>()
+    .SetHandlerLifetime(TimeSpan.FromMinutes(2));
+```
+
+You can then inject `ISomeApi` into your controllers:
+
+```cs
+public class SomeController : ControllerBase
+{
+    private readonly ISomeApi someApi;
+    public SomeController(ISomeApi someApi) => this.someApi = someApi;
+}
+```
+
+
 HttpClient and RestEase interface lifetimes
 -------------------------------------------
 
 Each instance of the interface which you define will create its own HttpClient instance.
-When using HttpClient, you should avoid creating and destroying many instances (e.g. one per client request in a web app): instead create a single instance and keep using it ([see here](https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/)).
+
+Prior to .NET Core 2.1, you should avoid creating and destroying many HttpClient instances (e.g. one per client request in a web app): instead create a single instance and keep using it ([see here](https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/)).
 
 When using RestEase, this means that you should create a single instance of your interface and reuse it.
-If you use properties (e.g. Path Properties or Header Properties) which are set more than once, you should instead create a singleton HttpClient, and pass it to `RestClient.For<T>` to create many instances of your interface which share the same HttpClient.
+If you use properties (e.g. Path Properties or Header Properties) which are set more than once, you could create a singleton HttpClient, and pass it to `RestClient.For<T>` to create many instances of your interface which share the same HttpClient.
+
+If you're using .NET Core 2.1+, don't worry: `HttpClient` works as expected.
 
 
 Controlling Serialization and Deserialization
