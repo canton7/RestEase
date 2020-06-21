@@ -6,6 +6,8 @@
 using SimpleExec;
 using static SimpleTasks.SimpleTask;
 
+#nullable enable
+
 string restEaseDir = "src/RestEase";
 string sourceGeneratorDir = "src/RestEase.SourceGenerator";
 
@@ -16,17 +18,20 @@ string nugetDir = "NuGet";
 
 CreateTask("build").Run((string versionOpt, string configurationOpt) =>
 {
-	string version = versionOpt ?? "0.0.0";
-	string configuration = configurationOpt ?? "Release";
-	Command.Run("dotnet", $"build --configuration={configuration} -p:ContinuousIntegrationBuild=true -p:Version=\"{version}\" \"{restEaseDir}\"");
-	Command.Run("dotnet", $"build --configuration={configuration} -p:Version=\"{version}\" \"{sourceGeneratorDir}\"");
+	var flags = CommonFlags(versionOpt, configurationOpt);
+	Command.Run("dotnet", $"build {flags}  -p:ContinuousIntegrationBuild=true \"{restEaseDir}\"");
+	Command.Run("dotnet", $"build {flags} \"{sourceGeneratorDir}\"");
 });
 
-CreateTask("package").Run((string version) =>
+CreateTask("package").DependsOn("build").Run((string version, string configurationOpt) =>
 {
-	Command.Run("dotnet", $"pack --configuration=Release -p:Version=\"{version}\" --output=\"{nugetDir}\" --include-symbols \"{restEaseDir}\"");
-	Command.Run("dotnet", $"pack --configuration=Release -p:Version=\"{version}\" --output=\"{nugetDir}\" \"{sourceGeneratorDir}\"");
+    var flags = CommonFlags(version, configurationOpt) + $" --no-build --output=\"{nugetDir}\"";
+	Command.Run("dotnet", $"pack {flags} --include-symbols \"{restEaseDir}\"");
+	Command.Run("dotnet", $"pack {flags} \"{sourceGeneratorDir}\"");
 });
+
+string CommonFlags(string? version, string? configuration) =>
+	$"--configuration={configuration ?? "Release"} -p:Version=\"{version ?? "0.0.0"}\"";
 
 CreateTask("test").Run(() =>
 {
