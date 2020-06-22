@@ -21,13 +21,13 @@ May break, as changes are made to the Source Generator tooling.
     <repository type="git" url="https://github.com/canton7/RestEase" />
     <dependencies>
       <group>
-        <dependency id="RestEase" version="[$version$,2.0)" />
+        <dependency id="RestEase" version="[$restEaseVersion$,2.0)" />
       </group>
     </dependencies>
   </metadata>
 
   <files>
-    <file src="bin\Release\netstandard2.0\RestEase.SourceGenerator.dll" target="analyzers\dotnet\cs" />
+    <file src="$outputPath$RestEase.SourceGenerator.dll" target="analyzers\dotnet\cs" />
     <file src="tools\*.ps1" target="tools\" />
     <file src="..\..\icon.png" target="\" />
   </files>

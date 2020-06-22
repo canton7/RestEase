@@ -22,7 +22,7 @@ CreateTask("build").Run((string versionOpt, string configurationOpt) =>
     var flags = CommonFlags(versionOpt, configurationOpt);
     Command.Run("dotnet", $"build {flags} -p:ContinuousIntegrationBuild=true \"{restEaseDir}\"");
     Command.Run("dotnet", $"build {flags} -p:ContinuousIntegrationBuild=true \"{httpClientFactoryDir}\"");
-    Command.Run("dotnet", $"build {flags} \"{sourceGeneratorDir}\"");
+    Command.Run("dotnet", $"build {flags} -p:VersionSuffix=\"preview\" \"{sourceGeneratorDir}\"");
 });
 
 CreateTask("package").DependsOn("build").Run((string version, string configurationOpt) =>
@@ -30,11 +30,11 @@ CreateTask("package").DependsOn("build").Run((string version, string configurati
     var flags = CommonFlags(version, configurationOpt) + $" --no-build --output=\"{nugetDir}\"";
     Command.Run("dotnet", $"pack {flags} --include-symbols \"{restEaseDir}\"");
     Command.Run("dotnet", $"pack {flags} --include-symbols \"{httpClientFactoryDir}\"");
-    Command.Run("dotnet", $"pack {flags} \"{sourceGeneratorDir}\"");
+    Command.Run("dotnet", $"pack {flags} -p:VersionSuffix=\"preview\" \"{sourceGeneratorDir}\"");
 });
 
 string CommonFlags(string? version, string? configuration) =>
-    $"--configuration={configuration ?? "Release"} -p:Version=\"{version ?? "0.0.0"}\"";
+    $"--configuration={configuration ?? "Release"} -p:VersionPrefix=\"{version ?? "0.0.0"}\"";
 
 CreateTask("test").Run(() =>
 {
