@@ -12,8 +12,8 @@
     <description>
 Source generator for RestEase.
       
-Requires preview versions of Visual Studio and .NET 5, and &lt;LangVersion&gt;latest&lt;/LangVersion&gt;. Please see https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/ .
-      
+Requires preview versions of Visual Studio and .NET 5, and &lt;LangVersion&gt;latest&lt;/LangVersion&gt;. Please see https://github.com/canton7/RestEase/issues/158 .
+
 May break, as changes are made to the Source Generator tooling.
     </description>
     <copyright>Copyright © Antony Male 2015-2020</copyright>
