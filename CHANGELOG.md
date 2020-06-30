@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v1.5.0
+------
+
+ - Support content-related headers on a method, even if the method doesn't specify a body (#156)
+ - Add the RestEase.SourceGenerator NuGet package (currently in preview)
+ - Add the RestEase.HttpClientFactory NuGet package
+
 v1.4.12
 -------
 
