@@ -17,6 +17,8 @@ namespace RestEase
         private static readonly MethodInfo forInstanceGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && !x.IsStatic && x.GetParameters().Length == 0 && x.IsGenericMethod);
         private static readonly MethodInfo forStaticGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && x.IsStatic && x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(IRequester) && x.IsGenericMethod);
 
+        private static readonly ImplementationFactory factory = new ImplementationFactory();
+
         /// <summary>
         /// Name of the assembly in which interface implementations are built. Use in [assembly: InternalsVisibleTo(RestEase.FactoryAssemblyName)] to allow clients to be generated for internal interface types
         /// </summary>
@@ -186,7 +188,7 @@ namespace RestEase
         public T For<T>()
         {
             var requester = this.CreateRequester();
-            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
+            return factory.CreateImplementation<T>(requester);
         }
 
         private Requester CreateRequester()
@@ -246,7 +248,7 @@ namespace RestEase
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(IRequester requester)
         {
-            return ImplementationBuilder.Instance.CreateImplementation<T>(requester);
+            return factory.CreateImplementation<T>(requester);
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
-﻿using RestEase.Implementation;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
 using System;
 using System.IO;

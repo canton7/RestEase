@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using RestEase.Platform;
-using System.Reflection;
 
 namespace RestEase.Implementation
 {
@@ -392,31 +387,34 @@ namespace RestEase.Implementation
                 // If we failed, it's probably a content header. Try again there
                 if (!added)
                 {
-                    // If they added a [Body] parameter, but passed null, and they've got headers on the method which
-                    // apply to the body, then add an empty body we can apply those headers to.
-                    if (requestInfo.BodyParameterInfo != null && requestMessage.Content == null && areMethodHeaders)
-                    {
-                        requestMessage.Content = new ByteArrayContent(new byte[0]);
-                    }
+                    // If it's a method header, then add a dummy body if necessary
+                    // If it's a class header, then throw only if it isn't a content header (but don't add a dummy body containing it)
                     if (requestMessage.Content != null)
                     {
                         if (requestMessage.Content.Headers.Any(x => x.Key == headersGroup.Key))
                             requestMessage.Content.Headers.Remove(headersGroup.Key);
                         added = requestMessage.Content.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                     }
-                    else if (!areMethodHeaders)
+                    else
                     {
-                        // If we're here, then there's no content, and either there's no [Body] parameter, or there is
-                        // but they passed null to it, and this header is specified on the class.
-                        // See if it could be added to a content, and ignore it if so.
+                        // If they've added a content header, my reading of the RFC is that we are actually sending a body (even if they haven't
+                        // said what should be in it), and therefore we need to send Content-Length
                         if (dummyContent == null)
+                        {
                             dummyContent = new ByteArrayContent(new byte[0]);
+                        }
+
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
+                        if (added && areMethodHeaders)
+                        {
+                            requestMessage.Content = dummyContent;
+                        }
                     }
                 }
 
+                // Technically this can be triggered, but I can't come up with any inputs which will
                 if (!added)
-                    throw new ArgumentException(string.Format("Header {0} could not be added. Maybe it's a content-related header but there's no content, or it's associated with HTTP responses, or it's malformed?", headersGroup.Key));
+                    throw new ArgumentException($"Header {headersGroup.Key} could not be added. Maybe it's associated with HTTP responses, or it's malformed?");
             }
         }
 

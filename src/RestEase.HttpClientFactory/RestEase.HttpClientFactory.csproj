@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- See the nuspec -->
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <NuspecFile>RestEase.HttpClientFactory.nuspec</NuspecFile>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <Deterministic>true</Deterministic>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.0" />
+    <ProjectReference Include="../RestEase/RestEase.csproj" />
+  </ItemGroup>
+
+  <Target Name="SetNuspecProperties" BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <NuspecProperties>outputPath=$(OutputPath);version=$(PackageVersion)</NuspecProperties>
+    </PropertyGroup>
+  </Target>
+</Project>
