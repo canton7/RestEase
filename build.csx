@@ -1,9 +1,8 @@
 #!/usr/bin/env dotnet-script
 
-#r "nuget: SimpleTasks, 0.9.1"
-#r "nuget: SimpleExec, 6.2.0"
+#r "nuget: SimpleTasks, 0.9.4"
 
-using SimpleExec;
+using SimpleTasks;
 using static SimpleTasks.SimpleTask;
 
 #nullable enable
