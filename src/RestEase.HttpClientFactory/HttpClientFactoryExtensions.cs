@@ -27,7 +27,31 @@ namespace RestEase.HttpClientFactory
             RequestModifier? requestModifier = null)
             where T : class
         {
-            return services.AddRestEaseClientCore(typeof(T), basePath, requestModifier, httpClient =>
+            return services.AddRestEaseClientCore(typeof(T), ToUri(basePath), requestModifier, httpClient =>
+            {
+                var restClient = new RestClient(httpClient);
+                configurer?.Invoke(restClient);
+                return restClient.For<T>();
+            });
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type
+        /// </summary>
+        /// <typeparam name="T">Type of the RestEase interface</typeparam>
+        /// <param name="services">Contains to add to</param>
+        /// <param name="baseUri">Base URI to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
+        /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
+        /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        public static IHttpClientBuilder AddRestEaseClient<T>(
+            this IServiceCollection services,
+            Uri? baseUri,
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
+            where T : class
+        {
+            return services.AddRestEaseClientCore(typeof(T), baseUri, requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
@@ -54,7 +78,34 @@ namespace RestEase.HttpClientFactory
             if (restEaseType is null)
                 throw new ArgumentNullException(nameof(restEaseType));
 
-            return services.AddRestEaseClientCore(restEaseType, basePath, requestModifier, httpClient =>
+            return services.AddRestEaseClientCore(restEaseType, ToUri(basePath), requestModifier, httpClient =>
+            {
+                var restClient = new RestClient(httpClient);
+                configurer?.Invoke(restClient);
+                return restClient.For(restEaseType);
+            });
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type
+        /// </summary>
+        /// <param name="restEaseType">Type of the RestEase interface</param>
+        /// <param name="services">Contains to add to</param>
+        /// <param name="baseUri">Base URI to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
+        /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
+        /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        public static IHttpClientBuilder AddRestEaseClient(
+            this IServiceCollection services,
+            Type restEaseType,
+            Uri? baseUri,
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
+        {
+            if (restEaseType is null)
+                throw new ArgumentNullException(nameof(restEaseType));
+
+            return services.AddRestEaseClientCore(restEaseType, baseUri, requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
@@ -65,7 +116,7 @@ namespace RestEase.HttpClientFactory
         private static IHttpClientBuilder AddRestEaseClientCore(
             this IServiceCollection services,
             Type restEaseType,
-            string? basePath,
+            Uri? baseUri,
             RequestModifier? requestModifier,
             Func<HttpClient, object> factory)
         {
@@ -74,9 +125,9 @@ namespace RestEase.HttpClientFactory
 
             var builder = services.AddHttpClient(UniqueNameForType(restEaseType), httpClient =>
             {
-                if (basePath != null)
+                if (baseUri != null)
                 {
-                    httpClient.BaseAddress = new Uri(basePath);
+                    httpClient.BaseAddress = baseUri;
                 }
             }).AddTypedClient(factory);
 
@@ -87,6 +138,9 @@ namespace RestEase.HttpClientFactory
 
             return builder;
         }
+
+        private static Uri? ToUri(string? uri) =>
+            uri == null ? null : new Uri(uri);
 
         private static string UniqueNameForType(Type type)
         {
