@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Reflection;
+using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using RestEase.Implementation;
 
 namespace RestEase.HttpClientFactory
 {
@@ -17,17 +18,16 @@ namespace RestEase.HttpClientFactory
         /// <param name="services">Contains to add to</param>
         /// <param name="basePath">Base path to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
-        public static IHttpClientBuilder AddRestEaseClient<T>(this IServiceCollection services, string? basePath, Action<RestClient>? configurer = null)
+        public static IHttpClientBuilder AddRestEaseClient<T>(
+            this IServiceCollection services,
+            string? basePath,
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
             where T : class
         {
-            return services.AddHttpClient(UniqueNameForType(typeof(T)), httpClient =>
-            {
-                if (basePath != null)
-                {
-                    httpClient.BaseAddress = new Uri(basePath);
-                }
-            }).AddTypedClient(httpClient =>
+            return services.AddRestEaseClientCore(typeof(T), basePath, requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
@@ -42,21 +42,50 @@ namespace RestEase.HttpClientFactory
         /// <param name="services">Contains to add to</param>
         /// <param name="basePath">Base path to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
-        public static IHttpClientBuilder AddRestEaseClient(this IServiceCollection services, Type restEaseType, string? basePath, Action<RestClient>? configurer = null)
+        public static IHttpClientBuilder AddRestEaseClient(
+            this IServiceCollection services,
+            Type restEaseType,
+            string? basePath,
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
         {
-            return services.AddHttpClient(UniqueNameForType(restEaseType), httpClient =>
-            {
-                if (basePath != null)
-                {
-                    httpClient.BaseAddress = new Uri(basePath);
-                }
-            }).AddTypedClient(httpClient =>
+            if (restEaseType is null)
+                throw new ArgumentNullException(nameof(restEaseType));
+
+            return services.AddRestEaseClientCore(restEaseType, basePath, requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
                 return restClient.For(restEaseType);
             });
+        }
+
+        private static IHttpClientBuilder AddRestEaseClientCore(
+            this IServiceCollection services,
+            Type restEaseType,
+            string? basePath,
+            RequestModifier? requestModifier,
+            Func<HttpClient, object> factory)
+        {
+            if (services is null)
+                throw new ArgumentNullException(nameof(services));
+
+            var builder = services.AddHttpClient(UniqueNameForType(restEaseType), httpClient =>
+            {
+                if (basePath != null)
+                {
+                    httpClient.BaseAddress = new Uri(basePath);
+                }
+            }).AddTypedClient(factory);
+
+            if (requestModifier != null)
+            {
+                builder = builder.ConfigurePrimaryHttpMessageHandler(() => new ModifyingClientHttpHandler(requestModifier));
+            }
+
+            return builder;
         }
 
         private static string UniqueNameForType(Type type)
