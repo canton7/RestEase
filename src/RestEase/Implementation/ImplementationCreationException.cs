@@ -3,6 +3,8 @@
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Exception thrown if an interface implementation cannot be created
     /// </summary>
     public class ImplementationCreationException : Exception

@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 namespace RestEase.Implementation
 {
     /// <summary>
-    /// HttpClientHandler which uses a delegate to modify 
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
+    /// HttpClientHandler which uses a delegate to modify requests
     /// </summary>
     public class ModifyingClientHttpHandler : HttpClientHandler
     {

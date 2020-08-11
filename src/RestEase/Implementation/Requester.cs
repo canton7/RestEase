@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 namespace RestEase.Implementation
 {
     /// <summary>
-    /// Clas used by generated implementations to make HTTP requests
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
+    /// Class used by generated implementations to make HTTP requests
     /// </summary>
     public class Requester : IRequester
     {

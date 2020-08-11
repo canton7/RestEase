@@ -3,6 +3,8 @@
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a raw query parameter
     /// </summary>
     public abstract class RawQueryParameterInfo
@@ -16,6 +18,8 @@ namespace RestEase.Implementation
     }
 
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a raw query parameter
     /// </summary>
     /// <typeparam name="T">Type of value providing the raw query parameter</typeparam>

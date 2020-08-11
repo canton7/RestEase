@@ -4,6 +4,8 @@ using System.Net.Http;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a desired request body
     /// </summary>
     public abstract class BodyParameterInfo
@@ -40,6 +42,8 @@ namespace RestEase.Implementation
     }
 
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a desired request body
     /// </summary>
     /// <typeparam name="T">Type of the value</typeparam>

@@ -9,6 +9,8 @@ using System.Threading;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information to construct a request from.
     /// An instance of this is created per request by the generated interface implementation
     /// </summary>

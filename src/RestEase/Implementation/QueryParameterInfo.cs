@@ -5,6 +5,8 @@ using System.Linq;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a desired query parameter
     /// </summary>
     public abstract class QueryParameterInfo
@@ -32,6 +34,8 @@ namespace RestEase.Implementation
     }
 
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a desired query parameter
     /// </summary>
     /// <typeparam name="T">Type of the value</typeparam>

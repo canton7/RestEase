@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace RestEase.Implementation
 {
     /// <summary>
-    /// Internal type. Do not use.
+    /// Internal type. Do not use!
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]

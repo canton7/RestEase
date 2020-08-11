@@ -9,6 +9,8 @@ using RestEase.Platform;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Helper to iterate both IDictionary and IDictionary{TKey, TValue} instances, as if both were IEnumerable{KeyValuePair{object, object}}
     /// </summary>
     public static class DictionaryIterator
