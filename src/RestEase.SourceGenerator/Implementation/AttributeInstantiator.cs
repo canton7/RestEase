@@ -368,7 +368,7 @@ namespace RestEase.SourceGenerator.Implementation
             {
                 attribute = new HeaderAttribute(
                     (string)attributeData.ConstructorArguments[0].Value!,
-                    (string)attributeData.ConstructorArguments[1].Value!);
+                    (string?)attributeData.ConstructorArguments[1].Value);
             }
 
             if (attribute != null)

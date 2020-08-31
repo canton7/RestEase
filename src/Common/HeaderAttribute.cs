@@ -47,7 +47,7 @@ namespace RestEase
         /// </summary>
         /// <param name="name">Name of the header</param>
         /// <param name="value">Value of the header</param>
-        public HeaderAttribute(string name, string value)
+        public HeaderAttribute(string name, string? value)
         {
             this.Name = name;
             this.Value = value;
