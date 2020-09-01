@@ -157,6 +157,11 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine(this.requestInfoLocalName + ".AllowAnyStatusCode = true;");
         }
 
+        public void EmitSetBaseAddress(string baseAddress)
+        {
+            this.writer.WriteLine(this.requestInfoLocalName + ".BaseAddress = " + QuoteString(baseAddress) + ";");
+        }
+
         public void EmitSetBasePath(string basePath)
         {
             this.writer.WriteLine(this.requestInfoLocalName + ".BasePath = " + QuoteString(basePath) + ";");

@@ -109,11 +109,25 @@ namespace RestEase.Implementation.Emission
                 $"Property {property.PropertyInfo.Name}: there must not be more than one property of type {nameof(IRequester)}");
         }
 
-        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel _, AttributeModel<BasePathAttribute> _2, string basePath, string missingParam)
+        public void ReportBaseAddressMustBeAbsolute(TypeModel _, AttributeModel<BaseAddressAttribute> attribute)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.BaseAddressMustBeAbsolute,
+                $"Base address '{attribute.Attribute.BaseAddress}' must be an absolute URI");
+        }
+
+        public void ReportMissingPathPropertyForBaseAddressPlaceholder(TypeModel _, AttributeModel<BaseAddressAttribute> attribute, string missingParam)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.MissingPathPropertyForBaseAddressPlaceholder,
+                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BaseAddress(\"{attribute.Attribute.BaseAddress}\")]");
+        }
+
+        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel _, AttributeModel<BasePathAttribute> attribute, string missingParam)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
-                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");
+                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{attribute.Attribute.BasePath}\")]");
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)

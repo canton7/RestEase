@@ -22,7 +22,12 @@ namespace RestEase.Implementation
         public HttpMethod Method { get; }
 
         /// <summary>
-        /// Gets or sets the path which should be prepended to <see cref="Path"/> if any
+        /// Gets the path which should be prepended to <see cref="Path"/>, if any
+        /// </summary>
+        public string? BaseAddress { get; set; }
+
+        /// <summary>
+        /// Gets the path which should be prepended to <see cref="Path"/> unless <see cref="Path"/> starts with a '/', if any
         /// </summary>
         public string? BasePath { get; set; }
 

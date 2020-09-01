@@ -20,6 +20,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             this.lookup = new Dictionary<INamedTypeSymbol, Parser>(19, SymbolEqualityComparer.Default);
             Add(this.wellKnownSymbols.AllowAnyStatusCodeAttribute, this.ParseAllowAnyStatusCodeAttribute);
+            Add(this.wellKnownSymbols.BaseAddressAttribute, this.ParseBaseAddressAttribute);
             Add(this.wellKnownSymbols.BasePathAttribute, this.ParseBasePathAttribute);
             Add(this.wellKnownSymbols.PathAttribute, this.ParsePathAttribute);
             Add(this.wellKnownSymbols.QueryAttribute, this.ParseQueryAttribute);
@@ -103,6 +104,30 @@ namespace RestEase.SourceGenerator.Implementation
                     {
                         diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument, declaringSymbol);
                     }
+                }
+            }
+            else
+            {
+                diagnosticReporter.ReportAttributeConstructorNotRecognised(attributeData, declaringSymbol);
+            }
+
+            return attribute;
+        }
+
+        private Attribute? ParseBaseAddressAttribute(AttributeData attributeData, ISymbol declaringSymbol, DiagnosticReporter diagnosticReporter)
+        {
+            BaseAddressAttribute? attribute = null;
+            if (attributeData.ConstructorArguments.Length == 1 &&
+                attributeData.ConstructorArguments[0].Type.SpecialType == SpecialType.System_String)
+            {
+                attribute = new BaseAddressAttribute((string)attributeData.ConstructorArguments[0].Value!);
+            }
+
+            if (attribute != null)
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    diagnosticReporter.ReportAttributePropertyNotRecognised(attributeData, namedArgument, declaringSymbol);
                 }
             }
             else

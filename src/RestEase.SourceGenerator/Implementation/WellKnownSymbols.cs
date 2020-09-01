@@ -14,6 +14,9 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? allowAnyStatusCodeAttribute;
         public INamedTypeSymbol? AllowAnyStatusCodeAttribute => this.allowAnyStatusCodeAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.AllowAnyStatusCodeAttribute));
 
+        private INamedTypeSymbol? baseAddressAttribute;
+        public INamedTypeSymbol? BaseAddressAttribute => this.baseAddressAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.BaseAddressAttribute));
+
         private INamedTypeSymbol? basePathAttribute;
         public INamedTypeSymbol? BasePathAttribute => this.basePathAttribute ??= this.LookupLocal("RestEase." + nameof(RestEase.BasePathAttribute));
 

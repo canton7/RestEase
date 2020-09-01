@@ -30,6 +30,7 @@ namespace RestEase.Implementation
             var typeModel = new TypeModel(this.interfaceType)
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                BaseAddressAttribute = Get<BaseAddressAttribute>(),
                 BasePathAttribute = Get<BasePathAttribute>(),
                 IsAccessible = IsAccessible(this.interfaceTypeInfo),
             };

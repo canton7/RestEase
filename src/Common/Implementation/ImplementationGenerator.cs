@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using RestEase.Implementation.Analysis;
@@ -55,6 +56,7 @@ namespace RestEase.Implementation
 
             var typeEmitter = this.emitter.EmitType(this.typeModel);
 
+            this.ValidateBaseAddress();
             this.ValidatePathProperties();
             this.ValidateHttpRequestMessageProperties();
             var emittedProperties = this.GenerateProperties(typeEmitter);
@@ -184,6 +186,11 @@ namespace RestEase.Implementation
                 if (resolvedAllowAnyStatusCode?.Attribute.AllowAnyStatusCode == true)
                 {
                     methodEmitter.EmitSetAllowAnyStatusCode();
+                }
+
+                if (this.typeModel.BaseAddressAttribute?.Attribute.BaseAddress != null)
+                {
+                    methodEmitter.EmitSetBaseAddress(this.typeModel.BaseAddressAttribute.Attribute.BaseAddress);
                 }
 
                 if (this.typeModel.BasePathAttribute?.Attribute.BasePath != null)
@@ -321,6 +328,32 @@ namespace RestEase.Implementation
             }
         }
 
+        private void ValidateBaseAddress()
+        {
+            var baseAddress = this.typeModel.BaseAddressAttribute;
+            if (baseAddress == null)
+            {
+                return;
+            }
+
+            Uri uri;
+            try
+            {
+                // We expect an absolute URI
+                uri = new Uri(baseAddress.Attribute.BaseAddress, UriKind.RelativeOrAbsolute);
+            }
+            catch
+            {
+                // If there's a problem parsing it, leave that to fail at runtime.
+                return;
+            }
+
+            if (!uri.IsAbsoluteUri)
+            {
+                this.diagnostics.ReportBaseAddressMustBeAbsolute(this.typeModel, baseAddress);
+            }
+        }
+
         private void ValidatePathProperties()
         {
             var pathProperties = this.typeModel.Properties.Where(x => x.PathAttribute != null);
@@ -332,18 +365,32 @@ namespace RestEase.Implementation
                 this.diagnostics.ReportMultiplePathPropertiesForKey(properties.Key, properties);
             }
 
+            string? baseAddress = this.typeModel.BaseAddressAttribute?.Attribute.BaseAddress;
+            if (baseAddress != null)
+            {
+                foreach (string missingParam in GetMissingParams(baseAddress))
+                {
+                    this.diagnostics.ReportMissingPathPropertyForBaseAddressPlaceholder(this.typeModel, this.typeModel.BaseAddressAttribute!, missingParam);
+                }
+            }
+
             string? basePath = this.typeModel.BasePathAttribute?.Attribute.BasePath;
             if (basePath != null)
             {
+                foreach (string missingParam in GetMissingParams(basePath))
+                {
+                    this.diagnostics.ReportMissingPathPropertyForBasePathPlaceholder(this.typeModel, this.typeModel.BasePathAttribute!, missingParam);
+                }
+            }
+
+            IEnumerable<string> GetMissingParams(string path)
+            {
                 // Check that each placeholder in the base path has a matching path property, and vice versa.
                 // We don't consider path parameters here.
-                var placeholders = pathParamMatch.Matches(basePath).Cast<Match>().Select(x => x.Groups[1].Value).ToList();
+                var placeholders = pathParamMatch.Matches(path).Cast<Match>().Select(x => x.Groups[1].Value);
 
                 var missingParams = placeholders.Except(pathProperties.Select(x => x.PathAttributeName!));
-                foreach (string missingParam in missingParams)
-                {
-                    this.diagnostics.ReportMissingPathPropertyForBasePathPlaceholder(this.typeModel, this.typeModel.BasePathAttribute!, basePath, missingParam);
-                }
+                return missingParams.Distinct();
             }
         }
 

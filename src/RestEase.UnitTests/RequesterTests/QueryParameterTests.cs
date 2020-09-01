@@ -27,7 +27,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter<object>(QuerySerializationMethod.ToString, "bar", null);
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
 
@@ -43,7 +43,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestQueryParamSerializer = queryParameterSerializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=foo"), uri);
 
             queryParameterSerializer.VerifyAll();
@@ -54,7 +54,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryCollectionParameter<object>(QuerySerializationMethod.ToString, "foo", null);
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
 
@@ -63,7 +63,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryCollectionParameter<object>(QuerySerializationMethod.ToString, "foo", new[] { "bar", null, "baz" });
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&foo=baz"), uri);
         }
 
@@ -79,7 +79,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestQueryParamSerializer = queryParameterSerializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=foo"), uri);
 
             queryParameterSerializer.VerifyAll();
@@ -97,7 +97,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestQueryParamSerializer = queryParameterSerializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=foo&bar=baz"), uri);
 
             queryParameterSerializer.VerifyAll();
@@ -110,7 +110,7 @@ namespace RestEase.UnitTests.RequesterTests
             var objectMock = new Mock<HasToString>();
             objectMock.Setup(x => x.ToString()).Returns("BOOM").Verifiable();
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "bar", objectMock.Object);
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             objectMock.VerifyAll();
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOM"), uri);
@@ -123,7 +123,7 @@ namespace RestEase.UnitTests.RequesterTests
             var objectMock = new Mock<IFormattable>();
             objectMock.Setup(x => x.ToString("D3", null)).Returns("BOOM").Verifiable();
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "bar", objectMock.Object, "{0,6:D3}");
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             objectMock.VerifyAll();
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=++BOOM"), uri);
@@ -136,7 +136,7 @@ namespace RestEase.UnitTests.RequesterTests
             var objectMock = new Mock<IFormattable>();
             objectMock.Setup(x => x.ToString("D3", null)).Returns("BOOM").Verifiable();
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "bar", objectMock.Object, "D3");
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             objectMock.VerifyAll();
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOM"), uri);
@@ -151,7 +151,7 @@ namespace RestEase.UnitTests.RequesterTests
             objectMock1.Setup(x => x.ToString()).Returns("BOOM1").Verifiable();
             objectMock2.Setup(x => x.ToString()).Returns("BOOM2").Verifiable();
             requestInfo.AddQueryCollectionParameter(QuerySerializationMethod.ToString, "bar", new[] { objectMock1.Object, null, objectMock2.Object });
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOM1&bar=BOOM2"), uri);
 
@@ -165,7 +165,7 @@ namespace RestEase.UnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "bar", "boom");
             this.requester.RequestQueryParamSerializer = null;
-            Assert.Throws<InvalidOperationException>(() => this.requester.ConstructUri(null, "/foo", requestInfo));
+            Assert.Throws<InvalidOperationException>(() => this.requester.ConstructUri("/foo", requestInfo));
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY") }).Verifiable();
             this.requester.RequestQueryParamSerializer = serializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             serializer.VerifyAll();
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOMYAY"), uri);
@@ -198,7 +198,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Returns(new[] { new KeyValuePair<string, string>("bar", "BOOMYAY") }).Verifiable();
             this.requester.RequestQueryParamSerializer = serializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             serializer.VerifyAll();
         }
@@ -216,7 +216,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestQueryParamSerializer = serializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             serializer.VerifyAll();
             Assert.Equal(new Uri("http://api.example.com/base/foo?bar=BOOMYAY&bar=BOOMWOO"), uri);
@@ -235,7 +235,7 @@ namespace RestEase.UnitTests.RequesterTests
                 .Verifiable();
             this.requester.RequestQueryParamSerializer = serializer.Object;
 
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
 
             serializer.VerifyAll();
         }
@@ -250,7 +250,7 @@ namespace RestEase.UnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.Serialized, "name", "value");
             this.requester.RequestQueryParamSerializer = serializer.Object;
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo"), uri);
         }
 
@@ -263,7 +263,7 @@ namespace RestEase.UnitTests.RequesterTests
             queryMap.foo = "bar";
             queryMap.baz = "yay";
             requestInfo.AddQueryMap(QuerySerializationMethod.ToString, queryMap);
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&baz=yay"), uri);
         }
 
@@ -276,7 +276,7 @@ namespace RestEase.UnitTests.RequesterTests
                 { "foo", "bar" },
                 { "baz", "yay" },
             });
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&baz=yay"), uri);
         }
 
@@ -289,7 +289,7 @@ namespace RestEase.UnitTests.RequesterTests
                 { "foo", "bar" },
                 { "baz", null },
             });
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar"), uri);
         }
 
@@ -301,7 +301,7 @@ namespace RestEase.UnitTests.RequesterTests
             {
                 { "foo", new[] { "bar", "baz" } },
             });
-            var uri = this.requester.ConstructUri(null, "/foo", requestInfo);
+            var uri = this.requester.ConstructUri("/foo", requestInfo);
             Assert.Equal(new Uri("http://api.example.com/base/foo?foo=bar&foo=baz"), uri);
         }
 
@@ -310,7 +310,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "fo o", "a ?b/c");
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?fo+o=a+%3fb%2fc", uri.ToString(), ignoreCase: true);
         }
 
@@ -319,7 +319,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
-            var uri = this.requester.ConstructUri(null, "a", requestInfo);
+            var uri = this.requester.ConstructUri("a", requestInfo);
             Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo", uri.ToString(), ignoreCase: true);
         }
 
@@ -329,7 +329,7 @@ namespace RestEase.UnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
             requestInfo.AddRawQueryParameter("bar=foo&woo=baz");
-            var uri = this.requester.ConstructUri(null, "a", requestInfo);
+            var uri = this.requester.ConstructUri("a", requestInfo);
             Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo&bar=foo&woo=baz", uri.ToString(), ignoreCase: true);
         }
 
@@ -339,7 +339,7 @@ namespace RestEase.UnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "a", "&b");
-            var uri = this.requester.ConstructUri(null, "a", requestInfo);
+            var uri = this.requester.ConstructUri("a", requestInfo);
             Assert.Equal("http://api.example.com/base/a?foo=bar&baz=woo&a=%26b", uri.ToString(), ignoreCase: true);
         }
 
@@ -348,7 +348,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddRawQueryParameter("foo=bar&baz=woo");
-            var uri = this.requester.ConstructUri(null, "a?b=c", requestInfo);
+            var uri = this.requester.ConstructUri("a?b=c", requestInfo);
             Assert.Equal("http://api.example.com/base/a?b=c&foo=bar&baz=woo", uri.ToString(), ignoreCase: true);
         }
 
@@ -359,7 +359,7 @@ namespace RestEase.UnitTests.RequesterTests
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "&ba r=");
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, null, "?yay?");
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, string.Empty, "?baz");
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?%26ba+r%3d&%3fyay%3f&=%3fbaz", uri.ToString(), ignoreCase: true);
         }
 
@@ -368,7 +368,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "key", "héllo");
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?key=héllo", uri.ToString(), ignoreCase: true);
             Assert.Equal("http://api.example.com/base/foo?key=h%C3%A9llo", uri.AbsoluteUri.ToString(), ignoreCase: true);
         }
@@ -378,7 +378,7 @@ namespace RestEase.UnitTests.RequesterTests
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryProperty(QuerySerializationMethod.ToString, "foo", "bar");
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?foo=bar", uri.ToString(), ignoreCase: true);
         }
 
@@ -388,7 +388,7 @@ namespace RestEase.UnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryProperty(QuerySerializationMethod.ToString, "foo", "bar");
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "foo", "baz");
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?foo=baz&foo=bar", uri.ToString(), ignoreCase: true);
         }
 
@@ -398,7 +398,7 @@ namespace RestEase.UnitTests.RequesterTests
             var requestInfo = new RequestInfo(HttpMethod.Get, null);
             requestInfo.AddQueryProperty<string>(QuerySerializationMethod.ToString, "foo", null);
             requestInfo.AddQueryParameter(QuerySerializationMethod.ToString, "foo", "baz");
-            var uri = this.requester.ConstructUri(null, "foo", requestInfo);
+            var uri = this.requester.ConstructUri("foo", requestInfo);
             Assert.Equal("http://api.example.com/base/foo?foo=baz", uri.ToString(), ignoreCase: true);
         }
     }

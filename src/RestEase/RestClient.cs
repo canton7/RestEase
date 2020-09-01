@@ -96,60 +96,76 @@ namespace RestEase
         public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
+        /// or should only use absolute paths.
+        /// </summary>
+        public RestClient() : this((string?)null) { }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
+        /// or should only use absolute paths.
+        /// </summary>
+        public RestClient(RequestModifier requestModifier) : this((string?)null, requestModifier) { }
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
-        /// <param name="baseUrl">Base URL of the API</param>
-        public RestClient(string baseUrl)
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        public RestClient(string? baseUrl)
         {
-            if (baseUrl == null)
-                throw new ArgumentNullException(nameof(baseUrl));
-
-            this.httpClient = this.Initialize(new HttpClientHandler(), new Uri(baseUrl));
+            this.httpClient = this.Initialize(new HttpClientHandler(), baseUrl == null ? null : new Uri(baseUrl));
         }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
-        /// <param name="baseUrl">Base URL of the API</param>
-        public RestClient(Uri baseUrl)
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        public RestClient(Uri? baseUrl)
         {
-            if (baseUrl == null)
-                throw new ArgumentNullException(nameof(baseUrl));
-
             this.httpClient = this.Initialize(new HttpClientHandler(), baseUrl);
         }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
         /// </summary>
-        /// <param name="baseUrl">Base URL of the API</param>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)</param>
         /// <param name="requestModifier">Delegate called on every request</param>
-        public RestClient(string baseUrl, RequestModifier requestModifier)
+        public RestClient(string? baseUrl, RequestModifier requestModifier)
         {
-            if (baseUrl == null)
-                throw new ArgumentNullException(nameof(baseUrl));
             if (requestModifier == null)
                 throw new ArgumentNullException(nameof(requestModifier));
 
-            this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), new Uri(baseUrl));
+            this.httpClient = this.Initialize(
+                new ModifyingClientHttpHandler(requestModifier),
+                baseUrl == null ? null : new Uri(baseUrl));
         }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
         /// </summary>
-        /// <param name="baseUrl">Base URL of the API</param>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)</param>
         /// <param name="requestModifier">Delegate called on every request</param>
-        public RestClient(Uri baseUrl, RequestModifier requestModifier)
+        public RestClient(Uri? baseUrl, RequestModifier requestModifier)
         {
-            if (baseUrl == null)
-                throw new ArgumentNullException(nameof(baseUrl));
             if (requestModifier == null)
                 throw new ArgumentNullException(nameof(requestModifier));
 
             this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
         }
 
-        private HttpClient Initialize(HttpMessageHandler messageHandler, Uri baseUrl)
+        private HttpClient Initialize(HttpMessageHandler messageHandler, Uri? baseUrl)
         {
             return new HttpClient(messageHandler)
             {

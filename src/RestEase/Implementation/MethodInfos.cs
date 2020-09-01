@@ -22,6 +22,7 @@ namespace RestEase.Implementation
         public static MethodInfo RequestInfo_AddQueryProperty { get; } = typeof(RequestInfo).GetTypeInfo().GetMethod("AddQueryProperty");
         public static MethodInfo RequestInfo_AddRequestPropertyProperty { get; } = typeof(RequestInfo).GetTypeInfo().GetMethod("AddHttpRequestMessagePropertyProperty");
         public static MethodInfo RequestInfo_AllowAnyStatusCode_Set { get; } = typeof(RequestInfo).GetTypeInfo().GetProperty("AllowAnyStatusCode").SetMethod;
+        public static MethodInfo RequestInfo_BaseAddress_Set { get; } = typeof(RequestInfo).GetTypeInfo().GetProperty("BaseAddress").SetMethod;
         public static MethodInfo RequestInfo_BasePath_Set { get; } = typeof(RequestInfo).GetTypeInfo().GetProperty("BasePath").SetMethod;
         public static MethodInfo RequestInfo_AddMethodHeader { get; } = typeof(RequestInfo).GetTypeInfo().GetMethod("AddMethodHeader");
         public static MethodInfo RequestInfo_SetBodyParameterInfo { get; } = typeof(RequestInfo).GetTypeInfo().GetMethod("SetBodyParameterInfo");

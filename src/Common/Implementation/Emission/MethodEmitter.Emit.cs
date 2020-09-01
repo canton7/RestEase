@@ -166,6 +166,13 @@ namespace RestEase.Implementation.Emission
             this.ilGenerator.Emit(OpCodes.Callvirt, MethodInfos.RequestInfo_AllowAnyStatusCode_Set);
         }
 
+        public void EmitSetBaseAddress(string baseAddress)
+        {
+            this.ilGenerator.Emit(OpCodes.Ldloc, this.requestInfoLocal);
+            this.ilGenerator.Emit(OpCodes.Ldstr, baseAddress);
+            this.ilGenerator.Emit(OpCodes.Callvirt, MethodInfos.RequestInfo_BaseAddress_Set);
+        }
+
         public void EmitSetBasePath(string basePath)
         {
             this.ilGenerator.Emit(OpCodes.Ldloc, this.requestInfoLocal);

@@ -39,6 +39,7 @@ namespace RestEase.SourceGenerator.Implementation
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                BaseAddressAttribute = Get<BaseAddressAttribute>(),
                 BasePathAttribute = Get<BasePathAttribute>(),
                 IsAccessible = this.compilation.IsSymbolAccessibleWithin(this.namedTypeSymbol, this.compilation.Assembly)
             };

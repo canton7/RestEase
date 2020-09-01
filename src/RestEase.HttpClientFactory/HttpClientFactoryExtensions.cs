@@ -12,22 +12,44 @@ namespace RestEase.HttpClientFactory
     public static class HttpClientFactoryExtensions
     {
         /// <summary>
-        /// Register the given RestEase interface type
+        /// Register the given RestEase interface type, without a Base Address. The interface should have an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or should only use absolute paths.
         /// </summary>
         /// <typeparam name="T">Type of the RestEase interface</typeparam>
         /// <param name="services">Contains to add to</param>
-        /// <param name="basePath">Base path to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
         /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
         public static IHttpClientBuilder AddRestEaseClient<T>(
             this IServiceCollection services,
-            string? basePath,
             Action<RestClient>? configurer = null,
             RequestModifier? requestModifier = null)
             where T : class
         {
-            return services.AddRestEaseClientCore(typeof(T), ToUri(basePath), requestModifier, httpClient =>
+            return services.AddRestEaseClient<T>((string?)null, configurer, requestModifier);
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type
+        /// </summary>
+        /// <typeparam name="T">Type of the RestEase interface</typeparam>
+        /// <param name="services">Contains to add to</param>
+        /// <param name="baseAddress">
+        /// Base address to use for requests (may be <c>null</c> if your interface specifies
+        /// <see cref="BaseAddressAttribute"/>, has an absolute <see cref="BasePathAttribute"/>, or only uses absolute
+        /// paths)
+        /// </param>
+        /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
+        /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        public static IHttpClientBuilder AddRestEaseClient<T>(
+            this IServiceCollection services,
+            string? baseAddress,
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
+            where T : class
+        {
+            return services.AddRestEaseClientCore(typeof(T), ToUri(baseAddress), requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
@@ -40,23 +62,45 @@ namespace RestEase.HttpClientFactory
         /// </summary>
         /// <typeparam name="T">Type of the RestEase interface</typeparam>
         /// <param name="services">Contains to add to</param>
-        /// <param name="baseUri">Base URI to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
+        /// <param name="baseAddress">
+        /// Base address to use for requests (may be <c>null</c> if your interface specifies
+        /// <see cref="BaseAddressAttribute"/>, has an absolute <see cref="BasePathAttribute"/>, or only uses absolute
+        /// paths)
+        /// </param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
         /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
         public static IHttpClientBuilder AddRestEaseClient<T>(
             this IServiceCollection services,
-            Uri? baseUri,
+            Uri? baseAddress,
             Action<RestClient>? configurer = null,
             RequestModifier? requestModifier = null)
             where T : class
         {
-            return services.AddRestEaseClientCore(typeof(T), baseUri, requestModifier, httpClient =>
+            return services.AddRestEaseClientCore(typeof(T), baseAddress, requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
                 return restClient.For<T>();
             });
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type. The interface should have an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or should only use absolute paths.
+        /// </summary>
+        /// <param name="restEaseType">Type of the RestEase interface</param>
+        /// <param name="services">Contains to add to</param>
+        /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
+        /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        public static IHttpClientBuilder AddRestEaseClient(
+            this IServiceCollection services,
+            Type restEaseType,
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
+        {
+            return services.AddRestEaseClient(restEaseType, (string?)null, configurer, requestModifier);
         }
 
         /// <summary>
@@ -64,21 +108,24 @@ namespace RestEase.HttpClientFactory
         /// </summary>
         /// <param name="restEaseType">Type of the RestEase interface</param>
         /// <param name="services">Contains to add to</param>
-        /// <param name="basePath">Base path to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
+        /// <param name="baseAddress">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
         /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
         public static IHttpClientBuilder AddRestEaseClient(
             this IServiceCollection services,
             Type restEaseType,
-            string? basePath,
+            string? baseAddress,
             Action<RestClient>? configurer = null,
             RequestModifier? requestModifier = null)
         {
             if (restEaseType is null)
                 throw new ArgumentNullException(nameof(restEaseType));
 
-            return services.AddRestEaseClientCore(restEaseType, ToUri(basePath), requestModifier, httpClient =>
+            return services.AddRestEaseClientCore(restEaseType, ToUri(baseAddress), requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
@@ -91,21 +138,24 @@ namespace RestEase.HttpClientFactory
         /// </summary>
         /// <param name="restEaseType">Type of the RestEase interface</param>
         /// <param name="services">Contains to add to</param>
-        /// <param name="baseUri">Base URI to use for requests (may be <c>null</c> if your interface only uses absolute paths, or has an absolute <c>[BasePath]</c>)</param>
+        /// <param name="baseAddress">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
         /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>Created <see cref="IHttpClientBuilder"/> for further configuration</returns>
         public static IHttpClientBuilder AddRestEaseClient(
             this IServiceCollection services,
             Type restEaseType,
-            Uri? baseUri,
+            Uri? baseAddress,
             Action<RestClient>? configurer = null,
             RequestModifier? requestModifier = null)
         {
             if (restEaseType is null)
                 throw new ArgumentNullException(nameof(restEaseType));
 
-            return services.AddRestEaseClientCore(restEaseType, baseUri, requestModifier, httpClient =>
+            return services.AddRestEaseClientCore(restEaseType, baseAddress, requestModifier, httpClient =>
             {
                 var restClient = new RestClient(httpClient);
                 configurer?.Invoke(restClient);
@@ -116,7 +166,7 @@ namespace RestEase.HttpClientFactory
         private static IHttpClientBuilder AddRestEaseClientCore(
             this IServiceCollection services,
             Type restEaseType,
-            Uri? baseUri,
+            Uri? baseAddress,
             RequestModifier? requestModifier,
             Func<HttpClient, object> factory)
         {
@@ -125,9 +175,9 @@ namespace RestEase.HttpClientFactory
 
             var builder = services.AddHttpClient(UniqueNameForType(restEaseType), httpClient =>
             {
-                if (baseUri != null)
+                if (baseAddress != null)
                 {
-                    httpClient.BaseAddress = baseUri;
+                    httpClient.BaseAddress = baseAddress;
                 }
             }).AddTypedClient(factory);
 

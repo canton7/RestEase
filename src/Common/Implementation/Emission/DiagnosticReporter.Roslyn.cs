@@ -139,13 +139,31 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(multipleRequesterProperties, property.PropertySymbol.Locations);
         }
 
+        private static readonly DiagnosticDescriptor baseAddressMustBeAbsolute = CreateDescriptor(
+            DiagnosticCode.BaseAddressMustBeAbsolute,
+            "BaseAddress must be an absolute URI",
+            "Base address '{0}' must be an absolute URI");
+        public void ReportBaseAddressMustBeAbsolute(TypeModel typeModel, AttributeModel<BaseAddressAttribute> attributeModel)
+        {
+            this.AddDiagnostic(baseAddressMustBeAbsolute, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), attributeModel.Attribute.BaseAddress);
+        }
+
+        private static readonly DiagnosticDescriptor missingPathPropertyForBaseAddressPlaceholder = CreateDescriptor(
+            DiagnosticCode.MissingPathPropertyForBaseAddressPlaceholder,
+            "BaseAddress placeholders must have corresponding path properties",
+            "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base address '{1}'");
+        public void ReportMissingPathPropertyForBaseAddressPlaceholder(TypeModel typeModel, AttributeModel<BaseAddressAttribute> attributeModel, string missingParam)
+        {
+            this.AddDiagnostic(missingPathPropertyForBaseAddressPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, attributeModel.Attribute.BaseAddress);
+        }
+
         private static readonly DiagnosticDescriptor missingPathPropertyForBasePathPlaceholder = CreateDescriptor(
             DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
             "BasePath placeholders must have corresponding path properties",
             "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base path '{1}'");
-        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel typeModel, AttributeModel<BasePathAttribute> attributeModel, string basePath, string missingParam)
+        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel typeModel, AttributeModel<BasePathAttribute> attributeModel, string missingParam)
         {
-            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, basePath);
+            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, attributeModel.Attribute.BasePath);
         }
 
         private static readonly DiagnosticDescriptor methodMustHaveRequestAttribute = CreateDescriptor(

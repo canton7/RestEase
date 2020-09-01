@@ -96,48 +96,50 @@ namespace RestEase.Implementation
         /// <summary>
         /// Given an IRequestInfo and pre-substituted relative path, constructs a URI with the right query parameters
         /// </summary>
+        /// <param name="baseAddress">Base address to start with, with placeholders already substituted</param>
         /// <param name="basePath">Base path to start with, with placeholders already substituted</param>
         /// <param name="path">Path to start with, with placeholders already substituted</param>
         /// <param name="requestInfo">IRequestInfo to retrieve the query parameters from</param>
         /// <returns>Constructed URI; relative if 'path' was relative, otherwise absolute</returns>
-        protected virtual Uri ConstructUri(string basePath, string path, IRequestInfo requestInfo)
+        protected virtual Uri ConstructUri(string baseAddress, string basePath, string path, IRequestInfo requestInfo)
         {
             UriBuilder uriBuilder;
             try
             {
-                // If path is absolute, then BaseAddress and basePath are both ignored.
-                // If path starts with /, then basePath is ignored but BaseAddress is not.
-                // If basePath is absolute, then BaseAddress is ignored.
+                // For the base address, we choose HttpClient.BaseAddress, unless it's null where we choose baseAdress
+                // If path is absolute, then baseAddress and basePath are both ignored.
+                // If path starts with /, then basePath is ignored but baseAddress is not.
+                // If basePath is absolute, then baseAddress is ignored.
 
                 string trimmedPath = (path ?? string.Empty).TrimStart('/');
                 // Here, a leading slash will strip the path from baseAddress
                 var uri = new Uri(trimmedPath, UriKind.RelativeOrAbsolute);
                 if (!uri.IsAbsoluteUri && path?.StartsWith("/") != true && !string.IsNullOrEmpty(basePath))
                 {
-                    string? trimmedBasePath = (basePath ?? string.Empty).TrimStart('/');
-                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
-                    // the last path component (assuming there is one)
-                    if (!trimmedBasePath.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
-                        trimmedBasePath += '/';
-                    uri = new Uri(trimmedBasePath + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                    uri = Prepend(uri, basePath.TrimStart('/'));
                 }
 
                 if (!uri.IsAbsoluteUri)
                 {
-                    string? baseAddress = this.httpClient.BaseAddress?.ToString();
-                    if (!string.IsNullOrEmpty(baseAddress))
+                    string? resolvedBaseAddress = this.httpClient.BaseAddress?.ToString() ?? baseAddress?.TrimStart('/');
+                    if (!string.IsNullOrEmpty(resolvedBaseAddress))
                     {
-                        // Need to make sure it ends with a trailing slash, or appending our relative path will strip
-                        // the last path component (assuming there is one)
-                        if (!baseAddress!.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
-                            baseAddress += '/';
-                        uri = new Uri(baseAddress + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                        uri = Prepend(uri, resolvedBaseAddress!);
                     }
                 }
 
                 // If it's still relative, 'new UriBuilder(Uri)' won't accept it, but 'new UriBuilder(string)' will
                 // (by prepending 'http://').
                 uriBuilder = uri.IsAbsoluteUri ? new UriBuilder(uri) : new UriBuilder(uri.ToString());
+
+                Uri Prepend(Uri uri, string path)
+                {
+                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
+                    // the last path component (assuming there is one)
+                    if (!path.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
+                        path += '/';
+                    return new Uri(path + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                }
             }
             catch (FormatException e)
             {
@@ -436,12 +438,13 @@ namespace RestEase.Implementation
         /// <returns>Resulting HttpResponseMessage</returns>
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
         {
+            string baseAddress = this.SubstitutePathParameters(requestInfo.BaseAddress, requestInfo) ?? string.Empty;
             string basePath = this.SubstitutePathParameters(requestInfo.BasePath, requestInfo) ?? string.Empty;
             string path = this.SubstitutePathParameters(requestInfo.Path, requestInfo) ?? string.Empty;
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
-                RequestUri = this.ConstructUri(basePath, path, requestInfo),
+                RequestUri = this.ConstructUri(baseAddress, basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
                 Properties = { { RestClient.HttpRequestMessageRequestInfoPropertyKey, requestInfo } },
             };
