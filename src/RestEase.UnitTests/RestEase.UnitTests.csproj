@@ -8,6 +8,8 @@
     <AssemblyName>RestEase.UnitTests</AssemblyName>
     <LangVersion>8.0</LangVersion>
     <Nullable>annotations</Nullable>
+    <!-- We know we're targetting EOL framework versions -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
