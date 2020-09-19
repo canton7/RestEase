@@ -33,6 +33,7 @@ namespace RestEase.SourceGenerator.Implementation
         {
             foreach (var member in symbol.GetMembers())
             {
+                this.context.CancellationToken.ThrowIfCancellationRequested();
                 member.Accept(this);
             }
         }
