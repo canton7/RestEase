@@ -23,6 +23,7 @@
 
   <files>
     <file src="$outputPath$RestEase.HttpClientFactory.dll" target="lib\netstandard2.0" />
+    <file src="$outputPath$RestEase.HttpClientFactory.pdb" target="lib\netstandard2.0" />
     <file src="..\..\icon.png" target="\" />
   </files>
 </package>

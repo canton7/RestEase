@@ -17,18 +17,20 @@
     <RepositoryUrl>https://github.com/canton7/RestEase</RepositoryUrl>
     <Authors>Antony Male</Authors>
     <Description>Easy-to-use typesafe REST API client library, which is simple and customisable.</Description>
+
+    <!-- Just embed all sources in the PDB: snupkg files don't support bare .cs files, and SourceLink is annoying -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources>true</EmbedAllSources>
+    <DebugType>portable</DebugType>
+    
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
-    <Deterministic>true</Deterministic>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <!-- Stack traces on < net471 don't work with portable, and we don't care about being portable for net45 anyway -->
+    <DebugType>full</DebugType>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All" />
-  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
     <PackageReference Include="System.Net.Http" Version="4.1.0" />
@@ -55,7 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\icon.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" />
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Roslyn.cs" LinkBase="Common" />
   </ItemGroup>
 </Project>
