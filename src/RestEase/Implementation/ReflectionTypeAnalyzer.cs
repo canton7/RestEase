@@ -87,6 +87,7 @@ namespace RestEase.Implementation
 
                     case TypeAttributes.NestedAssembly:
                     case TypeAttributes.NestedFamORAssem:
+                    default: // Internal
                         result = TypeAttributes.NestedAssembly;
                         break;
                 }

@@ -6,6 +6,12 @@ using Xunit.Abstractions;
 
 namespace RestEase.UnitTests.ImplementationFactoryTests
 {
+    internal interface IInternalInterface
+    {
+        [Get]
+        Task FooAsync();
+    }
+
     public class SanityCheckTests : ImplementationFactoryTestsBase
     {
         public interface IMethodWithoutAttribute
@@ -74,7 +80,14 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
+#pragma warning disable IDE0040 // Add accessibility modifiers
         interface IImplicitPrivateInterface
+#pragma warning restore IDE0040 // Add accessibility modifiers
+        {
+            [Get]
+            Task FooAsync();
+        }
+        internal interface INestedInternalInterface
         {
             [Get]
             Task FooAsync();
@@ -87,12 +100,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 [Get]
                 Task FooAsync();
             }
-        }
-
-        internal interface IInternalInterface
-        {
-            [Get]
-            Task FooAsync();
         }
 
         public SanityCheckTests(ITestOutputHelper output) : base(output) { }
@@ -215,6 +222,16 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void HandlesInternalInterface()
         {
             this.VerifyDiagnostics<IInternalInterface>(
+#if !SOURCE_GENERATOR
+                Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
+#endif
+            );
+        }
+
+        [Fact]
+        public void HandlesNestedInternalInterface()
+        {
+            this.VerifyDiagnostics<INestedInternalInterface>(
 #if !SOURCE_GENERATOR
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
 #endif
