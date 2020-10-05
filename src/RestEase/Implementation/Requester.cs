@@ -392,6 +392,8 @@ namespace RestEase.Implementation
                 if (!added)
                 {
                     // If it's a method header, then add a dummy body if necessary
+                    // If it's a class header, then add a dummy body if there isn't one but there is a [Body]
+                    // parameter, otherwise ignore it.
                     // If it's a class header, then throw only if it isn't a content header (but don't add a dummy body containing it)
                     if (requestMessage.Content != null)
                     {
@@ -409,7 +411,7 @@ namespace RestEase.Implementation
                         }
 
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
-                        if (added && areMethodHeaders)
+                        if (added && (areMethodHeaders || requestInfo.BodyParameterInfo != null))
                         {
                             requestMessage.Content = dummyContent;
                         }
