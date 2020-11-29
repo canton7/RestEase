@@ -4,8 +4,10 @@
 [![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
 [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
-RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
-It won't work on platforms which don't support runtime code generation, including .NET Native and iOS.
+RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1 and higher, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
+
+It also works on platforms which don't support runtime code generation, such as .NET Native and iOS, if you reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator).
+See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
@@ -54,9 +56,10 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
     4. [Variable Method Headers](#variable-method-headers)
         1. [Formatting Variable Method Headers](#formatting-variable-method-headers) 
     5. [Redefining Headers](#redefining-headers)
-11. [Using HttpClientFactory](#using-httpclientfactory)
-12. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
-13. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+11. [Using RestEase.SourceGenerator](#using-resteasesourcegenerator)
+12. [Using HttpClientFactory](#using-httpclientfactory)
+13. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
+14. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
@@ -64,22 +67,22 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
         3. [Serializing request query parameters: `RequestQueryParamSerializer`](#serializing-request-query-parameters-requestqueryparamserializer)
         4. [Serializing request path parameters: `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer)
         5. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
-14. [Controlling the Requests](#controlling-the-requests)
+15. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
     3. [Adding to `HttpRequestMessage.Properties`](#adding-to-httprequestmessageproperties)
-15. [Customizing RestEase](#customizing-restease)
-16. [Interface Accessibility](#interface-accessibility)
-17. [Using Generic Interfaces](#using-generic-interfaces)
-18. [Using Generic Methods](#using-generic-methods)
-19. [Interface Inheritance](#interface-inheritance)
+16. [Customizing RestEase](#customizing-restease)
+17. [Interface Accessibility](#interface-accessibility)
+18. [Using Generic Interfaces](#using-generic-interfaces)
+19. [Using Generic Methods](#using-generic-methods)
+20. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-20. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+21. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-21. [FAQs](#faqs)
-22. [Comparison to Refit](#comparison-to-refit)
+22. [FAQs](#faqs)
+23. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -87,6 +90,9 @@ Installation
 
 [RestEase is available on NuGet](https://www.nuget.org/packages/RestEase). 
 See that page for installation instructions.
+
+If you're using C# 9 or .NET 5 (or higher), reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator) instead.
+See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
 
 If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory).
 
@@ -1102,6 +1108,28 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 // X-ParameterAndMethod-ToBeRemoved isn't set, because it was removed
 
 ```
+
+Using RestEase.SourceGenerator
+------------------------------
+
+Source Generators are a new feature which allows NuGet packages to hook into the compilation of your projects and insert their own code.
+RestEase uses this to generate implementations of your interfaces at compile-time, rather than run-time.
+To take advantage of this, you need to install the [RestEase.SourceGenerator NuGet package](https://www.nuget.org/packages/RestEase.SourceGenerator).
+
+The advantages of using a Source Generator are:
+
+1. Compile-time error checking. Find out if your RestEase interface has an error at compile-time, rather than runtime.
+2. Supports platforms which don't support System.Reflection.Emit, such as iOS and .NET Native.
+3. Faster: no need to generate implementations at runtime.
+
+You will need to be using the .NET 5 SDK (or higher) to make use of source generators.
+If you're targetting C# 9 or .NET 5 (or higher), you're all set.
+If you're targetting an earlier language or runtime version, you can still install the latest .NET SDK (make sure you update your global.json if you have one!).
+
+When you build a project which references RestEase.SourceGenerator, RestEase generates implementations of any RestEase interfaces it finds in that project, and adds those implementations to the project.
+`RestClient.For<T>` will look for one of these implementatiosn first, before falling back to the old approach of generating one at runtime.
+This means that you should reference RestEase.SourceGenerator in all projects which contain RestEase interfaces, but projects which only consume interfaces can just reference the RestEase package.
+
 
 Using HttpClientFactory
 -----------------------
