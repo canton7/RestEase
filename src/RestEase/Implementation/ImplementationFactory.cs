@@ -7,12 +7,7 @@ using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
-    /// <summary>
-    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
-    /// 
-    /// Helper class used to generate interface implementations. Exposed for testing (and very adventurous people) only.
-    /// </summary>
-    public class ImplementationFactory
+    internal class ImplementationFactory
     {
         private static class TypeCreatorRegistry<T>
         {
@@ -28,23 +23,12 @@ namespace RestEase.Implementation
         private readonly bool useSourceGenerator;
         private readonly bool useSystemReflectionEmit;
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="ImplementationFactory"/> class
-        /// </summary>
-        /// <param name="useSourceGenerator">True to try and use source generated types</param>
-        /// <param name="useSystemReflectionEmit">True to fall back to S.R.E, false to just use source generated types</param>
         public ImplementationFactory(bool useSourceGenerator = true, bool useSystemReflectionEmit = true)
         {
             this.useSourceGenerator = useSourceGenerator;
             this.useSystemReflectionEmit = useSystemReflectionEmit;
         }
 
-        /// <summary>
-        /// Create an implementation of the given interface, using the given requester
-        /// </summary>
-        /// <typeparam name="T">Type of interface to implement</typeparam>
-        /// <param name="requester">Requester to be used by the generated implementation</param>
-        /// <returns>An implementation of the given interface</returns>
         public T CreateImplementation<T>(IRequester requester)
         {
             if (requester == null)
