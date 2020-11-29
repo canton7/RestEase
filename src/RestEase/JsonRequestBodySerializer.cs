@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace RestEase
 {
@@ -20,7 +21,16 @@ namespace RestEase
                 return null;
 
             var content = new StringContent(JsonConvert.SerializeObject(body, this.JsonSerializerSettings));
-            content.Headers.ContentType.MediaType = "application/json";
+
+            const string contentType = "application/json";
+            if (content.Headers.ContentType == null)
+            {
+                content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            }
+            else
+            {
+                content.Headers.ContentType.MediaType = contentType;
+            }
             return content;
         }
     }

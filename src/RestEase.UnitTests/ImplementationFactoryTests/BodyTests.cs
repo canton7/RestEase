@@ -62,7 +62,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void BodyWithSerializedClassAsExpected()
         {
-            object body = new object();
+            object body = new();
             var requestInfo = this.Request<IHasBody>(x => x.SerializedAsync(body));
 
             Assert.NotNull(requestInfo.BodyParameterInfo);
@@ -73,7 +73,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void BodyWithUrlEncodedCallsAsExpected()
         {
-            object body = new object();
+            object body = new();
             var requestInfo = this.Request<IHasBody>(x => x.UrlEncodedAsync(body));
 
             Assert.NotNull(requestInfo.BodyParameterInfo);

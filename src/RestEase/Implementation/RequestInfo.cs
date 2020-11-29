@@ -206,11 +206,11 @@ namespace RestEase.Implementation
                     kvp.Value is IEnumerable<object> enumerable &&
                     !(kvp.Value is string))
                 {
-                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), enumerable, format: null));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key?.ToString() ?? "", enumerable, format: null));
                 }
                 else
                 {
-                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key?.ToString() ?? "", kvp.Value, format: null));
                 }
             }
         }
@@ -234,7 +234,7 @@ namespace RestEase.Implementation
             foreach (var kvp in queryMap)
             {
                 if (kvp.Key != null)
-                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key?.ToString() ?? "", kvp.Value, format: null));
             }
         }
 

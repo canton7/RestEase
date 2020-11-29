@@ -1417,7 +1417,7 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
 
 ```
 
-If you need, you can get the `IRequestInfo` for the current request using `(IRequestInfo)request.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey]`.
+If you need, you can get the `IRequestInfo` for the current request using `request.Options.TryGetValue(RestClient.HttpRequestMessageRequestInfoOptionsKey, out var requestInfo)` (for .NET 5+), or `(IRequestInfo)request.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey]` (pre .NET 5).
 
 ### Custom `HttpClient`
 

@@ -17,7 +17,7 @@ namespace RestEase
         private static readonly MethodInfo forInstanceGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && !x.IsStatic && x.GetParameters().Length == 0 && x.IsGenericMethod);
         private static readonly MethodInfo forStaticGenericMethodInfo = typeof(RestClient).GetTypeInfo().GetMethods().First(x => x.Name == "For" && x.IsStatic && x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(IRequester) && x.IsGenericMethod);
 
-        private static readonly ImplementationFactory factory = new ImplementationFactory();
+        private static readonly ImplementationFactory factory = new();
 
         /// <summary>
         /// Name of the assembly in which interface implementations are built. Use in [assembly: InternalsVisibleTo(RestEase.FactoryAssemblyName)] to allow clients to be generated for internal interface types
@@ -28,6 +28,14 @@ namespace RestEase
         /// Name of the key in <see cref="HttpRequestMessage.Properties"/> that a request's <see cref="IRequestInfo"/> is stored
         /// </summary>
         public const string HttpRequestMessageRequestInfoPropertyKey = "RestEaseRequestInfo";
+
+#if !NET45 && !NETSTANDARD1_1 && !NETSTANDARD2_0 && !NETSTANDARD2_1
+        /// <summary>
+        /// Key to use with <see cref="HttpRequestMessage.Options"/> to fetch the request's <see cref="IRequestInfo"/>
+        /// </summary>
+        public static HttpRequestOptionsKey<IRequestInfo> HttpRequestMessageRequestInfoOptionsKey =>
+            new(HttpRequestMessageRequestInfoPropertyKey);
+#endif
 
         private readonly HttpClient httpClient;
 
@@ -118,7 +126,7 @@ namespace RestEase
         /// </param>
         public RestClient(string? baseUrl)
         {
-            this.httpClient = this.Initialize(new HttpClientHandler(), baseUrl == null ? null : new Uri(baseUrl));
+            this.httpClient = Initialize(new HttpClientHandler(), baseUrl == null ? null : new Uri(baseUrl));
         }
 
         /// <summary>
@@ -130,7 +138,7 @@ namespace RestEase
         /// </param>
         public RestClient(Uri? baseUrl)
         {
-            this.httpClient = this.Initialize(new HttpClientHandler(), baseUrl);
+            this.httpClient = Initialize(new HttpClientHandler(), baseUrl);
         }
 
         /// <summary>
@@ -145,7 +153,7 @@ namespace RestEase
             if (requestModifier == null)
                 throw new ArgumentNullException(nameof(requestModifier));
 
-            this.httpClient = this.Initialize(
+            this.httpClient = Initialize(
                 new ModifyingClientHttpHandler(requestModifier),
                 baseUrl == null ? null : new Uri(baseUrl));
         }
@@ -162,10 +170,10 @@ namespace RestEase
             if (requestModifier == null)
                 throw new ArgumentNullException(nameof(requestModifier));
 
-            this.httpClient = this.Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
+            this.httpClient = Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
         }
 
-        private HttpClient Initialize(HttpMessageHandler messageHandler, Uri? baseUrl)
+        private static HttpClient Initialize(HttpMessageHandler messageHandler, Uri? baseUrl)
         {
             return new HttpClient(messageHandler)
             {
@@ -193,7 +201,7 @@ namespace RestEase
                 throw new ArgumentNullException(nameof(type));
 
             var method = forInstanceGenericMethodInfo.MakeGenericMethod(type);
-            return method.Invoke(this, new object[0]);
+            return method.Invoke(this, ArrayUtil.Empty<object>())!;
         }
 
         /// <summary>
@@ -253,7 +261,7 @@ namespace RestEase
                 throw new ArgumentNullException(nameof(type));
 
             var method = forStaticGenericMethodInfo.MakeGenericMethod(type);
-            return method.Invoke(null, new object[] { requester });
+            return method.Invoke(null, new object[] { requester })!;
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace RestEase.UnitTests.RequesterTests
 {
     public class HeadersTests
     {
-        private readonly PublicRequester requester = new PublicRequester(null);
+        private readonly PublicRequester requester = new(null);
 
         [Fact]
         public void AppliesHeadersFromClass()
@@ -257,10 +257,12 @@ namespace RestEase.UnitTests.RequesterTests
         [Fact]
         public void AddsContentHeadersOnClassIfBodyIsNull()
         {
-            var requestInfo = new RequestInfo(HttpMethod.Post, "foo");
-            requestInfo.ClassHeaders = new[]
+            var requestInfo = new RequestInfo(HttpMethod.Post, "foo")
             {
-                new KeyValuePair<string, string>("Content-Type", "text/plain"),
+                ClassHeaders = new[]
+                {
+                    new KeyValuePair<string, string>("Content-Type", "text/plain"),
+                }
             };
             requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Default, null);
 

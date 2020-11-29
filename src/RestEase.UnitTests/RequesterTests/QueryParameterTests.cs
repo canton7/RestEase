@@ -20,7 +20,7 @@ namespace RestEase.UnitTests.RequesterTests
             }
         }
 
-        private readonly PublicRequester requester = new PublicRequester(new HttpClient() { BaseAddress = new Uri("http://api.example.com/base") });
+        private readonly PublicRequester requester = new(new HttpClient() { BaseAddress = new Uri("http://api.example.com/base") });
 
         [Fact]
         public void IgnoresNullQueryParamsWhenUsingToString()

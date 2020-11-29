@@ -8,7 +8,7 @@ namespace RestEase.UnitTests.RequesterTests
 {
     public class UriConstructionTests
     {
-        private readonly PublicRequester requester = new PublicRequester(new HttpClient() { BaseAddress = new Uri("http://client.base.address/base") });
+        private readonly PublicRequester requester = new(new HttpClient() { BaseAddress = new Uri("http://client.base.address/base") });
 
         [Fact]
         public void ConstructsUriWithEscapedPath()

@@ -22,7 +22,7 @@ namespace RestEase.UnitTests.RequesterTests
             }
         }
 
-        private readonly PublicRequester requester = new PublicRequester(null);
+        private readonly PublicRequester requester = new(null);
 
         [Fact]
         public void SubstitutesPathParameters()

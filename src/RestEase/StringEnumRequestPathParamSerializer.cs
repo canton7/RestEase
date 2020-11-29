@@ -18,7 +18,7 @@ namespace RestEase
     /// </summary>
     public class StringEnumRequestPathParamSerializer : RequestPathParamSerializer
     {
-        private static readonly ConcurrentDictionary<object, string> cache = new ConcurrentDictionary<object, string>();
+        private static readonly ConcurrentDictionary<object, string> cache = new();
 
         /// <inheritdoc />
         /// <summary>
@@ -51,7 +51,7 @@ namespace RestEase
                 return stringValue;
             }
 
-            stringValue = value.ToString();
+            stringValue = value.ToString()!;
 
             var fieldInfo = typeInfo.GetField(stringValue);
 
@@ -63,7 +63,7 @@ namespace RestEase
 #if !NETSTANDARD1_1
             var enumMemberAttribute = fieldInfo.GetCustomAttribute<EnumMemberAttribute>();
 
-            if (enumMemberAttribute != null)
+            if (enumMemberAttribute?.Value != null)
             {
                 return CacheAdd(value, enumMemberAttribute.Value);
             }

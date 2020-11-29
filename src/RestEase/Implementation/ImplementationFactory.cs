@@ -19,11 +19,11 @@ namespace RestEase.Implementation
             public static Func<IRequester, T>? Creator;
         }
 
-        private readonly object implementationFactoryLockObject = new object();
+        private readonly object implementationFactoryLockObject = new();
 
         // Mapping of generic type definition of interface -> generic type definition of implementation
         // Protected by implementationFactoryLockObject
-        private readonly Dictionary<Type, Type> genericTypeLookup = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> genericTypeLookup = new();
 
         private readonly bool useSourceGenerator;
         private readonly bool useSystemReflectionEmit;
@@ -65,7 +65,7 @@ namespace RestEase.Implementation
                         try
                         {
                             var implementationType = this.GetImplementation(typeof(T));
-                            var creator = this.BuildCreator<T>(implementationType);
+                            var creator = BuildCreator<T>(implementationType);
                             TypeCreatorRegistry<T>.Creator = creator;
                         }
                         catch (Exception e)
@@ -84,11 +84,17 @@ namespace RestEase.Implementation
             return implementation;
         }
 
-        private Func<IRequester, T> BuildCreator<T>(Type implementationType)
+        private static Func<IRequester, T> BuildCreator<T>(Type implementationType)
         {
             var requesterParam = Expression.Parameter(typeof(IRequester));
-            var ctor = Expression.New(implementationType.GetTypeInfo().GetConstructor(new[] { typeof(IRequester) }), requesterParam);
-            return Expression.Lambda<Func<IRequester, T>>(ctor, requesterParam).Compile();
+            var constructorInfo = implementationType.GetTypeInfo().GetConstructor(new[] { typeof(IRequester) });
+            if (constructorInfo == null)
+            {
+                throw new ImplementationCreationException($"Could not find a suitable constructor on type {implementationType}. This should not happen");
+            }
+
+            var constructor = Expression.New(constructorInfo, requesterParam);
+            return Expression.Lambda<Func<IRequester, T>>(constructor, requesterParam).Compile();
         }
 
         private Type GetImplementation(Type interfaceType)

@@ -5,11 +5,12 @@ using RestEase;
 
 namespace SourceGeneratorSandbox
 {
-    class Program
+    public class Program
     {
-        static void Main()
+        public static void Main()
         {
             var impl = RestClient.For<ISomeApi>("https://api.example.com");
+            impl.FooAsync("test", "test").Wait();
         }
 
         public interface ISomeApi

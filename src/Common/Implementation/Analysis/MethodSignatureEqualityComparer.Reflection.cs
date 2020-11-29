@@ -4,7 +4,7 @@ namespace RestEase.Implementation.Analysis
 {
     internal partial class MethodSignatureEqualityComparer
     {
-        public bool Equals(MethodModel x, MethodModel y)
+        public bool Equals(MethodModel? x, MethodModel? y)
         {
             var xInfo = x?.MethodInfo;
             var yInfo = y?.MethodInfo;

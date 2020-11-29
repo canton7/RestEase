@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
@@ -230,10 +231,10 @@ namespace RestEase.Implementation
         /// <remarks>Currently only supports objects which implement IDictionary</remarks>
         /// <param name="body">Object to attempt to serialize</param>
         /// <returns>Key/value collection suitable for URL encoding</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string?>> SerializeBodyForUrlEncoding(object body)
+        protected virtual IEnumerable<KeyValuePair<string?, string?>> SerializeBodyForUrlEncoding(object body)
         {
             if (body == null)
-                return Enumerable.Empty<KeyValuePair<string, string?>>();
+                return Enumerable.Empty<KeyValuePair<string?, string?>>();
 
             if (DictionaryIterator.CanIterate(body.GetType()))
                 return this.TransformDictionaryToCollectionOfKeysAndValues(body);
@@ -247,7 +248,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="dictionary">Dictionary to transform</param>
         /// <returns>A set of KeyValuePairs</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string?>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
+        protected virtual IEnumerable<KeyValuePair<string?, string?>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
         {
             foreach (var kvp in DictionaryIterator.Iterate(dictionary))
             {
@@ -256,12 +257,12 @@ namespace RestEase.Implementation
                     foreach (object individualValue in enumerable)
                     {
                         string? stringValue = this.ToStringHelper(individualValue);
-                        yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, stringValue);
+                        yield return new KeyValuePair<string?, string?>(this.ToStringHelper(kvp.Key)!, stringValue);
                     }
                 }
                 else if (kvp.Value != null)
                 {
-                    yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, this.ToStringHelper(kvp.Value));
+                    yield return new KeyValuePair<string?, string?>(this.ToStringHelper(kvp.Key)!, this.ToStringHelper(kvp.Value));
                 }
             }
         }
@@ -407,7 +408,7 @@ namespace RestEase.Implementation
                         // said what should be in it), and therefore we need to send Content-Length
                         if (dummyContent == null)
                         {
-                            dummyContent = new ByteArrayContent(new byte[0]);
+                            dummyContent = new ByteArrayContent(ArrayUtil.Empty<byte>());
                         }
 
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
@@ -448,10 +449,14 @@ namespace RestEase.Implementation
                 Method = requestInfo.Method,
                 RequestUri = this.ConstructUri(baseAddress, basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
-                Properties = { { RestClient.HttpRequestMessageRequestInfoPropertyKey, requestInfo } },
             };
+#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
+            message.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey] = requestInfo;
+#else
+            message.Options.Set(RestClient.HttpRequestMessageRequestInfoOptionsKey, requestInfo);
+#endif
 
-            this.ApplyHttpRequestMessageProperties(requestInfo, message);
+            ApplyHttpRequestMessageProperties(requestInfo, message);
 
             // Do this after setting the content, as doing so may set headers which we want to remove / override
             this.ApplyHeaders(requestInfo, message);
@@ -472,11 +477,15 @@ namespace RestEase.Implementation
             return response;
         }
 
-        private void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
+        private static void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
             foreach (var property in requestInfo.HttpRequestMessageProperties)
             {
+#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
                 requestMessage.Properties.Add(property.Key, property.Value);
+#else
+                requestMessage.Options.Set<object>(new(property.Key), property.Value);
+#endif
             }
         }
 

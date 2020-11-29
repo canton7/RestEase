@@ -9,7 +9,7 @@ namespace RestEase.Implementation
 {
     internal class ImplementationGenerator
     {
-        private static readonly Regex pathParamMatch = new Regex(@"\{(.+?)\}");
+        private static readonly Regex pathParamMatch = new(@"\{(.+?)\}");
 
         private readonly TypeModel typeModel;
         private readonly Emitter emitter;
@@ -198,7 +198,7 @@ namespace RestEase.Implementation
                     methodEmitter.EmitSetBasePath(this.typeModel.BasePathAttribute.Attribute.BasePath);
                 }
 
-                this.GenerateMethodProperties(methodEmitter, emittedProperties, serializationMethods);
+                GenerateMethodProperties(methodEmitter, emittedProperties, serializationMethods);
 
                 foreach (var methodHeader in method.HeaderAttributes)
                 {
@@ -219,7 +219,7 @@ namespace RestEase.Implementation
             }
         }
 
-        private void GenerateMethodProperties(MethodEmitter methodEmitter, List<EmittedProperty> emittedProperties, ResolvedSerializationMethods serializationMethods)
+        private static void GenerateMethodProperties(MethodEmitter methodEmitter, List<EmittedProperty> emittedProperties, ResolvedSerializationMethods serializationMethods)
         {
             foreach (var property in emittedProperties)
             {

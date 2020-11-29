@@ -18,7 +18,7 @@ namespace RestEase.Implementation
 #if NETSTANDARD
         private static readonly MethodInfo iterateGenericTypedMethod = typeof(DictionaryIterator).GetTypeInfo().GetDeclaredMethod("IterateGenericTyped");
 #else
-        private static readonly MethodInfo iterateGenericTypedMethod = typeof(DictionaryIterator).GetMethod("IterateGenericTyped", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo iterateGenericTypedMethod = typeof(DictionaryIterator).GetMethod("IterateGenericTyped", BindingFlags.NonPublic | BindingFlags.Static)!;
 #endif
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="dictionary">Dictionary to iterate</param>
         /// <returns>The equivalent IEnumerable{KeyValuePair{object, object}}</returns>
-        public static IEnumerable<KeyValuePair<object, object>> Iterate(object dictionary)
+        public static IEnumerable<KeyValuePair<object?, object?>> Iterate(object dictionary)
         {
             if (dictionary == null)
                 throw new ArgumentNullException(nameof(dictionary));
@@ -59,22 +59,22 @@ namespace RestEase.Implementation
             throw new ArgumentException("Dictionary does not implement IDictionary or IDictionary<TKey, TValue>", nameof(dictionary));
         }
 
-        private static IEnumerable<KeyValuePair<object, object>> IterateNonGeneric(IDictionary dictionary)
+        private static IEnumerable<KeyValuePair<object?, object?>> IterateNonGeneric(IDictionary dictionary)
         {
             foreach (DictionaryEntry entry in dictionary)
             {
-                yield return new KeyValuePair<object, object>(entry.Key, entry.Value);
+                yield return new KeyValuePair<object?, object?>(entry.Key, entry.Value);
             }
         }
 
-        private static IEnumerable<KeyValuePair<object, object>> IterateGeneric(object dictionary, Type dictionaryType)
+        private static IEnumerable<KeyValuePair<object?, object?>> IterateGeneric(object dictionary, Type dictionaryType)
         {
             var genericArguments = dictionaryType.GetTypeInfo().GetGenericArguments();
             var keyType = genericArguments[0];
             var valueType = genericArguments[1];
 
             var method = iterateGenericTypedMethod.MakeGenericMethod(keyType, valueType);
-            return (IEnumerable<KeyValuePair<object, object>>)method.Invoke(null, new[] { dictionary });
+            return (IEnumerable<KeyValuePair<object?, object?>>)method.Invoke(null, new[] { dictionary })!;
         }
 
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used via reflection")]

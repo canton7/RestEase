@@ -72,7 +72,7 @@ namespace RestEase.Implementation.Emission
                 return;
 
             var headers = this.typeModel.HeaderAttributes;
-            var staticCtorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Static, CallingConventions.Standard, new Type[0]);
+            var staticCtorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Static, CallingConventions.Standard, ArrayUtil.Empty<Type>());
             var ilGenerator = staticCtorBuilder.GetILGenerator();
 
             ilGenerator.Emit(OpCodes.Ldc_I4, headers.Count);
@@ -83,7 +83,7 @@ namespace RestEase.Implementation.Emission
                 ilGenerator.Emit(OpCodes.Ldc_I4, i);
                 ilGenerator.Emit(OpCodes.Ldstr, headers[i].Attribute.Name);
                 // We already check that it's got a non-null value
-                ilGenerator.Emit(OpCodes.Ldstr, headers[i].Attribute.Value);
+                ilGenerator.Emit(OpCodes.Ldstr, headers[i].Attribute.Value!);
                 ilGenerator.Emit(OpCodes.Newobj, MethodInfos.KeyValuePair_Ctor_String_String);
                 ilGenerator.Emit(OpCodes.Stelem, typeof(KeyValuePair<string, string>));
             }
@@ -101,7 +101,7 @@ namespace RestEase.Implementation.Emission
             {
                 attributes = MethodAttributes.Private | MethodAttributes.Final | MethodAttributes.HideBySig
                     | MethodAttributes.SpecialName | MethodAttributes.NewSlot | MethodAttributes.Virtual;
-                string declaringTypeName = FriendlyNameForType(propertyModel.PropertyInfo.DeclaringType);
+                string declaringTypeName = FriendlyNameForType(propertyModel.PropertyInfo.DeclaringType!);
                 namePrefix = declaringTypeName + ".";
                 fieldName = "<" + declaringTypeName + "." + propertyModel.Name + ">k__BackingField";
             }
@@ -119,13 +119,13 @@ namespace RestEase.Implementation.Emission
                 null);
 
             var getter = this.typeBuilder.DefineMethod(
-                namePrefix + propertyModel.PropertyInfo.GetMethod.Name,
+                namePrefix + propertyModel.PropertyInfo.GetMethod!.Name,
                 attributes,
                 propertyModel.PropertyInfo.PropertyType,
-                new Type[0]);
+                ArrayUtil.Empty<Type>());
 
             var setter = this.typeBuilder.DefineMethod(
-               namePrefix + propertyModel.PropertyInfo.SetMethod.Name,
+               namePrefix + propertyModel.PropertyInfo.SetMethod!.Name,
                attributes,
                null,
                new Type[] { propertyModel.PropertyInfo.PropertyType });
@@ -162,7 +162,7 @@ namespace RestEase.Implementation.Emission
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
             
             var propertyBuilder = this.typeBuilder.DefineProperty(propertyModel.PropertyInfo.Name, PropertyAttributes.None, propertyModel.PropertyInfo.PropertyType, null);
-            var getter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.GetMethod.Name, attributes, propertyModel.PropertyInfo.PropertyType, new Type[0]);
+            var getter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.GetMethod!.Name, attributes, propertyModel.PropertyInfo.PropertyType, ArrayUtil.Empty<Type>());
             var getterIlGenerator = getter.GetILGenerator();
             getterIlGenerator.Emit(OpCodes.Ldarg_0);
             getterIlGenerator.Emit(OpCodes.Ldfld, this.requesterField);
@@ -197,7 +197,7 @@ namespace RestEase.Implementation.Emission
             Type constructedType;
             try
             {
-                constructedType = this.typeBuilder.CreateTypeInfo().AsType();
+                constructedType = this.typeBuilder.CreateTypeInfo()!.AsType();
             }
             catch (TypeLoadException e)
             {

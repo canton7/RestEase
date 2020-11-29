@@ -49,8 +49,8 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesPathProperty()
         {
-            object propertyValue = new object();
-            object parameterValue = new object();
+            object propertyValue = new();
+            object parameterValue = new();
             var requestInfo =
                 this.Request<IHttpRequestMessageProperties>(
                     x =>

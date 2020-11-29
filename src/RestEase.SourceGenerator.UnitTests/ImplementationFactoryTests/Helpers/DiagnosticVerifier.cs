@@ -181,7 +181,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
                     builder.AppendFormat("// {0}", squiggledText).AppendLine();
                 }
 
-                var code = (DiagnosticCode)int.Parse(diagnostics[i].Id.Substring("REST".Length));
+                var code = (DiagnosticCode)int.Parse(diagnostics[i].Id["REST".Length..]);
                 builder.AppendFormat("Diagnostic(DiagnosticCode.{0}, @\"{1}\")",
                     code.ToString(),
                     squiggledText.Replace("\"", "\"\""));

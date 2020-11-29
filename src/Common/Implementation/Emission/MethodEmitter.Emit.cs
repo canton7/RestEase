@@ -33,7 +33,7 @@ namespace RestEase.Implementation.Emission
             if (methodModel.IsExplicit)
             {
                 this.methodBuilder = typeBuilder.DefineMethod(
-                    FriendlyNameForType(methodModel.MethodInfo.DeclaringType) + "." + methodModel.MethodInfo.Name,
+                    FriendlyNameForType(methodModel.MethodInfo.DeclaringType!) + "." + methodModel.MethodInfo.Name,
                     MethodAttributes.Private | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot
                     | MethodAttributes.Virtual,
                     methodModel.MethodInfo.ReturnType,
@@ -108,9 +108,9 @@ namespace RestEase.Implementation.Emission
             this.ilGenerator.Emit(OpCodes.Ldsfld, this.methodInfoField);
             this.ilGenerator.Emit(OpCodes.Brtrue, branchTarget);
             this.ilGenerator.Emit(OpCodes.Ldtoken, this.methodModel.MethodInfo);
-            if (this.methodModel.MethodInfo.DeclaringType.GetTypeInfo().IsGenericType)
+            if (this.methodModel.MethodInfo.DeclaringType!.GetTypeInfo().IsGenericType)
             {
-                this.ilGenerator.Emit(OpCodes.Ldtoken, this.methodModel.MethodInfo.DeclaringType);
+                this.ilGenerator.Emit(OpCodes.Ldtoken, this.methodModel.MethodInfo.DeclaringType!);
                 this.ilGenerator.Emit(OpCodes.Call, MethodInfos.MethodBase_GetMethodFromHandle_RuntimeMethodHandle_RuntimeTypeHandle);
             }
             else
@@ -130,9 +130,9 @@ namespace RestEase.Implementation.Emission
 
             // For the standard HTTP methods, we can get a static instance. For others, we'll need to construct the HttpMethod
             // ourselves
-            if (MethodInfos.HttpMethodProperties.TryGetValue(requestAttribute.Method, out PropertyInfo cachedPropertyInfo))
+            if (MethodInfos.HttpMethodProperties.TryGetValue(requestAttribute.Method, out PropertyInfo? cachedPropertyInfo))
             {
-                this.ilGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetMethod);
+                this.ilGenerator.Emit(OpCodes.Call, cachedPropertyInfo.GetMethod!);
             }
             else
             {
@@ -233,6 +233,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitAddHttpRequestMessagePropertyProperty(EmittedProperty property)
         {
+            Assert(property.PropertyModel.HttpRequestMessagePropertyAttribute != null);
             this.ilGenerator.Emit(OpCodes.Ldloc, this.requestInfoLocal);
             this.ilGenerator.Emit(OpCodes.Ldstr, property.PropertyModel.HttpRequestMessagePropertyAttributeKey);
             this.ilGenerator.Emit(OpCodes.Ldarg_0);
@@ -313,6 +314,7 @@ namespace RestEase.Implementation.Emission
 
         public void EmitAddHttpRequestMessagePropertyParameter(ParameterModel parameter)
         {
+            Assert(parameter.HttpRequestMessagePropertyAttribute != null);
             this.ilGenerator.Emit(OpCodes.Ldloc, this.requestInfoLocal);
             this.ilGenerator.Emit(OpCodes.Ldstr, parameter.HttpRequestMessagePropertyAttributeKey);
             this.ilGenerator.Emit(OpCodes.Ldarg, parameter.ParameterInfo.Position + 1);

@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using RestEase.Implementation.Analysis;
+
+#pragma warning disable CA1822 // Mark members as static
 
 namespace RestEase.Implementation.Emission
 {
@@ -252,3 +253,5 @@ namespace RestEase.Implementation.Emission
         }
     }
 }
+
+#pragma warning restore CA1822 // Mark members as static
