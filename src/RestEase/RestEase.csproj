@@ -11,25 +11,27 @@
     <PackageTags>REST;JSON</PackageTags>
     <Copyright>Copyright © Antony Male 2015-2020</Copyright>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageProjectUrl>http://github.com/canton7/RestEase</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/canton7/RestEase</RepositoryUrl>
     <Authors>Antony Male</Authors>
-    <Description>Easy-to-use typesafe REST API client library, which is simple and customisable.</Description>
+    <Description>
+Easy-to-use typesafe REST API client library, which is simple and customisable.
+    
+Write a C# interface which describes your API, and RestEase generates an implementation you can call into.
+
+Source Generators are here! Reference the RestEase.SourceGenerator NuGet package.
+    </Description>
 
     <!-- Just embed all sources in the PDB: snupkg files don't support bare .cs files, and SourceLink is annoying -->
+    <!-- Stack traces on < net471 don't work with portable, but snupkg demands portable, so tough -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>portable</DebugType>
     
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.0</NetStandardImplicitPackageVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <!-- Stack traces on < net471 don't work with portable, and we don't care about being portable for net45 anyway -->
-    <DebugType>full</DebugType>
   </PropertyGroup>
 
   <ItemGroup Condition=" ('$(TargetFramework)' == 'net5.0') Or ('$(TargetFramework)' == 'netstandard2.1') ">

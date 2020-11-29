@@ -8,17 +8,20 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <icon>icon.png</icon>
-    <projectUrl>http://github.com/canton7/RestEase</projectUrl>
+    <projectUrl>https://github.com/canton7/RestEase</projectUrl>
     <description>
-Source generator for RestEase.
-      
-Requires preview versions of Visual Studio and .NET 5, and &lt;LangVersion&gt;latest&lt;/LangVersion&gt;. Please see https://github.com/canton7/RestEase/issues/158 .
+Source generator for RestEase: the easy-to-use typesafe REST API client library, which is simple and customisable
 
-May break, as changes are made to the Source Generator tooling.
+Generates implementations for RestEase interfaces at compile-time, to provide error-checking, faster execution, and support for platforms which don't support runtime code generation (such as iOS and .NET Native).
+      
+You must be using the .NET 5 SDK (or higher) to use this.
+
+For more details, see https://github.com/canton7/RestEase#using-resteasesourcegenerator
     </description>
     <copyright>Copyright © Antony Male 2015-2020</copyright>
     <tags>REST JSON RestEase SourceGenerator</tags>
     <repository type="git" url="https://github.com/canton7/RestEase" />
+    <developmentDependency>true</developmentDependency>
     <dependencies>
       <group>
         <dependency id="RestEase" version="[$restEaseVersion$,2.0)" />
