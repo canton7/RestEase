@@ -21,12 +21,18 @@ namespace RestEase.Implementation
         private readonly Dictionary<Type, Type> genericTypeLookup = new();
 
         private readonly bool useSourceGenerator;
-        private readonly bool useSystemReflectionEmit;
+        private readonly bool useSystemReflectionEmit = true;
 
-        public ImplementationFactory(bool useSourceGenerator = true, bool useSystemReflectionEmit = true)
+        public ImplementationFactory(bool useSourceGenerator = true)
         {
             this.useSourceGenerator = useSourceGenerator;
-            this.useSystemReflectionEmit = useSystemReflectionEmit;
+
+#if !NETSTANDARD2_1 && !NETSTANDARD2_0 && !NETSTANDARD1_1 && !NET45
+            if (OperatingSystem.IsIOS())
+            {
+                this.useSystemReflectionEmit = false;
+            }
+#endif
         }
 
         public T CreateImplementation<T>(IRequester requester)
@@ -120,8 +126,11 @@ namespace RestEase.Implementation
                 return EmitImplementationFactory.Instance.BuildEmitImplementation(interfaceType);
             }
 
-            throw new ImplementationCreationException($"Unable to create type '{interfaceType.FullName}': source generator " +
-                "not enabled or couldn't find implementation, System.Reflection.Emit not enabled");
+            // The only way they can hit this in practice is if we've set useSystemReflectionEmit = false,
+            // which we only do on platforms which doesn't support it.
+            throw new ImplementationCreationException($"Unable to find an implementation of '{interfaceType.FullName}'. " +
+                "Please make sure that the RestEase.SourceGenerator NuGet package is installed in the assembly which contains " +
+                $"'{interfaceType.FullName}' ('{interfaceType.GetTypeInfo().Assembly.FullName}').");
         }
     }
 }
