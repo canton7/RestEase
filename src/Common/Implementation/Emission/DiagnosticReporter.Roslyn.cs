@@ -264,13 +264,14 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor parameterMustHaveZeroOrOneAttributes = CreateDescriptor(
             DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
             "Method parameters must not have zero or one attributes",
-            "Method parameter '{0}' has no attributes: it must have at least one");
-        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel _, ParameterModel parameter, List<AttributeModel> _2)
+            "Method parameter '{0}' has {1} attributes, but it must have zero or one");
+        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel _, ParameterModel parameter, List<AttributeModel> attributes)
         {
             this.AddDiagnostic(
                 parameterMustHaveZeroOrOneAttributes,
                 SymbolLocations(parameter.ParameterSymbol),
-                parameter.Name);
+                parameter.Name,
+                attributes.Count);
         }
 
         private static readonly DiagnosticDescriptor parameterMustNotBeByRef = CreateDescriptor(

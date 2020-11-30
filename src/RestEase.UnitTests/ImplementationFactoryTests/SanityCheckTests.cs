@@ -139,9 +139,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ThrowsIfMethodWithoutAttributes()
         {
             this.VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
-                // (4,27): Error REST025: Method parameter 'foo' has no attributes: it must have at least one
+                // (4,27): Error REST025: Method parameter 'foo' has 2 attributes, but it must have zero or one
                 // [Query, HttpRequestMessageProperty] string foo
-                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, "[Query, HttpRequestMessageProperty] string foo")
+                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, @"[Query, HttpRequestMessageProperty] string foo")
                     .WithLocation(4, 27)
             );
         }

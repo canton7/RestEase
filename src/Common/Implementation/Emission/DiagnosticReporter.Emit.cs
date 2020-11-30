@@ -195,11 +195,11 @@ namespace RestEase.Implementation.Emission
                 $"Method '{method.MethodInfo.Name}': found more than one parameter with a HttpRequestMessageProperty key of '{key}'");
         }
 
-        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel method, ParameterModel parameter, List<AttributeModel> _)
+        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel method, ParameterModel parameter, List<AttributeModel> attributes)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
-                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' must have zero or one attributes");
+                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' has {attributes.Count} attributes, but it must have zero or one");
         }
 
         public void ReportParameterMustNotBeByRef(MethodModel method, ParameterModel parameter)
