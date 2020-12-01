@@ -21,7 +21,6 @@ For more details, see https://github.com/canton7/RestEase#using-resteasesourcege
     <copyright>Copyright © Antony Male 2015-2020</copyright>
     <tags>REST JSON RestEase SourceGenerator</tags>
     <repository type="git" url="https://github.com/canton7/RestEase" />
-    <developmentDependency>true</developmentDependency>
     <dependencies>
       <group>
         <dependency id="RestEase" version="[$restEaseVersion$,2.0)" />
