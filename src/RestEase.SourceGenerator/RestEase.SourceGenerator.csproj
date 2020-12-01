@@ -19,10 +19,14 @@
 
   <ItemGroup>
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Reflection.cs;../Common/**/*.Emit.cs" LinkBase="Common" />
+    <None Remove="tools\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="tools\**" />
+    <AssemblyAttribute Include="RestEase.SourceGenerator.Implementation.AllowedRestEaseVersionRangeAttribute">
+      <_Parameter1>$(VersionPrefix)</_Parameter1>
+      <_Parameter2>2.0</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <Target Name="SetNuspecProperties" BeforeTargets="GenerateNuspec">

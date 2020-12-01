@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using RestEase.Implementation.Emission;
 
@@ -123,11 +125,30 @@ namespace RestEase.SourceGenerator.Implementation
         {
             this.compilation = compilation;
             this.diagnosticReporter = diagnosticReporter;
-            this.restEaseAssembly = GetReferencedAssemblies(compilation.Assembly)
+            var restEaseAssembly = GetReferencedAssemblies(compilation.Assembly)
                 .FirstOrDefault(x => x.Name == "RestEase");
-            if (this.restEaseAssembly == null)
+            if (restEaseAssembly == null)
             {
                 this.diagnosticReporter.ReportCouldNotFindRestEaseAssembly();
+            }
+            else
+            {
+                var versionRangeAttribute = typeof(WellKnownSymbols).Assembly.GetCustomAttribute<AllowedRestEaseVersionRangeAttribute>();
+                var (minInclusive, maxExclusive) = (new Version(versionRangeAttribute.MinVersionInclusive), new Version(versionRangeAttribute.MaxVersionExclusive));
+                var restEaseVersion = restEaseAssembly.Identity.Version;
+
+                if (restEaseVersion < minInclusive)
+                {
+                    this.diagnosticReporter.ReportRestEaseVersionTooOld(restEaseVersion, minInclusive, maxExclusive);
+                }
+                else if (restEaseVersion >= maxExclusive)
+                {
+                    this.diagnosticReporter.ReportRestEaseVersionTooNew(restEaseVersion, minInclusive, maxExclusive);
+                }
+                else
+                {
+                    this.restEaseAssembly = restEaseAssembly;
+                }
             }
         }
 

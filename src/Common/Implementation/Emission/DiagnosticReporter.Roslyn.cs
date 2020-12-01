@@ -357,6 +357,26 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(couldNotFindRestEaseAssembly, Location.None);
         }
 
+        private static readonly DiagnosticDescriptor restEaseVersionTooOld = CreateDescriptor(
+            DiagnosticCode.RestEaseVersionTooOld,
+            "A suitable version of RestEase must be referenced",
+            "This version of RestEase.SourceGenerator needs a version of RestEase >= {0} and < {1} to be referenced, but version " +
+            "{2} was found. Please reference a newer version of RestEase (or downgrade RestEase.SourceGenerator)");
+        public void ReportRestEaseVersionTooOld(Version restEaseVersion, Version minInclusive, Version maxExclusive)
+        {
+            this.AddDiagnostic(restEaseVersionTooOld, Location.None, minInclusive, maxExclusive, restEaseVersion);
+        }
+
+        private static readonly DiagnosticDescriptor restEaseVersionTooNew = CreateDescriptor(
+            DiagnosticCode.RestEaseVersionTooNew,
+            "A suitable version of RestEase must be referenced",
+            "This version of RestEase.SourceGenerator needs a version of RestEase >= {0} and < {1} to be referenced, but version " +
+            "{2} was found. Please upgrade RestEase.SourceGenerator (or reference an older version of RestEase)");
+        public void ReportRestEaseVersionTooNew(Version restEaseVersion, Version minInclusive, Version maxExclusive)
+        {
+            this.AddDiagnostic(restEaseVersionTooNew, Location.None, minInclusive, maxExclusive, restEaseVersion);
+        }
+
         private static readonly DiagnosticDescriptor couldNotFindRestEaseType = CreateDescriptor(
             DiagnosticCode.CouldNotFindRestEaseType,
             "Unable to find RestEase type",
