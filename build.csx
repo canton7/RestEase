@@ -29,7 +29,7 @@ CreateTask("package").DependsOn("build").Run((string version, string configurati
     var flags = CommonFlags(version, configurationOpt) + $" --no-build --output=\"{nugetDir}\"";
     Command.Run("dotnet", $"pack {flags} \"{restEaseDir}\"");
     Command.Run("dotnet", $"pack {flags} \"{httpClientFactoryDir}\"");
-    Command.Run("dotnet", $"pack {flags} -p:VersionSuffix=\"preview\" \"{sourceGeneratorDir}\"");
+    Command.Run("dotnet", $"pack {flags} \"{sourceGeneratorDir}\"");
 });
 
 string CommonFlags(string? version, string? configuration) =>
