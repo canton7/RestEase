@@ -102,6 +102,12 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             }
         }
 
+        public interface IHasMultipleRequestAttributes
+        {
+            [Get, Post]
+            Task FooAsync();
+        }
+
         public SanityCheckTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -235,6 +241,16 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 #if !SOURCE_GENERATOR
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
 #endif
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfMultipleRequestAttributes()
+        {
+            this.VerifyDiagnostics<IHasMultipleRequestAttributes>(
+                // (3,14): Error REST039: Method must only have a single request-related attribute, found (Get, Post)
+                // Get
+                Diagnostic(DiagnosticCode.MethodMustHaveOneRequestAttribute, @"Get").WithLocation(3, 14).WithLocation(3, 19)
             );
         }
 

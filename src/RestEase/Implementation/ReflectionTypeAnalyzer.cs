@@ -136,13 +136,12 @@ namespace RestEase.Implementation
         {
             var model = new MethodModel(methodInfo)
             {
-                RequestAttribute = Get<RequestAttributeBase>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 IsDisposeMethod = methodInfo == MethodInfos.IDisposable_Dispose,
             };
-            model.HeaderAttributes.AddRange(methodInfo.GetCustomAttributes<HeaderAttribute>()
-                .Select(x => AttributeModel.Create(x, methodInfo)));
+            model.RequestAttributes.AddRange(GetAll<RequestAttributeBase>());
+            model.HeaderAttributes.AddRange(GetAll<HeaderAttribute>());
 
             model.Parameters.AddRange(methodInfo.GetParameters().Select(this.GetParameter));
 
@@ -153,6 +152,8 @@ namespace RestEase.Implementation
                 var attribute = methodInfo.GetCustomAttribute<T>();
                 return attribute == null ? null : AttributeModel.Create(attribute, methodInfo);
             }
+            IEnumerable<AttributeModel<T>> GetAll<T>() where T : Attribute =>
+                methodInfo.GetCustomAttributes<T>().Select(x => AttributeModel.Create(x, methodInfo));
         }
 
         private ParameterModel GetParameter(ParameterInfo parameterInfo)

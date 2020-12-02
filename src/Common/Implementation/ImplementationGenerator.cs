@@ -168,19 +168,23 @@ namespace RestEase.Implementation
         {
             var methodEmitter = typeEmitter.EmitMethod(method);
             var serializationMethods = new ResolvedSerializationMethods(this.typeModel.SerializationMethodsAttribute?.Attribute, method.SerializationMethodsAttribute?.Attribute);
-            if (method.RequestAttribute == null)
+            if (method.RequestAttributes.Count == 0)
             {
                 this.diagnostics.ReportMethodMustHaveRequestAttribute(method);
             }
+            else if (method.RequestAttributes.Count > 1)
+            {
+                this.diagnostics.ReportMethodMustHaveOneRequestAttribute(method);
+            }
             else
             {
-                string? path = method.RequestAttribute.Attribute.Path;
-                this.ValidatePathParams(method, path);
+                var requestAttribute = method.RequestAttributes[0];
+                this.ValidatePathParams(method, requestAttribute);
                 this.ValidateCancellationTokenParams(method);
                 this.ValidateMultipleBodyParams(method);
                 this.ValidateHttpRequestMessageParams(method);
 
-                methodEmitter.EmitRequestInfoCreation(method.RequestAttribute.Attribute);
+                methodEmitter.EmitRequestInfoCreation(requestAttribute.Attribute);
 
                 var resolvedAllowAnyStatusCode = method.AllowAnyStatusCodeAttribute ?? this.typeModel.TypeAllowAnyStatusCodeAttribute;
                 if (resolvedAllowAnyStatusCode?.Attribute.AllowAnyStatusCode == true)
@@ -394,8 +398,9 @@ namespace RestEase.Implementation
             }
         }
 
-        private void ValidatePathParams(MethodModel method, string? path)
+        private void ValidatePathParams(MethodModel method, AttributeModel<RequestAttributeBase> requestAttribute)
         {
+            string? path = requestAttribute.Attribute.Path;
             if (path == null)
                 path = string.Empty;
 
@@ -417,7 +422,7 @@ namespace RestEase.Implementation
                 .Except(pathParams.Select(x => x.PathAttributeName!).Concat(this.typeModel.Properties.Select(x => x.PathAttributeName!)));
             foreach (string missingParam in missingParams)
             {
-                this.diagnostics.ReportMissingPathPropertyOrParameterForPlaceholder(method, missingParam);
+                this.diagnostics.ReportMissingPathPropertyOrParameterForPlaceholder(method, requestAttribute, missingParam);
             }
 
             var missingPlaceholders = pathParams.Select(x => x.PathAttributeName!).Except(placeholders);

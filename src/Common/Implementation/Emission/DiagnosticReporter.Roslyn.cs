@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
@@ -175,6 +176,18 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(methodMustHaveRequestAttribute, method.MethodSymbol.Locations);
         }
 
+        private static readonly DiagnosticDescriptor methodMustHaveOneRequestAttribute = CreateDescriptor(
+            DiagnosticCode.MethodMustHaveOneRequestAttribute,
+            "Methods must only have a single [Get] / [Post] / etc attribute",
+            "Method must only have a single request-related attribute, found ({0})");
+        public void ReportMethodMustHaveOneRequestAttribute(MethodModel method)
+        {
+            this.AddDiagnostic(
+                methodMustHaveOneRequestAttribute,
+                AttributeLocations(method.RequestAttributes, method.MethodSymbol),
+                string.Join(", ", method.RequestAttributes.Select(x => Regex.Replace(x.AttributeName, "Attribute$", ""))));
+        }
+
         private static readonly DiagnosticDescriptor multiplePathPropertiesForKey = CreateDescriptor(
             DiagnosticCode.MultiplePathPropertiesForKey,
             "There must not be multiple path properties for the same key",
@@ -210,10 +223,10 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder,
             "All placeholders in a path must have a corresponding path property or path parameter",
             "No path property or parameter '{0}' found for placeholder {{{0}}}");
-        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
+        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, AttributeModel<RequestAttributeBase> requestAttribute, string placeholder)
         {
             // We'll put the squiggle on the attribute itself
-            this.AddDiagnostic(missingPathPropertyOrParameterForPlaceholder, AttributeLocations(method.RequestAttribute, method.MethodSymbol), placeholder);
+            this.AddDiagnostic(missingPathPropertyOrParameterForPlaceholder, AttributeLocations(requestAttribute, method.MethodSymbol), placeholder);
         }
 
         private static readonly DiagnosticDescriptor missingPlaceholderForPathParameter = CreateDescriptor(

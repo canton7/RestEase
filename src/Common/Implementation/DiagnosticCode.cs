@@ -45,6 +45,7 @@
         BaseAddressMustBeAbsolute = 36,
         RestEaseVersionTooOld = 37,
         RestEaseVersionTooNew = 38,
+        MethodMustHaveOneRequestAttribute = 39,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using RestEase.Implementation.Analysis;
 
 #pragma warning disable CA1822 // Mark members as static
@@ -138,6 +139,14 @@ namespace RestEase.Implementation.Emission
                 $"Method {method.MethodInfo.Name} does not have a suitable [Get] / [Post] / etc attribute on it");
         }
 
+        public void ReportMethodMustHaveOneRequestAttribute(MethodModel method)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.MethodMustHaveOneRequestAttribute,
+                $"Method {method.MethodInfo.Name} must have a single request-related attribute, found " +
+                $"({string.Join(", ", method.RequestAttributes.Select(x => Regex.Replace(x.AttributeName, "Attribute$", "")))})");
+        }
+
         public void ReportMultiplePathPropertiesForKey(string key, IEnumerable<PropertyModel> _)
         {
             throw new ImplementationCreationException(
@@ -160,7 +169,7 @@ namespace RestEase.Implementation.Emission
                 $"[Header(\"{headerAttribute.Name}\", \"{headerAttribute.Value}\")] on property {property.Name} (i.e. containing a default value) can only be used if the property type is nullable");
         }
 
-        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
+        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, AttributeModel<RequestAttributeBase> _, string placeholder)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder,
