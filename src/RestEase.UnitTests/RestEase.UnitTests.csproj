@@ -10,6 +10,8 @@
     <Nullable>annotations</Nullable>
     <!-- We know we're targetting EOL framework versions -->
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <!-- https://help.appveyor.com/discussions/problems/23416 -->
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
   </PropertyGroup>
 
   <ItemGroup>
