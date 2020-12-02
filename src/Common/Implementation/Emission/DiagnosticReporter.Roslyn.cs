@@ -350,8 +350,8 @@ namespace RestEase.Implementation.Emission
 
         private static readonly DiagnosticDescriptor couldNotFindRestEaseAssembly = CreateDescriptor(
             DiagnosticCode.CouldNotFindRestEaseAssembly,
-            "Unable to find RestEase assembly",
-            "Unable to find the RestEase assembly. Make sure you are referencing a suitably recent version of RestEase");
+            "RestEase must be referenced",
+            "Please reference the RestEase NuGet package, in addition to RestEase.SourceGenerator");
         public void ReportCouldNotFindRestEaseAssembly()
         {
             this.AddDiagnostic(couldNotFindRestEaseAssembly, Location.None);
