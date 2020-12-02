@@ -16,6 +16,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/canton7/RestEase</RepositoryUrl>
     <Authors>Antony Male</Authors>
+    <DevelopmentDependency>true</DevelopmentDependency>
     <Description>
 Source generator for RestEase: the easy-to-use typesafe REST API client library, which is simple and customisable
 
