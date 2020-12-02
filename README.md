@@ -90,8 +90,9 @@ Installation
 [RestEase is available on NuGet](https://www.nuget.org/packages/RestEase). 
 See that page for installation instructions.
 
-If you're using C# 9 or .NET 5 (or higher), reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator) instead.
+If you're using C# 9 or .NET 5 (or higher), reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator) as well to get compile-time errors and faster execution.
 See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
+If you're targetting iOS or .NET Native, you will need to do this, as runtime code generation isn't available.
 
 If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory).
 
@@ -1113,7 +1114,7 @@ Using RestEase.SourceGenerator
 
 Source Generators are a new feature which allows NuGet packages to hook into the compilation of your projects and insert their own code.
 RestEase uses this to generate implementations of your interfaces at compile-time, rather than run-time.
-To take advantage of this, you need to install the [RestEase.SourceGenerator NuGet package](https://www.nuget.org/packages/RestEase.SourceGenerator).
+To take advantage of this, you need to install the [RestEase.SourceGenerator NuGet package](https://www.nuget.org/packages/RestEase.SourceGenerator) as well as RestEase.
 
 The advantages of using a Source Generator are:
 
@@ -1123,11 +1124,13 @@ The advantages of using a Source Generator are:
 
 You will need to be using the .NET 5 SDK (or higher) to make use of source generators.
 If you're targetting C# 9 or .NET 5 (or higher), you're all set.
-If you're targetting an earlier language or runtime version, you can still install the latest .NET SDK (make sure you update your global.json if you have one!).
+If you're targetting an earlier language or runtime version, you can still install the latest .NET SDK (make sure you update your global.json if you have one!): you don't need to be targetting .NET 5, you just need to be building with the .NET 5 SDK.
 
-When you build a project which references RestEase.SourceGenerator, RestEase generates implementations of any RestEase interfaces it finds in that project, and adds those implementations to the project.
-`RestClient.For<T>` will look for one of these implementatiosn first, before falling back to the old approach of generating one at runtime.
+When you build a project which references RestEase.SourceGenerator, RestEase generates implementations of any RestEase interfaces it finds in that project, and adds those implementations to your project.
+`RestClient.For<T>` will look for one of these implementations first, before falling back to the old approach of generating one at runtime.
 This means that you should reference RestEase.SourceGenerator in all projects which contain RestEase interfaces, but projects which only consume interfaces can just reference the RestEase package.
+
+Authors of libraries which expose RestEase interfaces should also install RestEase.SourceGenerator, and the consumers of your library will use the interface implementations it generates a compile-time without needing to install RestEase.SourceGenerator themselves.
 
 
 Using HttpClientFactory
