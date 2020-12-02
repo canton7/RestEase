@@ -69,7 +69,7 @@ Source Generators are here! Reference the RestEase.SourceGenerator NuGet package
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\icon.png" Pack="true" PackagePath="" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="false" />
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Roslyn.cs" LinkBase="Common" />
   </ItemGroup>
 </Project>
