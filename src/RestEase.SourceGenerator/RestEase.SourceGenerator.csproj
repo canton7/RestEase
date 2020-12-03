@@ -47,4 +47,10 @@ For more details, see https://github.com/canton7/RestEase#using-resteasesourcege
       <_Parameter2>2.0</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <PackageReleaseNotes>$([System.IO.File]::ReadAllText("../../CHANGELOG.md"))</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
 </Project>

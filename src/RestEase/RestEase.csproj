@@ -72,4 +72,10 @@ Source Generators are here! Reference the RestEase.SourceGenerator NuGet package
     <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="false" />
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Roslyn.cs" LinkBase="Common" />
   </ItemGroup>
+
+  <Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <PackageReleaseNotes>$([System.IO.File]::ReadAllText("../../CHANGELOG.md"))</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
 </Project>
