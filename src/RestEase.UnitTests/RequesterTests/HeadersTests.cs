@@ -9,7 +9,7 @@ namespace RestEase.UnitTests.RequesterTests
 {
     public class HeadersTests
     {
-        private readonly PublicRequester requester = new PublicRequester(null);
+        private readonly PublicRequester requester = new(null);
 
         [Fact]
         public void AppliesHeadersFromClass()
@@ -229,13 +229,15 @@ namespace RestEase.UnitTests.RequesterTests
         }
 
         [Fact]
-        public void DoesNotThrowIfContentHeaderAppliedToClassButThereIsNoContent()
+        public void IgnoresContentHeaderAppliedToClassButThereIsNoContent()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
             requestInfo.AddPropertyHeader("Content-Type", "text/html", string.Empty);
 
             var message = new HttpRequestMessage();
             this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.Null(message.Content);
         }
 
         [Fact]
@@ -253,7 +255,26 @@ namespace RestEase.UnitTests.RequesterTests
         }
 
         [Fact]
-        public void SendsBodyHeadersIfBodyIsNull()
+        public void AddsContentHeadersOnClassIfBodyIsNull()
+        {
+            var requestInfo = new RequestInfo(HttpMethod.Post, "foo")
+            {
+                ClassHeaders = new[]
+                {
+                    new KeyValuePair<string, string>("Content-Type", "text/plain"),
+                }
+            };
+            requestInfo.SetBodyParameterInfo<object>(BodySerializationMethod.Default, null);
+
+            var message = new HttpRequestMessage();
+            this.requester.ApplyHeaders(requestInfo, message);
+
+            Assert.NotNull(message.Content);
+            Assert.Equal("text/plain", message.Content.Headers.ContentType.MediaType);
+        }
+
+        [Fact]
+        public void AddsContentHeadersOnMethodIfBodyIsNull()
         {
             var requestInfo = new RequestInfo(HttpMethod.Post, "foo");
             requestInfo.AddMethodHeader("Content-Type", "text/plain");

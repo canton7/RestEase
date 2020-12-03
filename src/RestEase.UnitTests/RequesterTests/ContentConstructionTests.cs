@@ -13,7 +13,7 @@ namespace RestEase.UnitTests.RequesterTests
 {
     public class ContentConstructionTests
     {
-        private readonly PublicRequester requester = new PublicRequester(null);
+        private readonly PublicRequester requester = new(null);
 
         [Fact]
         public void SetsContentNullIfBodyParameterInfoNull()
@@ -77,7 +77,7 @@ namespace RestEase.UnitTests.RequesterTests
         public void UsesRequestBodySerializerIfContentBodyIsObjectAndMethodIsSerialized()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            object body = new object();
+            object body = new();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, body);
 
             var requestBodySerializer = new Mock<RequestBodySerializer>();
@@ -96,7 +96,7 @@ namespace RestEase.UnitTests.RequesterTests
         public void ThrowsIfBodyIsUrlEncodedAndBodyDoesNotImplementIDictionary()
         {
             var requestInfo = new RequestInfo(HttpMethod.Get, "foo");
-            object body = new object();
+            object body = new();
             requestInfo.SetBodyParameterInfo(BodySerializationMethod.UrlEncoded, body);
 
             Assert.Throws<ArgumentException>(() => this.requester.ConstructContent(requestInfo));

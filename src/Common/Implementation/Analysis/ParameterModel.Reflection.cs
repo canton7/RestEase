@@ -6,7 +6,7 @@ namespace RestEase.Implementation.Analysis
     {
         public ParameterInfo ParameterInfo { get; }
 
-        public string Name => this.ParameterInfo.Name;
+        public string Name => this.ParameterInfo.Name!;
 
         public ParameterModel(ParameterInfo parameterInfo)
         {

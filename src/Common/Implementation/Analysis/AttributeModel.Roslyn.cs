@@ -16,7 +16,7 @@ namespace RestEase.Implementation.Analysis
         }
 
         public static AttributeModel<T> Create<T>(T attribute, AttributeData attributeData, ISymbol declaringSymbol) where T : Attribute =>
-            new AttributeModel<T>(attribute, attributeData, declaringSymbol);
+            new(attribute, attributeData, declaringSymbol);
 
         public bool IsDeclaredOn(TypeModel typeModel) =>
             SymbolEqualityComparer.Default.Equals(this.DeclaringSymbol, typeModel.NamedTypeSymbol);

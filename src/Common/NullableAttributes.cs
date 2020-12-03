@@ -5,10 +5,11 @@
 // Copied from https://github.com/dotnet/runtime/blob/2694a166e5b98eb552d3621e2841518c31748fbb/src/libraries/System.Private.CoreLib/src/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
 #define INTERNAL_NULLABLE_ATTRIBUTES
 #pragma warning disable
-#if !NETSTANDARD2_1
 
 namespace System.Diagnostics.CodeAnalysis
 {
+#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0
+
     /// <summary>Specifies that null is allowed as an input even if the corresponding type disallows it.</summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
 #if INTERNAL_NULLABLE_ATTRIBUTES
@@ -136,6 +137,10 @@ namespace System.Diagnostics.CodeAnalysis
         public bool ParameterValue { get; }
     }
 
+#endif
+
+#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
+
     /// <summary>Specifies that the method or property will ensure that the listed field and property members have not-null values.</summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
 #if INTERNAL_NULLABLE_ATTRIBUTES
@@ -202,6 +207,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// <summary>Gets field or property member names.</summary>
         public string[] Members { get; }
     }
-}
 
 #endif
+
+}

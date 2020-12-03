@@ -2,32 +2,55 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
-    <!-- See the nuspec -->
     <VersionPrefix>0.0.0</VersionPrefix>
-    <NuspecFile>RestEase.SourceGenerator.nuspec</NuspecFile>
-    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <PackageId>RestEase.SourceGenerator</PackageId>
+    <PackageTags>REST;JSON;SourceGEnerator</PackageTags>
+    <Copyright>Copyright © Antony Male 2015-2020</Copyright>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/canton7/RestEase</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/canton7/RestEase</RepositoryUrl>
+    <Authors>Antony Male</Authors>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <Description>
+Source generator for RestEase: the easy-to-use typesafe REST API client library, which is simple and customisable
+
+Generates implementations for RestEase interfaces at compile-time, to provide error-checking, faster execution, and support for platforms which don't support runtime code generation (such as iOS and .NET Native).
+
+You must be using the .NET 5 SDK (or higher) to use this. You will also need to install the RestEase package.
+
+For more details, see https://github.com/canton7/RestEase#using-resteasesourcegenerator
+    </Description>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0-2.final" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Reflection.cs;../Common/**/*.Emit.cs" LinkBase="Common" />
+
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="tools\**" />
+    <AssemblyAttribute Include="RestEase.SourceGenerator.Implementation.AllowedRestEaseVersionRangeAttribute">
+      <_Parameter1>$(VersionPrefix)</_Parameter1>
+      <_Parameter2>2.0</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
-  <Target Name="SetNuspecProperties" BeforeTargets="GenerateNuspec">
+  <Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
     <PropertyGroup>
-      <NuspecProperties>outputPath=$(OutputPath);version=$(PackageVersion);restEaseVersion=$(VersionPrefix)</NuspecProperties>
+      <PackageReleaseNotes>$([System.IO.File]::ReadAllText("../../CHANGELOG.md"))</PackageReleaseNotes>
     </PropertyGroup>
   </Target>
 </Project>

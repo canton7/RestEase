@@ -9,6 +9,8 @@ using System.Threading;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information to construct a request from.
     /// An instance of this is created per request by the generated interface implementation
     /// </summary>
@@ -20,7 +22,12 @@ namespace RestEase.Implementation
         public HttpMethod Method { get; }
 
         /// <summary>
-        /// Gets or sets the path which should be prepended to <see cref="Path"/> if any
+        /// Gets the path which should be prepended to <see cref="Path"/>, if any
+        /// </summary>
+        public string? BaseAddress { get; set; }
+
+        /// <summary>
+        /// Gets the path which should be prepended to <see cref="Path"/> unless <see cref="Path"/> starts with a '/', if any
         /// </summary>
         public string? BasePath { get; set; }
 
@@ -199,11 +206,11 @@ namespace RestEase.Implementation
                     kvp.Value is IEnumerable<object> enumerable &&
                     !(kvp.Value is string))
                 {
-                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key.ToString(), enumerable, format: null));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key?.ToString() ?? "", enumerable, format: null));
                 }
                 else
                 {
-                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
+                    this._queryParams.Add(new QueryParameterInfo<TValue>(serializationMethod, kvp.Key?.ToString() ?? "", kvp.Value, format: null));
                 }
             }
         }
@@ -227,7 +234,7 @@ namespace RestEase.Implementation
             foreach (var kvp in queryMap)
             {
                 if (kvp.Key != null)
-                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key.ToString(), kvp.Value, format: null));
+                    this._queryParams.Add(new QueryCollectionParameterInfo<TElement>(serializationMethod, kvp.Key?.ToString() ?? "", kvp.Value, format: null));
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
@@ -139,13 +140,31 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(multipleRequesterProperties, property.PropertySymbol.Locations);
         }
 
+        private static readonly DiagnosticDescriptor baseAddressMustBeAbsolute = CreateDescriptor(
+            DiagnosticCode.BaseAddressMustBeAbsolute,
+            "BaseAddress must be an absolute URI",
+            "Base address '{0}' must be an absolute URI");
+        public void ReportBaseAddressMustBeAbsolute(TypeModel typeModel, AttributeModel<BaseAddressAttribute> attributeModel)
+        {
+            this.AddDiagnostic(baseAddressMustBeAbsolute, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), attributeModel.Attribute.BaseAddress);
+        }
+
+        private static readonly DiagnosticDescriptor missingPathPropertyForBaseAddressPlaceholder = CreateDescriptor(
+            DiagnosticCode.MissingPathPropertyForBaseAddressPlaceholder,
+            "BaseAddress placeholders must have corresponding path properties",
+            "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base address '{1}'");
+        public void ReportMissingPathPropertyForBaseAddressPlaceholder(TypeModel typeModel, AttributeModel<BaseAddressAttribute> attributeModel, string missingParam)
+        {
+            this.AddDiagnostic(missingPathPropertyForBaseAddressPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, attributeModel.Attribute.BaseAddress);
+        }
+
         private static readonly DiagnosticDescriptor missingPathPropertyForBasePathPlaceholder = CreateDescriptor(
             DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
             "BasePath placeholders must have corresponding path properties",
             "Unable to find a [Path(\"{0}\")] property for the path placeholder '{{{0}}}' in base path '{1}'");
-        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel typeModel, AttributeModel<BasePathAttribute> attributeModel, string basePath, string missingParam)
+        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel typeModel, AttributeModel<BasePathAttribute> attributeModel, string missingParam)
         {
-            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, basePath);
+            this.AddDiagnostic(missingPathPropertyForBasePathPlaceholder, AttributeLocations(attributeModel, typeModel.NamedTypeSymbol), missingParam, attributeModel.Attribute.BasePath);
         }
 
         private static readonly DiagnosticDescriptor methodMustHaveRequestAttribute = CreateDescriptor(
@@ -155,6 +174,18 @@ namespace RestEase.Implementation.Emission
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
         {
             this.AddDiagnostic(methodMustHaveRequestAttribute, method.MethodSymbol.Locations);
+        }
+
+        private static readonly DiagnosticDescriptor methodMustHaveOneRequestAttribute = CreateDescriptor(
+            DiagnosticCode.MethodMustHaveOneRequestAttribute,
+            "Methods must only have a single [Get] / [Post] / etc attribute",
+            "Method must only have a single request-related attribute, found ({0})");
+        public void ReportMethodMustHaveOneRequestAttribute(MethodModel method)
+        {
+            this.AddDiagnostic(
+                methodMustHaveOneRequestAttribute,
+                AttributeLocations(method.RequestAttributes, method.MethodSymbol),
+                string.Join(", ", method.RequestAttributes.Select(x => Regex.Replace(x.AttributeName, "Attribute$", ""))));
         }
 
         private static readonly DiagnosticDescriptor multiplePathPropertiesForKey = CreateDescriptor(
@@ -192,10 +223,10 @@ namespace RestEase.Implementation.Emission
             DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder,
             "All placeholders in a path must have a corresponding path property or path parameter",
             "No path property or parameter '{0}' found for placeholder {{{0}}}");
-        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
+        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, AttributeModel<RequestAttributeBase> requestAttribute, string placeholder)
         {
             // We'll put the squiggle on the attribute itself
-            this.AddDiagnostic(missingPathPropertyOrParameterForPlaceholder, AttributeLocations(method.RequestAttribute, method.MethodSymbol), placeholder);
+            this.AddDiagnostic(missingPathPropertyOrParameterForPlaceholder, AttributeLocations(requestAttribute, method.MethodSymbol), placeholder);
         }
 
         private static readonly DiagnosticDescriptor missingPlaceholderForPathParameter = CreateDescriptor(
@@ -246,13 +277,14 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor parameterMustHaveZeroOrOneAttributes = CreateDescriptor(
             DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
             "Method parameters must not have zero or one attributes",
-            "Method parameter '{0}' has no attributes: it must have at least one");
-        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel _, ParameterModel parameter, List<AttributeModel> _2)
+            "Method parameter '{0}' has {1} attributes, but it must have zero or one");
+        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel _, ParameterModel parameter, List<AttributeModel> attributes)
         {
             this.AddDiagnostic(
                 parameterMustHaveZeroOrOneAttributes,
                 SymbolLocations(parameter.ParameterSymbol),
-                parameter.Name);
+                parameter.Name,
+                attributes.Count);
         }
 
         private static readonly DiagnosticDescriptor parameterMustNotBeByRef = CreateDescriptor(
@@ -331,11 +363,31 @@ namespace RestEase.Implementation.Emission
 
         private static readonly DiagnosticDescriptor couldNotFindRestEaseAssembly = CreateDescriptor(
             DiagnosticCode.CouldNotFindRestEaseAssembly,
-            "Unable to find RestEase assembly",
-            "Unable to find the RestEase assembly. Make sure you are referencing a suitably recent version of RestEase");
+            "RestEase must be referenced",
+            "Please reference the RestEase NuGet package, in addition to RestEase.SourceGenerator");
         public void ReportCouldNotFindRestEaseAssembly()
         {
             this.AddDiagnostic(couldNotFindRestEaseAssembly, Location.None);
+        }
+
+        private static readonly DiagnosticDescriptor restEaseVersionTooOld = CreateDescriptor(
+            DiagnosticCode.RestEaseVersionTooOld,
+            "A suitable version of RestEase must be referenced",
+            "This version of RestEase.SourceGenerator needs a version of RestEase >= {0} and < {1} to be referenced, but version " +
+            "{2} was found. Please reference a newer version of RestEase (or downgrade RestEase.SourceGenerator)");
+        public void ReportRestEaseVersionTooOld(Version restEaseVersion, Version minInclusive, Version maxExclusive)
+        {
+            this.AddDiagnostic(restEaseVersionTooOld, Location.None, minInclusive, maxExclusive, restEaseVersion);
+        }
+
+        private static readonly DiagnosticDescriptor restEaseVersionTooNew = CreateDescriptor(
+            DiagnosticCode.RestEaseVersionTooNew,
+            "A suitable version of RestEase must be referenced",
+            "This version of RestEase.SourceGenerator needs a version of RestEase >= {0} and < {1} to be referenced, but version " +
+            "{2} was found. Please upgrade RestEase.SourceGenerator (or reference an older version of RestEase)");
+        public void ReportRestEaseVersionTooNew(Version restEaseVersion, Version minInclusive, Version maxExclusive)
+        {
+            this.AddDiagnostic(restEaseVersionTooNew, Location.None, minInclusive, maxExclusive, restEaseVersion);
         }
 
         private static readonly DiagnosticDescriptor couldNotFindRestEaseType = CreateDescriptor(

@@ -2,12 +2,11 @@
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
-using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
     /// <summary>
-    /// Helper methods called from generated code
+    /// Internal type. Do not use! Helper methods called from generated code
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class ImplementationHelpers

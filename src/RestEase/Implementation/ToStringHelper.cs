@@ -4,6 +4,8 @@ using System.Text.RegularExpressions;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Helper methods to turn a value into a string
     /// </summary>
     public static class ToStringHelper

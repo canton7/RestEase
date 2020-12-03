@@ -4,6 +4,8 @@ using System.Collections.Generic;
 namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a desired path parameter
     /// </summary>
     public abstract class PathParameterInfo
@@ -36,6 +38,8 @@ namespace RestEase.Implementation
     }
 
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Class containing information about a desired path parameter
     /// </summary>
     /// <typeparam name="T">Type of the value</typeparam>

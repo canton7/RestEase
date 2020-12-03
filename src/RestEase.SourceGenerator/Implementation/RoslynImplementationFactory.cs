@@ -15,7 +15,7 @@ namespace RestEase.SourceGenerator.Implementation
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly AttributeInstantiator attributeInstantiator;
         private readonly Emitter emitter;
-        private readonly HashSet<Diagnostic> symbolsDiagnostics = new HashSet<Diagnostic>();
+        private readonly HashSet<Diagnostic> symbolsDiagnostics = new();
 
         public RoslynImplementationFactory(Compilation compilation)
         {

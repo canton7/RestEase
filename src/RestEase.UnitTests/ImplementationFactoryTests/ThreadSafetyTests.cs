@@ -19,7 +19,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         {
             // Test passes if it does not throw "Duplicate type name within an assembly"
 
-            var factory = new ImplementationFactory(useSourceGenerator: false, useSystemReflectionEmit: true);
+            var factory = new ImplementationFactory(useSourceGenerator: false);
             var requester = new Mock<IRequester>();
 
             // We can't really test this well... Just try lots, and see if we have any exceptions

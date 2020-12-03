@@ -1,9 +1,8 @@
 #!/usr/bin/env dotnet-script
 
-#r "nuget: SimpleTasks, 0.9.1"
-#r "nuget: SimpleExec, 6.2.0"
+#r "nuget: SimpleTasks, 0.9.4"
 
-using SimpleExec;
+using SimpleTasks;
 using static SimpleTasks.SimpleTask;
 
 #nullable enable
@@ -20,17 +19,17 @@ string nugetDir = "NuGet";
 CreateTask("build").Run((string versionOpt, string configurationOpt) =>
 {
     var flags = CommonFlags(versionOpt, configurationOpt);
-    Command.Run("dotnet", $"build {flags} -p:ContinuousIntegrationBuild=true \"{restEaseDir}\"");
-    Command.Run("dotnet", $"build {flags} -p:ContinuousIntegrationBuild=true \"{httpClientFactoryDir}\"");
+    Command.Run("dotnet", $"build {flags} \"{restEaseDir}\"");
+    Command.Run("dotnet", $"build {flags} \"{httpClientFactoryDir}\"");
     Command.Run("dotnet", $"build {flags} -p:VersionSuffix=\"preview\" \"{sourceGeneratorDir}\"");
 });
 
 CreateTask("package").DependsOn("build").Run((string version, string configurationOpt) =>
 {
     var flags = CommonFlags(version, configurationOpt) + $" --no-build --output=\"{nugetDir}\"";
-    Command.Run("dotnet", $"pack {flags} --include-symbols \"{restEaseDir}\"");
-    Command.Run("dotnet", $"pack {flags} --include-symbols \"{httpClientFactoryDir}\"");
-    Command.Run("dotnet", $"pack {flags} -p:VersionSuffix=\"preview\" \"{sourceGeneratorDir}\"");
+    Command.Run("dotnet", $"pack {flags} \"{restEaseDir}\"");
+    Command.Run("dotnet", $"pack {flags} \"{httpClientFactoryDir}\"");
+    Command.Run("dotnet", $"pack {flags} \"{sourceGeneratorDir}\"");
 });
 
 string CommonFlags(string? version, string? configuration) =>

@@ -7,14 +7,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator.Implementation;
-using static RestEase.SourceGenerator.Implementation.RoslynEmitUtils
-    ;
+using static RestEase.SourceGenerator.Implementation.RoslynEmitUtils;
 
 namespace RestEase.Implementation.Emission
 {
     internal class TypeEmitter
     {
-        private readonly StringWriter stringWriter = new StringWriter();
+        private readonly StringWriter stringWriter = new();
         private readonly IndentedTextWriter writer;
         private readonly TypeModel typeModel;
         private readonly WellKnownSymbols wellKnownSymbols;
@@ -26,7 +25,7 @@ namespace RestEase.Implementation.Emission
         private readonly string requesterFieldName;
         private readonly string? classHeadersFieldName;
 
-        private readonly List<string> generatedFieldNames = new List<string>();
+        private readonly List<string> generatedFieldNames = new();
 
         public TypeEmitter(TypeModel typeModel, WellKnownSymbols wellKnownSymbols, int index)
         {
@@ -76,7 +75,6 @@ namespace RestEase.Implementation.Emission
             string typeofInterfaceName = AddBareAngles(
                 this.typeModel.NamedTypeSymbol,
                 this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.TypeofParameterNoTypeParameters));
-            string interfaceName = this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.ImplementedInterface);
             string typeofName = this.typeNamePrefix + AddBareAngles(
                 this.typeModel.NamedTypeSymbol,
                 this.typeModel.NamedTypeSymbol.ToDisplayString(SymbolDisplayFormats.TypofParameterNoTypeParametersNoQualificationNoEscape));

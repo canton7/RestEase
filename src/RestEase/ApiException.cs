@@ -17,9 +17,9 @@ namespace RestEase
         public HttpMethod RequestMethod { get; }
 
         /// <summary>
-        /// Gets the URI to which the request which failed wras made
+        /// Gets the URI to which the request which failed was made
         /// </summary>
-        public Uri RequestUri { get; }
+        public Uri? RequestUri { get; }
 
         /// <summary>
         /// Gets the HTTP status code received
@@ -29,7 +29,7 @@ namespace RestEase
         /// <summary>
         /// Gets the ReasonPhrase associated with the response
         /// </summary>
-        public string ReasonPhrase { get; }
+        public string? ReasonPhrase { get; }
 
         /// <summary>
         /// Gets the headers associated with the response
@@ -56,7 +56,7 @@ namespace RestEase
         /// </summary>
         /// <param name="request">Request which triggered the exception</param>
         /// <param name="response"><see cref="HttpResponseMessage"/> provided by the <see cref="HttpClient"/></param>
-        /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
+        /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync()"/>, if there is a response content</param>
         public ApiException(HttpRequestMessage request, HttpResponseMessage response, string? contentString)
             : this(request.Method,
                   request.RequestUri,
@@ -77,12 +77,12 @@ namespace RestEase
         /// <param name="reasonPhrase"><see cref="HttpResponseMessage.ReasonPhrase"/> provided by <see cref="HttpClient"/></param>
         /// <param name="headers"><see cref="HttpResponseHeaders"/>s associated with the response</param>
         /// <param name="contentHeaders"><see cref="HttpContentHeaders"/> associated with the response content, if there is a response content</param>
-        /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync"/>, if there is a response content</param>
+        /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync()"/>, if there is a response content</param>
         public ApiException(
             HttpMethod requestMethod,
-            Uri requestUri,
+            Uri? requestUri,
             HttpStatusCode statusCode,
-            string reasonPhrase,
+            string? reasonPhrase,
             HttpResponseHeaders headers,
             HttpContentHeaders? contentHeaders,
             string? contentString)

@@ -7,11 +7,14 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
     /// <summary>
-    /// Clas used by generated implementations to make HTTP requests
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
+    /// Class used by generated implementations to make HTTP requests
     /// </summary>
     public class Requester : IRequester
     {
@@ -94,48 +97,50 @@ namespace RestEase.Implementation
         /// <summary>
         /// Given an IRequestInfo and pre-substituted relative path, constructs a URI with the right query parameters
         /// </summary>
+        /// <param name="baseAddress">Base address to start with, with placeholders already substituted</param>
         /// <param name="basePath">Base path to start with, with placeholders already substituted</param>
         /// <param name="path">Path to start with, with placeholders already substituted</param>
         /// <param name="requestInfo">IRequestInfo to retrieve the query parameters from</param>
         /// <returns>Constructed URI; relative if 'path' was relative, otherwise absolute</returns>
-        protected virtual Uri ConstructUri(string basePath, string path, IRequestInfo requestInfo)
+        protected virtual Uri ConstructUri(string baseAddress, string basePath, string path, IRequestInfo requestInfo)
         {
             UriBuilder uriBuilder;
             try
             {
-                // If path is absolute, then BaseAddress and basePath are both ignored.
-                // If path starts with /, then basePath is ignored but BaseAddress is not.
-                // If basePath is absolute, then BaseAddress is ignored.
+                // For the base address, we choose HttpClient.BaseAddress, unless it's null where we choose baseAdress
+                // If path is absolute, then baseAddress and basePath are both ignored.
+                // If path starts with /, then basePath is ignored but baseAddress is not.
+                // If basePath is absolute, then baseAddress is ignored.
 
                 string trimmedPath = (path ?? string.Empty).TrimStart('/');
                 // Here, a leading slash will strip the path from baseAddress
                 var uri = new Uri(trimmedPath, UriKind.RelativeOrAbsolute);
                 if (!uri.IsAbsoluteUri && path?.StartsWith("/") != true && !string.IsNullOrEmpty(basePath))
                 {
-                    string? trimmedBasePath = (basePath ?? string.Empty).TrimStart('/');
-                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
-                    // the last path component (assuming there is one)
-                    if (!trimmedBasePath.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
-                        trimmedBasePath += '/';
-                    uri = new Uri(trimmedBasePath + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                    uri = Prepend(uri, basePath.TrimStart('/'));
                 }
 
                 if (!uri.IsAbsoluteUri)
                 {
-                    string? baseAddress = this.httpClient.BaseAddress?.ToString();
-                    if (!string.IsNullOrEmpty(baseAddress))
+                    string? resolvedBaseAddress = this.httpClient.BaseAddress?.ToString() ?? baseAddress?.TrimStart('/');
+                    if (!string.IsNullOrEmpty(resolvedBaseAddress))
                     {
-                        // Need to make sure it ends with a trailing slash, or appending our relative path will strip
-                        // the last path component (assuming there is one)
-                        if (!baseAddress!.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
-                            baseAddress += '/';
-                        uri = new Uri(baseAddress + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                        uri = Prepend(uri, resolvedBaseAddress!);
                     }
                 }
 
                 // If it's still relative, 'new UriBuilder(Uri)' won't accept it, but 'new UriBuilder(string)' will
                 // (by prepending 'http://').
                 uriBuilder = uri.IsAbsoluteUri ? new UriBuilder(uri) : new UriBuilder(uri.ToString());
+
+                Uri Prepend(Uri uri, string path)
+                {
+                    // Need to make sure it ends with a trailing slash, or appending our relative path will strip
+                    // the last path component (assuming there is one)
+                    if (!path.EndsWith("/") && !string.IsNullOrEmpty(uri.OriginalString))
+                        path += '/';
+                    return new Uri(path + uri.OriginalString, UriKind.RelativeOrAbsolute);
+                }
             }
             catch (FormatException e)
             {
@@ -226,10 +231,10 @@ namespace RestEase.Implementation
         /// <remarks>Currently only supports objects which implement IDictionary</remarks>
         /// <param name="body">Object to attempt to serialize</param>
         /// <returns>Key/value collection suitable for URL encoding</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string?>> SerializeBodyForUrlEncoding(object body)
+        protected virtual IEnumerable<KeyValuePair<string?, string?>> SerializeBodyForUrlEncoding(object body)
         {
             if (body == null)
-                return Enumerable.Empty<KeyValuePair<string, string?>>();
+                return Enumerable.Empty<KeyValuePair<string?, string?>>();
 
             if (DictionaryIterator.CanIterate(body.GetType()))
                 return this.TransformDictionaryToCollectionOfKeysAndValues(body);
@@ -243,7 +248,7 @@ namespace RestEase.Implementation
         /// </summary>
         /// <param name="dictionary">Dictionary to transform</param>
         /// <returns>A set of KeyValuePairs</returns>
-        protected virtual IEnumerable<KeyValuePair<string, string?>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
+        protected virtual IEnumerable<KeyValuePair<string?, string?>> TransformDictionaryToCollectionOfKeysAndValues(object dictionary)
         {
             foreach (var kvp in DictionaryIterator.Iterate(dictionary))
             {
@@ -252,12 +257,12 @@ namespace RestEase.Implementation
                     foreach (object individualValue in enumerable)
                     {
                         string? stringValue = this.ToStringHelper(individualValue);
-                        yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, stringValue);
+                        yield return new KeyValuePair<string?, string?>(this.ToStringHelper(kvp.Key)!, stringValue);
                     }
                 }
                 else if (kvp.Value != null)
                 {
-                    yield return new KeyValuePair<string, string?>(this.ToStringHelper(kvp.Key)!, this.ToStringHelper(kvp.Value));
+                    yield return new KeyValuePair<string?, string?>(this.ToStringHelper(kvp.Key)!, this.ToStringHelper(kvp.Value));
                 }
             }
         }
@@ -388,6 +393,8 @@ namespace RestEase.Implementation
                 if (!added)
                 {
                     // If it's a method header, then add a dummy body if necessary
+                    // If it's a class header, then add a dummy body if there isn't one but there is a [Body]
+                    // parameter, otherwise ignore it.
                     // If it's a class header, then throw only if it isn't a content header (but don't add a dummy body containing it)
                     if (requestMessage.Content != null)
                     {
@@ -401,11 +408,11 @@ namespace RestEase.Implementation
                         // said what should be in it), and therefore we need to send Content-Length
                         if (dummyContent == null)
                         {
-                            dummyContent = new ByteArrayContent(new byte[0]);
+                            dummyContent = new ByteArrayContent(ArrayUtil.Empty<byte>());
                         }
 
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
-                        if (added && areMethodHeaders)
+                        if (added && (areMethodHeaders || requestInfo.BodyParameterInfo != null))
                         {
                             requestMessage.Content = dummyContent;
                         }
@@ -434,17 +441,22 @@ namespace RestEase.Implementation
         /// <returns>Resulting HttpResponseMessage</returns>
         protected virtual async Task<HttpResponseMessage> SendRequestAsync(IRequestInfo requestInfo, bool readBody)
         {
+            string baseAddress = this.SubstitutePathParameters(requestInfo.BaseAddress, requestInfo) ?? string.Empty;
             string basePath = this.SubstitutePathParameters(requestInfo.BasePath, requestInfo) ?? string.Empty;
             string path = this.SubstitutePathParameters(requestInfo.Path, requestInfo) ?? string.Empty;
             var message = new HttpRequestMessage()
             {
                 Method = requestInfo.Method,
-                RequestUri = this.ConstructUri(basePath, path, requestInfo),
+                RequestUri = this.ConstructUri(baseAddress, basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
-                Properties = { { RestClient.HttpRequestMessageRequestInfoPropertyKey, requestInfo } },
             };
+#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
+            message.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey] = requestInfo;
+#else
+            message.Options.Set(RestClient.HttpRequestMessageRequestInfoOptionsKey, requestInfo);
+#endif
 
-            this.ApplyHttpRequestMessageProperties(requestInfo, message);
+            ApplyHttpRequestMessageProperties(requestInfo, message);
 
             // Do this after setting the content, as doing so may set headers which we want to remove / override
             this.ApplyHeaders(requestInfo, message);
@@ -465,11 +477,15 @@ namespace RestEase.Implementation
             return response;
         }
 
-        private void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
+        private static void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
         {
             foreach (var property in requestInfo.HttpRequestMessageProperties)
             {
+#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
                 requestMessage.Properties.Add(property.Key, property.Value);
+#else
+                requestMessage.Options.Set<object>(new(property.Key), property.Value);
+#endif
             }
         }
 

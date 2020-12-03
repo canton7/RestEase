@@ -4,10 +4,10 @@ namespace RestEase.SourceGenerator.Implementation
 {
     internal class Processor : SymbolVisitor
     {
-        private readonly SourceGeneratorContext context;
+        private readonly GeneratorExecutionContext context;
         private readonly RoslynImplementationFactory factory;
 
-        public Processor(SourceGeneratorContext context)
+        public Processor(GeneratorExecutionContext context)
         {
             this.context = context;
             this.factory = new RoslynImplementationFactory(context.Compilation);
@@ -33,6 +33,7 @@ namespace RestEase.SourceGenerator.Implementation
         {
             foreach (var member in symbol.GetMembers())
             {
+                this.context.CancellationToken.ThrowIfCancellationRequested();
                 member.Accept(this);
             }
         }

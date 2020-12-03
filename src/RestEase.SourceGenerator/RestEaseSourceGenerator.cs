@@ -6,12 +6,12 @@ namespace RestEase.SourceGenerator
     [Generator]
     public class RestEaseSourceGenerator : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
             new Processor(context).Process();
         }
 
-        public void Initialize(InitializationContext context)
+        public void Initialize(GeneratorInitializationContext context)
         {
         }
     }

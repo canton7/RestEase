@@ -3,48 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Xml.Linq;
 using RestEase.Platform;
 
 namespace RestEase.Implementation
 {
-    /// <summary>
-    /// Helper class used to generate interface implementations. Exposed for testing (and very adventurous people) only.
-    /// </summary>
-    public class ImplementationFactory
+    internal class ImplementationFactory
     {
         private static class TypeCreatorRegistry<T>
         {
             public static Func<IRequester, T>? Creator;
         }
 
-        private readonly object implementationFactoryLockObject = new object();
+        private readonly object implementationFactoryLockObject = new();
 
         // Mapping of generic type definition of interface -> generic type definition of implementation
         // Protected by implementationFactoryLockObject
-        private readonly Dictionary<Type, Type> genericTypeLookup = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> genericTypeLookup = new();
 
         private readonly bool useSourceGenerator;
-        private readonly bool useSystemReflectionEmit;
+        private readonly bool useSystemReflectionEmit = true;
 
-        /// <summary>
-        /// Initialises a new instance of the <see cref="ImplementationFactory"/> class
-        /// </summary>
-        /// <param name="useSourceGenerator">True to try and use source generated types</param>
-        /// <param name="useSystemReflectionEmit">True to fall back to S.R.E, false to just use source generated types</param>
-        public ImplementationFactory(bool useSourceGenerator = true, bool useSystemReflectionEmit = true)
+        public ImplementationFactory(bool useSourceGenerator = true)
         {
             this.useSourceGenerator = useSourceGenerator;
-            this.useSystemReflectionEmit = useSystemReflectionEmit;
+
+#if !NETSTANDARD2_1 && !NETSTANDARD2_0 && !NETSTANDARD1_1 && !NET45
+            if (OperatingSystem.IsIOS())
+            {
+                this.useSystemReflectionEmit = false;
+            }
+#endif
         }
 
-        /// <summary>
-        /// Create an implementation of the given interface, using the given requester
-        /// </summary>
-        /// <typeparam name="T">Type of interface to implement</typeparam>
-        /// <param name="requester">Requester to be used by the generated implementation</param>
-        /// <returns>An implementation of the given interface</returns>
         public T CreateImplementation<T>(IRequester requester)
         {
             if (requester == null)
@@ -65,7 +55,7 @@ namespace RestEase.Implementation
                         try
                         {
                             var implementationType = this.GetImplementation(typeof(T));
-                            var creator = this.BuildCreator<T>(implementationType);
+                            var creator = BuildCreator<T>(implementationType);
                             TypeCreatorRegistry<T>.Creator = creator;
                         }
                         catch (Exception e)
@@ -84,11 +74,17 @@ namespace RestEase.Implementation
             return implementation;
         }
 
-        private Func<IRequester, T> BuildCreator<T>(Type implementationType)
+        private static Func<IRequester, T> BuildCreator<T>(Type implementationType)
         {
             var requesterParam = Expression.Parameter(typeof(IRequester));
-            var ctor = Expression.New(implementationType.GetTypeInfo().GetConstructor(new[] { typeof(IRequester) }), requesterParam);
-            return Expression.Lambda<Func<IRequester, T>>(ctor, requesterParam).Compile();
+            var constructorInfo = implementationType.GetTypeInfo().GetConstructor(new[] { typeof(IRequester) });
+            if (constructorInfo == null)
+            {
+                throw new ImplementationCreationException($"Could not find a suitable constructor on type {implementationType}. This should not happen");
+            }
+
+            var constructor = Expression.New(constructorInfo, requesterParam);
+            return Expression.Lambda<Func<IRequester, T>>(constructor, requesterParam).Compile();
         }
 
         private Type GetImplementation(Type interfaceType)
@@ -130,8 +126,11 @@ namespace RestEase.Implementation
                 return EmitImplementationFactory.Instance.BuildEmitImplementation(interfaceType);
             }
 
-            throw new ImplementationCreationException($"Unable to create type '{interfaceType.FullName}': source generator " +
-                "not enabled or couldn't find implementation, System.Reflection.Emit not enabled");
+            // The only way they can hit this in practice is if we've set useSystemReflectionEmit = false,
+            // which we only do on platforms which doesn't support it.
+            throw new ImplementationCreationException($"Unable to find an implementation of '{interfaceType.FullName}'. " +
+                "Please make sure that the RestEase.SourceGenerator NuGet package is installed in the assembly which contains " +
+                $"'{interfaceType.FullName}' ('{interfaceType.GetTypeInfo().Assembly.FullName}').");
         }
     }
 }

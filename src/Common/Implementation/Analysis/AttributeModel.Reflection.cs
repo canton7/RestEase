@@ -14,7 +14,7 @@ namespace RestEase.Implementation.Analysis
         }
 
         public static AttributeModel<T> Create<T>(T attribute, MemberInfo? declaringMember) where T : Attribute =>
-            new AttributeModel<T>(attribute, declaringMember);
+            new(attribute, declaringMember);
 
         public bool IsDeclaredOn(TypeModel typeModel) => typeModel.Type.Equals(this.DeclaringMember);
     }

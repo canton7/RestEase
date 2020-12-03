@@ -1,7 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using RestEase.Implementation.Analysis;
+
+#pragma warning disable CA1822 // Mark members as static
 
 namespace RestEase.Implementation.Emission
 {
@@ -109,11 +111,25 @@ namespace RestEase.Implementation.Emission
                 $"Property {property.PropertyInfo.Name}: there must not be more than one property of type {nameof(IRequester)}");
         }
 
-        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel _, AttributeModel<BasePathAttribute> _2, string basePath, string missingParam)
+        public void ReportBaseAddressMustBeAbsolute(TypeModel _, AttributeModel<BaseAddressAttribute> attribute)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.BaseAddressMustBeAbsolute,
+                $"Base address '{attribute.Attribute.BaseAddress}' must be an absolute URI");
+        }
+
+        public void ReportMissingPathPropertyForBaseAddressPlaceholder(TypeModel _, AttributeModel<BaseAddressAttribute> attribute, string missingParam)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.MissingPathPropertyForBaseAddressPlaceholder,
+                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BaseAddress(\"{attribute.Attribute.BaseAddress}\")]");
+        }
+
+        public void ReportMissingPathPropertyForBasePathPlaceholder(TypeModel _, AttributeModel<BasePathAttribute> attribute, string missingParam)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.MissingPathPropertyForBasePathPlaceholder,
-                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{basePath}\")]");
+                $"Unable to find a [Path(\"{missingParam}\")] property for the path placeholder '{{{missingParam}}}' in [BasePath(\"{attribute.Attribute.BasePath}\")]");
         }
 
         public void ReportMethodMustHaveRequestAttribute(MethodModel method)
@@ -121,6 +137,14 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException(
                 DiagnosticCode.MethodMustHaveRequestAttribute,
                 $"Method {method.MethodInfo.Name} does not have a suitable [Get] / [Post] / etc attribute on it");
+        }
+
+        public void ReportMethodMustHaveOneRequestAttribute(MethodModel method)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.MethodMustHaveOneRequestAttribute,
+                $"Method {method.MethodInfo.Name} must have a single request-related attribute, found " +
+                $"({string.Join(", ", method.RequestAttributes.Select(x => Regex.Replace(x.AttributeName, "Attribute$", "")))})");
         }
 
         public void ReportMultiplePathPropertiesForKey(string key, IEnumerable<PropertyModel> _)
@@ -145,7 +169,7 @@ namespace RestEase.Implementation.Emission
                 $"[Header(\"{headerAttribute.Name}\", \"{headerAttribute.Value}\")] on property {property.Name} (i.e. containing a default value) can only be used if the property type is nullable");
         }
 
-        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, string placeholder)
+        public void ReportMissingPathPropertyOrParameterForPlaceholder(MethodModel method, AttributeModel<RequestAttributeBase> _, string placeholder)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder,
@@ -180,11 +204,11 @@ namespace RestEase.Implementation.Emission
                 $"Method '{method.MethodInfo.Name}': found more than one parameter with a HttpRequestMessageProperty key of '{key}'");
         }
 
-        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel method, ParameterModel parameter, List<AttributeModel> _)
+        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel method, ParameterModel parameter, List<AttributeModel> attributes)
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
-                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' must have zero or one attributes");
+                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' has {attributes.Count} attributes, but it must have zero or one");
         }
 
         public void ReportParameterMustNotBeByRef(MethodModel method, ParameterModel parameter)
@@ -238,3 +262,5 @@ namespace RestEase.Implementation.Emission
         }
     }
 }
+
+#pragma warning restore CA1822 // Mark members as static

@@ -9,14 +9,14 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
     {
         public interface IHasNoBasePath
         {
-            [Get("foo")]
+            [Get("path")]
             Task FooAsync();
         }
 
         [BasePath("foo/bar/baz")]
         public interface IHasSimpleBasePath
         {
-            [Get("foo")]
+            [Get("path")]
             Task FooAsync();
         }
 
@@ -50,14 +50,13 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ForwardsSimpleBasePath()
         {
-
             var requestInfo = this.Request<IHasSimpleBasePath>(x => x.FooAsync());
 
             Assert.Equal("foo/bar/baz", requestInfo.BasePath);
         }
 
         [Fact]
-        public void ThrowsIfPlaceholderMissingPathProperty()
+        public void ThrowsIfBasePathPlaceholderMissingPathProperty()
         {
             this.VerifyDiagnostics<IHasBasePathWithPlaceholderWithoutProperty>(
                 // (1,10): Error REST001: Unable to find a [Path("bar")] property for the path placeholder '{bar}' in base path 'foo/{bar}/baz'

@@ -109,9 +109,16 @@ namespace RestEase.UnitTests.RequesterTests
             requestInfo.AddHttpRequestMessagePropertyParameter("key2", "value2");
             requester.RequestWithResponseMessageAsync(requestInfo).Wait();
 
+#if NET452 || NETCOREAPP1_0 || NETCOREAPP2_0 || NETCOREAPP3_0
             Assert.Equal(3, messageHandler.Request.Properties.Count);
             Assert.Equal("value1", messageHandler.Request.Properties["key1"]);
             Assert.Equal("value2", messageHandler.Request.Properties["key2"]);
+#else
+            Assert.True(messageHandler.Request.Options.TryGetValue(new HttpRequestOptionsKey<string>("key1"), out string key1));
+            Assert.Equal("value1", key1);
+            Assert.True(messageHandler.Request.Options.TryGetValue(new HttpRequestOptionsKey<string>("key2"), out string key2));
+            Assert.Equal("value2", key2);
+#endif
         }
 
         [Fact]

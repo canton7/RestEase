@@ -4,10 +4,14 @@
     <Version>0.0.0</Version>
     <!-- netcoreapp3.0 uses netstandard2.1; netcoreapp2.0 uses netstandard2.0;
          netcoreapp1.0 uses netstandard1.6 (and so the netstandard1.0 library) -->
-    <TargetFrameworks>netcoreapp3.0;netcoreapp2.0;netcoreapp1.0;net452</TargetFrameworks>
+    <TargetFrameworks>net5.0;netcoreapp3.0;netcoreapp2.0;netcoreapp1.0;net452</TargetFrameworks>
     <AssemblyName>RestEase.UnitTests</AssemblyName>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>annotations</Nullable>
+    <!-- We know we're targetting EOL framework versions -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <!-- https://help.appveyor.com/discussions/problems/23416 -->
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
   </PropertyGroup>
 
   <ItemGroup>

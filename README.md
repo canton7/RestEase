@@ -4,8 +4,10 @@
 [![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
 [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
-RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
-It won't work on platforms which don't support runtime code generation, including .NET Native and iOS.
+RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1 and higher, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
+
+It also works on platforms which don't support runtime code generation, such as .NET Native and iOS, if you reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator).
+See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
@@ -30,21 +32,23 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
     3. [Query Parameters Map](#query-parameters-map)
     4. [Raw Query String Parameters](#raw-query-string-parameters)
     5. [Query Properties](#query-properties)
-6. [Path Placeholders](#path-placeholders)
-    1. [Path Parameters](#path-parameters)
-        1. [Formatting Path Parameters](#formatting-path-parameters)
-        2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
-        3. [Serialization of Path Parameters](#serialization-of-path-parameters)
-    2. [Path Properties](#path-properties)
-        1. [Formatting Path Properties](#formatting-path-properties)
-        2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
-        3. [Serialization of Path Properties](#serialization-of-path-properties)
-7. [Base Path](#base-path)
-8. [Body Content](#body-content)
+6. [Paths](#paths)
+    1. [Base Address](#base-address)
+    2. [Base Path](#base-path)
+    3. [Path Placeholders](#path-placeholders)
+        1. [Path Parameters](#path-parameters)
+            1. [Formatting Path Parameters](#formatting-path-parameters)
+            2. [URL Encoding in Path Parameters](#url-encoding-in-path-parameters)
+            3. [Serialization of Path Parameters](#serialization-of-path-parameters)
+        2. [Path Properties](#path-properties)
+            1. [Formatting Path Properties](#formatting-path-properties)
+            2. [URL Encoding in Path Properties](#url-encoding-in-path-properties)
+            3. [Serialization of Path Properties](#serialization-of-path-properties)
+7. [Body Content](#body-content)
     1. [URL Encoded Bodies](#url-encoded-bodies)
-9. [Response Status Codes](#response-status-codes)
-10. [Cancelling Requests](#cancelling-requests)
-11. [Headers](#headers)
+8. [Response Status Codes](#response-status-codes)
+9. [Cancelling Requests](#cancelling-requests)
+10. [Headers](#headers)
     1. [Constant Interface Headers](#constant-interface-headers)
     2. [Variable Interface Headers](#variable-interface-headers)
         1. [Formatting Variable Interface Headers](#formatting-variable-interface-headers)
@@ -52,6 +56,7 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
     4. [Variable Method Headers](#variable-method-headers)
         1. [Formatting Variable Method Headers](#formatting-variable-method-headers) 
     5. [Redefining Headers](#redefining-headers)
+11. [Using RestEase.SourceGenerator](#using-resteasesourcegenerator)
 12. [Using HttpClientFactory](#using-httpclientfactory)
 13. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
 14. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
@@ -77,7 +82,6 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
 22. [FAQs](#faqs)
-23. [Comparison to Refit](#comparison-to-refit)
 
 
 Installation
@@ -85,6 +89,10 @@ Installation
 
 [RestEase is available on NuGet](https://www.nuget.org/packages/RestEase). 
 See that page for installation instructions.
+
+If you're using C# 9 or .NET 5 (or higher), reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator) as well to get compile-time errors and faster execution.
+See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
+If you're targetting iOS or .NET Native, you will need to do this, as runtime code generation isn't available.
 
 If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory).
 
@@ -153,7 +161,7 @@ Use whichever one you need to.
 
 The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`.
 (You *can* specify an absolute path here if you need to, in which case the base uri will be ignored).
-Also see the section on [Base Paths](#base-path).
+Also see the section on [Paths](#paths).
 
 
 Return Types
@@ -239,7 +247,7 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query("filter")] string filter1, [Query("filter")] string filter2);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
 // Requests http://somenedpoint.com/search?filter=foo&filter=bar
 await api.SearchAsync("foo", "bar");
@@ -256,7 +264,7 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query("filter")] IEnumerable<string> filters);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
 // Requests http://api.exapmle.com/search?filter=foo&filter=bar&filter=baz
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
@@ -272,9 +280,9 @@ public interface ISomeApi
     Task FooAsync([Query(null)] string nullParam, [Query("")] string emptyParam);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/foo?onitsown&=nokey
+// Requests https://api.example.com/foo?onitsown&=nokey
 await api.FooAsync("onitsown", "nokey");
 ```
 
@@ -287,9 +295,9 @@ public interface ISomeApi
     Task FooAsync([Query] string foo, [Query] string bar);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/path?bar=
+// Requests https://api.example.com/path?bar=
 await api.FooAsync(null, "");
 ```
 
@@ -307,9 +315,9 @@ public interface ISomeApi
     Task FooAsync([Query(Format = "X2")] int param);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/foo?param=FE
+// Requests https://api.example.com/foo?param=FE
 await api.FooAsync(254);
 ```
 
@@ -338,8 +346,8 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([Query(QuerySerializationMethod.Serialized)] SearchParams param);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
-// Requests http://api.example.com/search?params={"Term": "foo", "Mode": "basic"}
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
+// Requests https://api.example.com/search?params={"Term": "foo", "Mode": "basic"}
 await api.SearchAsync(new SearchParams() { Term = "foo", Mode = "basic" });
 ```
 
@@ -381,14 +389,14 @@ public interface ISomeApi
     Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, string[]> filters);
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com");
+var api = RestClient.For<ISomeApi>("https://api.example.com");
 var filters = new Dictionary<string, string[]>()
 {
     { "title", new[] { "bobby" } },
     { "tag", new[] { "c#", "programming" } }
 };
 
-// Requests http://api.example.com/search?title=bobby&tag=c%23&tag=programming
+// Requests https://api.example.com/search?title=bobby&tag=c%23&tag=programming
 var searchResults = await api.SearchBlogPostsAsync(filters);
 ```
 
@@ -410,9 +418,9 @@ public interface ISomeApi
     Task<SearchResult> SearchAsync([RawQueryString] string customFilter);
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com");
+var api = RestClient.For<ISomeApi>("https://api.example.com");
 var filter = "filter=foo";
-// Requests http://api.example.com?filter=foo
+// Requests https://api.example.com?filter=foo
 var searchResults = await api.SearchAsync(filter);
 ```
 
@@ -437,21 +445,74 @@ public interface ISomeApi
 	Task ThingAsync([Query] string foo);
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com");
+var api = RestClient.For<ISomeApi>("https://api.example.com");
 api.Foo = "bar";
 
-// Requests http://api.example.com?foo=baz&foo=bar
+// Requests https://api.example.com?foo=baz&foo=bar
 await api.ThingAsync("baz");
 ```
 
+Paths
+-----
 
-Path Placeholders
------------------
+The path to which a request is sent is constructed from the following 3 parts, concatenated together (and separated with `/`):
+
+1. The Base Address (e.g. `https://api.example.com`)
+2. The Base Path (optional, e.g. `api/v1`)
+3. The path specified on the method, passed to the `[Get("path")]`, etc, attribute (e.g. `users`)
+
+The Base Address is the domain at which the API can be found.
+This is normally specified by passing an address to `RestClient.For<T>(...)`, but you can also use `[BaseAddress(...)]`, see [Base Address](#base-address).
+
+The Base Path is optional, and is a prefix which is common to all of your API's paths, e.g. `api/v1`.
+If you like, you can specify this once using the `[BasePath(...)]` attribute, see [Base Path](#base-path).
+
+Each method also has a path, which is passed to the `[Get(...)]`, etc, attribute on the method.
+
+Ordinarily, these three parts are concatenated together, giving e.g. `https://api.example.com/api/v1/users`.
+However, there are a number of extra rules:
+
+1. If the path specified on the method begins with a `/`, then the Base Path is ignored (but the Base Address is not ignored). So if the method's path was `/users` instead of `users`, the final address would be `https://api.example.com/users`.
+2. If the path specified on the method is absolute (e.g. it begins with `http://`), then both the Base Address and Base Path are ignored.
+3. If the Base Path is absolute, then the Base Address is ignored.
+
+These rules are particularly useful when working with an API which returns links to other endpoints, see [URL Encoding in Path Parameters](#url-encoding-in-path-parameters) for an example.
+
+### Base Address
+
+The Base Address can be specified in two ways:
+
+1. When instantiating the API using `RestClient`, either by passing a URI to `RestClient.For<T>(...)` or `new RestClient(...)`, or by passing a `HttpClient` which has its `BaseAddress` property set.
+2. Using a `[BaseAddress(...)]` attribute on the interface itself.
+
+If it's specified both ways, then the `[BaseAddress(...)]` attribute is ignored.
+This means that you can have a default Base Address specified on the interface, but this can be overridden when actually instantiating it using `RestClient`.
+
+The Base Address can contain [`{placeholders}`](#path-placeholders).
+Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
+
+The Base Address may contain the start of a path as well, e.g. `https://api.example.com/api/v1`.
+This path will not be overridden if the path specified on the method starts with a `/`, in contrast to the Base Path.
+
+The Base Address must be absolute (i.e. it must start with `http://` or `https://`).
+
+Query strings or fragments are not supported in the Base Address, and their behaviour is undefined and subject to change. 
+
+### Base Path
+
+The Base Path is specified using a `[BasePath(...)]` attribute on your interface.
+
+The Base Path can contain [`{placeholders}`](#path-placeholders).
+Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
+
+Query strings, or other parts of a URI, are not supported in the Base Path, and their behaviour is undefined and subject to change.
+
+
+### Path Placeholders
 
 Sometimes you also want to be able to control some parts of the path itself, rather than just the query parameters.
 
-
-### Path Parameters
+#### Path Parameters
 
 Path parameters are the most common means of controlling a part of the path.
 This is done using placeholders in the path, and corresponding method parameters decorated with `[Path]`.
@@ -465,9 +526,9 @@ public interface ISomeApi
     Task<User> FetchUserAsync([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/user/fred
+// Requests https://api.example.com/user/fred
 await api.FetchUserAsync("fred");
 ```
 
@@ -484,7 +545,7 @@ public interface ISomeApi
 
 Every placeholder must have a corresponding parameter, and every parameter must relate to a placeholder.
 
-#### Formatting Path Parameters
+##### Formatting Path Parameters
 
 As with `[Query]`, path parameter values will be serialized by calling `ToString()` on them.
 This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
@@ -498,9 +559,9 @@ public interface ISomeApi
     Task FooAsync([Path("bar", Format = "D2")] int param);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/foo/01
+// Requests https://api.example.com/foo/01
 await api.FooAsync(1);
 ```
 
@@ -509,7 +570,7 @@ await api.FooAsync(1);
 3. Otherwise, if `param` implements `IFormattable`, then its `ToString(string, IFormatProvider)` method is called, with `param` as the format and `RestClient.FormatProvider` as the `IFormatProvider`. For example, `"D2"`.
 4. Otherwise, the format is ignored.
 
-#### URL Encoding in Path Parameters
+##### URL Encoding in Path Parameters
 
 By default, path parameters are URL-encoded, which means things like `/` are escaped.
 If you don't want this, for example you want to specify a literal section of the URL, this can be disabled using the `UrlEncode` property of the `[Path]` attribute, for example:
@@ -521,13 +582,40 @@ public interface ISomeApi
     Task FooAsync([Path(UrlEncode = false)] string bar);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/foo/bar/baz
+// Requests https://api.example.com/foo/bar/baz
 await api.FooAsync("bar/baz");
 ```
 
-#### Serialization of Path Parameters
+This can be useful if working with an API which returns raw links to other resources, when combined with the logic specified in [Paths](#paths).
+For example, let's say we want to make a request to `https://api.example.com/v1/first`, and that gives us back:
+
+```json
+{
+    "Second": "/v1/second"
+}
+```
+
+We could write:
+
+```cs
+[BasePath("v1")]
+public interface ISomeApi
+{
+    [Get("first")]
+    Task<FirstResponse> GetFirstAsync();
+
+    [Get("{url}")]
+    Task GetSecondAsync([Path] string url);
+}
+
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
+var response = await api.GetFirstAsync();
+await api.GetSecondAsync(response.Second);
+```
+
+##### Serialization of Path Parameters
 
 Similar to query parameters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members).
 In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying a [`RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
@@ -552,9 +640,9 @@ public interface ISomeApi
 ISomeApi api = new RestClient()
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
-}.For<ISomeApi>("http://api.example.com");
+}.For<ISomeApi>("https://api.example.com");
 
-// Requests http://api.example.com/path/first
+// Requests https://api.example.com/path/first
 await api.GetAsync(MyEnum.First);
 ```
 
@@ -573,7 +661,7 @@ public interface ISomeApi
 }
 ```
 
-### Path Properties
+#### Path Properties
 
 Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
 In this case, you can specify a `[Path]` property.
@@ -600,19 +688,19 @@ public interface ISomeApi
     Task DeleteAsync([Path("accountId")] int accountId);
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com/user");
+var api = RestClient.For<ISomeApi>("https://api.example.com/user");
 api.AccountId = 3;
 
-// Requests http://api.example.com/user/3/profile
+// Requests https://api.example.com/user/3/profile
 var profile = await api.GetProfileAsync();
 
-// Requests http://api.example.com/user/4/profile
+// Requests https://api.example.com/user/4/profile
 await api.DeleteAsync(4);
 ```
 
 You can also use [`BasePath`](#base-path) if all of your paths start with `{accountId}`.
 
-#### Formatting Path Properties
+##### Formatting Path Properties
 
 As with Path Parameters, you can specify a string format to use if the value implements `IFormattable`.
 
@@ -628,14 +716,14 @@ public interface ISomeApi
     Task<Profile> GetProfileAsync();
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com/user");
+var api = RestClient.For<ISomeApi>("https://api.example.com/user");
 api.AccountId = someGuid;
 
 // Requests e.g. /user/00000000000000000000000000000000 /profile
 var profile = await api.GetProfileAsync();
 ```
 
-#### URL Encoding in Path Properties
+##### URL Encoding in Path Properties
 
 As with path parameters, you can disable URL encoding for path properties.
 
@@ -651,14 +739,14 @@ public interface ISomeApi
     Task GetAsync();
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com");
+var api = RestClient.For<ISomeApi>("https://api.example.com");
 api.PathPart = "users/abc";
 
-// Requests http://api.example.com/users/abc/profile
+// Requests https://api.example.com/users/abc/profile
 await api.GetAsync();
 ```
 
-#### Serialization of Path Properties
+##### Serialization of Path Properties
 
 [As with path parameters](#serialization-of-path-parameters), you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour.
 You must also supply a `RequestPathParamSerializer` when creating the `RestClient`.
@@ -688,43 +776,12 @@ public interface ISomeApi
 ISomeApi api = new RestClient()
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer()
-}.For<ISomeApi>("http://api.example.com");
+}.For<ISomeApi>("https://api.example.com");
 
 api.PathPart = MyEnumSecond;
-// Requests http://api.example.com/path/second
+// Requests https://api.example.com/path/second
 await api.GetAsync();
 ```
-
-Base Path
----------
-
-The URL that's requested is a combination of the base URL you passed to `RestClient.For<T>("http://api.example.com")` (or `HttpClient.BaseAddress`), and the path given in your `[Get("path")]` (or `[Post("path")]`, etc) attribute.
-You can also specify a part inserted between these two, using a `[BasePath("path")]` attribute on your interface.
-This is useful if all of the paths in your API start with the same prefix.
-
-For example:
-
-```csharp
-[BasePath("api/v1")]
-public interface ISomeApi
-{
-    [Get("users")]
-    Task<List<User>> GetUsersAsync();
-}
-
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
-// Requests http://api.example.com/api/v1/users
-await api.GetUsersASync();
-```
-
-If the path given to `[Get("path")]` (etc) starts with a `/`, then the base path will be ignored.
-If it is absolute (e.g. starts with `https://`), then both the base path and the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
-Otherwise, if the base path is absolute, then the URL given to `RestClient.For<T>("http://api.cample.com")` (or `HttpClient.BaseAddress`) will be ignored.
-
-The base path can contain `{placeholders}`.
-Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
-
-Query strings, or other parts of a URI, are not supported in the base path, and their behaviour is undefined and subject to change.
 
 Body Content
 ------------
@@ -807,7 +864,7 @@ public interface ISomeApi
     Task<Response<User>> FetchUserThatMayNotExistAsync([Path] int userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
 using (var response = await api.FetchUserThatMayNotExistAsync(3))
 {
@@ -879,7 +936,7 @@ public interface ISomeApi
     Task<User> FetchUserId([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com")
 api.ApiKey = "The-API-KEY-value";
 // ...
 ```
@@ -896,7 +953,7 @@ public interface ISomeApi
     Task<User> FetchUserAsync([Path] string userId);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com")
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com")
 
 // "X-API-Key: None"
 var user = await api.FetchUserAsync("bob");
@@ -919,7 +976,7 @@ public interface ISomeApi
     Task FooAsync();
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 api.SomeHeader = 254;
 // SomeHeader: FE
 await api.FooAsync();
@@ -976,7 +1033,7 @@ public interface ISomeApi
     Task FooAsync([Header("SomeHeader", Format = "X2")] int someHeader);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 // SomeHeader: FE
 await api.FooAsync(254);
 ```
@@ -1029,7 +1086,7 @@ public interface ISomeApi
     );
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
 api.ParameterOnlyHeader = "ParameterValue";
 api.InterfaceAndParameterHeader = "ParameterValue";
@@ -1051,6 +1108,30 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 // X-ParameterAndMethod-ToBeRemoved isn't set, because it was removed
 
 ```
+
+Using RestEase.SourceGenerator
+------------------------------
+
+Source Generators are a new feature which allows NuGet packages to hook into the compilation of your projects and insert their own code.
+RestEase uses this to generate implementations of your interfaces at compile-time, rather than run-time.
+To take advantage of this, you need to install the [RestEase.SourceGenerator NuGet package](https://www.nuget.org/packages/RestEase.SourceGenerator) as well as RestEase.
+
+The advantages of using a Source Generator are:
+
+1. Compile-time error checking. Find out if your RestEase interface has an error at compile-time, rather than runtime.
+2. Supports platforms which don't support System.Reflection.Emit, such as iOS and .NET Native.
+3. Faster: no need to generate implementations at runtime.
+
+You will need to be using the .NET 5 SDK (or higher) to make use of source generators.
+If you're targetting C# 9 or .NET 5 (or higher), you're all set.
+If you're targetting an earlier language or runtime version, you can still install the latest .NET SDK (make sure you update your global.json if you have one!): you don't need to be targetting .NET 5, you just need to be building with the .NET 5 SDK.
+
+When you build a project which references RestEase.SourceGenerator, RestEase generates implementations of any RestEase interfaces it finds in that project, and adds those implementations to your project.
+`RestClient.For<T>` will look for one of these implementations first, before falling back to the old approach of generating one at runtime.
+This means that you should reference RestEase.SourceGenerator in all projects which contain RestEase interfaces, but projects which only consume interfaces can just reference the RestEase package.
+
+Authors of libraries which expose RestEase interfaces should also install RestEase.SourceGenerator, and the consumers of your library will use the interface implementations it generates a compile-time without needing to install RestEase.SourceGenerator themselves.
+
 
 Using HttpClientFactory
 -----------------------
@@ -1119,7 +1200,7 @@ var settings = new JsonSerializerSettings()
     Converters = { new StringEnumConverter() }
 };
 
-var api = new RestClient("http://api.example.com")
+var api = new RestClient("https://api.example.com")
 {
     JsonSerializerSettings = settings
 }.For<ISomeApi>();
@@ -1164,7 +1245,7 @@ public class XmlResponseDeserializer : ResponseDeserializer
 
 // ...
 
-var api = new RestClient("http://api.example.com")
+var api = new RestClient("https://api.example.com")
 {
     ResponseDeserializer = new XmlResponseDeserializer()
 }.For<ISomeApi>();
@@ -1208,7 +1289,7 @@ public class XmlRequestBodySerializer : RequestBodySerializer
 
 // ...
 
-var api = new RestClient("http://api.example.com")
+var api = new RestClient("https://api.example.com")
 {
     RequestBodySerializer = new XmlRequestBodySerializer()
 }.For<ISomeApi>();
@@ -1283,7 +1364,7 @@ public class XmlRequestQueryParamSerializer : RequestQueryParamSerializer
     }
 }
 
-var api = new RestClient("http://api.example.com")
+var api = new RestClient("https://api.example.com")
 {
     RequestQueryParamSerializer = new XmlRequestQueryParamSerializer()
 }.For<ISomeApi>();
@@ -1309,7 +1390,7 @@ To tell RestEase to use a path serializer, you must create a new `RestClient`, a
 For example:
 
 ```csharp
-var api = new RestClient("http://api.example.com")
+var api = new RestClient("https://api.example.com")
 {
     RequestPathParamSerializer = new StringEnumRequestPathParamSerializer(),
 }.For<ISomeApi>();
@@ -1366,7 +1447,7 @@ IGitHubApi api = RestClient.For<IGitHubApi>("http://api.github.com", async (requ
 
 ```
 
-If you need, you can get the `IRequestInfo` for the current request using `(IRequestInfo)request.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey]`.
+If you need, you can get the `IRequestInfo` for the current request using `request.Options.TryGetValue(RestClient.HttpRequestMessageRequestInfoOptionsKey, out var requestInfo)` (for .NET 5+), or `(IRequestInfo)request.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey]` (pre .NET 5).
 
 ### Custom `HttpClient`
 
@@ -1549,7 +1630,7 @@ Which can be used like this:
 ```csharp
 // The "/users" part here is kind of important if you want it to work for more
 // than one type (unless you have a different domain for each type)
-var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("http://api.example.com/users");
+var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("https://api.example.com/users");
 ```
 
 Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known).
@@ -1723,7 +1804,7 @@ public interface ISomeApi
     Task DoSomethingAsync();
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 var value = Convert.ToBase64String(Encoding.ASCII.GetBytes("username:password1234"));
 api.Authorization = new AuthenticationHeaderValue("Basic", value);
 
@@ -1735,7 +1816,7 @@ await api.DoSomethingAsync();
 Sometimes your API responses will contain absolute URLs, for example a "next page" link.
 Therefore you'll want a way to request a resource using an absolute URL which overrides the base URL you specified.
 
-Thankfully this is easy: if you give an absolute URL to e.g. `[Get("http://api.example.com/foo")]`, then the base URL will be ignored.
+Thankfully this is easy: if you give an absolute URL to e.g. `[Get("https://api.example.com/foo")]`, then the base URL will be ignored.
 You will also need to disable URL encoding.
 
 ```csharp
@@ -1748,7 +1829,7 @@ public interface ISomeApi
     Task<UsersResponse> FetchUsersByUrlAsync([Path(UrlEncode = false)] string url);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
 var firstPage = await api.FetchUsersAsync();
 // Actually put decent logic here...
@@ -1795,7 +1876,7 @@ public class HybridResponseDeserializer : ResponseDeserializer
     }
 }
 
-var api = RestClient.For<ISomeApi>("http://api.example.com", new HybridResponseDeserializer());
+var api = RestClient.For<ISomeApi>("https://api.example.com", new HybridResponseDeserializer());
 ```
 
 ### Is RestEase thread safe?
@@ -1828,7 +1909,7 @@ public interface ISomeApi
     Task UploadFileVersionThreeAsync([Body] HttpContent content);
 }
 
-ISomeApi api = RestClient.For<ISomeApi>("http://api.example.com");
+ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
 // Version one (constant headers)
 using (var fileStream = File.OpenRead("somefile.txt"))
@@ -1861,39 +1942,3 @@ You can use [extension methods](#advanced-functionality-using-extension-methods)
 ### I want to ensure that all of the required properties on my request body are set
 
 User @netclectic has a solution, [see this issue](https://github.com/canton7/RestEase/issues/68#issue-255988650).
-
-
-Comparison to Refit
--------------------
-
-RestEase is very heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiveui/refit).
-Refit is a fantastic library, and in my opinion does a lot of things very right.
-It was the first C# REST client library that I actually enjoyed using.
-
-I wrote RestEase for two reasons: 1) there were a couple of things about Refit which I didn't like, and 2) I thought it would be fun.
-
-Here's a brief summary of pros/cons, compared to Refit:
-
-### Pros
-
- - No autogenerated `RefitStubs.cs`
- - Supports `CancellationTokens` for Task-based methods
- - Supports method overloading
- - Supports properties to define common headers and path values
- - Better support for API calls which are expected to fail: `[AllowAnyStatusCode]` and `Response<T>`
- - Easier to customize:
-   - Can specify custom response deserializer
-   - Can specify custom request serializer
-   - Can customize almost every aspect of setting up and creating the request (through implementing `IRequester`)
- - Supports `[QueryMap]`
- - Supports custom query parameter serialization
- - Supports arrays of query parameters (and body parameters when serializing a body parameter as UrlEncoded)
- - Supports `IDictionary<TKey, TValue>` as well as `IDictionary` types when serializing a body parameter as UrlEncoded. This allows e.g. `ExpandoObject` to be used here
- - Supports formatting `IFormattable` path and query params
- - Allows `HttpClient` to be disposed
-
-### Cons
-
- - Interfaces need to be public, or you need to add `[assembly: InternalsVisibleTo(RestClient.FactoryAssemblyName)]` to your `AssemblyInfo.cs`
- - No `IObservable` support
- - Slightly more work done at runtime (but not very much more)

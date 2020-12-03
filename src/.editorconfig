@@ -231,3 +231,8 @@ dotnet_naming_style.must_begin_with_t.required_prefix = T
 dotnet_naming_rule.type_parameters_must_begin_with_t.style = must_begin_with_t
 dotnet_naming_rule.type_parameters_must_begin_with_t.symbols = type_parameters
 dotnet_naming_rule.type_parameters_must_begin_with_t.severity = warning
+
+# Suppressions
+
+dotnet_diagnostic.CA1816.severity = none
+dotnet_diagnostic.IDE0079.severity = none # Seems to be mis-firing all the time

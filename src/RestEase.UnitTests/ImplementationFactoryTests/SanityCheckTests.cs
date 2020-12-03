@@ -6,6 +6,12 @@ using Xunit.Abstractions;
 
 namespace RestEase.UnitTests.ImplementationFactoryTests
 {
+    internal interface IInternalInterface
+    {
+        [Get]
+        Task FooAsync();
+    }
+
     public class SanityCheckTests : ImplementationFactoryTestsBase
     {
         public interface IMethodWithoutAttribute
@@ -74,7 +80,14 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync();
         }
 
+#pragma warning disable IDE0040 // Add accessibility modifiers
         interface IImplicitPrivateInterface
+#pragma warning restore IDE0040 // Add accessibility modifiers
+        {
+            [Get]
+            Task FooAsync();
+        }
+        internal interface INestedInternalInterface
         {
             [Get]
             Task FooAsync();
@@ -89,9 +102,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             }
         }
 
-        internal interface IInternalInterface
+        public interface IHasMultipleRequestAttributes
         {
-            [Get]
+            [Get, Post]
             Task FooAsync();
         }
 
@@ -132,9 +145,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ThrowsIfMethodWithoutAttributes()
         {
             this.VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
-                // (4,27): Error REST025: Method parameter 'foo' has no attributes: it must have at least one
+                // (4,27): Error REST025: Method parameter 'foo' has 2 attributes, but it must have zero or one
                 // [Query, HttpRequestMessageProperty] string foo
-                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, "[Query, HttpRequestMessageProperty] string foo")
+                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, @"[Query, HttpRequestMessageProperty] string foo")
                     .WithLocation(4, 27)
             );
         }
@@ -218,6 +231,26 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 #if !SOURCE_GENERATOR
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
 #endif
+            );
+        }
+
+        [Fact]
+        public void HandlesNestedInternalInterface()
+        {
+            this.VerifyDiagnostics<INestedInternalInterface>(
+#if !SOURCE_GENERATOR
+                Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
+#endif
+            );
+        }
+
+        [Fact]
+        public void ThrowsIfMultipleRequestAttributes()
+        {
+            this.VerifyDiagnostics<IHasMultipleRequestAttributes>(
+                // (3,14): Error REST039: Method must only have a single request-related attribute, found (Get, Post)
+                // Get
+                Diagnostic(DiagnosticCode.MethodMustHaveOneRequestAttribute, @"Get").WithLocation(3, 14).WithLocation(3, 19)
             );
         }
 

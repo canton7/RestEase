@@ -150,34 +150,58 @@ namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
             for (int i = 0; i < diagnostics.Length; ++i)
             {
                 var location = diagnostics[i].Location;
-                var mappedSpan = location.GetMappedLineSpan().Span;
+
+                int line = 0;
+                int col = 0;
+                if (location != Location.None)
+                {
+                    var mappedSpan = location.GetMappedLineSpan().Span;
+                    line = mappedSpan.Start.Line + 1 - lineOffset;
+                    col = mappedSpan.Start.Character + 1;
+                }
+
                 builder.AppendFormat("// ({0},{1}): {2} {3}: {4}",
-                    mappedSpan.Start.Line + 1 - lineOffset,
-                    mappedSpan.Start.Character + 1,
+                    line,
+                    col,
                     diagnostics[i].Severity,
                     diagnostics[i].Id,
                     diagnostics[i].GetMessage(null)).AppendLine();
 
+                string squiggledText = "";
                 if (location == Location.None)
                 {
-                    builder.AppendFormat("// {0}.{1}", diagnostics[i].Descriptor.Title, diagnostics[i].Id);
+                    builder.AppendFormat("// {0}.{1}", diagnostics[i].Descriptor.Title, diagnostics[i].Id).AppendLine();
                 }
                 else
                 {
                     Assert.True(location.IsInSource,
                         $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
 
-                    builder.AppendFormat("// {0}\r\n", GetSquiggledText(diagnostics[i]));
+                    squiggledText = GetSquiggledText(diagnostics[i]);
+                    builder.AppendFormat("// {0}", squiggledText).AppendLine();
                 }
 
-                builder.AppendLine();
+                var code = (DiagnosticCode)int.Parse(diagnostics[i].Id["REST".Length..]);
+                builder.AppendFormat("Diagnostic(DiagnosticCode.{0}, @\"{1}\")",
+                    code.ToString(),
+                    squiggledText.Replace("\"", "\"\""));
+                if (location != Location.None)
+                {
+                    builder.AppendFormat(".WithLocation({0}, {1})",
+                        line,
+                        col);
+                }
+
+                builder.AppendLine().AppendLine();
             }
             return builder.ToString();
         }
 
         private static string GetSquiggledText(Diagnostic diagnostic)
         {
-            return diagnostic.Location.SourceTree.GetText().ToString(diagnostic.Location.SourceSpan);
+            return diagnostic.Location == Location.None
+                ? ""
+                : diagnostic.Location.SourceTree.GetText().ToString(diagnostic.Location.SourceSpan);
         }
     }
 }

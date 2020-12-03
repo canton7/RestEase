@@ -185,6 +185,7 @@ namespace RestEase.SourceGenerator.Implementation
                     | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             TypeofParameterNoTypeParameters = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 

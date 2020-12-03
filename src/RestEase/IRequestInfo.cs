@@ -18,7 +18,12 @@ namespace RestEase
         HttpMethod Method { get; }
 
         /// <summary>
-        /// Gets the path which should be prepended to <see cref="Path"/> if any
+        /// Gets the path which should be prepended to <see cref="Path"/>, if any
+        /// </summary>
+        string? BaseAddress { get; }
+
+        /// <summary>
+        /// Gets the path which should be prepended to <see cref="Path"/> unless <see cref="Path"/> starts with a '/', if any
         /// </summary>
         string? BasePath { get; }
 

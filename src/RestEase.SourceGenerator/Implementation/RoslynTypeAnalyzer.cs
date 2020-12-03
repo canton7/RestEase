@@ -39,6 +39,7 @@ namespace RestEase.SourceGenerator.Implementation
             var typeModel = new TypeModel(this.namedTypeSymbol)
             {
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
+                BaseAddressAttribute = Get<BaseAddressAttribute>(),
                 BasePathAttribute = Get<BasePathAttribute>(),
                 IsAccessible = this.compilation.IsSymbolAccessibleWithin(this.namedTypeSymbol, this.compilation.Assembly)
             };
@@ -103,13 +104,12 @@ namespace RestEase.SourceGenerator.Implementation
 
             var model = new MethodModel(methodSymbol)
             {
-                RequestAttribute = Get<RequestAttributeBase>(),
                 AllowAnyStatusCodeAttribute = Get<AllowAnyStatusCodeAttribute>(),
                 SerializationMethodsAttribute = Get<SerializationMethodsAttribute>(),
                 IsDisposeMethod = SymbolEqualityComparer.Default.Equals(methodSymbol, this.wellKnownSymbols.IDisposable_Dispose),
             };
-            model.HeaderAttributes.AddRange(attributes.Where(x => x.attribute is HeaderAttribute)
-                .Select(x => AttributeModel.Create((HeaderAttribute)x.attribute, x.attributeData, methodSymbol)));
+            model.RequestAttributes.AddRange(GetAll<RequestAttributeBase>());
+            model.HeaderAttributes.AddRange(GetAll<HeaderAttribute>());
 
             model.Parameters.AddRange(methodSymbol.Parameters.Select(this.GetParameter));
 
@@ -120,6 +120,8 @@ namespace RestEase.SourceGenerator.Implementation
                 var (attribute, attributeData, type) = attributes.FirstOrDefault(x => x.attribute is T);
                 return attribute == null ? null : AttributeModel.Create((T)attribute, attributeData, type);
             }
+            IEnumerable<AttributeModel<T>> GetAll<T>() where T : Attribute =>
+                attributes.Where(x => x.attribute is T).Select(x => AttributeModel.Create((T)x.attribute, x.attributeData, methodSymbol));
         }
 
         private ParameterModel GetParameter(IParameterSymbol parameterSymbol)

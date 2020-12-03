@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v1.5.1
+------
+
+ - RestEase.SourceGenerator is out of preview!
+ - Add support for `[BaseAddress]`
+ - Improve how content headers behave: if a method has a `[Body]` parameter, contents headers are always sent
+ - HttpClientFactory: allow passing a RequestModifier to AddRestEaseClient (#164)
+ - HttpClientFactory: add overloads which take a Uri
+ - .NET 5: Add `RestClient.HttpRequestMessageRequestInfoOptionsKey` for use with `HttpClient.Options`
+ - Minor bug fixes
+
 v1.5.0
 ------
 

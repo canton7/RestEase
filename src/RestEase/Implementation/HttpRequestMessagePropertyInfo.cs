@@ -1,6 +1,8 @@
 ﻿namespace RestEase.Implementation
 {
     /// <summary>
+    /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
+    /// 
     /// Structure containing information about a desired HTTP request message property
     /// </summary>
     public struct HttpRequestMessagePropertyInfo

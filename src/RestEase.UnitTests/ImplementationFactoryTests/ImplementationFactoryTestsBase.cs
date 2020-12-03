@@ -36,7 +36,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
 {
     public abstract class ImplementationFactoryTestsBase
     {
-        protected readonly Mock<IRequester> Requester = new Mock<IRequester>(MockBehavior.Strict);
+        protected readonly Mock<IRequester> Requester = new(MockBehavior.Strict);
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly ITestOutputHelper output;
 #pragma warning restore IDE0052 // Remove unread private members
@@ -152,7 +152,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         }
 
 #else
-        private readonly ImplementationFactory factory = new ImplementationFactory(useSourceGenerator: false);
+        private readonly ImplementationFactory factory = new(useSourceGenerator: false);
 
         protected T CreateImplementation<T>()
         {

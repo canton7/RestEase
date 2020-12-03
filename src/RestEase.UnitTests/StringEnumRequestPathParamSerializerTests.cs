@@ -11,7 +11,7 @@ namespace RestEase.UnitTests
 {
     public class StringEnumRequestPathParamSerializerTests
     {
-        private static readonly RequestPathParamSerializerInfo info = new RequestPathParamSerializerInfo(null, null, null);
+        private static readonly RequestPathParamSerializerInfo info = new(null, null, null);
 
         private static readonly RequestPathParamSerializer serializer = new StringEnumRequestPathParamSerializer();
 
@@ -25,20 +25,20 @@ namespace RestEase.UnitTests
             [Display(Name = "display")]
             Fizz,
 
-#if !NET452 && !NETCOREAPP3_0
+#if !NET452 && !NETCOREAPP3_0 && !NET5_0
             [DisplayName("display_name")]
 #endif
             Buzz,
 
             [EnumMember(Value = "all_enum_member")]
             [Display(Name = "all_display")]
-#if !NET452 && !NETCOREAPP3_0
+#if !NET452 && !NETCOREAPP3_0 && !NET5_0
             [DisplayName("all_display_name")]
 #endif
             All,
 
             [Display(Name = "display+name_display")]
-#if !NET452 && !NETCOREAPP3_0
+#if !NET452 && !NETCOREAPP3_0 && !NET5_0
             [DisplayName("display+name_display_name")]
 #endif
             DisplayAndName
