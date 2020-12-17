@@ -20,7 +20,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestEase.SourceGenerator.Vs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestEase.SourceGenerator.UnitTests", "RestEase.SourceGenerator.UnitTests\RestEase.SourceGenerator.UnitTests.csproj", "{33E5FB2A-71D8-412B-A70F-CEF3C550E6F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestEase.HttpClientFactory", "RestEase.HttpClientFactory\RestEase.HttpClientFactory.csproj", "{267D0D34-8067-4F44-86A4-E6F425F5CAC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestEase.HttpClientFactory", "RestEase.HttpClientFactory\RestEase.HttpClientFactory.csproj", "{267D0D34-8067-4F44-86A4-E6F425F5CAC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestEase.HttpClientFactory.UnitTests", "RestEase.HttpClientFactory.UnitTests\RestEase.HttpClientFactory.UnitTests.csproj", "{1A9413FE-E17E-4089-A743-0566B9087CD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{267D0D34-8067-4F44-86A4-E6F425F5CAC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{267D0D34-8067-4F44-86A4-E6F425F5CAC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{267D0D34-8067-4F44-86A4-E6F425F5CAC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A9413FE-E17E-4089-A743-0566B9087CD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A9413FE-E17E-4089-A743-0566B9087CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A9413FE-E17E-4089-A743-0566B9087CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A9413FE-E17E-4089-A743-0566B9087CD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

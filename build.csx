@@ -8,10 +8,11 @@ using static SimpleTasks.SimpleTask;
 #nullable enable
 
 string restEaseDir = "src/RestEase";
-string sourceGeneratorDir = "src/RestEase.SourceGenerator";
 string httpClientFactoryDir = "src/RestEase.HttpClientFactory";
+string sourceGeneratorDir = "src/RestEase.SourceGenerator";
 
 string testsDir = "src/RestEase.UnitTests";
+string httpClientFactoryTestsDir = "src/RestEase.HttpClientFactory.UnitTests";
 string sourceGeneratorTestsDir = "src/RestEase.SourceGenerator.UnitTests";
 
 string nugetDir = "NuGet";
@@ -38,6 +39,7 @@ string CommonFlags(string? version, string? configuration) =>
 CreateTask("test").Run(() =>
 {
     Command.Run("dotnet", $"test \"{testsDir}\"");
+    Command.Run("dotnet", $"test \"{httpClientFactoryTestsDir}\"");
     Command.Run("dotnet", $"test \"{sourceGeneratorTestsDir}\"");
 });
 

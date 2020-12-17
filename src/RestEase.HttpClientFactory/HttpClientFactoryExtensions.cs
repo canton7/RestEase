@@ -179,7 +179,15 @@ namespace RestEase.HttpClientFactory
                 {
                     httpClient.BaseAddress = baseAddress;
                 }
-            }).AddTypedClient(factory);
+            });
+
+            // See https://github.com/dotnet/runtime/blob/master/src/libraries/Microsoft.Extensions.Http/src/DependencyInjection/HttpClientBuilderExtensions.cs
+            builder.Services.AddTransient(restEaseType, serviceProvider =>
+            {
+                var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient(builder.Name);
+                return factory(httpClient);
+            });
 
             if (requestModifier != null)
             {
