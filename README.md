@@ -58,8 +58,11 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
     5. [Redefining Headers](#redefining-headers)
 11. [Using RestEase.SourceGenerator](#using-resteasesourcegenerator)
 12. [Using HttpClientFactory](#using-httpclientfactory)
-13. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
-14. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
+13. [Using RestEase with Polly](#using-restease-with-polly)
+    1. [Using Polly with `RestClient`](#using-polly-with-restclient)
+    2. [Using Polly with HttpClientFactory](#using-polly-with-httpclientfactory)
+14. [HttpClient and RestEase interface lifetimes](#httpclient-and-restease-interface-lifetimes)
+15. [Controlling Serialization and Deserialization](#controlling-serialization-and-deserialization)
     1. [Custom `JsonSerializerSettings`](#custom-jsonserializersettings)
     2. [Custom Serializers and Deserializers](#custom-serializers-and-deserializers)
         1. [Deserializing responses: `ResponseDeserializer`](#deserializing-responses-responsedeserializer)
@@ -67,21 +70,21 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
         3. [Serializing request query parameters: `RequestQueryParamSerializer`](#serializing-request-query-parameters-requestqueryparamserializer)
         4. [Serializing request path parameters: `RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer)
         5. [Controlling query string generation: `QueryStringBuilder`](#controlling-query-string-generating-querystringbuilder)
-15. [Controlling the Requests](#controlling-the-requests)
+16. [Controlling the Requests](#controlling-the-requests)
     1. [`RequestModifier`](#requestmodifier)
     2. [Custom `HttpClient`](#custom-httpclient)
     3. [Adding to `HttpRequestMessage.Properties`](#adding-to-httprequestmessageproperties)
-16. [Customizing RestEase](#customizing-restease)
-17. [Interface Accessibility](#interface-accessibility)
-18. [Using Generic Interfaces](#using-generic-interfaces)
-19. [Using Generic Methods](#using-generic-methods)
-20. [Interface Inheritance](#interface-inheritance)
+17. [Customizing RestEase](#customizing-restease)
+18. [Interface Accessibility](#interface-accessibility)
+19. [Using Generic Interfaces](#using-generic-interfaces)
+20. [Using Generic Methods](#using-generic-methods)
+21. [Interface Inheritance](#interface-inheritance)
     1. [Sharing common properties and methods](#sharing-common-properties-and-methods)
     2. [IDisposable](#idisposable)
-21. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
+22. [Advanced Functionality Using Extension Methods](#advanced-functionality-using-extension-methods)
     1. [Wrapping Other Methods](#wrapping-other-methods)
     2. [Using `IRequester` Directly](#using-irequester-directly)
-22. [FAQs](#faqs)
+23. [FAQs](#faqs)
 
 
 Installation
@@ -95,6 +98,7 @@ See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more in
 If you're targetting iOS or .NET Native, you will need to do this, as runtime code generation isn't available.
 
 If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory).
+For failure handling and retries using Polly, see [Using RestEase with Polly](#using-restease-with-polly).
 
 Quick Start
 -----------
@@ -1167,6 +1171,57 @@ public class SomeController : ControllerBase
     private readonly ISomeApi someApi;
     public SomeController(ISomeApi someApi) => this.someApi = someApi;
 }
+```
+
+
+Using RestEase with Polly
+-------------------------
+
+Sometimes request fail, and you want to retry them.
+
+[Polly](https://github.com/App-vNext/Polly) is the industry-standard framework for defining retry/failure/etc policies, and it's easy to integrate with RestEase.
+
+## Using Polly with `RestClient`
+
+If you're working with RestEase using `new RestClient(...).For<T>()` or `RestClient.For<T>(...)`, then you'll need to install [Microsoft.Extensions.Http.Polly](https://www.nuget.org/packages/Microsoft.Extensions.Http.Polly/).
+Create your `IAsyncPolicy<HttpResponseMessage>` following the Polly documentation, and then tell RestEase to use it using a `PolicyHttpMessageHandler`:
+
+```cs
+// Define your policy however you want
+var policy = Policy
+    .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
+    .RetryAsync();
+
+// Tell RestEase to use it
+var api = RestClient.For<ISomeApi>("https://api.example.com", new PolicyHttpMessageHandler(policy));
+// ... or ...
+var api = new RestClient("https://api.example.com", new PolicyHttpMessageHandler(policy)).For<ISomeApi>();
+```
+
+### Using Polly with HttpClientFactory
+
+If you're using HttpClientFactory, then you'll need to follow the instructions on [using HttpClientFactory](#using-httpclientfactory), and then install [Microsoft.Extensions.Http.Polly](https://www.nuget.org/packages/Microsoft.Extensions.Http.Polly/).
+
+You can then follow [these Polly instructions](https://github.com/App-vNext/Polly/wiki/Polly-and-HttpClientFactory#configuring-the-polly-policies), but use `AddRestEaseClient` instead of `AddHttpClient`, for example:
+
+```cs
+// Define your policy however you want
+var policy = Policy
+    .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
+    .RetryAsync();
+
+services.AddRestEaseClient<ISomeApi>("https://api.example.com").AddPolicyHandler(policy);
+
+// ... or perhaps ...
+
+services
+    .AddRestEaseClient<ISomeApi>("https://api.example.com")
+    .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
+    {
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromSeconds(5),
+        TimeSpan.FromSeconds(10)
+    }));
 ```
 
 
