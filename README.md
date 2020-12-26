@@ -6,13 +6,14 @@
 
 RestEase is a little type-safe REST API client library for .NET Framework 4.5 and higher and .NET Platform Standard 1.1 and higher, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
 
-It also works on platforms which don't support runtime code generation, such as .NET Native and iOS, if you reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator).
-See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
+To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
+RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
+See [Installation](#installation) and [Quick Start](#quick-start) to get up and running!
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
-To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
-RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
+It also works on platforms which don't support runtime code generation, such as .NET Native and iOS, if you reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator).
+See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
 
 RestEase is built on top of [HttpClient](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpclient) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
 
