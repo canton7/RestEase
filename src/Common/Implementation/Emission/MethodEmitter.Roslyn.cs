@@ -244,7 +244,7 @@ namespace RestEase.Implementation.Emission
         public void EmitAddQueryParameter(ParameterModel parameter, QuerySerializationMethod serializationMethod)
         {
             // The attribute might be null, if it's a plain parameter
-            string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName!;
+            string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName;
             var collectionType = this.CollectionTypeOfType(parameter.ParameterSymbol.Type);
             string methodName = (collectionType == null) ? "AddQueryParameter" : "AddQueryCollectionParameter";
 
