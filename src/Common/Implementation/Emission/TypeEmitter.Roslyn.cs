@@ -1,9 +1,11 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using RestEase.Implementation.Analysis;
 using RestEase.SourceGenerator.Implementation;
@@ -16,6 +18,7 @@ namespace RestEase.Implementation.Emission
         private readonly StringWriter stringWriter = new();
         private readonly IndentedTextWriter writer;
         private readonly TypeModel typeModel;
+        private readonly Compilation compilation;
         private readonly WellKnownSymbols wellKnownSymbols;
         private readonly int index;
         private readonly string namespaceName;
@@ -27,9 +30,10 @@ namespace RestEase.Implementation.Emission
 
         private readonly List<string> generatedFieldNames = new();
 
-        public TypeEmitter(TypeModel typeModel, WellKnownSymbols wellKnownSymbols, int index)
+        public TypeEmitter(TypeModel typeModel, Compilation compilation, WellKnownSymbols wellKnownSymbols, int index)
         {
             this.typeModel = typeModel;
+            this.compilation = compilation;
             this.wellKnownSymbols = wellKnownSymbols;
             this.index = index;
             this.writer = new IndentedTextWriter(this.stringWriter);
@@ -86,7 +90,10 @@ namespace RestEase.Implementation.Emission
             this.writer.WriteLine();
             // We don't want to get involved with NRTs. We'd need to know whether they were supported and switch our generation based on this, which
             // is too much hassle for something the user doesn't actually see (they see the nullability on the interface).
-            this.writer.WriteLine("#nullable disable");
+            if (this.compilation is CSharpCompilation { LanguageVersion: >= LanguageVersion.CSharp8 })
+            {
+                this.writer.WriteLine("#nullable disable");
+            }
             this.writer.WriteLine("[assembly: global::RestEase.Implementation.RestEaseInterfaceImplementationAttribute(" +
                 "typeof(" + typeofInterfaceName + "), typeof(global::" + this.namespaceName + "." + typeofName + "))]");
 

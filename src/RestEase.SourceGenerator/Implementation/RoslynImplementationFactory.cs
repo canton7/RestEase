@@ -23,7 +23,7 @@ namespace RestEase.SourceGenerator.Implementation
             this.symbolsDiagnosticReporter = new DiagnosticReporter();
             this.wellKnownSymbols = new WellKnownSymbols(compilation, this.symbolsDiagnosticReporter);
             this.attributeInstantiator = new AttributeInstantiator(this.wellKnownSymbols);
-            this.emitter = new Emitter(this.wellKnownSymbols);
+            this.emitter = new Emitter(compilation, this.wellKnownSymbols);
 
             // Catch any symbols errors from just instantiating WellKnownSymbols
             this.symbolsDiagnostics.UnionWith(this.symbolsDiagnosticReporter.Diagnostics);
