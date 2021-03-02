@@ -47,13 +47,19 @@ namespace RestEase.SourceGenerator.Implementation
         /// A string suitable for use when declaring a method which implicitly implements an interface method,
         /// suitably escaped. Doesn't include return type or accessibility, but includes parameters, type constraints,
         /// default values. 
-        /// E.g. "Foo&lt;T&gt;(T a, global::System.Collections.Generic.List&lt;T&gt; b = null) where T : global::System.IEquatable&lt;T&gt;"
+        /// E.g. "global::Some.Foo&lt;T&gt;(T a, global::System.Collections.Generic.List&lt;T&gt; b = null) where T : global::System.IEquatable&lt;T&gt;"
         /// </summary>
+        /// <remarks>
+        /// This has to include IncludeContainingType otherwise enum default values don't get the enum type added
+        /// (e.g. Foo(global::SomeEnum e = SomeEnumMember), as the formatter treats the enum member access as a field
+        /// access and doesn't put its containing type in otherwise. This does mean we'll have to strip off the containing
+        /// type of the method however...
+        /// </remarks>
         public static SymbolDisplayFormat ImplicitMethodDeclaration { get; }
 
         /// <summary>
         /// A string suitable for use when declaring a method which explicitly implements an interface method,
-        /// suitably escaped. Doesn't include return type, but includes params. Doesn't include type constraints or default
+        /// suitably escaped. Includes return type and params. Doesn't include type constraints or default
         /// values, as these shouldn't be given on explicit implementations. E.g.
         /// "Foo&lt;T&gt;(T a, global::System.Collections.Generic.List&lt;T&gt; b)
         /// </summary>
@@ -142,7 +148,8 @@ namespace RestEase.SourceGenerator.Implementation
                     | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters
                     | SymbolDisplayMemberOptions.IncludeConstantValue
-                    | SymbolDisplayMemberOptions.IncludeRef,
+                    | SymbolDisplayMemberOptions.IncludeRef
+                    | SymbolDisplayMemberOptions.IncludeContainingType,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut
                     | SymbolDisplayParameterOptions.IncludeType
                     | SymbolDisplayParameterOptions.IncludeName
@@ -156,7 +163,9 @@ namespace RestEase.SourceGenerator.Implementation
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters
                     | SymbolDisplayMemberOptions.IncludeConstantValue
-                    | SymbolDisplayMemberOptions.IncludeRef,
+                    | SymbolDisplayMemberOptions.IncludeRef
+                    | SymbolDisplayMemberOptions.IncludeType
+                    | SymbolDisplayMemberOptions.IncludeContainingType,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut
                     | SymbolDisplayParameterOptions.IncludeType
                     | SymbolDisplayParameterOptions.IncludeName,

@@ -26,6 +26,18 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             A, B, C
         }
 
+        public interface IHasEnum<T1> where T1 : class
+        {
+            [Get]
+            Task FooAsync<T2>(SomeEnum e = SomeEnum.A) where T2 : struct;
+        }
+
+        public interface IHasDefaultEnum
+        {
+            [Get]
+            Task FooAsync(SomeEnum e = default);
+        }
+
         public interface IHasEnumOutOfRange
         {
             [Get]
@@ -70,6 +82,32 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void HandlesDefaultStructValues()
         {
             this.CreateImplementation<IHasDefaultCancellationToken>();
+        }
+
+        [Fact]
+        public void HandlesEnums()
+        {
+            var implementation = this.CreateImplementation<IHasEnum<string>>();
+
+            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name == "FooAsync");
+            var parameters = methodInfo.GetParameters();
+
+            Assert.Equal("e", parameters[0].Name);
+            Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, parameters[0].Attributes);
+            Assert.Equal(SomeEnum.A, parameters[0].DefaultValue);
+        }
+
+        [Fact]
+        public void HandlesDefaultEnums()
+        {
+            var implementation = this.CreateImplementation<IHasDefaultEnum>();
+
+            var methodInfo = implementation.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name == "FooAsync");
+            var parameters = methodInfo.GetParameters();
+
+            Assert.Equal("e", parameters[0].Name);
+            Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, parameters[0].Attributes);
+            Assert.Equal(SomeEnum.A, parameters[0].DefaultValue);
         }
 
         [Fact]
