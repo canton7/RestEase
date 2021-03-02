@@ -1174,6 +1174,18 @@ public class SomeController : ControllerBase
 }
 ```
 
+If you want to configure a `HttpClient` for use with multiple RestEase interfaces, you can use `IHttpClientBuilder.UseWithRestEaseClient`.
+This returns the `IHttpClientBuilder` it was called on, so you can call it multiple times.
+
+Make sure that you use one of the `AddHttpClient` overloads which takes a name, and also that you configure the `BaseAddress` on the `HttpClient`.
+
+```cs
+services.AddHttpClient("example")
+    .ConfigureHttpClient(x => x.BaseAddress = new Uri("https://api.example.com"))
+    .UseWithRestEaseClient<ISomeApi>()
+    .UseWithRestEaseClient<ISomeOtherApi>();
+```
+
 
 Using RestEase with Polly
 -------------------------
