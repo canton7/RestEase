@@ -178,6 +178,8 @@ namespace RestEase.UnitTests.RequesterTests
             var messageHandler = new MockHttpMessageHandler();
             var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://api.com") };
             var requester = new PublicRequester(httpClient);
+            var responseDeserializer = new Mock<ResponseDeserializer>();
+            requester.ResponseDeserializer = responseDeserializer.Object;
 
             var requestInfo = new RequestInfo(HttpMethod.Post, "foo");
 
@@ -197,6 +199,13 @@ namespace RestEase.UnitTests.RequesterTests
             Assert.True(e.Headers.Contains("Foo"));
             Assert.True(e.HasContent);
             Assert.Equal("hello", e.Content);
+
+            responseDeserializer.Setup(x => x.Deserialize<int>(
+                "hello",
+                responseMessage,
+                It.Is<ResponseDeserializerInfo>(x => x.RequestInfo == requestInfo)))
+                .Returns(10);
+            Assert.Equal(10, e.DeserializeContent<int>());
         }
 
         [Fact]

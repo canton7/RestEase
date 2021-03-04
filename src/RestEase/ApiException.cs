@@ -11,6 +11,8 @@ namespace RestEase
     /// </summary>
     public class ApiException : Exception
     {
+        private readonly IApiExceptionContentDeserializer? contentDeserializer;
+
         /// <summary>
         /// Gets the method used to make the request which failed
         /// </summary>
@@ -57,14 +59,20 @@ namespace RestEase
         /// <param name="request">Request which triggered the exception</param>
         /// <param name="response"><see cref="HttpResponseMessage"/> provided by the <see cref="HttpClient"/></param>
         /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync()"/>, if there is a response content</param>
-        public ApiException(HttpRequestMessage request, HttpResponseMessage response, string? contentString)
+        /// <param name="contentDeserializer">Deserializer to deserialize the content, used by <see cref="DeserializeContent{T}"/></param>
+        public ApiException(
+            HttpRequestMessage request,
+            HttpResponseMessage response,
+            string? contentString,
+            IApiExceptionContentDeserializer? contentDeserializer = null)
             : this(request.Method,
                   request.RequestUri,
                   response.StatusCode,
                   response.ReasonPhrase,
                   response.Headers,
                   response.Content?.Headers,
-                  contentString)
+                  contentString,
+                  contentDeserializer)
         {
         }
 
@@ -78,6 +86,7 @@ namespace RestEase
         /// <param name="headers"><see cref="HttpResponseHeaders"/>s associated with the response</param>
         /// <param name="contentHeaders"><see cref="HttpContentHeaders"/> associated with the response content, if there is a response content</param>
         /// <param name="contentString">String content, as read from <see cref="HttpContent.ReadAsStringAsync()"/>, if there is a response content</param>
+        /// <param name="contentDeserializer">Deserializer to deserialize the content, used by <see cref="DeserializeContent{T}"/></param>
         public ApiException(
             HttpMethod requestMethod,
             Uri? requestUri,
@@ -85,7 +94,8 @@ namespace RestEase
             string? reasonPhrase,
             HttpResponseHeaders headers,
             HttpContentHeaders? contentHeaders,
-            string? contentString)
+            string? contentString,
+            IApiExceptionContentDeserializer? contentDeserializer = null)
             : base($"{requestMethod} \"{requestUri}\" failed because response status code does not indicate success: {(int)statusCode} ({reasonPhrase}).")
         {
             this.RequestMethod = requestMethod;
@@ -100,6 +110,7 @@ namespace RestEase
             this.ReasonPhrase = reasonPhrase;
             this.Data[nameof(this.ReasonPhrase)] = reasonPhrase;
 
+            this.contentDeserializer = contentDeserializer;
             this.Headers = headers;
             this.ContentHeaders = contentHeaders;
             this.Content = contentString;
@@ -110,11 +121,15 @@ namespace RestEase
         /// </summary>
         /// <param name="request">Request which triggered the exception</param>
         /// <param name="response">Response received from the <see cref="HttpClient"/></param>
+        /// <param name="contentDeserializer">Deserializer to deserialize the content, used by <see cref="DeserializeContent{T}"/></param>
         /// <returns>A new <see cref="ApiException"/> created from the <see cref="HttpResponseMessage"/></returns>
-        public static async Task<ApiException> CreateAsync(HttpRequestMessage request, HttpResponseMessage response)
+        public static async Task<ApiException> CreateAsync(
+            HttpRequestMessage request,
+            HttpResponseMessage response,
+            IApiExceptionContentDeserializer? contentDeserializer = null)
         {
             if (response.Content == null)
-                return new ApiException(request, response, null);
+                return new ApiException(request, response, null, contentDeserializer);
 
             string? contentString = null;
 
@@ -128,7 +143,26 @@ namespace RestEase
             catch
             { } // Don't want to hide the original exception with a new one
 
-            return new ApiException(request, response, contentString);
+            return new ApiException(request, response, contentString, contentDeserializer);
+        }
+
+        /// <summary>
+        /// Attempts to deserialize <see cref="Content"/> as the given type
+        /// </summary>
+        /// <remarks>
+        /// This can be useful if particular error responses codes are associated with different sorts of
+        /// response content. However make sure that you are attempting to deserialize the response as the
+        /// correct type, otherwise it is likely that the deserializer will throw an exception or return an
+        /// invalid response.
+        /// </remarks>
+        /// <typeparam name="T">The type to deserialize <see cref="Content"/> as</typeparam>
+        /// <returns>The deserializer's attempt to deserialize <see cref="Content"/> as <typeparamref name="T"/></returns>
+        public T DeserializeContent<T>()
+        {
+            if (this.contentDeserializer == null)
+                throw new InvalidOperationException("ApiException must have been instantiated with a non-null IApiExceptionContentDeserializer");
+            
+            return this.contentDeserializer.Deserialize<T>(this.Content);
         }
     }
 }

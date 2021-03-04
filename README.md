@@ -855,7 +855,22 @@ Response Status Codes
 
 By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpresponsemessage.issuccessstatuscode)) will cause an `ApiException` to be thrown.
 
-This is usually what you want (you don't want to try and parse the result of a failed request), but sometimes you're expecting failure.
+The `ApiException` has properties which tell you exactly what happened (such as the `HttpStatusCode`, the URI which was requested, the string content, and also a method `DeserializeContent<T>()` to let you attempt to deserialize the content as a particular type).
+This means that you can write code such as:
+
+```cs
+try
+{
+    var response = await client.SayHelloAsync();
+}
+catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
+{
+    var notFoundResponse = e.DeserializeContent<NotFoundRepsonse>();
+    // ...
+}
+```
+
+This is usually what you want, but sometimes you're expecting failure.
 
 In this case, you can apply `[AllowAnyStatusCode]` to you method, or indeed to the whole interface, to suppress this behaviour. If you do this, then you probably want to make your method return either a `HttpResponseMessage` or a `Response<T>` (see [Return Types](#return-types)) so you can examine the response code yourself.
 
@@ -871,20 +886,17 @@ public interface ISomeApi
 
 ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 
-using (var response = await api.FetchUserThatMayNotExistAsync(3))
+using (var response = await api.FetchUserThatMayNotExistAsync(3));
+if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
 {
-    if (response.ResponseMessage.StatusCode == HttpStatusCode.NotFound)
-    {
-        // User wasn't found
-    }
-    else
-    {
-        var user = response.GetContent();
-        // ...
-    }
+    // User wasn't found
+}
+else
+{
+    var user = response.GetContent();
+    // ...
 }
 ```
-
 
 Cancelling Requests
 -------------------
