@@ -111,13 +111,6 @@ namespace RestEase
         public RestClient() : this((string?)null) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
-        /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
-        /// or should only use absolute paths.
-        /// </summary>
-        public RestClient(RequestModifier requestModifier) : this((string?)null, requestModifier) { }
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">
@@ -130,6 +123,17 @@ namespace RestEase
         }
 
         /// <summary>
+        /// Creates a new client with the given Base URL
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(string? baseUrl = null) => new RestClient(baseUrl).For<T>();
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">
@@ -140,6 +144,34 @@ namespace RestEase
         {
             this.httpClient = Initialize(new HttpClientHandler(), baseUrl);
         }
+
+        /// <summary>
+        /// Creates a new client with the given Base URL
+        /// </summary>
+        /// <typeparam name="T">Interface representing the API</typeparam>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(Uri? baseUrl) => new RestClient(baseUrl).For<T>();
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
+        /// or should only use absolute paths.
+        /// </summary>
+        /// <param name="requestModifier">Delegate to be called on every request</param>
+        public RestClient(RequestModifier requestModifier) : this((string?)null, requestModifier) { }
+
+        /// <summary>
+        /// Creates a new client without a Base Address, with the given <see cref="RequestModifier"/>
+        /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
+        /// or should only use absolute paths.
+        /// </summary>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(RequestModifier requestModifier) => new RestClient(requestModifier).For<T>();
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
@@ -159,11 +191,23 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// Creates a new client with the given Base URL and <see cref="RequestModifier"/>
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
         /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)</param>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(string? baseUrl, RequestModifier requestModifier) =>
+            new RestClient(baseUrl, requestModifier).For<T>();
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// </summary>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
         /// <param name="requestModifier">Delegate called on every request</param>
         public RestClient(Uri? baseUrl, RequestModifier requestModifier)
         {
@@ -173,13 +217,114 @@ namespace RestEase
             this.httpClient = Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
         }
 
-        private static HttpClient Initialize(HttpMessageHandler messageHandler, Uri? baseUrl)
+        /// <summary>
+        /// Creates a new client with the given Base URL and <see cref="RequestModifier"/>
+        /// </summary>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <param name="requestModifier">Delegate called on every request</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(Uri? baseUrl, RequestModifier requestModifier) =>
+            new RestClient(baseUrl, requestModifier).For<T>();
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class with the given <see cref="HttpMessageHandler"/>,
+        /// without a Base Address. The interface should have an absolute <see cref="BaseAddressAttribute"/> or
+        /// <see cref="BasePathAttribute"/>, or should only use absolute paths.
+        /// </summary>
+        /// <param name="messageHandler">
+        /// <see cref="HttpMessageHandler"/> to use. If this is an instance of <see cref="DelegatingHandler"/> with
+        /// <see cref="DelegatingHandler.InnerHandler"/> set to <c>null</c>, then a new instance of
+        /// <see cref="HttpClientHandler"/> will be assigned
+        /// </param>
+        public RestClient(HttpMessageHandler messageHandler)
         {
-            return new HttpClient(messageHandler)
-            {
-                BaseAddress = baseUrl,
-            };
+            SetupHandler(messageHandler);
+            this.httpClient = Initialize(messageHandler, null);
         }
+
+        /// <summary>
+        /// Creates a new client with the given <see cref="HttpMessageHandler"/>, without a Base Address.
+        /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
+        /// or should only use absolute paths.
+        /// </summary>
+        /// <param name="messageHandler">
+        /// <see cref="HttpMessageHandler"/> to use. If this is an instance of <see cref="DelegatingHandler"/> with
+        /// <see cref="DelegatingHandler.InnerHandler"/> set to <c>null</c>, then a new instance of
+        /// <see cref="HttpClientHandler"/> will be assigned
+        /// </param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(HttpMessageHandler messageHandler) => new RestClient(messageHandler).For<T>();
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// </summary>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <param name="messageHandler">
+        /// <see cref="HttpMessageHandler"/> to use. If this is an instance of <see cref="DelegatingHandler"/> with
+        /// <see cref="DelegatingHandler.InnerHandler"/> set to <c>null</c>, then a new instance of
+        /// <see cref="HttpClientHandler"/> will be assigned
+        /// </param>
+        public RestClient(string? baseUrl, HttpMessageHandler messageHandler)
+        {
+            SetupHandler(messageHandler);
+            this.httpClient = Initialize(messageHandler, baseUrl == null ? null : new Uri(baseUrl));
+        }
+
+        /// <summary>
+        /// Creates a new client with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// </summary>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <param name="messageHandler">
+        /// <see cref="HttpMessageHandler"/> to use. If this is an instance of <see cref="DelegatingHandler"/> with
+        /// <see cref="DelegatingHandler.InnerHandler"/> set to <c>null</c>, then a new instance of
+        /// <see cref="HttpClientHandler"/> will be assigned
+        /// </param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(string? baseUrl, HttpMessageHandler messageHandler) =>
+            new RestClient(baseUrl, messageHandler).For<T>();
+        /// <summary>
+        /// Initialises a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// </summary>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <param name="messageHandler">
+        /// <see cref="HttpMessageHandler"/> to use. If this is an instance of <see cref="DelegatingHandler"/> with
+        /// <see cref="DelegatingHandler.InnerHandler"/> set to <c>null</c>, then a new instance of
+        /// <see cref="HttpClientHandler"/> will be assigned
+        /// </param>
+        public RestClient(Uri? baseUrl, HttpMessageHandler messageHandler)
+        {
+            SetupHandler(messageHandler);
+            this.httpClient = Initialize(messageHandler, baseUrl);
+        }
+
+        /// <summary>
+        /// Creates a new client with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// </summary>
+        /// <param name="baseUrl">
+        /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
+        /// <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>, or only uses absolute paths)
+        /// </param>
+        /// <param name="messageHandler">
+        /// <see cref="HttpMessageHandler"/> to use. If this is an instance of <see cref="DelegatingHandler"/> with
+        /// <see cref="DelegatingHandler.InnerHandler"/> set to <c>null</c>, then a new instance of
+        /// <see cref="HttpClientHandler"/> will be assigned
+        /// </param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(Uri? baseUrl, HttpMessageHandler messageHandler) =>
+            new RestClient(baseUrl, messageHandler).For<T>();
+
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RestClient"/> class, using the given HttpClient
@@ -188,6 +333,32 @@ namespace RestEase
         public RestClient(HttpClient httpClient)
         {
             this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        }
+
+        /// <summary>
+        /// Creates a new client using the given HttpClient
+        /// </summary>
+        /// <param name="httpClient">HttpClient to use</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static T For<T>(HttpClient httpClient) => new RestClient(httpClient).For<T>();
+
+        private static HttpClient Initialize(HttpMessageHandler messageHandler, Uri? baseUrl)
+        {
+            return new HttpClient(messageHandler)
+            {
+                BaseAddress = baseUrl,
+            };
+        }
+
+        private static void SetupHandler(HttpMessageHandler messageHandler)
+        {
+            if (messageHandler == null)
+                throw new ArgumentNullException(nameof(messageHandler));
+
+            if (messageHandler is DelegatingHandler { InnerHandler: null } delegatingHandler)
+            {
+                delegatingHandler.InnerHandler = new HttpClientHandler();
+            }
         }
 
         /// <summary>
@@ -202,6 +373,21 @@ namespace RestEase
 
             var method = forInstanceGenericMethodInfo.MakeGenericMethod(type);
             return method.Invoke(this, ArrayUtil.Empty<object>())!;
+        }
+
+        /// <summary>
+        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// </summary>
+        /// <param name="type">Interface representing the API</param>
+        /// <param name="requester">IRequester to use</param>
+        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
+        public static object For(Type type, IRequester requester)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            var method = forStaticGenericMethodInfo.MakeGenericMethod(type);
+            return method.Invoke(null, new object[] { requester })!;
         }
 
         /// <summary>
@@ -252,84 +438,12 @@ namespace RestEase
         /// <summary>
         /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
         /// </summary>
-        /// <param name="type">Interface representing the API</param>
-        /// <param name="requester">IRequester to use</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static object For(Type type, IRequester requester)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            var method = forStaticGenericMethodInfo.MakeGenericMethod(type);
-            return method.Invoke(null, new object[] { requester })!;
-        }
-
-        /// <summary>
-        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
-        /// </summary>
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="requester">IRequester to use</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(IRequester requester)
         {
             return factory.CreateImplementation<T>(requester);
-        }
-
-        /// <summary>
-        /// Shortcut to create a client using the given url
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="baseUrl">Base URL</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(string baseUrl)
-        {
-            return new RestClient(baseUrl).For<T>();
-        }
-
-        /// <summary>
-        /// Shortcut to create a client using the given url
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="baseUrl">Base URL</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(Uri baseUrl)
-        {
-            return new RestClient(baseUrl).For<T>();
-        }
-
-        /// <summary>
-        /// Shortcut to create a client using the given HttpClient
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="httpClient">HttpClient to use to make requests</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(HttpClient httpClient)
-        {
-            return new RestClient(httpClient).For<T>();
-        }
-
-        /// <summary>
-        /// Shortcut to create a client using the given URL and request interceptor
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="baseUrl">Base URL</param>
-        /// <param name="requestModifier">Delegate called on every request</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(string baseUrl, RequestModifier requestModifier)
-        {
-            return new RestClient(baseUrl, requestModifier).For<T>();
-        }
-
-        /// <summary>
-        /// Shortcut to create a client using the given URL and request interceptor
-        /// </summary>
-        /// <typeparam name="T">Interface representing the API</typeparam>
-        /// <param name="baseUrl">Base URL</param>
-        /// <param name="requestModifier">Delegate called on every request</param>
-        /// <returns>An implementation of that interface which you can use to invoke the API</returns>
-        public static T For<T>(Uri baseUrl, RequestModifier requestModifier)
-        {
-            return new RestClient(baseUrl, requestModifier).For<T>();
         }
 
         /// <summary>

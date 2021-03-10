@@ -49,12 +49,9 @@ namespace RestEase.HttpClientFactory
             RequestModifier? requestModifier = null)
             where T : class
         {
-            return services.AddRestEaseClientCore(typeof(T), ToUri(baseAddress), requestModifier, httpClient =>
-            {
-                var restClient = new RestClient(httpClient);
-                configurer?.Invoke(restClient);
-                return restClient.For<T>();
-            });
+            return services
+                .CreateHttpClientBuilder(typeof(T), ToUri(baseAddress), requestModifier)
+                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer));
         }
 
         /// <summary>
@@ -77,12 +74,9 @@ namespace RestEase.HttpClientFactory
             RequestModifier? requestModifier = null)
             where T : class
         {
-            return services.AddRestEaseClientCore(typeof(T), baseAddress, requestModifier, httpClient =>
-            {
-                var restClient = new RestClient(httpClient);
-                configurer?.Invoke(restClient);
-                return restClient.For<T>();
-            });
+            return services
+                .CreateHttpClientBuilder(typeof(T), baseAddress, requestModifier)
+                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer));
         }
 
         /// <summary>
@@ -125,12 +119,9 @@ namespace RestEase.HttpClientFactory
             if (restEaseType is null)
                 throw new ArgumentNullException(nameof(restEaseType));
 
-            return services.AddRestEaseClientCore(restEaseType, ToUri(baseAddress), requestModifier, httpClient =>
-            {
-                var restClient = new RestClient(httpClient);
-                configurer?.Invoke(restClient);
-                return restClient.For(restEaseType);
-            });
+            return services
+                .CreateHttpClientBuilder(restEaseType, ToUri(baseAddress), requestModifier)
+                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer));
         }
 
         /// <summary>
@@ -155,39 +146,55 @@ namespace RestEase.HttpClientFactory
             if (restEaseType is null)
                 throw new ArgumentNullException(nameof(restEaseType));
 
-            return services.AddRestEaseClientCore(restEaseType, baseAddress, requestModifier, httpClient =>
-            {
-                var restClient = new RestClient(httpClient);
-                configurer?.Invoke(restClient);
-                return restClient.For(restEaseType);
-            });
+            return services
+                .CreateHttpClientBuilder(restEaseType, baseAddress, requestModifier)
+                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer));
         }
 
-        private static IHttpClientBuilder AddRestEaseClientCore(
+        /// <summary>
+        /// Register the given RestEase interface type to use the a <see cref="HttpClient"/>
+        /// from the given <see cref="IHttpClientBuilder"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the RestEase interface</typeparam>
+        /// <param name="httpClientBuilder"><see cref="IHttpClientBuilder"/> which RestEase should use a <see cref="HttpClient"/> from</param>
+        /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        public static IHttpClientBuilder UseWithRestEaseClient<T>(
+            this IHttpClientBuilder httpClientBuilder,
+            Action<RestClient>? configurer = null)
+            where T : class
+        {
+            return httpClientBuilder.AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer));
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type to use the a <see cref="HttpClient"/>
+        /// from the given <see cref="IHttpClientBuilder"/>
+        /// </summary>
+        /// <param name="httpClientBuilder"><see cref="IHttpClientBuilder"/> which RestEase should use a <see cref="HttpClient"/> from</param>
+        /// <param name="restEaseType">Type of the RestEase interface</param>
+        /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        public static IHttpClientBuilder UseWithRestEaseClient(
+            this IHttpClientBuilder httpClientBuilder,
+            Type restEaseType,
+            Action<RestClient>? configurer = null)
+        {
+            return httpClientBuilder.AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer));
+        }
+
+        private static IHttpClientBuilder CreateHttpClientBuilder(
             this IServiceCollection services,
             Type restEaseType,
             Uri? baseAddress,
-            RequestModifier? requestModifier,
-            Func<HttpClient, object> factory)
+            RequestModifier? requestModifier)
         {
             if (services is null)
                 throw new ArgumentNullException(nameof(services));
 
-            var builder = services.AddHttpClient(UniqueNameForType(restEaseType), httpClient =>
-            {
-                if (baseAddress != null)
-                {
-                    httpClient.BaseAddress = baseAddress;
-                }
-            });
-
-            // See https://github.com/dotnet/runtime/blob/master/src/libraries/Microsoft.Extensions.Http/src/DependencyInjection/HttpClientBuilderExtensions.cs
-            builder.Services.AddTransient(restEaseType, serviceProvider =>
-            {
-                var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-                var httpClient = httpClientFactory.CreateClient(builder.Name);
-                return factory(httpClient);
-            });
+            var builder = baseAddress == null
+                ? services.AddHttpClient(UniqueNameForType(restEaseType))
+                : services.AddHttpClient(UniqueNameForType(restEaseType), httpClient => httpClient.BaseAddress = baseAddress);
 
             if (requestModifier != null)
             {
@@ -197,8 +204,47 @@ namespace RestEase.HttpClientFactory
             return builder;
         }
 
+        private static IHttpClientBuilder AddRestEaseClientCore(
+            this IHttpClientBuilder httpClientBuilder,
+            Type restEaseType,
+            Func<HttpClient, object> factory)
+        {
+            if (httpClientBuilder is null)
+                throw new ArgumentNullException(nameof(httpClientBuilder));
+
+            // See https://github.com/dotnet/runtime/blob/master/src/libraries/Microsoft.Extensions.Http/src/DependencyInjection/HttpClientBuilderExtensions.cs
+            httpClientBuilder.Services.AddTransient(restEaseType, serviceProvider =>
+            {
+                var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient(httpClientBuilder.Name);
+                return factory(httpClient);
+            });
+
+            return httpClientBuilder;
+        }
+
         private static Uri? ToUri(string? uri) =>
             uri == null ? null : new Uri(uri);
+
+        private static Func<HttpClient, object> GenericFactory<T>(Action<RestClient>? configurer) where T : class
+        {
+            return httpClient =>
+            {
+                var restClient = new RestClient(httpClient);
+                configurer?.Invoke(restClient);
+                return restClient.For<T>();
+            };
+        }
+
+        private static Func<HttpClient, object> NonGenericFactory(Type restEaseType, Action<RestClient>? configurer)
+        {
+            return httpClient =>
+            {
+                var restClient = new RestClient(httpClient);
+                configurer?.Invoke(restClient);
+                return restClient.For(restEaseType);
+            };
+        }
 
         private static string UniqueNameForType(Type type)
         {

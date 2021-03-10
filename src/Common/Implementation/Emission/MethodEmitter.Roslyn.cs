@@ -71,14 +71,8 @@ namespace RestEase.Implementation.Emission
 
         private void EmitMethodDeclaration()
         {
-            // The MethodSymbol represents the interface method, not the implementation, so we can't get ToDisplayString
-            // to give us the explicit interface implementation bit
             if (this.methodModel.IsExplicit)
             {
-                this.writer.Write(this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.MethodOrPropertyReturnType));
-                this.writer.Write(" ");
-                this.writer.Write(this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface));
-                this.writer.Write(".");
                 this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.ExplicitMethodDeclaration));
             }
             else
@@ -86,7 +80,18 @@ namespace RestEase.Implementation.Emission
                 this.writer.Write("public ");
                 this.writer.Write(this.methodModel.MethodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.MethodOrPropertyReturnType));
                 this.writer.Write(" ");
-                this.writer.WriteLine(this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.ImplicitMethodDeclaration));
+                // This includes the containing type of the method, e.g. 'global::Some.Foo(...)', which we have to remove
+                string methodSignature = this.methodModel.MethodSymbol.ToDisplayString(SymbolDisplayFormats.ImplicitMethodDeclaration);
+                string containingType = this.methodModel.MethodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormats.ImplementedInterface);
+                if (methodSignature.StartsWith(containingType))
+                {
+                    methodSignature = methodSignature.Substring(containingType.Length + 1); // For the '.'
+                }
+                else
+                {
+                    Debug.Assert(false);
+                }
+                this.writer.WriteLine(methodSignature);
             }
             this.writer.WriteLine("{");
             this.writer.Indent++;
@@ -244,7 +249,7 @@ namespace RestEase.Implementation.Emission
         public void EmitAddQueryParameter(ParameterModel parameter, QuerySerializationMethod serializationMethod)
         {
             // The attribute might be null, if it's a plain parameter
-            string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName!;
+            string name = parameter.QueryAttribute == null ? parameter.Name : parameter.QueryAttributeName;
             var collectionType = this.CollectionTypeOfType(parameter.ParameterSymbol.Type);
             string methodName = (collectionType == null) ? "AddQueryParameter" : "AddQueryCollectionParameter";
 

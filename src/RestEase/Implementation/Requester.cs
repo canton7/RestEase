@@ -472,7 +472,10 @@ namespace RestEase.Implementation
             var response = await this.httpClient.SendAsync(message, completionOption, requestInfo.CancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
-                throw await ApiException.CreateAsync(message, response).ConfigureAwait(false);
+            {
+                var deserializer = new ApiExceptionContentDeserializer(this, response, requestInfo);
+                throw await ApiException.CreateAsync(message, response, deserializer).ConfigureAwait(false);
+            }
 
             return response;
         }
@@ -497,7 +500,7 @@ namespace RestEase.Implementation
         /// <param name="response">Response to deserialize from</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>A task containing the deserialized response</returns>
-        protected virtual T Deserialize<T>(string? content, HttpResponseMessage response, IRequestInfo requestInfo)
+        protected internal virtual T Deserialize<T>(string? content, HttpResponseMessage response, IRequestInfo requestInfo)
         {
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");

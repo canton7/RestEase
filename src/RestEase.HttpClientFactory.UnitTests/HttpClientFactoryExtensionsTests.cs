@@ -9,6 +9,7 @@ using RestEase.HttpClientFactory;
 using Moq;
 using System.Net.Http;
 using Moq.Protected;
+using System.Threading;
 
 namespace RestEase.UnitTests.HttpClientFactoryTests
 {
@@ -18,6 +19,23 @@ namespace RestEase.UnitTests.HttpClientFactoryTests
         {
             [Get]
             Task FooAsync();
+        }
+        public interface ISomeApi2
+        {
+            [Get]
+            Task FooAsync();
+        }
+
+        private class TestMessageHandler : HttpMessageHandler
+        {
+            public int CallCount { get; set; }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                this.CallCount++;
+                Assert.Equal("http://localhost/", request.RequestUri?.ToString());
+                return Task.FromResult(new HttpResponseMessage());
+            }
         }
 
         [Fact]
@@ -46,6 +64,32 @@ namespace RestEase.UnitTests.HttpClientFactoryTests
             var instance1 = serviceProvider.GetRequiredService<ISomeApi>();
             var instance2 = serviceProvider.GetRequiredService<ISomeApi>();
             Assert.NotSame(instance1, instance2);
+        }
+
+        [Fact]
+        public void RegistersClientOnExistingHttpClientBuilder()
+        {
+            // Test that they resolve, and call the configured handler (and so use the HttpClient we created)
+
+            var services = new ServiceCollection();
+
+            var handler = new TestMessageHandler();
+
+            services.AddHttpClient("test")
+                .ConfigureHttpClient(x => x.BaseAddress = new Uri("http://localhost"))
+                .ConfigurePrimaryHttpMessageHandler(() => handler)
+                .UseWithRestEaseClient<ISomeApi>()
+                .UseWithRestEaseClient<ISomeApi2>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var instance1 = serviceProvider.GetRequiredService<ISomeApi>();
+            var instance2 = serviceProvider.GetRequiredService<ISomeApi2>();
+
+            instance1.FooAsync().Wait();
+            instance2.FooAsync().Wait();
+
+            Assert.Equal(2, handler.CallCount);
         }
     }
 }

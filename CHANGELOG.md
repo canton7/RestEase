@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v1.5.3
+------
+
+ - Add `RestClient` overloads which accept a `HttpMessageHandler`
+ - Add instructions on using `Polly` to README (#89)
+ - Add `ApiException.DeserializeContent<T>` (#172)
+ - Add additional `RestClient` constructor and `.For` overloads
+ - Source generator: Don't emit `#nullable enable` before C# 8
+ - Source generator: Fix enum parameters which accept a default value (#181)
+ - HttpClientFactory: Add `IHttpClientBuilder.UseWithRestEaseClient`
+
 v1.5.2
 ------
 
