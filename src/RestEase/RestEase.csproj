@@ -9,7 +9,7 @@
     <VersionPrefix>0.0.0</VersionPrefix>
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
-    <Copyright>Copyright © Antony Male 2015-2020</Copyright>
+    <Copyright>Copyright © Antony Male 2015-2021</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
