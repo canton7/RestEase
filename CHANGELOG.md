@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.5.4
+------
+
+ - Fix binary break in `ApiException` (#182)
+
 v1.5.3
 ------
 
