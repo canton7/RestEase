@@ -22,7 +22,7 @@ CreateTask("build").Run((string versionOpt, string configurationOpt) =>
     var flags = CommonFlags(versionOpt, configurationOpt);
     Command.Run("dotnet", $"build {flags} \"{restEaseDir}\"");
     Command.Run("dotnet", $"build {flags} \"{httpClientFactoryDir}\"");
-    Command.Run("dotnet", $"build {flags} -p:VersionSuffix=\"preview\" \"{sourceGeneratorDir}\"");
+    Command.Run("dotnet", $"build {flags} \"{sourceGeneratorDir}\"");
 });
 
 CreateTask("package").DependsOn("build").Run((string version, string configurationOpt) =>
