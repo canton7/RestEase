@@ -39,7 +39,6 @@ namespace RestEase.SourceGenerator.Implementation
             var visitedTypes = new HashSet<INamedTypeSymbol>();
             foreach (var memberSyntax in memberSyntaxes)
             {
-                // SyntaxReceiver verifies that SyntaxTree is not null
                 var memberSymbol = this.context.Compilation
                     .GetSemanticModel(memberSyntax.SyntaxTree)
                     .GetDeclaredSymbol(memberSyntax);
@@ -58,6 +57,8 @@ namespace RestEase.SourceGenerator.Implementation
                         }
                     }
                 }
+
+                this.context.CancellationToken.ThrowIfCancellationRequested();
             }
         }
 
