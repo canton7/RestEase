@@ -1,8 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace RestEase.SourceGenerator.Implementation
 {
-    internal class Processor : SymbolVisitor
+    internal class Processor
     {
         private readonly GeneratorExecutionContext context;
         private readonly RoslynImplementationFactory factory;
@@ -15,9 +17,12 @@ namespace RestEase.SourceGenerator.Implementation
 
         public void Process()
         {
+            if (this.context.SyntaxReceiver is not SyntaxReceiver syntaxReceiver)
+                return;
+
             try
             {
-                this.context.Compilation.GlobalNamespace.Accept(this);
+                this.ProcessMemberSyntaxes(syntaxReceiver.MemberSyntaxes);
             }
             finally // Just in case we crash...
             {
@@ -29,52 +34,31 @@ namespace RestEase.SourceGenerator.Implementation
             }
         }
 
-        public override void VisitNamespace(INamespaceSymbol symbol)
+        private void ProcessMemberSyntaxes(IEnumerable<MemberDeclarationSyntax> memberSyntaxes)
         {
-            foreach (var member in symbol.GetMembers())
+            var visitedTypes = new HashSet<INamedTypeSymbol>();
+            foreach (var memberSyntax in memberSyntaxes)
             {
-                this.context.CancellationToken.ThrowIfCancellationRequested();
-                member.Accept(this);
-            }
-        }
-
-        public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
-        {
-            if (namedTypeSymbol.TypeKind == TypeKind.Interface)
-            {
-                if (this.ShouldProcessType(namedTypeSymbol))
+                // SyntaxReceiver verifies that SyntaxTree is not null
+                var memberSymbol = this.context.Compilation
+                    .GetSemanticModel(memberSyntax.SyntaxTree)
+                    .GetDeclaredSymbol(memberSyntax);
+                var containingType = memberSymbol?.ContainingType;
+                if (containingType != null
+                    && containingType.TypeKind == TypeKind.Interface
+                    && visitedTypes.Add(containingType))
                 {
-                    this.ProcessType(namedTypeSymbol);
-                }
-            }
-            else if (namedTypeSymbol.TypeKind == TypeKind.Class)
-            {
-                // Handle nested types
-                foreach (var member in namedTypeSymbol.GetMembers())
-                {
-                    if (member.Kind == SymbolKind.NamedType)
+                    foreach (var attributeData in memberSymbol!.GetAttributes())
                     {
-                        member.Accept(this);
+                        if (attributeData.AttributeClass != null &&
+                            this.factory.IsRestEaseAttribute(attributeData.AttributeClass))
+                        {
+                            this.ProcessType(containingType);
+                            break;
+                        }
                     }
                 }
             }
-        }
-
-        private bool ShouldProcessType(INamedTypeSymbol namedTypeSymbol)
-        {
-            foreach (var memberSymbol in namedTypeSymbol.GetMembers())
-            {
-                foreach (var attributeData in memberSymbol.GetAttributes())
-                {
-                    if (attributeData.AttributeClass != null &&
-                        this.factory.IsRestEaseAttribute(attributeData.AttributeClass))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private void ProcessType(INamedTypeSymbol namedTypeSymbol)
