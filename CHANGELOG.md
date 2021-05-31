@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.5.5
+------
+
+ - Update System.Net.Http dependency to avoid CVE-2018-8292
+ - Source generator: Speed up slightly
+
 v1.5.4
 ------
 

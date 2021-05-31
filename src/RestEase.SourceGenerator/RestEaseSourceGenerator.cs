@@ -13,6 +13,7 @@ namespace RestEase.SourceGenerator
 
         public void Initialize(GeneratorInitializationContext context)
         {
+            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
     }
 }
