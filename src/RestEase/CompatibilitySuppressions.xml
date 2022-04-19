@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Suppression>
+    <DiagnosticId>CP0007</DiagnosticId>
+    <Target>T:RestEase.Implementation.ModifyingClientHttpHandler</Target>
+    <Left>lib/net45/RestEase.dll</Left>
+    <Right>lib/netstandard1.1/RestEase.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0007</DiagnosticId>
+    <Target>T:RestEase.Implementation.ModifyingClientHttpHandler</Target>
+    <Left>lib/net5.0/RestEase.dll</Left>
+    <Right>lib/net5.0/RestEase.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0007</DiagnosticId>
+    <Target>T:RestEase.Implementation.ModifyingClientHttpHandler</Target>
+    <Left>lib/netstandard1.1/RestEase.dll</Left>
+    <Right>lib/netstandard1.1/RestEase.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0007</DiagnosticId>
+    <Target>T:RestEase.Implementation.ModifyingClientHttpHandler</Target>
+    <Left>lib/netstandard2.0/RestEase.dll</Left>
+    <Right>lib/netstandard2.0/RestEase.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0007</DiagnosticId>
+    <Target>T:RestEase.Implementation.ModifyingClientHttpHandler</Target>
+    <Left>lib/netstandard2.1/RestEase.dll</Left>
+    <Right>lib/netstandard2.1/RestEase.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+</Suppressions>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,8 +51,8 @@ namespace RestEase.HttpClientFactory
             where T : class
         {
             return services
-                .CreateHttpClientBuilder(typeof(T), ToUri(baseAddress), requestModifier)
-                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer));
+                .CreateHttpClientBuilder(typeof(T), ToUri(baseAddress))
+                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer), requestModifier);
         }
 
         /// <summary>
@@ -75,8 +76,8 @@ namespace RestEase.HttpClientFactory
             where T : class
         {
             return services
-                .CreateHttpClientBuilder(typeof(T), baseAddress, requestModifier)
-                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer));
+                .CreateHttpClientBuilder(typeof(T), baseAddress)
+                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer), requestModifier);
         }
 
         /// <summary>
@@ -120,8 +121,8 @@ namespace RestEase.HttpClientFactory
                 throw new ArgumentNullException(nameof(restEaseType));
 
             return services
-                .CreateHttpClientBuilder(restEaseType, ToUri(baseAddress), requestModifier)
-                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer));
+                .CreateHttpClientBuilder(restEaseType, ToUri(baseAddress))
+                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer), requestModifier);
         }
 
         /// <summary>
@@ -147,8 +148,25 @@ namespace RestEase.HttpClientFactory
                 throw new ArgumentNullException(nameof(restEaseType));
 
             return services
-                .CreateHttpClientBuilder(restEaseType, baseAddress, requestModifier)
-                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer));
+                .CreateHttpClientBuilder(restEaseType, baseAddress)
+                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer), requestModifier);
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type to use the a <see cref="HttpClient"/>
+        /// from the given <see cref="IHttpClientBuilder"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the RestEase interface</typeparam>
+        /// <param name="httpClientBuilder"><see cref="IHttpClientBuilder"/> which RestEase should use a <see cref="HttpClient"/> from</param>
+        /// <param name="configurer">Delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static IHttpClientBuilder UseWithRestEaseClient<T>(
+            this IHttpClientBuilder httpClientBuilder,
+            Action<RestClient> configurer)
+            where T : class
+        {
+            return httpClientBuilder.UseWithRestEaseClient<T>(configurer, null);
         }
 
         /// <summary>
@@ -158,13 +176,32 @@ namespace RestEase.HttpClientFactory
         /// <typeparam name="T">Type of the RestEase interface</typeparam>
         /// <param name="httpClientBuilder"><see cref="IHttpClientBuilder"/> which RestEase should use a <see cref="HttpClient"/> from</param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration</returns>
         public static IHttpClientBuilder UseWithRestEaseClient<T>(
             this IHttpClientBuilder httpClientBuilder,
-            Action<RestClient>? configurer = null)
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
             where T : class
         {
-            return httpClientBuilder.AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer));
+            return httpClientBuilder.AddRestEaseClientCore(typeof(T), GenericFactory<T>(configurer), requestModifier);
+        }
+
+        /// <summary>
+        /// Register the given RestEase interface type to use the a <see cref="HttpClient"/>
+        /// from the given <see cref="IHttpClientBuilder"/>
+        /// </summary>
+        /// <param name="httpClientBuilder"><see cref="IHttpClientBuilder"/> which RestEase should use a <see cref="HttpClient"/> from</param>
+        /// <param name="restEaseType">Type of the RestEase interface</param>
+        /// <param name="configurer">Delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static IHttpClientBuilder UseWithRestEaseClient(
+            this IHttpClientBuilder httpClientBuilder,
+            Type restEaseType,
+            Action<RestClient> configurer)
+        {
+            return httpClientBuilder.UseWithRestEaseClient(restEaseType, configurer, null);
         }
 
         /// <summary>
@@ -174,20 +211,21 @@ namespace RestEase.HttpClientFactory
         /// <param name="httpClientBuilder"><see cref="IHttpClientBuilder"/> which RestEase should use a <see cref="HttpClient"/> from</param>
         /// <param name="restEaseType">Type of the RestEase interface</param>
         /// <param name="configurer">Optional delegate to configure the <see cref="RestClient"/> (to set serializers, etc)</param>
+        /// <param name="requestModifier">Optional delegate to use to modify all requests</param>
         /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration</returns>
         public static IHttpClientBuilder UseWithRestEaseClient(
             this IHttpClientBuilder httpClientBuilder,
             Type restEaseType,
-            Action<RestClient>? configurer = null)
+            Action<RestClient>? configurer = null,
+            RequestModifier? requestModifier = null)
         {
-            return httpClientBuilder.AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer));
+            return httpClientBuilder.AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer), requestModifier);
         }
 
         private static IHttpClientBuilder CreateHttpClientBuilder(
             this IServiceCollection services,
             Type restEaseType,
-            Uri? baseAddress,
-            RequestModifier? requestModifier)
+            Uri? baseAddress)
         {
             if (services is null)
                 throw new ArgumentNullException(nameof(services));
@@ -196,18 +234,14 @@ namespace RestEase.HttpClientFactory
                 ? services.AddHttpClient(UniqueNameForType(restEaseType))
                 : services.AddHttpClient(UniqueNameForType(restEaseType), httpClient => httpClient.BaseAddress = baseAddress);
 
-            if (requestModifier != null)
-            {
-                builder = builder.ConfigurePrimaryHttpMessageHandler(() => new ModifyingClientHttpHandler(requestModifier));
-            }
-
             return builder;
         }
 
         private static IHttpClientBuilder AddRestEaseClientCore(
             this IHttpClientBuilder httpClientBuilder,
             Type restEaseType,
-            Func<HttpClient, object> factory)
+            Func<HttpClient, object> factory,
+            RequestModifier? requestModifier)
         {
             if (httpClientBuilder is null)
                 throw new ArgumentNullException(nameof(httpClientBuilder));
@@ -219,6 +253,11 @@ namespace RestEase.HttpClientFactory
                 var httpClient = httpClientFactory.CreateClient(httpClientBuilder.Name);
                 return factory(httpClient);
             });
+
+            if (requestModifier != null)
+            {
+                httpClientBuilder.AddHttpMessageHandler(() => new ModifyingClientHttpHandler(requestModifier));
+            }
 
             return httpClientBuilder;
         }
