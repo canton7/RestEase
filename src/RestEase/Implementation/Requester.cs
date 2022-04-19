@@ -450,7 +450,7 @@ namespace RestEase.Implementation
                 RequestUri = this.ConstructUri(baseAddress, basePath, path, requestInfo),
                 Content = this.ConstructContent(requestInfo),
             };
-#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET452 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
             message.Properties[RestClient.HttpRequestMessageRequestInfoPropertyKey] = requestInfo;
 #else
             message.Options.Set(RestClient.HttpRequestMessageRequestInfoOptionsKey, requestInfo);
@@ -484,7 +484,7 @@ namespace RestEase.Implementation
         {
             foreach (var property in requestInfo.HttpRequestMessageProperties)
             {
-#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET452 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
                 requestMessage.Properties.Add(property.Key, property.Value);
 #else
                 requestMessage.Options.Set<object>(new(property.Key), property.Value);

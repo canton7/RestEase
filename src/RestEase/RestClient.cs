@@ -29,7 +29,7 @@ namespace RestEase
         /// </summary>
         public const string HttpRequestMessageRequestInfoPropertyKey = "RestEaseRequestInfo";
 
-#if !NET45 && !NETSTANDARD1_1 && !NETSTANDARD2_0 && !NETSTANDARD2_1
+#if !NET452 && !NETSTANDARD1_1 && !NETSTANDARD2_0 && !NETSTANDARD2_1
         /// <summary>
         /// Key to use with <see cref="HttpRequestMessage.Options"/> to fetch the request's <see cref="IRequestInfo"/>
         /// </summary>

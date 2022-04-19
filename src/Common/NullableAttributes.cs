@@ -8,7 +8,7 @@
 
 namespace System.Diagnostics.CodeAnalysis
 {
-#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0
+#if NET452 || NETSTANDARD1_1 || NETSTANDARD2_0
 
     /// <summary>Specifies that null is allowed as an input even if the corresponding type disallows it.</summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
@@ -139,7 +139,7 @@ namespace System.Diagnostics.CodeAnalysis
 
 #endif
 
-#if NET45 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET452 || NETSTANDARD1_1 || NETSTANDARD2_0 || NETSTANDARD2_1
 
     /// <summary>Specifies that the method or property will ensure that the listed field and property members have not-null values.</summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
