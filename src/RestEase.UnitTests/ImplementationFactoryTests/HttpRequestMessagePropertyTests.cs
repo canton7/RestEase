@@ -84,7 +84,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMultiplePropertiesForKey()
         {
-            this.VerifyDiagnostics<IHasMultiplePropertiesForKey>(
+            VerifyDiagnostics<IHasMultiplePropertiesForKey>(
                 // (3,13): Error REST022: Multiple properties found for HttpRequestMessageProperty key 'Foo'
                 // [HttpRequestMessageProperty]
                 //         string Foo { get; set; }
@@ -96,7 +96,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMultipleParametersForKey()
         {
-             this.VerifyDiagnostics<IHasMultipleParametersForKey>(
+            VerifyDiagnostics<IHasMultipleParametersForKey>(
                  // (4,27): Error REST024: Multiple parameters found for HttpRequestMessageProperty key 'a'
                  // [HttpRequestMessageProperty] string a
                  Diagnostic(DiagnosticCode.MultipleHttpRequestMessageParametersForKey, "[HttpRequestMessageProperty] string a")
@@ -107,7 +107,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfDuplicateParameterAndPropertyForKey()
         {
-            this.VerifyDiagnostics<IHasDuplicatePropertyAndParameterForKey>(
+            VerifyDiagnostics<IHasDuplicatePropertyAndParameterForKey>(
                 // (7,27): Error REST023: Method parameter has the same HttpRequestMessageProperty key 'Bar' as property 'Bar'
                 // [HttpRequestMessageProperty("Bar")] string bar
                 Diagnostic(DiagnosticCode.HttpRequestMessageParamDuplicatesPropertyForKey, @"[HttpRequestMessageProperty(""Bar"")] string bar")

@@ -44,7 +44,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfTwoCancellationTokens()
         {
-            this.VerifyDiagnostics<ITwoCancellationTokens>(
+            VerifyDiagnostics<ITwoCancellationTokens>(
                 // (4,27): Error REST001: Method 'YayAsync': only a single CancellationToken parameter is allowed, found a duplicate parameter 'cancellationToken2'
                 // CancellationToken cancellationToken1
                 Diagnostic(DiagnosticCode.MultipleCancellationTokenParameters, "CancellationToken cancellationToken1").WithLocation(4, 27).WithLocation(4, 65)
@@ -54,7 +54,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfHasAttribute()
         {
-            this.VerifyDiagnostics<IHasCancellationTokenWithAttribute>(
+            VerifyDiagnostics<IHasCancellationTokenWithAttribute>(
                 // (4,27): Error REST026: CancellationToken parameter 'param' must have zero attributes
                 // [Query] CancellationToken param
                 Diagnostic(DiagnosticCode.CancellationTokenMustHaveZeroAttributes, "[Query] CancellationToken param")

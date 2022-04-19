@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <Version>0.0.0</Version>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>RestEase.HttpClientFactory.UnitTests</AssemblyName>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>

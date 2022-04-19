@@ -216,6 +216,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Assert.Equal("hello", requestInfo.QueryParams.First().SerializeToString(null).First().Value);
         }
 
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
         public class Equatable : IEquatable<Equatable>
         {
             private readonly string s;
@@ -225,5 +226,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             public bool Equals(Equatable other) => throw new NotImplementedException();
             public override string ToString() => this.s;
         }
+#pragma warning restore CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
     }
 }

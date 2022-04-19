@@ -204,7 +204,7 @@ namespace RestEase.Implementation
                 if (serializationMethod == QuerySerializationMethod.ToString &&
                     typeof(TValue) == typeof(object) &&
                     kvp.Value is IEnumerable<object> enumerable &&
-                    !(kvp.Value is string))
+                    kvp.Value is not string)
                 {
                     this._queryParams.Add(new QueryCollectionParameterInfo<object>(serializationMethod, kvp.Key?.ToString() ?? "", enumerable, format: null));
                 }

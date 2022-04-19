@@ -141,7 +141,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             }
         }
 
-        protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
+        protected static void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
         {
             var namedTypeSymbol = diagnosticsCompilation.GetTypeByMetadataName(typeof(T).FullName);
 

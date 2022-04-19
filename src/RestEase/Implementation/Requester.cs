@@ -252,7 +252,7 @@ namespace RestEase.Implementation
         {
             foreach (var kvp in DictionaryIterator.Iterate(dictionary))
             {
-                if (kvp.Value != null && !(kvp.Value is string) && kvp.Value is IEnumerable enumerable)
+                if (kvp.Value != null && kvp.Value is not string && kvp.Value is IEnumerable enumerable)
                 {
                     foreach (object individualValue in enumerable)
                     {

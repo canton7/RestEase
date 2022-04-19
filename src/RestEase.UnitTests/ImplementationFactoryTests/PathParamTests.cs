@@ -201,7 +201,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPathParamPresentInPathButNotInParameters()
         {
-            this.VerifyDiagnostics<IHasPathParamInPathButNotParameters>(
+            VerifyDiagnostics<IHasPathParamInPathButNotParameters>(
                 // (3,14): Error REST003: No placeholder {baz} for path parameter 'baz'
                 // Get("foo/{bar}/{baz}")
                 Diagnostic(DiagnosticCode.MissingPathPropertyOrParameterForPlaceholder, @"Get(""foo/{bar}/{baz}"")").WithLocation(3, 14)
@@ -211,7 +211,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPathParamPresentInParametersButNotPath()
         {
-            this.VerifyDiagnostics<IHasPathParamInParametersButNotPath>(
+            VerifyDiagnostics<IHasPathParamInParametersButNotPath>(
                 // (4,54): Error REST003: No placeholder {baz} for path parameter 'baz'
                 // [Path("baz")] string baz
                 Diagnostic(DiagnosticCode.MissingPlaceholderForPathParameter, @"[Path(""baz"")] string baz").WithLocation(4, 54)
@@ -221,13 +221,13 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void PathParamWithImplicitNameDoesNotFailValidation()
         {
-            this.VerifyDiagnostics<IHasPathParamWithoutExplicitName>();
+            VerifyDiagnostics<IHasPathParamWithoutExplicitName>();
         }
 
         [Fact]
         public void ThrowsIfDuplicatePathParameters()
         {
-            this.VerifyDiagnostics<IHasDuplicatePathParams>(
+            VerifyDiagnostics<IHasDuplicatePathParams>(
                 // (4,27): Error REST003: Multiple path properties for the key 'bar' are not allowed
                 // [Path] string bar
                 Diagnostic(DiagnosticCode.MultiplePathParametersForKey, "[Path] string bar").WithLocation(4, 27).WithLocation(4, 46)
@@ -237,7 +237,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNullAndEmptyPaths()
         {
-            this.VerifyDiagnostics<IHasEmptyGetParams>();
+            VerifyDiagnostics<IHasEmptyGetParams>();
         }
 
         [Fact]
@@ -282,7 +282,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfDuplicatePathProperties()
         {
-            this.VerifyDiagnostics<IHasDuplicatePathProperties>(
+            VerifyDiagnostics<IHasDuplicatePathProperties>(
                 // (3,13): Error REST003: Multiple path properties for the key 'foo' are not allowed
                 // [Path("foo")]
                 //             string Foo { get; set; }

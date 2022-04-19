@@ -23,8 +23,8 @@ namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
             DiagnosticResult[] expectedResults,
             int lineOffset)
         {
-            int expectedCount = expectedResults.Count();
-            int actualCount = actualResults.Count();
+            int expectedCount = expectedResults.Length;
+            int actualCount = actualResults.Count;
 
             if (expectedCount != actualCount)
             {
