@@ -6,9 +6,12 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
+    <PackageValidationBaselineVersion>1.5.5</PackageValidationBaselineVersion>
+
     <!-- See the nuspec -->
     <VersionPrefix>0.0.0</VersionPrefix>
     <NuspecFile>RestEase.HttpClientFactory.nuspec</NuspecFile>
+    <PackageOutputPath>../../NuGet</PackageOutputPath>
     <NoPackageAnalysis>true</NoPackageAnalysis>
 
     <!-- Just embed all sources in the PDB: snupkg files don't support bare .cs files, and SourceLink is annoying -->

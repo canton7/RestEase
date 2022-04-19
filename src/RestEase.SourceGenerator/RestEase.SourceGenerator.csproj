@@ -3,9 +3,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
 
     <VersionPrefix>0.0.0</VersionPrefix>
+    <PackageOutputPath>../../NuGet</PackageOutputPath>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageId>RestEase.SourceGenerator</PackageId>
     <PackageTags>REST;JSON;SourceGenerator</PackageTags>
     <Copyright>Copyright © Antony Male 2015-2021</Copyright>
