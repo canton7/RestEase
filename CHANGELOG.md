@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.5.6
+------
+
+ - HttpClientFactory: A supplied `RequestModifier` no longer overrides the `PrimaryHttpMessageHandler`, meaning you can supply this when calling `UseWithRestEaseClient` (#211, #220)
+
 v1.5.5
 ------
 
