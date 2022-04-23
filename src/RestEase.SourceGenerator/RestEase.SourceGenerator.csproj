@@ -10,6 +10,7 @@
     <PackageId>RestEase.SourceGenerator</PackageId>
     <PackageTags>REST;JSON;SourceGenerator</PackageTags>
     <Copyright>Copyright © Antony Male 2015-2021</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -38,6 +39,7 @@ For more details, see https://github.com/canton7/RestEase#using-resteasesourcege
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Reflection.cs;../Common/**/*.Emit.cs" LinkBase="Common" />
 
     <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" Visible="false" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 

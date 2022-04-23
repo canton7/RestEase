@@ -13,6 +13,7 @@
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
     <Copyright>Copyright © Antony Male 2015-2021</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/canton7/RestEase</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -72,7 +73,8 @@ Source Generators are here! Reference the RestEase.SourceGenerator NuGet package
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" Visible="false" />
     <Compile Include="../Common/**/*.cs" Exclude="../Common/**/*.Roslyn.cs" LinkBase="Common" />
   </ItemGroup>
 </Project>

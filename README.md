@@ -1,23 +1,19 @@
-![Project Icon](icon.png) RestEase
-==================================
+![Project Icon](https://raw.githubusercontent.com/canton7/RestEase/master/icon.png) RestEase
+============================================================================================
 
-[![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/)
-[![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
+[![NuGet](https://img.shields.io/nuget/v/RestEase.svg)](https://www.nuget.org/packages/RestEase/) [![Build status](https://ci.appveyor.com/api/projects/status/5ap27qo5d7tm2o5n?svg=true)](https://ci.appveyor.com/project/canton7/restease)
 
 RestEase is a little type-safe REST API client library for .NET Framework 4.5.2 and higher and .NET Platform Standard 1.1 and higher, which aims to make interacting with remote REST endpoints easy, without adding unnecessary complexity.
 
-To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it.
-RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made.
-See [Installation](#installation) and [Quick Start](#quick-start) to get up and running!
+To use it, you define an interface which represents the endpoint you wish to communicate with (more on that in a bit), where methods on that interface correspond to requests that can be made on it. RestEase will then generate an implementation of that interface for you, and by calling the methods you defined, the appropriate requests will be made. See [Installation](#installation) and [Quick Start](#quick-start) to get up and running!
 
 Almost every aspect of RestEase can be overridden and customized, leading to a large level of flexibility.
 
-It also works on platforms which don't support runtime code generation, such as .NET Native and iOS, if you reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator).
-See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
+It also works on platforms which don't support runtime code generation, such as .NET Native and iOS, if you reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator). See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
 
 RestEase is built on top of [HttpClient](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpclient) and is deliberately a "leaky abstraction": it is easy to gain access to the full capabilities of HttpClient, giving you control and flexibility, when you need it.
 
-RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiveui/refit), which in turn is inspired by Retrofit.
+RestEase is inspired by [Anaïs Betts' Refit](https://github.com/reactiveui/refit), which in turn is inspired by Retrofit.
 
 ### Table of Contents
 
@@ -91,21 +87,16 @@ RestEase is heavily inspired by [Anaïs Betts' Refit](https://github.com/reactiv
 Installation
 ------------
 
-[RestEase is available on NuGet](https://www.nuget.org/packages/RestEase). 
-See that page for installation instructions.
+[RestEase is available on NuGet](https://www.nuget.org/packages/RestEase). See that page for installation instructions.
 
-If you're using C# 9 or .NET 5 (or higher), reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator) as well to get compile-time errors and faster execution.
-See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information.
-If you're targetting iOS or .NET Native, you will need to do this, as runtime code generation isn't available.
+If you're using C# 9 or .NET 5 (or higher), reference [RestEase.SourceGenerator](https://www.nuget.org/packages/RestEase.SourceGenerator) as well to get compile-time errors and faster execution. See [Using RestEase.SourceGenerator](#using-resteasesourcegenerator) for more information. If you're targetting iOS or .NET Native, you will need to do this, as runtime code generation isn't available.
 
-If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory).
-For failure handling and retries using Polly, see [Using RestEase with Polly](#using-restease-with-polly).
+If you're using ASP.NET Core, take a look at [Using HttpClientFactory](#using-httpclientfactory). For failure handling and retries using Polly, see [Using RestEase with Polly](#using-restease-with-polly).
 
 Quick Start
 -----------
 
-To start, first create an public interface which represents the endpoint you wish to make requests to.
-Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#interface-accessibility).
+To start, first create an public interface which represents the endpoint you wish to make requests to. Please note that it does have to be public, or you must add RestEase as a friend assembly, see [Interface Accessibility below](#interface-accessibility).
 
 ```csharp
 using System;
@@ -159,14 +150,9 @@ namespace RestEaseSampleApplication
 Request Types
 -------------
 
-See the `[Get("path")]` attribute used above?
-That's how you mark that method as being a GET request.
-There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path"))]`, `[Patch("path")]`.
-Use whichever one you need to.
+See the `[Get("path")]` attribute used above? That's how you mark that method as being a GET request. There are a number of other attributes you can use here - in fact, there's one for each type of request: `[Get("path")]`, `[Post("path")]`, `[Put("path")]`, `[Delete("path")]`, `[Head("path")]`, `[Options("path")]`, `[Trace("path"))]`, `[Patch("path")]`. Use whichever one you need to.
 
-The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`.
-(You *can* specify an absolute path here if you need to, in which case the base uri will be ignored).
-Also see the section on [Paths](#paths).
+The argument to `[Get]` (or `[Post]`, or whatever) is typically a relative path, and will be relative to the base uri that you provide to `RestClient.For<T>`. (You *can* specify an absolute path here if you need to, in which case the base uri will be ignored). Also see the section on [Paths](#paths).
 
 
 Return Types
@@ -183,8 +169,7 @@ Your interface methods may return one of the following types:
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
 
-If you return a `Task<HttpResponseMessage>` or a `Task<Stream>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc).
-If however you return a `Task<T>`, `Task<string>`, or `Task<Response<T>>`, then `HttpCompletionOption.ResponseContentRead` is used, meaning that any `CancellationToken` that you pass will cancel the body download.
+If you return a `Task<HttpResponseMessage>` or a `Task<Stream>`, then `HttpCompletionOption.ResponseHeadersRead` is used, so that you can choose whether or not the response body should be fetched (or report its download progress, etc). If however you return a `Task<T>`, `Task<string>`, or `Task<Response<T>>`, then `HttpCompletionOption.ResponseContentRead` is used, meaning that any `CancellationToken` that you pass will cancel the body download.
 If you return a `Task`, then the response body isn't fetched, unless an `ApiException` is thrown.
 
 
@@ -195,8 +180,7 @@ It is very common to want to include query parameters in your request (e.g. `/fo
 
 ### Constant Query Parameters
 
-The most basic type of query parameter is a constant - the value never changes.
-For these, simply put the query parameter as part of the URL:
+The most basic type of query parameter is a constant - the value never changes. For these, simply put the query parameter as part of the URL:
 
 ```csharp
 public interface IGitHubApi
@@ -275,8 +259,7 @@ ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 await api.SearchAsync(new[] { "foo", "bar", "baz" });
 ```
 
-If you specify a key that is `null`, i.e. `[Query(null)]`, then the name of the key is not used, and the value is inserted into the query string.
-If you specify a key that is an empty string `""`, then then query key will be left empty.
+If you specify a key that is `null`, i.e. `[Query(null)]`, then the name of the key is not used, and the value is inserted into the query string. If you specify a key that is an empty string `""`, then then query key will be left empty.
 
 ```csharp
 public interface ISomeApi
@@ -308,8 +291,7 @@ await api.FooAsync(null, "");
 
 #### Formatting Variable Query Parameters
 
-By default, query parameter values will be serialized by calling `ToString()` on them.
-This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+By default, query parameter values will be serialized by calling `ToString()` on them. This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
 However, you can also specify a string format to use using the `Format` property of the `[Query]` attribute, for example:
 
@@ -334,8 +316,7 @@ await api.FooAsync(254);
 
 #### Serialization of Variable Query Parameters
 
-Sometimes calling `ToString()` is not enough: some APIs require that you send e.g. JSON as a query parameter.
-In this case, you can mark the parameter for custom serialization using `QuerySerializationMethod.Serialized`, and further control it by using a [custom serializer](#custom-serializers-and-deserializers).
+Sometimes calling `ToString()` is not enough: some APIs require that you send e.g. JSON as a query parameter. In this case, you can mark the parameter for custom serialization using `QuerySerializationMethod.Serialized`, and further control it by using a [custom serializer](#custom-serializers-and-deserializers).
 
 For example:
 ```csharp
@@ -374,14 +355,11 @@ public interface ISomeApi
 
 ### Query Parameters Map
 
-Sometimes you have a load of query parameters, or they're generated dynamically, etc.
-In this case, you may want to supply a dictionary of query parameters, rather than specifying a load of method parameters.
+Sometimes you have a load of query parameters, or they're generated dynamically, etc. In this case, you may want to supply a dictionary of query parameters, rather than specifying a load of method parameters.
 
-To facilitate this, you may decorate one or more method parameters with `[QueryMap]`.
-The parameter type must be an `IDictionary<TKey, TValue>`.
+To facilitate this, you may decorate one or more method parameters with `[QueryMap]`. The parameter type must be an `IDictionary<TKey, TValue>`.
 
-Query maps are handled the same way as other query parameters: serialization, handling of enumerables, null values, etc, behave the same.
-You can control whether values are serialized using a custom serializer or `ToString()` using e.g. `[QueryMap(QuerySerializationMethod.Serialized)]`.
+Query maps are handled the same way as other query parameters: serialization, handling of enumerables, null values, etc, behave the same. You can control whether values are serialized using a custom serializer or `ToString()` using e.g. `[QueryMap(QuerySerializationMethod.Serialized)]`.
 
 For example:
 
@@ -407,12 +385,9 @@ var searchResults = await api.SearchBlogPostsAsync(filters);
 
 ### Raw Query String Parameters
 
-In rare cases, you may have generated a query string by other means, and want to give this to RestEase.
-To do this, provide one or more parameters decorated with `[RawQueryString]`.
+In rare cases, you may have generated a query string by other means, and want to give this to RestEase. To do this, provide one or more parameters decorated with `[RawQueryString]`.
 
-This parameter can be of any type, and `.ToString()` will be called on it to turn it into a string.
-Its value will be prepended, verbatim, to the query string: you are responsible for any escaping.
-It must not begin or end with "&" or "?".
+This parameter can be of any type, and `.ToString()` will be called on it to turn it into a string. Its value will be prepended, verbatim, to the query string: you are responsible for any escaping. It must not begin or end with "&" or "?".
 
 For example:
 
@@ -431,10 +406,7 @@ var searchResults = await api.SearchAsync(filter);
 
 ### Query Properties
 
-If you want to have a query string which is included in all of your requests, you can do this by declaring a `[Query]` property.
-These work the same way as query parameters, but they apply to all methods in your interface.
-If the value of the property is `null`, then it will not be added to your query.
-Otherwise, it will always be present, even if you declare a query parameter with the same name.
+If you want to have a query string which is included in all of your requests, you can do this by declaring a `[Query]` property. These work the same way as query parameters, but they apply to all methods in your interface. If the value of the property is `null`, then it will not be added to your query. Otherwise, it will always be present, even if you declare a query parameter with the same name.
 
 The property must have both a getter and a setter.
 
@@ -466,16 +438,13 @@ The path to which a request is sent is constructed from the following 3 parts, c
 2. The Base Path (optional, e.g. `api/v1`)
 3. The path specified on the method, passed to the `[Get("path")]`, etc, attribute (e.g. `users`)
 
-The Base Address is the domain at which the API can be found.
-This is normally specified by passing an address to `RestClient.For<T>(...)`, but you can also use `[BaseAddress(...)]`, see [Base Address](#base-address).
+The Base Address is the domain at which the API can be found. This is normally specified by passing an address to `RestClient.For<T>(...)`, but you can also use `[BaseAddress(...)]`, see [Base Address](#base-address).
 
-The Base Path is optional, and is a prefix which is common to all of your API's paths, e.g. `api/v1`.
-If you like, you can specify this once using the `[BasePath(...)]` attribute, see [Base Path](#base-path).
+The Base Path is optional, and is a prefix which is common to all of your API's paths, e.g. `api/v1`. If you like, you can specify this once using the `[BasePath(...)]` attribute, see [Base Path](#base-path).
 
 Each method also has a path, which is passed to the `[Get(...)]`, etc, attribute on the method.
 
-Ordinarily, these three parts are concatenated together, giving e.g. `https://api.example.com/api/v1/users`.
-However, there are a number of extra rules:
+Ordinarily, these three parts are concatenated together, giving e.g. `https://api.example.com/api/v1/users`. However, there are a number of extra rules:
 
 1. If the path specified on the method begins with a `/`, then the Base Path is ignored (but the Base Address is not ignored). So if the method's path was `/users` instead of `users`, the final address would be `https://api.example.com/users`.
 2. If the path specified on the method is absolute (e.g. it begins with `http://`), then both the Base Address and Base Path are ignored.
@@ -490,14 +459,11 @@ The Base Address can be specified in two ways:
 1. When instantiating the API using `RestClient`, either by passing a URI to `RestClient.For<T>(...)` or `new RestClient(...)`, or by passing a `HttpClient` which has its `BaseAddress` property set.
 2. Using a `[BaseAddress(...)]` attribute on the interface itself.
 
-If it's specified both ways, then the `[BaseAddress(...)]` attribute is ignored.
-This means that you can have a default Base Address specified on the interface, but this can be overridden when actually instantiating it using `RestClient`.
+If it's specified both ways, then the `[BaseAddress(...)]` attribute is ignored. This means that you can have a default Base Address specified on the interface, but this can be overridden when actually instantiating it using `RestClient`.
 
-The Base Address can contain [`{placeholders}`](#path-placeholders).
-Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
+The Base Address can contain [`{placeholders}`](#path-placeholders). Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
 
-The Base Address may contain the start of a path as well, e.g. `https://api.example.com/api/v1`.
-This path will not be overridden if the path specified on the method starts with a `/`, in contrast to the Base Path.
+The Base Address may contain the start of a path as well, e.g. `https://api.example.com/api/v1`. This path will not be overridden if the path specified on the method starts with a `/`, in contrast to the Base Path.
 
 The Base Address must be absolute (i.e. it must start with `http://` or `https://`).
 
@@ -507,8 +473,7 @@ Query strings or fragments are not supported in the Base Address, and their beha
 
 The Base Path is specified using a `[BasePath(...)]` attribute on your interface.
 
-The Base Path can contain [`{placeholders}`](#path-placeholders).
-Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
+The Base Path can contain [`{placeholders}`](#path-placeholders). Each placeholder must have a corresponding [path property](#path-properties), although this will be overridden by a [path parameter](#path-parameters) if one is present.
 
 Query strings, or other parts of a URI, are not supported in the Base Path, and their behaviour is undefined and subject to change.
 
@@ -519,8 +484,7 @@ Sometimes you also want to be able to control some parts of the path itself, rat
 
 #### Path Parameters
 
-Path parameters are the most common means of controlling a part of the path.
-This is done using placeholders in the path, and corresponding method parameters decorated with `[Path]`.
+Path parameters are the most common means of controlling a part of the path. This is done using placeholders in the path, and corresponding method parameters decorated with `[Path]`.
 
 For example:
 
@@ -537,8 +501,7 @@ ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 await api.FetchUserAsync("fred");
 ```
 
-As with `[Query]`, the name of the placeholder to substitute is determined by the name of the parameter.
-If you want to override this, you can pass an argument to `[Path("placeholder")]`, e.g.:
+As with `[Query]`, the name of the placeholder to substitute is determined by the name of the parameter. If you want to override this, you can pass an argument to `[Path("placeholder")]`, e.g.:
 
 ```csharp
 public interface ISomeApi
@@ -552,8 +515,7 @@ Every placeholder must have a corresponding parameter, and every parameter must 
 
 ##### Formatting Path Parameters
 
-As with `[Query]`, path parameter values will be serialized by calling `ToString()` on them.
-This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+As with `[Query]`, path parameter values will be serialized by calling `ToString()` on them. This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
 However, you can also specify a format using the `Format` property of the `[Path]` attribute, for example:
 
@@ -577,8 +539,7 @@ await api.FooAsync(1);
 
 ##### URL Encoding in Path Parameters
 
-By default, path parameters are URL-encoded, which means things like `/` are escaped.
-If you don't want this, for example you want to specify a literal section of the URL, this can be disabled using the `UrlEncode` property of the `[Path]` attribute, for example:
+By default, path parameters are URL-encoded, which means things like `/` are escaped. If you don't want this, for example you want to specify a literal section of the URL, this can be disabled using the `UrlEncode` property of the `[Path]` attribute, for example:
 
 ```csharp
 public interface ISomeApi
@@ -593,8 +554,7 @@ ISomeApi api = RestClient.For<ISomeApi>("https://api.example.com");
 await api.FooAsync("bar/baz");
 ```
 
-This can be useful if working with an API which returns raw links to other resources, when combined with the logic specified in [Paths](#paths).
-For example, let's say we want to make a request to `https://api.example.com/v1/first`, and that gives us back:
+This can be useful if working with an API which returns raw links to other resources, when combined with the logic specified in [Paths](#paths). For example, let's say we want to make a request to `https://api.example.com/v1/first`, and that gives us back:
 
 ```json
 {
@@ -622,8 +582,7 @@ await api.GetSecondAsync(response.Second);
 
 ##### Serialization of Path Parameters
 
-Similar to query parameters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members).
-In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying a [`RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
+Similar to query parameters, calling `ToString()` is sometimes not enough: you might want to customize how your path parameters are turned into strings (for example, for enum members). In this case, you can mark the parameter for custom serialization using `PathSerializationMethod.Serialized`, and specifying a [`RequestPathParamSerializer`](#serializing-request-path-parameters-requestpathparamserializer).
 
 For example:
 ```csharp
@@ -668,15 +627,11 @@ public interface ISomeApi
 
 #### Path Properties
 
-Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID.
-In this case, you can specify a `[Path]` property.
-These work in the same way as path parameters, but they're on the level of the entire API.
+Sometimes you've got a placeholder which is present in all (or most) of the paths on the interface, for example an account ID. In this case, you can specify a `[Path]` property. These work in the same way as path parameters, but they're on the level of the entire API.
 
-Properties must have both a getter and a setter.
-If the placeholder of the path property isn't given (i.e. you use `[Path]` instead of `[Path("placeholder")]`), then the name of the property will be used.
+Properties must have both a getter and a setter. If the placeholder of the path property isn't given (i.e. you use `[Path]` instead of `[Path("placeholder")]`), then the name of the property will be used.
 
-Unlike with path parameters, you don't *need* to have the placeholder present in every path.
-If you have both a path parameter and a path property with the same name, the path parameter is used.
+Unlike with path parameters, you don't *need* to have the placeholder present in every path. If you have both a path parameter and a path property with the same name, the path parameter is used.
 
 For example:
 
@@ -753,9 +708,7 @@ await api.GetAsync();
 
 ##### Serialization of Path Properties
 
-[As with path parameters](#serialization-of-path-parameters), you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour.
-You must also supply a `RequestPathParamSerializer` when creating the `RestClient`.
-This can be used for things like controlling how enum members are serialized.
+[As with path parameters](#serialization-of-path-parameters), you can specify `PathSerializationMethod.Serialized` on a path property to use custom serialization behaviour. You must also supply a `RequestPathParamSerializer` when creating the `RestClient`. This can be used for things like controlling how enum members are serialized.
 
 For example:
 
@@ -813,8 +766,7 @@ Exactly how this will be serialized depends on the type of parameters:
 
 ### URL Encoded Bodies
 
-For APIs which take form posts (i.e. serialized as `application/x-www-form-urlencoded`), initialize the `[Body]` attribute with `BodySerializationMethod.UrlEncoded`.
-This parameter must implement `IDictionary` or `IDictionary<TKey, TValue>`.
+For APIs which take form posts (i.e. serialized as `application/x-www-form-urlencoded`), initialize the `[Body]` attribute with `BodySerializationMethod.UrlEncoded`. This parameter must implement `IDictionary` or `IDictionary<TKey, TValue>`.
 
 If any of the values implement `IEnumerable`, then they will be serialized as an array of values.
 
@@ -855,8 +807,7 @@ Response Status Codes
 
 By default, any response status code which does not indicate success (as indicated by [`HttpResponseMessage.IsSuccessStatusCode`](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpresponsemessage.issuccessstatuscode)) will cause an `ApiException` to be thrown.
 
-The `ApiException` has properties which tell you exactly what happened (such as the `HttpStatusCode`, the URI which was requested, the string content, and also a method `DeserializeContent<T>()` to let you attempt to deserialize the content as a particular type).
-This means that you can write code such as:
+The `ApiException` has properties which tell you exactly what happened (such as the `HttpStatusCode`, the URI which was requested, the string content, and also a method `DeserializeContent<T>()` to let you attempt to deserialize the content as a particular type). This means that you can write code such as:
 
 ```cs
 try
@@ -921,8 +872,7 @@ Specifying headers is actually a surprisingly large topic, and can be done in se
 
 ### Constant Interface Headers
 
-If you want to have a header that applies to every single request, and whose value is fixed, use a constant interface header.
-These are specified as `[Header("Name", "Value")]` attributes on the interface.
+If you want to have a header that applies to every single request, and whose value is fixed, use a constant interface header. These are specified as `[Header("Name", "Value")]` attributes on the interface.
 
 For example:
 
@@ -938,8 +888,7 @@ public interface IGitHubApi
 
 ### Variable Interface Headers
 
-If you want to have a header that applies to every single request, and whose value is variable, then use a variable interface header.
-These are specifed using properties, using a `[Header("Name")]` attribute on that property.
+If you want to have a header that applies to every single request, and whose value is variable, then use a variable interface header. These are specifed using properties, using a `[Header("Name")]` attribute on that property.
 
 For example:
 
@@ -978,8 +927,7 @@ var user = await api.FetchUserAsync("bob");
 
 #### Formatting Variable Interface Headers
 
-By default, variable interface header values will be serialized by calling `ToString()` on them.
-This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+By default, variable interface header values will be serialized by calling `ToString()` on them. This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
 However, you can also specify a string format to use using the `Format` property of the `[Query]` attribute, for example:
 
@@ -1005,9 +953,7 @@ await api.FooAsync();
 
 ### Constant Method Headers
 
-If you want to have a header which only applies to a particular method, and whose value never changes, then use a constant method header.
-Like constant interface headers, these are defined in their entirety using an attribute.
-However, instead of applying the attribute to the interface, you apply it to the method.
+If you want to have a header which only applies to a particular method, and whose value never changes, then use a constant method header. Like constant interface headers, these are defined in their entirety using an attribute. However, instead of applying the attribute to the interface, you apply it to the method.
 
 ```csharp
 public interface IGitHubApi
@@ -1025,8 +971,7 @@ public interface IGitHubApi
 
 ### Variable Method Headers
 
-Finally, you can have headers which only apply to a single method and whose values are variable.
-These consist of a `[Header("Name")]` attribute applied to a method parameter.
+Finally, you can have headers which only apply to a single method and whose values are variable. These consist of a `[Header("Name")]` attribute applied to a method parameter.
 
 ```csharp
 public interface ISomeApi
@@ -1038,8 +983,7 @@ public interface ISomeApi
 
 #### Formatting Variable Method Headers
 
-By default, variable method header values will be serialized by calling `ToString()` on them.
-This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
+By default, variable method header values will be serialized by calling `ToString()` on them. This means that the primitive types most often used as query parameters - `string`, `int`, etc - are serialized correctly.
 
 However, you can also specify a string format to use using the `Format` property of the `[Query]` attribute, for example:
 
@@ -1061,14 +1005,11 @@ await api.FooAsync(254);
 
 ### Redefining Headers
 
-You've probably noticed that there are 4 places you can define a header: on the interface, as a property, on a method, and as a parameter (or, Constant Interface Headers, Variable Interface Headers, Constant Method Headers, and Variable Method Headers, respectively).
-There are rules specifying how headers from different places are merged.
+You've probably noticed that there are 4 places you can define a header: on the interface, as a property, on a method, and as a parameter (or, Constant Interface Headers, Variable Interface Headers, Constant Method Headers, and Variable Method Headers, respectively). There are rules specifying how headers from different places are merged.
 
-Constant and Variable Interface headers are merged, as are Constant and Variable Method headers.
-That is, if a header is supplied both as an attribute on the interface, and as a property, that header will have multiple values.
+Constant and Variable Interface headers are merged, as are Constant and Variable Method headers. That is, if a header is supplied both as an attribute on the interface, and as a property, that header will have multiple values.
 
-Method headers will replace Interface headers.
-If you have the same header on a method and on the interface, then the header on the method will replace the one on the interface.
+Method headers will replace Interface headers. If you have the same header on a method and on the interface, then the header on the method will replace the one on the interface.
 
 Another rule is that a header with a value of `null` will not be added, but can still replace a previously-defined header of the same name.
 
@@ -1129,9 +1070,7 @@ await api.DoSomethingAsync("ParameterValue", "ParameterValue", "ParameterValue")
 Using RestEase.SourceGenerator
 ------------------------------
 
-Source Generators are a new feature which allows NuGet packages to hook into the compilation of your projects and insert their own code.
-RestEase uses this to generate implementations of your interfaces at compile-time, rather than run-time.
-To take advantage of this, you need to install the [RestEase.SourceGenerator NuGet package](https://www.nuget.org/packages/RestEase.SourceGenerator) as well as RestEase.
+Source Generators are a new feature which allows NuGet packages to hook into the compilation of your projects and insert their own code. RestEase uses this to generate implementations of your interfaces at compile-time, rather than run-time. To take advantage of this, you need to install the [RestEase.SourceGenerator NuGet package](https://www.nuget.org/packages/RestEase.SourceGenerator) as well as RestEase.
 
 The advantages of using a Source Generator are:
 
@@ -1139,13 +1078,9 @@ The advantages of using a Source Generator are:
 2. Supports platforms which don't support System.Reflection.Emit, such as iOS and .NET Native.
 3. Faster: no need to generate implementations at runtime.
 
-You will need to be using the .NET 5 SDK (or higher) to make use of source generators.
-If you're targetting C# 9 or .NET 5 (or higher), you're all set.
-If you're targetting an earlier language or runtime version, you can still install the latest .NET SDK (make sure you update your global.json if you have one!): you don't need to be targetting .NET 5, you just need to be building with the .NET 5 SDK.
+You will need to be using the .NET 5 SDK (or higher) to make use of source generators. If you're targetting C# 9 or .NET 5 (or higher), you're all set. If you're targetting an earlier language or runtime version, you can still install the latest .NET SDK (make sure you update your global.json if you have one!): you don't need to be targetting .NET 5, you just need to be building with the .NET 5 SDK.
 
-When you build a project which references RestEase.SourceGenerator, RestEase generates implementations of any RestEase interfaces it finds in that project, and adds those implementations to your project.
-`RestClient.For<T>` will look for one of these implementations first, before falling back to the old approach of generating one at runtime.
-This means that you should reference RestEase.SourceGenerator in all projects which contain RestEase interfaces, but projects which only consume interfaces can just reference the RestEase package.
+When you build a project which references RestEase.SourceGenerator, RestEase generates implementations of any RestEase interfaces it finds in that project, and adds those implementations to your project. `RestClient.For<T>` will look for one of these implementations first, before falling back to the old approach of generating one at runtime. This means that you should reference RestEase.SourceGenerator in all projects which contain RestEase interfaces, but projects which only consume interfaces can just reference the RestEase package.
 
 Authors of libraries which expose RestEase interfaces should also install RestEase.SourceGenerator, and the consumers of your library will use the interface implementations it generates a compile-time without needing to install RestEase.SourceGenerator themselves.
 
@@ -1186,8 +1121,7 @@ public class SomeController : ControllerBase
 }
 ```
 
-If you want to configure a `HttpClient` for use with multiple RestEase interfaces, you can use `IHttpClientBuilder.UseWithRestEaseClient`.
-This returns the `IHttpClientBuilder` it was called on, so you can call it multiple times.
+If you want to configure a `HttpClient` for use with multiple RestEase interfaces, you can use `IHttpClientBuilder.UseWithRestEaseClient`. This returns the `IHttpClientBuilder` it was called on, so you can call it multiple times.
 
 Make sure that you use one of the `AddHttpClient` overloads which takes a name, and also that you configure the `BaseAddress` on the `HttpClient`.
 
@@ -1208,8 +1142,7 @@ Sometimes request fail, and you want to retry them.
 
 ## Using Polly with `RestClient`
 
-If you're working with RestEase using `new RestClient(...).For<T>()` or `RestClient.For<T>(...)`, then you'll need to install [Microsoft.Extensions.Http.Polly](https://www.nuget.org/packages/Microsoft.Extensions.Http.Polly/).
-Create your `IAsyncPolicy<HttpResponseMessage>` following the Polly documentation, and then tell RestEase to use it using a `PolicyHttpMessageHandler`:
+If you're working with RestEase using `new RestClient(...).For<T>()` or `RestClient.For<T>(...)`, then you'll need to install [Microsoft.Extensions.Http.Polly](https://www.nuget.org/packages/Microsoft.Extensions.Http.Polly/). Create your `IAsyncPolicy<HttpResponseMessage>` following the Polly documentation, and then tell RestEase to use it using a `PolicyHttpMessageHandler`:
 
 ```cs
 // Define your policy however you want
@@ -1257,8 +1190,7 @@ Each instance of the interface which you define will create its own HttpClient i
 
 Prior to .NET Core 2.1, you should avoid creating and destroying many HttpClient instances (e.g. one per client request in a web app): instead create a single instance and keep using it ([see here](https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/)).
 
-When using RestEase, this means that you should create a single instance of your interface and reuse it.
-If you use properties (e.g. Path Properties or Header Properties) which are set more than once, you could create a singleton HttpClient, and pass it to `RestClient.For<T>` to create many instances of your interface which share the same HttpClient.
+When using RestEase, this means that you should create a single instance of your interface and reuse it. If you use properties (e.g. Path Properties or Header Properties) which are set more than once, you could create a singleton HttpClient, and pass it to `RestClient.For<T>` to create many instances of your interface which share the same HttpClient.
 
 If you're using .NET Core 2.1+, don't worry: `HttpClient` works as expected.
 
@@ -1266,8 +1198,7 @@ If you're using .NET Core 2.1+, don't worry: `HttpClient` works as expected.
 Controlling Serialization and Deserialization
 ---------------------------------------------
 
-By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies and query parameters.
-However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own serializers / deserializers
+By default, RestEase will use [Json.NET](http://www.newtonsoft.com/json) to deserialize responses, and serialize request bodies and query parameters. However, you can change this, either by specifying custom `JsonSerializerSettings`, or by providing your own serializers / deserializers
 
 ### Custom `JsonSerializerSettings`
 
@@ -1299,8 +1230,7 @@ You can, of course, provide a custom implementation of only one of these, or all
 
 #### Deserializing responses: `ResponseDeserializer`
 
-This class has a single method, which is called whenever a response is received which needs deserializing.
-It is passed the `HttpResponseMessage` (so you can read headers, etc, if you want) and its `string` content which has already been asynchronously read.
+This class has a single method, which is called whenever a response is received which needs deserializing. It is passed the `HttpResponseMessage` (so you can read headers, etc, if you want) and its `string` content which has already been asynchronously read.
 
 For an example, see [`JsonResponseDeserializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonResponseDeserializer.cs).
 
@@ -1333,11 +1263,9 @@ var api = new RestClient("https://api.example.com")
 
 #### Serializing request bodies: `RequestBodySerializer`
 
-This class has a single method, which is called whenever a request body requires serialization (i.e. is decorated with `[Body(BodySerializationMethod.Serialized)]`).
-It returns any `HttpContent` subclass you like, although `StringContent` is likely to be a common choice.
+This class has a single method, which is called whenever a request body requires serialization (i.e. is decorated with `[Body(BodySerializationMethod.Serialized)]`). It returns any `HttpContent` subclass you like, although `StringContent` is likely to be a common choice.
 
-When writing an `RequestBodySerializer`'s `SerializeBody` implementation, you may choose to provide some default headers, such as `Content-Type`.
-These will be overidden by any `[Header]` attributes.
+When writing an `RequestBodySerializer`'s `SerializeBody` implementation, you may choose to provide some default headers, such as `Content-Type`. These will be overidden by any `[Header]` attributes.
 
 For an example, see [`JsonRequestBodySerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/JsonRequestBodySerializer.cs).
 
@@ -1450,8 +1378,7 @@ var api = new RestClient("https://api.example.com")
 }.For<ISomeApi>();
 ```
 
-If you specified a `Format` property on the `[Query]` attribute, this will be available as `info.Format`.
-By default, this is `null`.
+If you specified a `Format` property on the `[Query]` attribute, this will be available as `info.Format`. By default, this is `null`.
 
 #### Serializing request path parameters: `RequestPathParamSerializer`
 
@@ -1459,8 +1386,7 @@ This class has one method, called whenever a path parameter requires serializati
 
 This method wants you to return a `string`, which is the value that will be inserted in place of the placeholder in the path string.
 
-There is no default path serializer, as its usage is often very specific.
-In order to use `PathSerializationMethod.Serialized`, you *must* set `RestClient.RequestPathParamSerializer`.
+There is no default path serializer, as its usage is often very specific. In order to use `PathSerializationMethod.Serialized`, you *must* set `RestClient.RequestPathParamSerializer`.
 
 There is a [`StringEnumRequestPathParamSerializer`](https://github.com/canton7/RestEase/blob/master/src/RestEase/StringEnumRequestPathParamSerializer.cs) provided with RestEase designed for serializing enums that have [`EnumMember`](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.serialization.enummemberattribute?view=netframework-4.8), [`DisplayName`](https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.displaynameattribute?view=netframework-4.8) or [`Display`](https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations.displayattribute?view=netframework-4.8) attributes specified on their members (evaluated in that order).
 This can be used as-is or as a reference for your own implementation.
@@ -1476,16 +1402,13 @@ var api = new RestClient("https://api.example.com")
 }.For<ISomeApi>();
 ```
 
-If you specified a `Format` property on the `[Path]` attribute, this will be available as `info.Format`.
-By default, this is `null`.
+If you specified a `Format` property on the `[Path]` attribute, this will be available as `info.Format`. By default, this is `null`.
 
 #### Controlling query string generation: `QueryStringBuilder`
 
-RestEase has logic to turn a collection of query parameters into a single suitably-encoded query string.
-However, some servers don't correctly decode query strings, and so users may want to control how query strings are encoded.
+RestEase has logic to turn a collection of query parameters into a single suitably-encoded query string. However, some servers don't correctly decode query strings, and so users may want to control how query strings are encoded.
 
-To do this, subclass [`QueryStringBuilder`](https://github.com/canton7/RestEase/blob/master/src/RestEase/QueryStringBuilder.cs) and assign it to the `RestClient.QueryStringBuilder` property.
-See the method `BuildQueryParam` in [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs) for the default implementation.
+To do this, subclass [`QueryStringBuilder`](https://github.com/canton7/RestEase/blob/master/src/RestEase/QueryStringBuilder.cs) and assign it to the `RestClient.QueryStringBuilder` property. See the method `BuildQueryParam` in [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs) for the default implementation.
 
 
 Controlling the Requests
@@ -1495,8 +1418,7 @@ RestEase provides two ways for you to manipulate how exactly requests are made, 
 
 ### `RequestModifier`
 
-The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoked whenever a request is made.
-This allows you to inspect and alter the request in any way you want: changing the content, changing the headers, make your own requests in the meantime, etc.
+The first is a `RestClient.For<T>` overload which lets you specify a delegate which is invoked whenever a request is made. This allows you to inspect and alter the request in any way you want: changing the content, changing the headers, make your own requests in the meantime, etc.
 
 For example, if you need to refresh an oAuth access token occasionally (using the [ADAL](https://msdn.microsoft.com/en-us/library/azure/jj573266.aspx) library as an example):
 
@@ -1532,8 +1454,7 @@ If you need, you can get the `IRequestInfo` for the current request using `reque
 ### Custom `HttpClient`
 
 The second is a `RestClient.For<T>` overload which lets you specify a custom `HttpClient` to use.
-This lets you customize the `HttpClient`, e.g. to set the request timeout.
-It also lets you specify a custom `HttpMessageHandler` subclass, which allows you to control all sorts of things.
+This lets you customize the `HttpClient`, e.g. to set the request timeout. It also lets you specify a custom `HttpMessageHandler` subclass, which allows you to control all sorts of things.
 
 For example, if you wanted to 1) adjust the request timeout, and 2) allow invalid certificates (although the same approach would apply if you wanted to customize how certificates are validated), you could do something like this. Note that `WebRequestHandler` is a `HttpMessageHandler` subclass which allows you to specify things like `ServerCertificateValidationCallback`.
 
@@ -1578,14 +1499,10 @@ If you need, you can get the `IRequestInfo` for the current request using `(IReq
 Adding to `HttpRequestMessage.Properties`
 -----------------------------------------
 
-In very specific cases (i.e. you use a custom `HttpMessageHandler`), it might be useful to pass an object reference into the handler.
-In such case `HttpRequestMessage.Properties` can be used.
-This is done by decorating method parameters with `[HttpRequestMessageProperty]`.
-If key parameter is not specified then the name of the parameter will be used.
+In very specific cases (i.e. you use a custom `HttpMessageHandler`), it might be useful to pass an object reference into the handler. In such case `HttpRequestMessage.Properties` can be used.
+This is done by decorating method parameters with `[HttpRequestMessageProperty]`. If key parameter is not specified then the name of the parameter will be used.
 
-If all (or most) of the methods on the interface pass such object you can specify a `[HttpRequestMessageProperty]` property.
-These work in the same way as path parameters, but they're on the level of the entire API.
-Properties must have both a getter and a setter.
+If all (or most) of the methods on the interface pass such object you can specify a `[HttpRequestMessageProperty]` property. These work in the same way as path parameters, but they're on the level of the entire API. Properties must have both a getter and a setter.
 
 Property keys used at interface method level must be unique: a parameter key must not be same as a property key.
 
@@ -1621,8 +1538,7 @@ Customizing RestEase
 
 You've already seen how to [specify custom Serializers and Deserializers](#controlling-serialization-and-deserialization), and [control requests](#controlling-the-requests).
 
-RestEase has been written in a way which makes it very easy to customize exactly how it works.
-In order to describe this, I'm first going to have to outline its architecture.
+RestEase has been written in a way which makes it very easy to customize exactly how it works. In order to describe this, I'm first going to have to outline its architecture.
 
 Given an API like:
 
@@ -1658,9 +1574,7 @@ namespace RestEase.AutoGenerated
 }
 ```
 
-Now, you cannot customize what this generated class looks like, but you can see it doesn't actually do very much: it just builds up a `RequestInfo` object, then sends it off to the [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs) (which does all of the hard work).
-What you *can* do however is to provide your own [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs) implementation, and pass that to an appropriate overload of `RestClient.For<T>`.
-In fact, the default implementation of [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs), [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), has been carefully written so that it's easy to extend: each little bit of functionality is broken out into its own virtual method, so it's easy to replace just the behaviour you need.
+Now, you cannot customize what this generated class looks like, but you can see it doesn't actually do very much: it just builds up a `RequestInfo` object, then sends it off to the [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs) (which does all of the hard work). What you *can* do however is to provide your own [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs) implementation, and pass that to an appropriate overload of `RestClient.For<T>`. In fact, the default implementation of [`IRequester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/IRequester.cs), [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), has been carefully written so that it's easy to extend: each little bit of functionality is broken out into its own virtual method, so it's easy to replace just the behaviour you need.
 
 Have a read through [`Requester`](https://github.com/canton7/RestEase/blob/master/src/RestEase/Implementation/Requester.cs), figure out what you want to change, subclass it, and provide an instance of that subclass to `RestClient.For<T>`.
 
@@ -1670,8 +1584,7 @@ Interface Accessibility
 
 Since RestEase generates an interface implementation in a separate assembly, the interface ideally needs to be public.
 
-If you don't want to do this, you'll need to mark RestEase as being a 'friend' assembly, which allows RestEase to see your internal types.
-Add the following line to your `AssemblyInfo.cs`:
+If you don't want to do this, you'll need to mark RestEase as being a 'friend' assembly, which allows RestEase to see your internal types. Add the following line to your `AssemblyInfo.cs`:
 
 ```
 [assembly: InternalsVisibleTo(RestEase.RestClient.FactoryAssemblyName)]
@@ -1713,9 +1626,7 @@ Which can be used like this:
 var api = RestClient.For<IReallyExcitingCrudApi<User, string>>("https://api.example.com/users");
 ```
 
-Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known).
-This means that, for example, if you declare a return type of `Task<T>`, then call with `T` set to `String`, then you will not get a stream back - the response will be deserialized as a stream, which will almost certainly fail.
-Likewise if you declare a query parameter of type `T`, then set `T` to `IEnumerable<string>`, then your query will contain something like `String[]`, instead of a collection of query parameters.
+Note that RestEase makes certain choices about how parameters and the return type are processed when the implementation of the interface is generated, and not when it is known (and the exact parameter types are known). This means that, for example, if you declare a return type of `Task<T>`, then call with `T` set to `String`, then you will not get a stream back - the response will be deserialized as a stream, which will almost certainly fail. Likewise if you declare a query parameter of type `T`, then set `T` to `IEnumerable<string>`, then your query will contain something like `String[]`, instead of a collection of query parameters.
 
 
 Using Generic Methods
@@ -1751,8 +1662,7 @@ Interface Inheritance
 
 You're allowed to use interface inheritance to share common properties and methods between different APIs.
 
-You can only put an `[AllowAnyStatusCode]` attribute on the derived interface, and not on any parent interfaces.
-An `[AllowAnyStatusCode]` attribute on the derived interface also applies to all methods on all parent interfaces.
+You can only put an `[AllowAnyStatusCode]` attribute on the derived interface, and not on any parent interfaces. An `[AllowAnyStatusCode]` attribute on the derived interface also applies to all methods on all parent interfaces.
 
 For example:
 
@@ -1784,21 +1694,17 @@ public interface IUsersEndpoint : IAuthenticatedEndpoint
 
 ### IDisposable
 
-If your interface implements `IDisposable`, then RestEase will generate a `Dispose()` method which disposes the underlying `HttpClient`.
-Do this if you want to be able to dispose the `HttpClient`.
+If your interface implements `IDisposable`, then RestEase will generate a `Dispose()` method which disposes the underlying `HttpClient`. Do this if you want to be able to dispose the `HttpClient`.
 
 
 Advanced Functionality Using Extension Methods
 ----------------------------------------------
 
-Sometimes you'll have cases where you want to do something that's more complex than can be achieved using RestEase alone (e.g. uploading multipart form data), but you still want to provide a nice interface to consumers.
-One option is to write extension methods on your interface.
-There are two ways of doing this.
+Sometimes you'll have cases where you want to do something that's more complex than can be achieved using RestEase alone (e.g. uploading multipart form data), but you still want to provide a nice interface to consumers. One option is to write extension methods on your interface. There are two ways of doing this.
 
 ### Wrapping other methods
 
-The easiest thing to do is to put a method on your interface which won't be called by your code, but which can be wrapped by your extension method.
-This approach is unit testable.
+The easiest thing to do is to put a method on your interface which won't be called by your code, but which can be wrapped by your extension method. This approach is unit testable.
 
 ```csharp
 public interface ISomeApi
@@ -1831,9 +1737,7 @@ public static class SomeApiExtensions
 
 ### Using `IRequester` directly
 
-Alternatively, you can put a property of type `IRequester` on your interface, then write an extension method which uses the `IRequester`.
-Note that the attributes or properties you put on your interface (`ISomeApi` in the example below) will not be added to the `RequestInfo`, since you are not invoking any code which does this.
-Note also that this approach is not unit testable.
+Alternatively, you can put a property of type `IRequester` on your interface, then write an extension method which uses the `IRequester`. Note that the attributes or properties you put on your interface (`ISomeApi` in the example below) will not be added to the `RequestInfo`, since you are not invoking any code which does this. Note also that this approach is not unit testable.
 
 ```csharp
 public interface ISomeApi
@@ -1864,8 +1768,7 @@ public static class SomeApiExtensions
 }
 ```
 
-`IRequester` and `RequestInfo` are not documented in this README.
-Read the doc comments.
+`IRequester` and `RequestInfo` are not documented in this README. Read the doc comments.
 
 FAQs
 ----
@@ -1893,11 +1796,9 @@ await api.DoSomethingAsync();
 
 ### I need to request an absolute path
 
-Sometimes your API responses will contain absolute URLs, for example a "next page" link.
-Therefore you'll want a way to request a resource using an absolute URL which overrides the base URL you specified.
+Sometimes your API responses will contain absolute URLs, for example a "next page" link. Therefore you'll want a way to request a resource using an absolute URL which overrides the base URL you specified.
 
-Thankfully this is easy: if you give an absolute URL to e.g. `[Get("https://api.example.com/foo")]`, then the base URL will be ignored.
-You will also need to disable URL encoding.
+Thankfully this is easy: if you give an absolute URL to e.g. `[Get("https://api.example.com/foo")]`, then the base URL will be ignored. You will also need to disable URL encoding.
 
 ```csharp
 public interface ISomeApi
@@ -1918,8 +1819,7 @@ var secondPage = await api.FetchUsersByUrlAsync(firstPage.NextPage);
 
 ### I may get responses in both XML and JSON, and want to deserialize both
 
-Occasionally you get an API which can return both JSON and XML (apparently...).
-In this case, you'll want to auto-detect what sort of response you got, and deserialize with an appropriate deserializer.
+Occasionally you get an API which can return both JSON and XML (apparently...). In this case, you'll want to auto-detect what sort of response you got, and deserialize with an appropriate deserializer.
 
 To do this, use a custom deserializer, which can do this detection.
 
@@ -1961,14 +1861,12 @@ var api = RestClient.For<ISomeApi>("https://api.example.com", new HybridResponse
 
 ### Is RestEase thread safe?
 
-Yes.
-It is safe to create implementations of interfaces from multiple threads at the same time (and to create multiple implementations of the same interface), and it is safe to use an implementation from multiple threads at the same time.
+Yes. It is safe to create implementations of interfaces from multiple threads at the same time (and to create multiple implementations of the same interface), and it is safe to use an implementation from multiple threads at the same time.
 
 
 ### I want to upload a file
 
-Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits of not).
-There are a couple of ways of doing this, depending on your needs:
+Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits of not). There are a couple of ways of doing this, depending on your needs:
 
 ```csharp
 public interface ISomeApi
