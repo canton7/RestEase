@@ -29,7 +29,7 @@ namespace RestEase
         /// </summary>
         public const string HttpRequestMessageRequestInfoPropertyKey = "RestEaseRequestInfo";
 
-#if !NET45 && !NETSTANDARD1_1 && !NETSTANDARD2_0 && !NETSTANDARD2_1
+#if !NET452 && !NETSTANDARD1_1 && !NETSTANDARD2_0 && !NETSTANDARD2_1
         /// <summary>
         /// Key to use with <see cref="HttpRequestMessage.Options"/> to fetch the request's <see cref="IRequestInfo"/>
         /// </summary>
@@ -119,7 +119,7 @@ namespace RestEase
         /// </param>
         public RestClient(string? baseUrl)
         {
-            this.httpClient = Initialize(new HttpClientHandler(), baseUrl == null ? null : new Uri(baseUrl));
+            this.httpClient = Initialize(baseUrl == null ? null : new Uri(baseUrl));
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace RestEase
         /// </param>
         public RestClient(Uri? baseUrl)
         {
-            this.httpClient = Initialize(new HttpClientHandler(), baseUrl);
+            this.httpClient = Initialize(baseUrl);
         }
 
         /// <summary>
@@ -186,8 +186,8 @@ namespace RestEase
                 throw new ArgumentNullException(nameof(requestModifier));
 
             this.httpClient = Initialize(
-                new ModifyingClientHttpHandler(requestModifier),
-                baseUrl == null ? null : new Uri(baseUrl));
+                baseUrl == null ? null : new Uri(baseUrl),
+                new ModifyingClientHttpHandler(requestModifier));
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace RestEase
             if (requestModifier == null)
                 throw new ArgumentNullException(nameof(requestModifier));
 
-            this.httpClient = Initialize(new ModifyingClientHttpHandler(requestModifier), baseUrl);
+            this.httpClient = Initialize(baseUrl, new ModifyingClientHttpHandler(requestModifier));
         }
 
         /// <summary>
@@ -241,8 +241,10 @@ namespace RestEase
         /// </param>
         public RestClient(HttpMessageHandler messageHandler)
         {
-            SetupHandler(messageHandler);
-            this.httpClient = Initialize(messageHandler, null);
+            if (messageHandler == null)
+                throw new ArgumentNullException(nameof(messageHandler));
+
+            this.httpClient = Initialize(null, messageHandler);
         }
 
         /// <summary>
@@ -272,8 +274,10 @@ namespace RestEase
         /// </param>
         public RestClient(string? baseUrl, HttpMessageHandler messageHandler)
         {
-            SetupHandler(messageHandler);
-            this.httpClient = Initialize(messageHandler, baseUrl == null ? null : new Uri(baseUrl));
+            if (messageHandler == null)
+                throw new ArgumentNullException(nameof(messageHandler));
+
+            this.httpClient = Initialize(baseUrl == null ? null : new Uri(baseUrl), messageHandler);
         }
 
         /// <summary>
@@ -305,8 +309,10 @@ namespace RestEase
         /// </param>
         public RestClient(Uri? baseUrl, HttpMessageHandler messageHandler)
         {
-            SetupHandler(messageHandler);
-            this.httpClient = Initialize(messageHandler, baseUrl);
+            if (messageHandler == null)
+                throw new ArgumentNullException(nameof(messageHandler));
+
+            this.httpClient = Initialize(baseUrl, messageHandler);
         }
 
         /// <summary>
@@ -342,23 +348,17 @@ namespace RestEase
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         public static T For<T>(HttpClient httpClient) => new RestClient(httpClient).For<T>();
 
-        private static HttpClient Initialize(HttpMessageHandler messageHandler, Uri? baseUrl)
+        private static HttpClient Initialize(Uri? baseUrl, HttpMessageHandler? messageHandler = null)
         {
-            return new HttpClient(messageHandler)
-            {
-                BaseAddress = baseUrl,
-            };
-        }
-
-        private static void SetupHandler(HttpMessageHandler messageHandler)
-        {
-            if (messageHandler == null)
-                throw new ArgumentNullException(nameof(messageHandler));
-
             if (messageHandler is DelegatingHandler { InnerHandler: null } delegatingHandler)
             {
                 delegatingHandler.InnerHandler = new HttpClientHandler();
             }
+
+            return new HttpClient(messageHandler ?? new HttpClientHandler())
+            {
+                BaseAddress = baseUrl,
+            };
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ namespace RestEase.Implementation
     /// 
     /// HttpClientHandler which uses a delegate to modify requests
     /// </summary>
-    public class ModifyingClientHttpHandler : HttpClientHandler
+    public class ModifyingClientHttpHandler : DelegatingHandler
     {
         private readonly RequestModifier requestModifier;
 

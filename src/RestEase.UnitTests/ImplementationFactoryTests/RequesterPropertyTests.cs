@@ -60,7 +60,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfHasSet()
         {
-            this.VerifyDiagnostics<IHasSet>(
+            VerifyDiagnostics<IHasSet>(
                 // (3,24): Error REST016: Property must have a getter but not a setter
                 // Requester
                 Diagnostic(DiagnosticCode.PropertyMustBeReadOnly, "Requester").WithLocation(3, 24)
@@ -70,7 +70,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfHasNoGet()
         {
-            this.VerifyDiagnostics<IHasNoGet>(
+            VerifyDiagnostics<IHasNoGet>(
                 // (3,24): Error REST016: Property must have a getter but not a setter
                 // Requester
                 Diagnostic(DiagnosticCode.PropertyMustBeReadOnly, "Requester").WithLocation(3, 24)
@@ -80,7 +80,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfTwoRequesters()
         {
-            this.VerifyDiagnostics<ITwoRequesterProperties>(
+            VerifyDiagnostics<ITwoRequesterProperties>(
                 // (4,24): Error REST017: There must not be more than one property of type IRequester
                 // Requester2
                 Diagnostic(DiagnosticCode.MultipleRequesterProperties, "Requester2").WithLocation(4, 24)
@@ -90,7 +90,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfHasAttributes()
         {
-            this.VerifyDiagnostics<IHasRequesterPropertyWithAttribute>(
+            VerifyDiagnostics<IHasRequesterPropertyWithAttribute>(
                 // (3,14): Error REST021: IRequester property must not have any attribtues
                 // Header("Foo")
                 Diagnostic(DiagnosticCode.RequesterPropertyMustHaveZeroAttributes, @"Header(""Foo"")")

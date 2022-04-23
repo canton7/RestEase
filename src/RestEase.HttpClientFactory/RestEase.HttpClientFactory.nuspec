@@ -7,6 +7,7 @@
     <owners>Antony Male</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
+	<readme>README.md</readme>
     <icon>icon.png</icon>
     <projectUrl>https://github.com/canton7/RestEase</projectUrl>
     <description>HttpClientFactory adapter for ASP.NET Core for RestEase: the easy-to-use typesafe REST API client library, which is simple and customisable.</description>
@@ -25,5 +26,6 @@
     <file src="$outputPath$RestEase.HttpClientFactory.dll" target="lib\netstandard2.0" />
     <file src="$outputPath$RestEase.HttpClientFactory.pdb" target="lib\netstandard2.0" />
     <file src="..\..\icon.png" target="\" />
+    <file src="..\..\README.md" target="\" />
   </files>
 </package>

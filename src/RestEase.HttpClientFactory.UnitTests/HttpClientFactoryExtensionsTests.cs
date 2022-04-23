@@ -91,5 +91,31 @@ namespace RestEase.UnitTests.HttpClientFactoryTests
 
             Assert.Equal(2, handler.CallCount);
         }
+
+        [Fact]
+        public void RegistersRequestModifierAndPrimaryHandler()
+        {
+            var services = new ServiceCollection();
+
+            int callCount = 0;
+            var handler = new TestMessageHandler();
+
+            services.AddRestEaseClient<ISomeApi>(
+                requestModifier: (request, cancellationToken) =>
+                {
+                    callCount++;
+                    return Task.CompletedTask;
+                })
+                .ConfigureHttpClient(x => x.BaseAddress = new Uri("http://localhost"))
+                .ConfigurePrimaryHttpMessageHandler(() => handler);
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var instance = serviceProvider.GetRequiredService<ISomeApi>();
+            instance.FooAsync().Wait();
+
+            Assert.Equal(1, callCount);
+            Assert.Equal(1, handler.CallCount);
+        }
     }
 }

@@ -6,11 +6,13 @@ using RestEase;
 using Xunit;
 using Xunit.Abstractions;
 
+#pragma warning disable CA1050 // Declare types in namespaces
 public interface IApiOutsideNamespace
 {
     [Get]
     Task FooAsync();
 }
+#pragma warning restore CA1050 // Declare types in namespaces
 
 namespace RestEase.UnitTests.ImplementationFactoryTests
 {

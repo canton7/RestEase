@@ -15,26 +15,33 @@ string testsDir = "src/RestEase.UnitTests";
 string httpClientFactoryTestsDir = "src/RestEase.HttpClientFactory.UnitTests";
 string sourceGeneratorTestsDir = "src/RestEase.SourceGenerator.UnitTests";
 
-string nugetDir = "NuGet";
-
-CreateTask("build").Run((string versionOpt, string configurationOpt) =>
+CreateTask("build").Run((string versionOpt, string configurationOpt, bool updateCompatSuppression) =>
 {
-    var flags = CommonFlags(versionOpt, configurationOpt);
-    Command.Run("dotnet", $"build {flags} \"{restEaseDir}\"");
-    Command.Run("dotnet", $"build {flags} \"{httpClientFactoryDir}\"");
+    // We can't have separate build and package steps due to https://github.com/dotnet/sdk/issues/24943
+    // We can't run package validation on every build, as it needs a version higher than the baseline (so not 0.0.0)
+    // We therefore package on every build (<GeneratePackageOnBuild>true</GeneratePackageOnBuild>), and only turn on package validation when we
+    // specify a version.
+    string flags = $"--configuration={configurationOpt ?? "Release"} -p:VersionPrefix=\"{versionOpt ?? "0.0.0"}\"";
+
+    string validationFlags = "";
+    if (versionOpt != null)
+    {
+        flags += " -p:GeneratePackageOnBuild=true";
+        validationFlags = "-p:EnablePackageValidation=true";
+        if (updateCompatSuppression)
+        {
+            validationFlags += " -p:GenerateCompatibilitySuppressionFile=true";
+        }
+    }
+    else if (updateCompatSuppression)
+    {
+        throw new Exception("--updateCompatSuppression requires --version");
+    }
+    
+    Command.Run("dotnet", $"build {flags} {validationFlags} \"{restEaseDir}\"");
+    Command.Run("dotnet", $"build {flags} {validationFlags} \"{httpClientFactoryDir}\"");
     Command.Run("dotnet", $"build {flags} \"{sourceGeneratorDir}\"");
 });
-
-CreateTask("package").DependsOn("build").Run((string version, string configurationOpt) =>
-{
-    var flags = CommonFlags(version, configurationOpt) + $" --no-build --output=\"{nugetDir}\"";
-    Command.Run("dotnet", $"pack {flags} \"{restEaseDir}\"");
-    Command.Run("dotnet", $"pack {flags} \"{httpClientFactoryDir}\"");
-    Command.Run("dotnet", $"pack {flags} \"{sourceGeneratorDir}\"");
-});
-
-string CommonFlags(string? version, string? configuration) =>
-    $"--configuration={configuration ?? "Release"} -p:VersionPrefix=\"{version ?? "0.0.0"}\"";
 
 CreateTask("test").Run(() =>
 {

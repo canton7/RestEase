@@ -148,14 +148,14 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ImplementsPropertiesFromChild()
         {
             // Does not throw
-            this.VerifyDiagnostics<IPropertyParent>();
+            VerifyDiagnostics<IPropertyParent>();
         }
 
         [Fact]
         public void ImplementsMethodsFromChild()
         {
             // Does not throw
-            this.VerifyDiagnostics<IMethodParent>();
+            VerifyDiagnostics<IMethodParent>();
         }
 
         [Fact]
@@ -174,7 +174,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void DoesNotAllowAllowAnyStatusCodeOnChildInterfaces()
         {
-            this.VerifyDiagnostics<IParentWithAllowAnyStatusCode>(
+            VerifyDiagnostics<IParentWithAllowAnyStatusCode>(
                 // (-4,10): Error REST014: Parent interface (of tyoe 'IParentWithAllowAnyStatusCode') may not have an [AllowAnyStatusCode] attribute
                 // AllowAnyStatusCode
                 Diagnostic(DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface, "AllowAnyStatusCode").WithLocation(-4, 10)
@@ -184,7 +184,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ValidatesHeadersOnChildProperties()
         {
-            this.VerifyDiagnostics<IParentWithInvalidHeaderProperty>(
+            VerifyDiagnostics<IParentWithInvalidHeaderProperty>(
                 // (-3,14): Error REST010: Header attribute name 'X-Foo:' must not contain a colon
                 // Header("X-Foo:")
                 Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""X-Foo:"")").WithLocation(-3, 14)
@@ -194,7 +194,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ValidatesEventsInChildInterfaces()
         {
-            this.VerifyDiagnostics<IParentWithEvent>(
+            VerifyDiagnostics<IParentWithEvent>(
                 // (-2,32): Error REST015: Interfaces must not have any events
                 // Foo,
                 Diagnostic(DiagnosticCode.EventsNotAllowed, "Foo").WithLocation(-2, 32)

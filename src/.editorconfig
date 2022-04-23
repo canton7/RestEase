@@ -162,7 +162,7 @@ csharp_preserve_single_line_blocks = true
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
 # Style: camel case style
-dotnet_name_style.camel_case.capitalization = camel_case
+dotnet_naming_style.camel_case.capitalization = camel_case
 
 # Symbols: non-private members
 dotnet_naming_symbols.non_private_members.applicable_kinds = property,field,event
@@ -182,14 +182,14 @@ dotnet_naming_rule.const_fields_must_be_capitalized.style = pascal_case
 dotnet_naming_rule.const_fields_must_be_capitalized.symbols = const_fields
 dotnet_naming_rule.const_fields_must_be_capitalized.severity = warning
 
-# Symbols: private fields, properties, events
-dotnet_naming_symbols.non_public_fields_properties_events.applicable_kinds = property,field,event
-dotnet_naming_symbols.non_public_fields_properties_events.applicable_accessibilities = private
+# Symbols: private properties, events
+dotnet_naming_symbols.non_public_properties_events.applicable_kinds = property,event
+dotnet_naming_symbols.non_public_properties_events.applicable_accessibilities = private
 
-# Rule: private fields, properties, events must not be capitalized
-dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.style = camel_case
-dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.symbols = non_public_fields_properties_events
-dotnet_naming_rule.private_fields_properties_events_must_not_be_capitalized.severity = warning
+# Rule: private properties, events must not be capitalized
+dotnet_naming_rule.private_properties_events_must_not_be_capitalized.style = camel_case
+dotnet_naming_rule.private_properties_events_must_not_be_capitalized.symbols = non_public_properties_events
+dotnet_naming_rule.private_properties_events_must_not_be_capitalized.severity = warning
 
 # Symbols: interfaces
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
@@ -236,3 +236,4 @@ dotnet_naming_rule.type_parameters_must_begin_with_t.severity = warning
 
 dotnet_diagnostic.CA1816.severity = none
 dotnet_diagnostic.IDE0079.severity = none # Seems to be mis-firing all the time
+dotnet_diagnostic.IDE0057.severity = none # Can't use Range, as targetting things that don't define it

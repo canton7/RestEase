@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <Version>0.0.0</Version>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>RestEase.SourceGenerator.UnitTests</AssemblyName>
     <RootNamespace>RestEase.UnitTests</RootNamespace>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>annotations</Nullable>
     <DefineConstants>SOURCE_GENERATOR</DefineConstants>
   </PropertyGroup>

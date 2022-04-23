@@ -183,7 +183,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInvalidQueryMapType()
         {
-            this.VerifyDiagnostics<IHasInvalidQueryMap>(
+            VerifyDiagnostics<IHasInvalidQueryMap>(
                 // (4,27): Error REST013: [QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)
                 // [QueryMap] string map
                 Diagnostic(DiagnosticCode.QueryMapParameterIsNotADictionary, "[QueryMap] string map").WithLocation(4, 27)

@@ -52,7 +52,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfTwoBodies()
         {
-            this.VerifyDiagnostics<IHasTwoBodies>(
+            VerifyDiagnostics<IHasTwoBodies>(
                 // (4,27): Error REST007: Found more than one parameter with a [Body] attribute
                 // [Body] string body1
                 Diagnostic(DiagnosticCode.MultipleBodyParameters, "[Body] string body1").WithLocation(4, 27).WithLocation(4, 48)

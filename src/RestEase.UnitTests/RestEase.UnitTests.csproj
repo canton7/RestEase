@@ -6,7 +6,7 @@
          netcoreapp1.0 uses netstandard1.6 (and so the netstandard1.0 library) -->
     <TargetFrameworks>net5.0;netcoreapp3.0;netcoreapp2.0;netcoreapp1.0;net452</TargetFrameworks>
     <AssemblyName>RestEase.UnitTests</AssemblyName>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <Nullable>annotations</Nullable>
     <!-- We know we're targetting EOL framework versions -->
     <CheckEolTargetFramework>false</CheckEolTargetFramework>

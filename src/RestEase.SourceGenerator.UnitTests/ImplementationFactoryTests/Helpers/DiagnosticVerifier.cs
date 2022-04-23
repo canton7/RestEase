@@ -23,8 +23,8 @@ namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
             DiagnosticResult[] expectedResults,
             int lineOffset)
         {
-            int expectedCount = expectedResults.Count();
-            int actualCount = actualResults.Count();
+            int expectedCount = expectedResults.Length;
+            int actualCount = actualResults.Count;
 
             if (expectedCount != actualCount)
             {
@@ -88,7 +88,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
                 }
 
                 string squiggledText = GetSquiggledText(actual);
-                if (squiggledText != expected.SquiggledText)
+                if (squiggledText.Replace("\r\n", "\n") != expected.SquiggledText.Replace("\r\n", "\n"))
                 {
                     Assert.True(false,
                         string.Format("Expected squiggled text to be \"{0}\", was \"{1}\"\r\n\r\nDiagnostic:\r\n{2}\r\n",

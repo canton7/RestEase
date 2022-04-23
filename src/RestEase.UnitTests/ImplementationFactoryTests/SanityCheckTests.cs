@@ -113,7 +113,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMethodWithoutAttribute()
         {
-            this.VerifyDiagnostics<IMethodWithoutAttribute>(
+            VerifyDiagnostics<IMethodWithoutAttribute>(
                 // (6,18): Error REST018: Method does not have a suitable [Get] / [Post] / etc attribute
                 // SomethingElseAsync
                 Diagnostic(DiagnosticCode.MethodMustHaveRequestAttribute, "SomethingElseAsync").WithLocation(6, 18)
@@ -123,7 +123,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMethodReturningVoid()
         {
-            this.VerifyDiagnostics<IMethodReturningVoid>(
+            VerifyDiagnostics<IMethodReturningVoid>(
                 // (7,18): Error REST019: Method must have a return type of Task or Task<T>
                 // ReturnsVoid
                 Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsVoid").WithLocation(7, 18)
@@ -134,7 +134,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ThrowsIfMethodReturningString()
         {
             // Ideally we would test every object that isn't a Task<T>, but that's somewhat impossible...
-            this.VerifyDiagnostics<IMethodReturningString>(
+            VerifyDiagnostics<IMethodReturningString>(
                 // (7,20): Error REST019: Method must have a return type of Task or Task<T>
                 // ReturnsString
                 Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsString").WithLocation(7, 20)
@@ -144,7 +144,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMethodWithoutAttributes()
         {
-            this.VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
+            VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
                 // (4,27): Error REST025: Method parameter 'foo' has 2 attributes, but it must have zero or one
                 // [Query, HttpRequestMessageProperty] string foo
                 Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, @"[Query, HttpRequestMessageProperty] string foo")
@@ -155,7 +155,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInterfaceHasEvents()
         {
-            this.VerifyDiagnostics<IHasEvents>(
+            VerifyDiagnostics<IHasEvents>(
                 // (3,32): Error REST015: Interface must not have any events
                 // Foo
                 Diagnostic(DiagnosticCode.EventsNotAllowed, "Foo").WithLocation(3, 32)
@@ -165,7 +165,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInterfaceHasProperties()
         {
-            this.VerifyDiagnostics<IHasProperties>(
+            VerifyDiagnostics<IHasProperties>(
                 // (3,18): Error REST020: Property must have exactly one attribute
                 // SomeProperty
                 Diagnostic(DiagnosticCode.PropertyMustHaveOneAttribute, "SomeProperty").WithLocation(3, 18)
@@ -175,19 +175,19 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfRefInOrOutParameters()
         {
-            this.VerifyDiagnostics<IHasRef>(
+            VerifyDiagnostics<IHasRef>(
                 // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
                 // ref int foo
                 Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "ref int foo").WithLocation(4, 27)
             );
 
-            this.VerifyDiagnostics<IHasIn>(
+            VerifyDiagnostics<IHasIn>(
                 // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
                 // in int foo
                 Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "in int foo").WithLocation(4, 27)
             );
 
-            this.VerifyDiagnostics<IHasOut>(
+            VerifyDiagnostics<IHasOut>(
                 // (4,27): Error REST030: Method parameter 'foo' must not be ref, in or out
                 // out int foo
                 Diagnostic(DiagnosticCode.ParameterMustNotBeByRef, "out int foo").WithLocation(4, 27)
@@ -197,7 +197,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInterfaceIsPrivate()
         {
-            this.VerifyDiagnostics<IPrivateInterface>(
+            VerifyDiagnostics<IPrivateInterface>(
                 // (1,27): Error REST031: Type 'IPrivateInterface' must be public or internal
                 // IPrivateInterface
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, "IPrivateInterface").WithLocation(1, 27)
@@ -207,7 +207,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfInterfaceIsImplicitPrivate()
         {
-            this.VerifyDiagnostics<IImplicitPrivateInterface>(
+            VerifyDiagnostics<IImplicitPrivateInterface>(
                 // (1,19): Error REST031: Type 'IImplicitPrivateInterface' must be public or internal
                 // IImplicitPrivateInterface
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, "IImplicitPrivateInterface").WithLocation(1, 19)
@@ -217,7 +217,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPublicInterfaceInPrivateClass()
         {
-            this.VerifyDiagnostics<PrivateClass.IPublicInterfaceInPrivateClass>(
+            VerifyDiagnostics<PrivateClass.IPublicInterfaceInPrivateClass>(
                 // (1,30): Error REST031: Type 'IPublicInterfaceInPrivateClass' must be public or internal
                 // IPublicInterfaceInPrivateClass
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, "IPublicInterfaceInPrivateClass").WithLocation(1, 30)
@@ -227,7 +227,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesInternalInterface()
         {
-            this.VerifyDiagnostics<IInternalInterface>(
+            VerifyDiagnostics<IInternalInterface>(
 #if !SOURCE_GENERATOR
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
 #endif
@@ -237,7 +237,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNestedInternalInterface()
         {
-            this.VerifyDiagnostics<INestedInternalInterface>(
+            VerifyDiagnostics<INestedInternalInterface>(
 #if !SOURCE_GENERATOR
                 Diagnostic(DiagnosticCode.InterfaceTypeMustBeAccessible, null)
 #endif
@@ -247,7 +247,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMultipleRequestAttributes()
         {
-            this.VerifyDiagnostics<IHasMultipleRequestAttributes>(
+            VerifyDiagnostics<IHasMultipleRequestAttributes>(
                 // (3,14): Error REST039: Method must only have a single request-related attribute, found (Get, Post)
                 // Get
                 Diagnostic(DiagnosticCode.MethodMustHaveOneRequestAttribute, @"Get").WithLocation(3, 14).WithLocation(3, 19)
