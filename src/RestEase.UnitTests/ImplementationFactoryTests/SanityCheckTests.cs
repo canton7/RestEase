@@ -40,12 +40,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             string ReturnsString();
         }
 
-        public interface IHasMethodParameterWithConflictAttributes
-        {
-            [Get]
-            Task FooAsync([Query, RawQueryString] string foo);
-        }
-
         public interface IHasEvents
         {
             event EventHandler Foo;
@@ -138,17 +132,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 // (7,20): Error REST019: Method must have a return type of Task or Task<T>
                 // ReturnsString
                 Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsString").WithLocation(7, 20)
-            );
-        }
-
-        [Fact]
-        public void ThrowsIfQueryAttributeWithRawQueryStringWAttribute()
-        {
-            VerifyDiagnostics<IHasMethodParameterWithConflictAttributes>(
-                // (4,27): Error REST040: Method 'FooAsync': [Query] parameter must not specified along with [RawQueryString]
-                // [Query, RawQueryString] string foo
-                Diagnostic(DiagnosticCode.QueryConflictWithRawQueryString, @"[Query, RawQueryString] string foo")
-                    .WithLocation(4, 27)
             );
         }
 
