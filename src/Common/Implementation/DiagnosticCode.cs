@@ -1,4 +1,6 @@
-﻿namespace RestEase.Implementation
+﻿using System;
+
+namespace RestEase.Implementation
 {
     /// <summary>
     /// Identifies the type of error / diagnostic encountered during emission
@@ -31,6 +33,7 @@
         MultipleHttpRequestMessagePropertiesForKey = 22,
         HttpRequestMessageParamDuplicatesPropertyForKey = 23,
         MultipleHttpRequestMessageParametersForKey = 24,
+        [Obsolete("No longer used")]
         ParameterMustHaveZeroOrOneAttributes = 25,
         CancellationTokenMustHaveZeroAttributes = 26,
         CouldNotFindRestEaseType = 27,
@@ -46,6 +49,7 @@
         RestEaseVersionTooOld = 37,
         RestEaseVersionTooNew = 38,
         MethodMustHaveOneRequestAttribute = 39,
+        QueryConflictWithRawQueryString = 40,
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 

@@ -40,12 +40,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             string ReturnsString();
         }
 
-        public interface IHasMethodParameterWithMultipleAttributes
-        {
-            [Get]
-            Task FooAsync([Query, HttpRequestMessageProperty] string foo);
-        }
-
         public interface IHasEvents
         {
             event EventHandler Foo;
@@ -138,17 +132,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
                 // (7,20): Error REST019: Method must have a return type of Task or Task<T>
                 // ReturnsString
                 Diagnostic(DiagnosticCode.MethodMustHaveValidReturnType, "ReturnsString").WithLocation(7, 20)
-            );
-        }
-
-        [Fact]
-        public void ThrowsIfMethodWithoutAttributes()
-        {
-            VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
-                // (4,27): Error REST025: Method parameter 'foo' has 2 attributes, but it must have zero or one
-                // [Query, HttpRequestMessageProperty] string foo
-                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, @"[Query, HttpRequestMessageProperty] string foo")
-                    .WithLocation(4, 27)
             );
         }
 
