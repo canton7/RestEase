@@ -141,7 +141,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             }
         }
 
-        protected static void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
+#pragma warning disable CA1822 // Mark members as static
+        protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
+#pragma warning restore CA1822 // Mark members as static
         {
             var namedTypeSymbol = diagnosticsCompilation.GetTypeByMetadataName(typeof(T).FullName);
 

@@ -63,7 +63,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfBaseAddressPlaceholderMissingAddressProperty()
         {
-            VerifyDiagnostics<IHasBaseAddressWithPlaceholderWithoutProperty>(
+            this.VerifyDiagnostics<IHasBaseAddressWithPlaceholderWithoutProperty>(
                 // (1,10): Error REST035: Unable to find a [Path("bar")] property for the path placeholder '{bar}' in base address 'http://foo/{bar}/baz'
                 // BaseAddress("http://foo/{bar}/baz")
                 Diagnostic(DiagnosticCode.MissingPathPropertyForBaseAddressPlaceholder, @"BaseAddress(""http://foo/{bar}/baz"")").WithLocation(1, 10)
@@ -81,7 +81,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfBaseAddressIsNotAbsolute()
         {
-            VerifyDiagnostics<IHasRelativeBaseAddress>(
+            this.VerifyDiagnostics<IHasRelativeBaseAddress>(
                 // (1,10): Error REST036: Base address 'foo' must be an absolute URI
                 // BaseAddress("foo")
                 Diagnostic(DiagnosticCode.BaseAddressMustBeAbsolute, @"BaseAddress(""foo"")").WithLocation(1, 10)

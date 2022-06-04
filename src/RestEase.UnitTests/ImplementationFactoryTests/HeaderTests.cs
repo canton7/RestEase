@@ -244,7 +244,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfParamHeaderHasValue()
         {
-            VerifyDiagnostics<IHasParamHeaderWithValue>(
+            this.VerifyDiagnostics<IHasParamHeaderWithValue>(
                 // (4,28): Error REST009: Header attribute must have the form [Header("Param Header")], not [Header("Param Header", "ShouldNotBeSet")]
                 // Header("Param Header", "ShouldNotBeSet")
                 Diagnostic(DiagnosticCode.HeaderParameterMustNotHaveValue, @"Header(""Param Header"", ""ShouldNotBeSet"")").WithLocation(4, 28)
@@ -254,7 +254,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfClassHeaderDoesNotHaveValue()
         {
-            VerifyDiagnostics<IHasClassHeaderWithoutValue>(
+            this.VerifyDiagnostics<IHasClassHeaderWithoutValue>(
                 // (1,10): Error REST008: Header on interface must have a value (i.e. be of the form [Header("Foo", "Value Here")])
                 // Header("Foo")
                 Diagnostic(DiagnosticCode.HeaderOnInterfaceMustHaveValue, @"Header(""Foo"")").WithLocation(1, 10)
@@ -264,7 +264,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfClassHeaderHasColon()
         {
-            VerifyDiagnostics<IHasClassHeaderWithColon>(
+            this.VerifyDiagnostics<IHasClassHeaderWithColon>(
                 // (1,10): Error REST010: Header attribute name 'Foo: Bar' must not contain a colon
                 // Header("Foo: Bar", "Bar")
                 Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Foo: Bar"", ""Bar"")").WithLocation(1, 10)
@@ -274,7 +274,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfMethodHeaderHasColon()
         {
-            VerifyDiagnostics<IHasMethodHeaderWithColon>(
+            this.VerifyDiagnostics<IHasMethodHeaderWithColon>(
                 // (4,14): Error REST010: Header attribute name 'Foo: Bar' must not contain a colon
                 // Header("Foo: Bar", "Baz")
                 Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Foo: Bar"", ""Baz"")").WithLocation(4, 14)
@@ -284,7 +284,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfHeaderParamHasColon()
         {
-            VerifyDiagnostics<IHasHeaderParamWithColon>(
+            this.VerifyDiagnostics<IHasHeaderParamWithColon>(
                 // (4,28): Error REST010: Header attribute name 'Foo: Bar' must not contain a colon
                 // Header("Foo: Bar")
                 Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Foo: Bar"")").WithLocation(4, 28)
@@ -294,7 +294,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfHeaderParamHasValue()
         {
-            VerifyDiagnostics<IHasHeaderParamWithValue>(
+            this.VerifyDiagnostics<IHasHeaderParamWithValue>(
                 // (4,28): Error REST009: Header attribute must have the form [Header("Foo")], not [Header("Foo", "Bar")]
                 // Header("Foo", "Bar")
                 Diagnostic(DiagnosticCode.HeaderParameterMustNotHaveValue, @"Header(""Foo"", ""Bar"")").WithLocation(4, 28)
@@ -304,7 +304,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPropertyHeaderIsValueTypeAndHasValue()
         {
-            VerifyDiagnostics<IHasPropertyHeaderWithValue>(
+            this.VerifyDiagnostics<IHasPropertyHeaderWithValue>(
                 // (3,14): Error REST012: [Header("Name", "Value")] on property (i.e. containing a default value) can only be used if the property type is nullable
                 // Header("Name", "Value")
                 Diagnostic(DiagnosticCode.HeaderPropertyWithValueMustBeNullable, @"Header(""Name"", ""Value"")").WithLocation(3, 14)
@@ -340,7 +340,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPropertyHeaderHasColon()
         {
-            VerifyDiagnostics<IHasPropertyHeaderWithColon>(
+            this.VerifyDiagnostics<IHasPropertyHeaderWithColon>(
                 // (3,14): Error REST010: Header attribute name 'Name: Value' must not contain a colon
                 // Header("Name: Value")
                 Diagnostic(DiagnosticCode.HeaderMustNotHaveColonInName, @"Header(""Name: Value"")").WithLocation(3, 14)
@@ -350,7 +350,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPropertyHeaderOnlyHasGetter()
         {
-            VerifyDiagnostics<IHasPropertyHeaderWithGetterOnly>(
+            this.VerifyDiagnostics<IHasPropertyHeaderWithGetterOnly>(
                 // (4,20): Error REST011: Property must have a getter and a setter
                 // Header
                 Diagnostic(DiagnosticCode.PropertyMustBeReadWrite, "Header").WithLocation(4, 20)
@@ -360,7 +360,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfPropertyHeaderOnlyHasSetter()
         {
-            VerifyDiagnostics<IHasPropertyHeaderWithSetterOnly>(
+            this.VerifyDiagnostics<IHasPropertyHeaderWithSetterOnly>(
                 // (4,20): Error REST011: Property must have a getter and a setter
                 // Header
                 Diagnostic(DiagnosticCode.PropertyMustBeReadWrite, "Header").WithLocation(4, 20)
@@ -422,7 +422,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void HandlesNullHeaderValues()
         {
-            VerifyDiagnostics<IHasNullHeaderValues>();
+            this.VerifyDiagnostics<IHasNullHeaderValues>();
         }
 
         [Fact]
