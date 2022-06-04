@@ -72,7 +72,7 @@ namespace RestEase.SourceGenerator.Implementation
 
             if (sourceText != null)
             {
-                this.context.AddSource("RestEase_" + namedTypeSymbol.Name, sourceText);
+                this.context.AddSource("RestEase_" + namedTypeSymbol.Name + ".g", sourceText);
             }
         }
     }
