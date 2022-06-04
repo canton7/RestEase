@@ -273,10 +273,7 @@ namespace RestEase.Implementation
                 }
                 else
                 {
-                    if (attributes.Count > 1)
-                    {
-                        this.diagnostics.ReportParameterMustHaveZeroOrOneAttributes(method, parameter, attributes);
-                    }
+                    this.ValidateParameterAttributeCombinations(method, parameter);
 
                     if (parameter.HeaderAttribute != null)
                     {
@@ -291,40 +288,47 @@ namespace RestEase.Implementation
 
                         methodEmitter.EmitAddHeaderParameter(parameter);
                     }
-                    else if (parameter.PathAttribute != null)
+
+                    if (parameter.PathAttribute != null)
                     {
                         methodEmitter.EmitAddPathParameter(
                             parameter,
                             serializationMethods.ResolvePath(parameter.PathAttribute.Attribute.SerializationMethod));
                     }
-                    else if (parameter.QueryAttribute != null)
+
+                    if (parameter.QueryAttribute != null)
                     {
                         methodEmitter.EmitAddQueryParameter(
                             parameter,
                             serializationMethods.ResolveQuery(parameter.QueryAttribute.Attribute.SerializationMethod));
                     }
-                    else if (parameter.HttpRequestMessagePropertyAttribute != null)
+
+                    if (parameter.HttpRequestMessagePropertyAttribute != null)
                     {
                         methodEmitter.EmitAddHttpRequestMessagePropertyParameter(parameter);
                     }
-                    else if (parameter.RawQueryStringAttribute != null)
+
+                    if (parameter.RawQueryStringAttribute != null)
                     {
                         methodEmitter.EmitAddRawQueryStringParameter(parameter);
                     }
-                    else if (parameter.QueryMapAttribute != null)
+
+                    if (parameter.QueryMapAttribute != null)
                     {
                         if (!methodEmitter.TryEmitAddQueryMapParameter(parameter, serializationMethods.ResolveQuery(parameter.QueryMapAttribute.Attribute.SerializationMethod)))
                         {
                             this.diagnostics.ReportQueryMapParameterIsNotADictionary(method, parameter);
                         }
                     }
-                    else if (parameter.BodyAttribute != null)
+
+                    if (parameter.BodyAttribute != null)
                     {
                         methodEmitter.EmitSetBodyParameter(
                             parameter,
                             serializationMethods.ResolveBody(parameter.BodyAttribute.Attribute.SerializationMethod));
                     }
-                    else
+
+                    if (attributes.Count == 0)
                     {
                         methodEmitter.EmitAddQueryParameter(parameter, serializationMethods.ResolveQuery(QuerySerializationMethod.Default));
                     }
@@ -488,6 +492,14 @@ namespace RestEase.Implementation
             foreach (var @params in duplicateParams)
             {
                 this.diagnostics.ReportMultipleHttpRequestMessageParametersForKey(method, @params.Key, @params);
+            }
+        }
+
+        private void ValidateParameterAttributeCombinations(MethodModel method, ParameterModel parameter)
+        {
+            if (parameter.QueryAttribute != null && parameter.RawQueryStringAttribute != null)
+            {
+                this.diagnostics.ReportQueryAttributeConflictWithRawQueryString(method, parameter);
             }
         }
     }

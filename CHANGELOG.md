@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.5.7
+------
+
+ - Support multiple attributes on a single parameter (#171)
+ - Source generator: Add .g.cs suffix to generated filenames (#226)
+
 v1.5.6
 ------
 

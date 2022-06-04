@@ -180,7 +180,7 @@ namespace RestEase.Implementation.Emission
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.MissingPlaceholderForPathParameter,
-                $"Method '{method.MethodInfo.Name}': unable to find to find a placeholder {{{placeholder}}} for the path parameter '{placeholder}'");
+                $"Method '{method.MethodInfo.Name}': unable to find a placeholder {{{placeholder}}} for the path parameter '{placeholder}'");
         }
 
         public void ReportMultipleHttpRequestMessagePropertiesForKey(string key, IEnumerable<PropertyModel> _)
@@ -202,13 +202,6 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException(
                 DiagnosticCode.MultipleHttpRequestMessageParametersForKey,
                 $"Method '{method.MethodInfo.Name}': found more than one parameter with a HttpRequestMessageProperty key of '{key}'");
-        }
-
-        public void ReportParameterMustHaveZeroOrOneAttributes(MethodModel method, ParameterModel parameter, List<AttributeModel> attributes)
-        {
-            throw new ImplementationCreationException(
-                DiagnosticCode.ParameterMustHaveZeroOrOneAttributes,
-                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}' has {attributes.Count} attributes, but it must have zero or one");
         }
 
         public void ReportParameterMustNotBeByRef(MethodModel method, ParameterModel parameter)
@@ -259,6 +252,13 @@ namespace RestEase.Implementation.Emission
             throw new ImplementationCreationException(
                 DiagnosticCode.MethodMustHaveValidReturnType,
                 $"Method '{method.MethodInfo.Name}': must have a return type of Task<T> or Task");
+        }
+
+        public void ReportQueryAttributeConflictWithRawQueryString(MethodModel method, ParameterModel parameter)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.QueryConflictWithRawQueryString,
+                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}', [RawQueryString] must not be specified along with [Query]");
         }
     }
 }
