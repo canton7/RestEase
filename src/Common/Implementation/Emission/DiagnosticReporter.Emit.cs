@@ -260,6 +260,13 @@ namespace RestEase.Implementation.Emission
                 DiagnosticCode.MethodMustHaveValidReturnType,
                 $"Method '{method.MethodInfo.Name}': must have a return type of Task<T> or Task");
         }
+
+        public void ReportQueryAttributeConflictWithRawQueryString(MethodModel method, ParameterModel parameter)
+        {
+            throw new ImplementationCreationException(
+                DiagnosticCode.QueryConflictWithRawQueryString,
+                $"Method '{method.MethodInfo.Name}': parameter '{parameter.Name}', [RawQueryString] must not be specified along with [Query]");
+        }
     }
 }
 

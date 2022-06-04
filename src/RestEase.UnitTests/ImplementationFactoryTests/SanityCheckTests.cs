@@ -40,10 +40,10 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             string ReturnsString();
         }
 
-        public interface IHasMethodParameterWithMultipleAttributes
+        public interface IHasMethodParameterWithConflictAttributes
         {
             [Get]
-            Task FooAsync([Query, HttpRequestMessageProperty] string foo);
+            Task FooAsync([Query, RawQueryString] string foo);
         }
 
         public interface IHasEvents
@@ -142,12 +142,12 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         }
 
         [Fact]
-        public void ThrowsIfMethodWithoutAttributes()
+        public void ThrowsIfQueryAttributeWithRawQueryStringWAttribute()
         {
-            VerifyDiagnostics<IHasMethodParameterWithMultipleAttributes>(
-                // (4,27): Error REST025: Method parameter 'foo' has 2 attributes, but it must have zero or one
-                // [Query, HttpRequestMessageProperty] string foo
-                Diagnostic(DiagnosticCode.ParameterMustHaveZeroOrOneAttributes, @"[Query, HttpRequestMessageProperty] string foo")
+            VerifyDiagnostics<IHasMethodParameterWithConflictAttributes>(
+                // (4,27): Error REST040: Method 'FooAsync': [Query] parameter must not specified along with [RawQueryString]
+                // [Query, RawQueryString] string foo
+                Diagnostic(DiagnosticCode.QueryConflictWithRawQueryString, @"[Query, RawQueryString] string foo")
                     .WithLocation(4, 27)
             );
         }

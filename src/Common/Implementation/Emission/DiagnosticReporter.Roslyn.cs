@@ -358,6 +358,18 @@ namespace RestEase.Implementation.Emission
             this.AddDiagnostic(methodMustHaveValidReturnType, method.MethodSymbol.Locations);
         }
 
+        private static readonly DiagnosticDescriptor queryAttributeConflictWithRawQueryString = CreateDescriptor(
+            DiagnosticCode.QueryConflictWithRawQueryString,
+            "Parameter attribute RawQueryString must not be specified along with Query",
+            "Method '{0}': parameter '{1}', [RawQueryString] must not be specified along with [Query]");
+        public void ReportQueryAttributeConflictWithRawQueryString(MethodModel method, ParameterModel parameter)
+        {
+            this.AddDiagnostic(
+                queryAttributeConflictWithRawQueryString,
+                SymbolLocations(parameter.ParameterSymbol),
+                method.MethodSymbol.Name, parameter.Name);
+        }
+
         // -----------------------------------------------------------
         // Not shared with the Emit DiagnosticReporter
 
