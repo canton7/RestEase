@@ -180,7 +180,7 @@ namespace RestEase.Implementation.Emission
         {
             throw new ImplementationCreationException(
                 DiagnosticCode.MissingPlaceholderForPathParameter,
-                $"Method '{method.MethodInfo.Name}': unable to find to find a placeholder {{{placeholder}}} for the path parameter '{placeholder}'");
+                $"Method '{method.MethodInfo.Name}': unable to find a placeholder {{{placeholder}}} for the path parameter '{placeholder}'");
         }
 
         public void ReportMultipleHttpRequestMessagePropertiesForKey(string key, IEnumerable<PropertyModel> _)
