@@ -315,9 +315,9 @@ namespace RestEase.Implementation.Emission
         }
 
         private static readonly DiagnosticDescriptor queryMapParameterIsNotADictionary = CreateDescriptor(
-            DiagnosticCode.QueryMapParameterIsNotADictionary,
+            DiagnosticCode.QueryMapParameterIsNotKeyValuePairs,
             "QueryMap parameters must be dictionaries",
-            "[QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)");
+            "[QueryMap] parameter is not of the type IEnumerable<KeyValuePair<TKey, TValue>> (or its descendents)");
         public void ReportQueryMapParameterIsNotADictionary(MethodModel _, ParameterModel parameter)
         {
             this.AddDiagnostic(queryMapParameterIsNotADictionary, SymbolLocations(parameter.ParameterSymbol));
