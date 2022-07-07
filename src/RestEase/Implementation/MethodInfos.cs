@@ -37,7 +37,6 @@ namespace RestEase.Implementation
         public static MethodInfo RequestInfo_AddRawQueryParameter = typeof(RequestInfo).GetTypeInfo().GetMethod("AddRawQueryParameter")!;
         public static MethodInfo Requester_RequestVoidAsync { get; } = typeof(IRequester).GetTypeInfo().GetMethod("RequestVoidAsync")!;
         public static MethodInfo Requester_RequestWithResponseMessageAsync { get; } = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseMessageAsync")!;
-        public static MethodInfo Requester_RequestRawAsync { get; } = typeof(IRequester).GetTypeInfo().GetMethod("RequestRawAsync")!;
         public static MethodInfo Requester_RequestStreamAsync { get; } = typeof(IRequester).GetTypeInfo().GetMethod("RequestStreamAsync")!;
         public static MethodInfo Requester_RequestWithResponseAsync { get; } = typeof(IRequester).GetTypeInfo().GetMethod("RequestWithResponseAsync")!;
         public static MethodInfo Requester_RequestAsync { get; } = typeof(IRequester).GetTypeInfo().GetMethod("RequestAsync")!;

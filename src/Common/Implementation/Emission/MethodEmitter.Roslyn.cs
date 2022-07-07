@@ -281,11 +281,7 @@ namespace RestEase.Implementation.Emission
                 SymbolEqualityComparer.Default.Equals(namedReturnType.ConstructedFrom, this.wellKnownSymbols.TaskT))
             {
                 var typeOfT = namedReturnType.TypeArguments[0];
-                if (typeOfT.SpecialType == SpecialType.System_String)
-                {
-                    methodName = "RequestRawAsync";
-                }
-                else if (SymbolEqualityComparer.Default.Equals(typeOfT, this.wellKnownSymbols.HttpResponseMessage))
+                if (SymbolEqualityComparer.Default.Equals(typeOfT, this.wellKnownSymbols.HttpResponseMessage))
                 {
                     methodName = "RequestWithResponseMessageAsync";
                 }

@@ -131,17 +131,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         }
 
         [Fact]
-        public void NoArgumentsWithRawResponseCallsCorrectly()
-        {
-            var requestInfo = this.RequestRaw<INoArgumentsReturnsString>(x => x.FooAsync(), "testy");
-
-            Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
-            Assert.Equal(HttpMethod.Get, requestInfo.Method);
-            Assert.Empty(requestInfo.QueryParams);
-            Assert.Equal("bar", requestInfo.Path);
-        }
-
-        [Fact]
         public void NoArgumentsWithStreamResponseCallsCorrectly()
         {
             var requestInfo = this.RequestStream<INoArgumentsReturnsStream>(x => x.FooAsync(), new MemoryStream());

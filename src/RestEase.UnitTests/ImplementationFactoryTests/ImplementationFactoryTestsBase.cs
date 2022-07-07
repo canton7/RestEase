@@ -251,11 +251,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestWithResponseMessageAsync(It.IsAny<IRequestInfo>()), returnValue);
         }
 
-        protected IRequestInfo RequestRaw<TType>(Func<TType, Task<string>> method, string returnValue)
-        {
-            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestRawAsync(It.IsAny<IRequestInfo>()), returnValue);
-        }
-
         protected IRequestInfo RequestStream<TType>(Func<TType, Task<Stream>> method, Stream returnValue)
         {
             return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestStreamAsync(It.IsAny<IRequestInfo>()), returnValue);
