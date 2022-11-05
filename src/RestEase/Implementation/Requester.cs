@@ -406,10 +406,7 @@ namespace RestEase.Implementation
                     {
                         // If they've added a content header, my reading of the RFC is that we are actually sending a body (even if they haven't
                         // said what should be in it), and therefore we need to send Content-Length
-                        if (dummyContent == null)
-                        {
-                            dummyContent = new ByteArrayContent(ArrayUtil.Empty<byte>());
-                        }
+                        dummyContent ??= new ByteArrayContent(ArrayUtil.Empty<byte>());
 
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                         if (added && (areMethodHeaders || requestInfo.BodyParameterInfo != null))

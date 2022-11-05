@@ -8,7 +8,7 @@ namespace RestEase
     /// <remarks>
     /// This is broken out as a separate structure so that extra properties can be added without breaking backwards compatibility
     /// </remarks>
-    public struct RequestBodySerializerInfo
+    public readonly struct RequestBodySerializerInfo
     {
         /// <summary>
         /// Gets information about the request
