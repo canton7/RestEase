@@ -25,7 +25,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests.Helpers
 
     }
 
-    public struct DiagnosticResultLocation
+    public readonly struct DiagnosticResultLocation
     {
         public int Line { get; }
         public int Column { get; }
