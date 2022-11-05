@@ -100,14 +100,15 @@ namespace RestEase.UnitTests.HttpClientFactoryTests
             int callCount = 0;
             var handler = new TestMessageHandler();
 
-            services.AddRestEaseClient<ISomeApi>(
-                requestModifier: (request, cancellationToken) =>
+            services.AddRestEaseClient<ISomeApi>(options: new()
+            {
+                RequestModifier = (request, cancellationToken) =>
                 {
                     callCount++;
                     return Task.CompletedTask;
-                })
-                .ConfigureHttpClient(x => x.BaseAddress = new Uri("http://localhost"))
-                .ConfigurePrimaryHttpMessageHandler(() => handler);
+                }
+            }).ConfigureHttpClient(x => x.BaseAddress = new Uri("http://localhost"))
+            .ConfigurePrimaryHttpMessageHandler(() => handler);
 
             var serviceProvider = services.BuildServiceProvider();
 

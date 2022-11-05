@@ -1094,12 +1094,12 @@ If you're using ASP.NET Core 2.1 or higher, you can set up RestEase to use HttpC
 services.AddRestEaseClient<ISomeApi>("https://api.example.com");
 ```
 
-If you want to configure the `RestClient` instance, for example to set a custom serializer, pass in an `Action<RestClient>`:
+If you want to configure the `RestClient` instance, for example to set a custom serializer, pass in an `options` with `RestClientConfigurer` set to an `Action<RestClient>`:
 
 ```cs
-services.AddRestEaseClient<ISomeApi>("https://api.example.com", client =>
+services.AddRestEaseClient<ISomeApi>("https://api.example.com", new()
 {
-    client.RequestPathParamSerializer = new StringEnumRequestPathParamSerializer();
+    RestClientConfigurer = client => client.RequestPathParamSerializer = new StringEnumRequestPathParamSerializer(),
 });
 ```
 
