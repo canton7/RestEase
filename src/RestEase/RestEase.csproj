@@ -34,7 +34,9 @@ Source Generators are here! Reference the RestEase.SourceGenerator NuGet package
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>portable</DebugType>
-    
+
+	<!-- net5 is now EOL, but that's OK -->
+	<CheckEolTargetFramework>false</CheckEolTargetFramework>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.1' ">1.6.1</NetStandardImplicitPackageVersion>
   </PropertyGroup>
 
