@@ -11,7 +11,7 @@
     <icon>icon.png</icon>
     <projectUrl>https://github.com/canton7/RestEase</projectUrl>
     <description>HttpClientFactory adapter for ASP.NET Core for RestEase: the easy-to-use typesafe REST API client library, which is simple and customisable.</description>
-    <copyright>Copyright © Antony Male 2015-2021</copyright>
+    <copyright>Copyright © Antony Male 2015-2022</copyright>
     <tags>REST JSON RestEase SourceGenerator</tags>
     <repository type="git" url="https://github.com/canton7/RestEase" />
     <dependencies>
