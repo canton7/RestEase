@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>RestEase.HttpClientFactory, Version=1.2.3.0, Culture=neutral, PublicKeyToken=null</Target>
+    <Left>lib/netstandard2.0/RestEase.HttpClientFactory.dll</Left>
+    <Right>lib/netstandard2.0/RestEase.HttpClientFactory.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+</Suppressions>

@@ -406,10 +406,7 @@ namespace RestEase.Implementation
                     {
                         // If they've added a content header, my reading of the RFC is that we are actually sending a body (even if they haven't
                         // said what should be in it), and therefore we need to send Content-Length
-                        if (dummyContent == null)
-                        {
-                            dummyContent = new ByteArrayContent(ArrayUtil.Empty<byte>());
-                        }
+                        dummyContent ??= new ByteArrayContent(ArrayUtil.Empty<byte>());
 
                         added = dummyContent.Headers.TryAddWithoutValidation(headersGroup.Key, headersToAdd);
                         if (added && (areMethodHeaders || requestInfo.BodyParameterInfo != null))
@@ -502,8 +499,14 @@ namespace RestEase.Implementation
         /// <returns>A task containing the deserialized response</returns>
         protected internal virtual T Deserialize<T>(string? content, HttpResponseMessage response, IRequestInfo requestInfo)
         {
+            if (typeof(T) == typeof(string) && this.ResponseDeserializer?.HandlesStrings != true)
+            {
+                return (T)(object)content!;
+            }
+
             if (this.ResponseDeserializer == null)
                 throw new InvalidOperationException("Cannot deserialize a response when ResponseDeserializer is null. Please set ResponseDeserializer");
+
             return this.ResponseDeserializer.Deserialize<T>(content, response, new ResponseDeserializerInfo(requestInfo));
         }
 
@@ -564,22 +567,6 @@ namespace RestEase.Implementation
                 null :
                 await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new Response<T>(content, response, () => this.Deserialize<T>(content, response, requestInfo));
-        }
-
-        /// <summary>
-        /// Called from interface methods which return a Task{string}
-        /// </summary>
-        /// <param name="requestInfo">IRequestInfo to construct the request from</param>
-        /// <returns>Task containing the raw string body of the response</returns>
-        public virtual async Task<string?> RequestRawAsync(IRequestInfo requestInfo)
-        {
-            using (var response = await this.SendRequestAsync(requestInfo, readBody: true).ConfigureAwait(false))
-            {
-                string? responseString = response.Content == null ?
-                    null :
-                    await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return responseString;
-            }
         }
 
         /// <summary>

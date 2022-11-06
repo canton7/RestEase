@@ -16,7 +16,10 @@ namespace RestEase
         /// <inheritdoc/>
         public override T Deserialize<T>(string? content, HttpResponseMessage response, ResponseDeserializerInfo info)
         {
-            return JsonConvert.DeserializeObject<T>(content, this.JsonSerializerSettings);
+            // TODO: Figure out how best to handle nullables here. I don't think we can change the signature to return T?
+            // without breaking backwards compat... In the meantime, this worked before json.net changed their nullable
+            // annotations, so ignore the issue for now
+            return JsonConvert.DeserializeObject<T>(content!, this.JsonSerializerSettings)!;
         }
     }
 }

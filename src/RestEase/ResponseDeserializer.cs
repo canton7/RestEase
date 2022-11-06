@@ -9,6 +9,18 @@ namespace RestEase
     /// </summary>
     public abstract class ResponseDeserializer : IResponseDeserializer
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether this deserializer can deserialize strings
+        /// </summary>
+        /// <remarks>
+        /// If <c>true</c>, interface methods which return <c>Task{string}</c> (or <c>Task{Response{string}}</c>
+        /// result in the response being passed through this deserializer. If <c>false</c>, such methods result in
+        /// the raw response being returned, and not passed through this deserializer.
+        /// 
+        /// The default value is <c>false</c>.
+        /// </remarks>
+        public bool HandlesStrings { get; set; } = false;
+
         [Obsolete("Override Deserialize<T>(string content, HttpResponseMessage response, ResponseDeserializerInfo info) instead", error: true)]
         T IResponseDeserializer.Deserialize<T>(string? content, HttpResponseMessage response)
         {

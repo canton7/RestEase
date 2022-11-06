@@ -404,9 +404,7 @@ namespace RestEase.Implementation
 
         private void ValidatePathParams(MethodModel method, AttributeModel<RequestAttributeBase> requestAttribute)
         {
-            string? path = requestAttribute.Attribute.Path;
-            if (path == null)
-                path = string.Empty;
+            string? path = requestAttribute.Attribute.Path ?? string.Empty;
 
             var pathParams = method.Parameters.Where(x => x.PathAttribute != null).ToList();
 

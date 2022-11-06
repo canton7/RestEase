@@ -36,7 +36,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfQueryAttributeWithRawQueryStringAttribute()
         {
-            VerifyDiagnostics<IHasMethodParameterWithConflictAttributes>(
+            this.VerifyDiagnostics<IHasMethodParameterWithConflictAttributes>(
                 // (4,27): Error REST040: Method 'FooAsync': [Query] parameter must not specified along with [RawQueryString]
                 // [Query, RawQueryString] string foo
                 Diagnostic(DiagnosticCode.QueryConflictWithRawQueryString, @"[Query, RawQueryString] string foo")

@@ -351,10 +351,6 @@ namespace RestEase.Implementation.Emission
                 {
                     this.ilGenerator.Emit(OpCodes.Callvirt, MethodInfos.Requester_RequestWithResponseMessageAsync);
                 }
-                else if (typeOfT == typeof(string))
-                {
-                    this.ilGenerator.Emit(OpCodes.Callvirt, MethodInfos.Requester_RequestRawAsync);
-                }
                 else if (typeOfT == typeof(Stream))
                 {
                     this.ilGenerator.Emit(OpCodes.Callvirt, MethodInfos.Requester_RequestStreamAsync);

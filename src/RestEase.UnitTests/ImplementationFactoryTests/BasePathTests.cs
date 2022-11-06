@@ -58,7 +58,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void ThrowsIfBasePathPlaceholderMissingPathProperty()
         {
-            VerifyDiagnostics<IHasBasePathWithPlaceholderWithoutProperty>(
+            this.VerifyDiagnostics<IHasBasePathWithPlaceholderWithoutProperty>(
                 // (1,10): Error REST001: Unable to find a [Path("bar")] property for the path placeholder '{bar}' in base path 'foo/{bar}/baz'
                 // BasePath("foo/{bar}/baz")
                 Diagnostic(DiagnosticCode.MissingPathPropertyForBasePathPlaceholder, @"BasePath(""foo/{bar}/baz"")").WithLocation(1, 10)

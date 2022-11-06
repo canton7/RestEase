@@ -141,7 +141,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             }
         }
 
-        protected static void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
+#pragma warning disable CA1822 // Mark members as static
+        protected void VerifyDiagnostics<T>(params DiagnosticResult[] expected)
+#pragma warning restore CA1822 // Mark members as static
         {
             var namedTypeSymbol = diagnosticsCompilation.GetTypeByMetadataName(typeof(T).FullName);
 
@@ -247,11 +249,6 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         protected IRequestInfo RequestWithResponseMessage<TType>(Func<TType, Task<HttpResponseMessage>> method, HttpResponseMessage returnValue)
         {
             return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestWithResponseMessageAsync(It.IsAny<IRequestInfo>()), returnValue);
-        }
-
-        protected IRequestInfo RequestRaw<TType>(Func<TType, Task<string>> method, string returnValue)
-        {
-            return this.Request(this.CreateImplementation<TType>(), method, x => x.RequestRawAsync(It.IsAny<IRequestInfo>()), returnValue);
         }
 
         protected IRequestInfo RequestStream<TType>(Func<TType, Task<Stream>> method, Stream returnValue)
