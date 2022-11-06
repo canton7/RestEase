@@ -12,7 +12,7 @@
     <PackageOutputPath>../../NuGet</PackageOutputPath>
     <PackageId>RestEase</PackageId>
     <PackageTags>REST;JSON</PackageTags>
-    <Copyright>Copyright © Antony Male 2015-2021</Copyright>
+    <Copyright>Copyright © Antony Male 2015-2022</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/canton7/RestEase</PackageProjectUrl>
