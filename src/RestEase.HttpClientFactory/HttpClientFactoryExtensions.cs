@@ -134,7 +134,7 @@ namespace RestEase.HttpClientFactory
                 .CreateHttpClientBuilder(typeof(T), baseAddress)
                 .AddRestEaseClientCore(
                     typeof(T),
-                    GenericFactory(options.RestClientConfigurer, options.InstanceConfigurer),
+                    GenericFactory(options.RequesterFactory, options.RestClientConfigurer, options.InstanceConfigurer),
                     options.RequestModifier);
         }
 
@@ -250,7 +250,7 @@ namespace RestEase.HttpClientFactory
                 .CreateHttpClientBuilder(restEaseType, baseAddress)
                 .AddRestEaseClientCore(
                     restEaseType,
-                    NonGenericFactory(restEaseType, options.RestClientConfigurer),
+                    NonGenericFactory(restEaseType, options.RequesterFactory, options.RestClientConfigurer),
                     options.RequestModifier);
         }
 
@@ -286,7 +286,7 @@ namespace RestEase.HttpClientFactory
 
             return httpClientBuilder.AddRestEaseClientCore(
                 typeof(T),
-                GenericFactory(options.RestClientConfigurer, options.InstanceConfigurer),
+                GenericFactory(options.RequesterFactory, options.RestClientConfigurer, options.InstanceConfigurer),
                 options.RequestModifier);
         }
 
@@ -322,7 +322,7 @@ namespace RestEase.HttpClientFactory
 
             return httpClientBuilder.AddRestEaseClientCore(
                 restEaseType,
-                NonGenericFactory(restEaseType, options.RestClientConfigurer),
+                NonGenericFactory(restEaseType, options.RequesterFactory, options.RestClientConfigurer),
                 options.RequestModifier);
         }
 
@@ -370,26 +370,59 @@ namespace RestEase.HttpClientFactory
             uri == null ? null : new Uri(uri);
 
         private static Func<HttpClient, object> GenericFactory<T>(
-            Action<RestClient>? clientConfigurer, Action<T>? instanceConfigurer) where T : class
+            Func<HttpClient, IRequester>? requesterFactory,
+            Action<RestClient>? clientConfigurer,
+            Action<T>? instanceConfigurer) where T : class
         {
-            return httpClient =>
+            if (requesterFactory == null)
             {
-                var restClient = new RestClient(httpClient);
-                clientConfigurer?.Invoke(restClient);
-                var instance = restClient.For<T>();
-                instanceConfigurer?.Invoke(instance);
-                return instance;
-            };
+                return httpClient =>
+                {
+                    var restClient = new RestClient(httpClient);
+                    clientConfigurer?.Invoke(restClient);
+                    var instance = restClient.For<T>();
+                    instanceConfigurer?.Invoke(instance);
+                    return instance;
+                };
+            }
+            else
+            {
+                if (clientConfigurer != null)
+                    throw new ArgumentException("If RequesterFactory is specified, RestClientConfigurer must be null");
+
+                return httpClient =>
+                {
+                    var instance = RestClient.For<T>(requesterFactory(httpClient));
+                    instanceConfigurer?.Invoke(instance);
+                    return instance;
+                };
+            }
         }
 
-        private static Func<HttpClient, object> NonGenericFactory(Type restEaseType, Action<RestClient>? configurer)
+        private static Func<HttpClient, object> NonGenericFactory(
+            Type restEaseType,
+            Func<HttpClient, IRequester>? requesterFactory,
+            Action<RestClient>? clientConfigurer)
         {
-            return httpClient =>
+            if (requesterFactory == null)
             {
-                var restClient = new RestClient(httpClient);
-                configurer?.Invoke(restClient);
-                return restClient.For(restEaseType);
-            };
+                return httpClient =>
+                {
+                    var restClient = new RestClient(httpClient);
+                    clientConfigurer?.Invoke(restClient);
+                    return restClient.For(restEaseType);
+                };
+            }
+            else
+            {
+                if (clientConfigurer != null)
+                    throw new ArgumentException("If RequesterFactory is specified, RestClientConfigurer must be null");
+
+                return httpClient =>
+                {
+                    return RestClient.For(restEaseType, requesterFactory(httpClient));
+                };
+            }
         }
 
         private static string UniqueNameForType(Type type)

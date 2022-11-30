@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,14 @@ namespace RestEase.HttpClientFactory
         /// Optional delegate to use to modify all requests
         /// </summary>
         public RequestModifier? RequestModifier { get; set; }
+
+        /// <summary>
+        /// Optional factory to create an <see cref="IRequester"/> instance to use
+        /// </summary>
+        /// <remarks>
+        /// If specified, <see cref="RestClientConfigurer"/> must be null, or an exception will be thrown
+        /// </remarks>
+        public Func<HttpClient, IRequester>? RequesterFactory { get; set; }
     }
 
     /// <summary>
@@ -44,6 +53,14 @@ namespace RestEase.HttpClientFactory
         /// Optional delegate to use to modify all requests
         /// </summary>
         public RequestModifier? RequestModifier { get; set; }
+
+        /// <summary>
+        /// Optional factory to create an <see cref="IRequester"/> instance to use
+        /// </summary>
+        /// <remarks>
+        /// If specified, <see cref="RestClientConfigurer"/> must be null, or an exception will be thrown
+        /// </remarks>
+        public Func<HttpClient, IRequester>? RequesterFactory { get; set; }
     }
 
     /// <summary>
@@ -62,6 +79,14 @@ namespace RestEase.HttpClientFactory
         /// Optional delegate to use to modify all requests
         /// </summary>
         public RequestModifier? RequestModifier { get; set; }
+
+        /// <summary>
+        /// Optional factory to create an <see cref="IRequester"/> instance to use
+        /// </summary>
+        /// <remarks>
+        /// If specified, <see cref="RestClientConfigurer"/> must be null, or an exception will be thrown
+        /// </remarks>
+        public Func<HttpClient, IRequester>? RequesterFactory { get; set; }
     }
 
     /// <summary>
@@ -85,5 +110,13 @@ namespace RestEase.HttpClientFactory
         /// Optional delegate to use to modify all requests
         /// </summary>
         public RequestModifier? RequestModifier { get; set; }
+
+        /// <summary>
+        /// Optional factory to create an <see cref="IRequester"/> instance to use
+        /// </summary>
+        /// <remarks>
+        /// If specified, <see cref="RestClientConfigurer"/> must be null, or an exception will be thrown
+        /// </remarks>
+        public Func<HttpClient, IRequester>? RequesterFactory { get; set; }
     }
 }
