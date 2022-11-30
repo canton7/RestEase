@@ -1,6 +1,18 @@
 Changelog
 =========
 
+v1.6.1
+------
+
+ - Support passing a custom `IRequester` when using `HttpClientFactory` (#244)
+
+v1.6.0
+------
+
+ - Bump Json.NET minimum version to avoid users being accidentally exposed to CWE-755
+ - Fix `Task<Response<string>>` (#230)
+ - HttpClientFactory: Allow passing a delegate which is used to configure the created interface instance, e.g. to set properies(#240)
+
 v1.5.7
 ------
 

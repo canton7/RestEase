@@ -1103,6 +1103,15 @@ services.AddRestEaseClient<ISomeApi>("https://api.example.com", new()
 });
 ```
 
+If you want fo configure the `ISomeApi` instance, for example to assign a value to a property:
+
+```cs
+services.AddRestEaseClient<ISomeApi>("https://api.example.com", new()
+{
+    InstanceConfigurer = instance => instance.SomeHeader = "Some Value",
+});
+```
+
 An `IHttpClientBuilder` is returned, which you can call further methods on if needed:
 
 ```cs

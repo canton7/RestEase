@@ -51,7 +51,7 @@ namespace RestEase.HttpClientFactory
         {
             return services
                 .CreateHttpClientBuilder(typeof(T), ToUri(baseAddress))
-                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(clientConfigurer, null), requestModifier);
+                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(null, clientConfigurer, null), requestModifier);
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace RestEase.HttpClientFactory
         {
             return services
                 .CreateHttpClientBuilder(typeof(T), baseAddress)
-                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(clientConfigurer, null), requestModifier);
+                .AddRestEaseClientCore(typeof(T), GenericFactory<T>(null, clientConfigurer, null), requestModifier);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace RestEase.HttpClientFactory
 
             return services
                 .CreateHttpClientBuilder(restEaseType, ToUri(baseAddress))
-                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer), requestModifier);
+                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, null, configurer), requestModifier);
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace RestEase.HttpClientFactory
 
             return services
                 .CreateHttpClientBuilder(restEaseType, baseAddress)
-                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer), requestModifier);
+                .AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, null, configurer), requestModifier);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace RestEase.HttpClientFactory
             RequestModifier? requestModifier = null)
             where T : class
         {
-            return httpClientBuilder.AddRestEaseClientCore(typeof(T), GenericFactory<T>(clientConfigurer, null), requestModifier);
+            return httpClientBuilder.AddRestEaseClientCore(typeof(T), GenericFactory<T>(null, clientConfigurer, null), requestModifier);
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace RestEase.HttpClientFactory
             Action<RestClient>? configurer = null,
             RequestModifier? requestModifier = null)
         {
-            return httpClientBuilder.AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, configurer), requestModifier);
+            return httpClientBuilder.AddRestEaseClientCore(restEaseType, NonGenericFactory(restEaseType, null, configurer), requestModifier);
         }
     }
 }
