@@ -8,6 +8,7 @@ namespace RestEase.SourceGenerator.Implementation
     {
         private readonly GeneratorExecutionContext context;
         private readonly RoslynImplementationFactory factory;
+        private readonly Dictionary<string, int> nameToIndex = new Dictionary<string, int>();
 
         public Processor(GeneratorExecutionContext context)
         {
@@ -72,7 +73,13 @@ namespace RestEase.SourceGenerator.Implementation
 
             if (sourceText != null)
             {
-                this.context.AddSource("RestEase_" + namedTypeSymbol.Name + ".g", sourceText);
+                var name = namedTypeSymbol.Name;
+                if (!this.nameToIndex.TryGetValue(name, out var index))
+                {
+                    index = 1;
+                }
+                this.context.AddSource("RestEase_" + name + "_" + index + ".g", sourceText);
+                this.nameToIndex[name] = ++index;
             }
         }
     }
