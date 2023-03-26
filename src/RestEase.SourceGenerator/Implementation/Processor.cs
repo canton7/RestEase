@@ -76,8 +76,13 @@ namespace RestEase.SourceGenerator.Implementation
 
             if (sourceText != null)
             {
-                var hintName = "RestEase_" + namedTypeSymbol.ToDisplayString(generatedFileName) + ".g";
-                this.context.AddSource(hintName, sourceText);
+                var hintNameBase = "RestEase_" + namedTypeSymbol.ToDisplayString(generatedFileName);
+                if (namedTypeSymbol.IsGenericType)
+                {
+                    var genericParameterCount = namedTypeSymbol.TypeParameters.Length;
+                    hintNameBase += "{" + genericParameterCount + "}";
+                } 
+                this.context.AddSource(hintNameBase + ".g", sourceText);
             }
         }
     }
