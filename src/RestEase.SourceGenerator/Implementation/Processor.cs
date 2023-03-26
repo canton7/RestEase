@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -8,6 +10,8 @@ namespace RestEase.SourceGenerator.Implementation
     {
         private readonly GeneratorExecutionContext context;
         private readonly RoslynImplementationFactory factory;
+        private static readonly SymbolDisplayFormat generatedFileName = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         public Processor(GeneratorExecutionContext context)
         {
@@ -72,7 +76,8 @@ namespace RestEase.SourceGenerator.Implementation
 
             if (sourceText != null)
             {
-                this.context.AddSource("RestEase_" + namedTypeSymbol.Name + ".g", sourceText);
+                var hintName = "RestEase_" + namedTypeSymbol.ToDisplayString(generatedFileName) + ".g";
+                this.context.AddSource(hintName, sourceText);
             }
         }
     }
