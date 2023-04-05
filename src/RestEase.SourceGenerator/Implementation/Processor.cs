@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -72,7 +73,16 @@ namespace RestEase.SourceGenerator.Implementation
 
             if (sourceText != null)
             {
-                this.context.AddSource("RestEase_" + namedTypeSymbol.Name + ".g", sourceText);
+                var nameBuilder = new StringBuilder();
+                foreach (var part in namedTypeSymbol.ToDisplayParts(SymbolDisplayFormats.GeneratedFileName))
+                {
+                    nameBuilder.Append(part.ToString());
+                    if (part.Symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
+                    {
+                        nameBuilder.Append('`').Append(typeSymbol.Arity);
+                    }
+                }
+                this.context.AddSource(nameBuilder.ToString() + ".g", sourceText);
             }
         }
     }
