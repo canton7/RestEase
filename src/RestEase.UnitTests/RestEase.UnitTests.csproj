@@ -5,6 +5,7 @@
     <!-- netcoreapp3.0 uses netstandard2.1; netcoreapp2.0 uses netstandard2.0;
          netcoreapp1.0 uses netstandard1.6 (and so the netstandard1.0 library) -->
     <TargetFrameworks>net5.0;netcoreapp3.0;netcoreapp2.0;netcoreapp1.0;net452</TargetFrameworks>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <AssemblyName>RestEase.UnitTests</AssemblyName>
     <LangVersion>10.0</LangVersion>
     <Nullable>annotations</Nullable>
@@ -47,6 +48,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net452" Version="1.0.3" PrivateAssets="All" />
 
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
