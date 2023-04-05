@@ -107,6 +107,11 @@ namespace RestEase.SourceGenerator.Implementation
         /// </summary>
         public static SymbolDisplayFormat TypeParameter { get; }
 
+        /// <summary>
+        /// A string suitable for using as part of a generated file name
+        /// </summary>
+        public static SymbolDisplayFormat GeneratedFileName { get; }
+
         static SymbolDisplayFormats()
         {
             SymbolName = new SymbolDisplayFormat(
@@ -206,6 +211,9 @@ namespace RestEase.SourceGenerator.Implementation
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
                     | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            GeneratedFileName = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         }
     }
 }

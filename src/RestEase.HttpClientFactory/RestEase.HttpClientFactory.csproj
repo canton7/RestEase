@@ -5,6 +5,7 @@
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
 
     <PackageValidationBaselineVersion>1.5.5</PackageValidationBaselineVersion>
 

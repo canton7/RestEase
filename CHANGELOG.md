@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.6.2
+------
+ - RestEase.SourceGenerator: support types with the same name but different arity (#252)
+
 v1.6.1
 ------
 
