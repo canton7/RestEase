@@ -1,8 +1,14 @@
 Changelog
 =========
 
+v1.6.3
+------
+
+ - Provide an extension point to customise the ApiException thrown for unsuccessful requests (#257)
+
 v1.6.2
 ------
+
  - RestEase.SourceGenerator: support types with the same name but different arity (#252)
 
 v1.6.1
