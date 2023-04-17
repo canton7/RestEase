@@ -279,13 +279,11 @@ namespace RestEase.Implementation
             {
                 case PathSerializationMethod.ToString:
                     return pathParameter.SerializeToString(this.FormatProvider);
-
                 case PathSerializationMethod.Serialized:
                     if (this.RequestPathParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize path parameter when RequestPathParamSerializer is null. Please set RequestPathParamSerializer");
                     var result = pathParameter.SerializeValue(this.RequestPathParamSerializer, requestInfo, this.FormatProvider);
                     return result;
-
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -303,13 +301,11 @@ namespace RestEase.Implementation
             {
                 case QuerySerializationMethod.ToString:
                     return queryParameter.SerializeToString(this.FormatProvider);
-
                 case QuerySerializationMethod.Serialized:
                     if (this.RequestQueryParamSerializer == null)
                         throw new InvalidOperationException("Cannot serialize query parameter when RequestQueryParamSerializer is null. Please set RequestQueryParamSerializer");
                     var result = queryParameter.SerializeValue(this.RequestQueryParamSerializer, requestInfo, this.FormatProvider);
                     return result ?? Enumerable.Empty<KeyValuePair<string, string?>>();
-
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -341,12 +337,10 @@ namespace RestEase.Implementation
             {
                 case BodySerializationMethod.UrlEncoded:
                     return new FormUrlEncodedContent(this.SerializeBodyForUrlEncoding(requestInfo.BodyParameterInfo.ObjectValue));
-
                 case BodySerializationMethod.Serialized:
                     if (this.RequestBodySerializer == null)
                         throw new InvalidOperationException("Cannot serialize request body when RequestBodySerializer is null. Please set RequestBodySerializer");
                     return requestInfo.BodyParameterInfo.SerializeValue(this.RequestBodySerializer, requestInfo, this.FormatProvider);
-
                 default:
                     throw new InvalidOperationException("Should never get here");
             }
@@ -474,27 +468,23 @@ namespace RestEase.Implementation
             var completionOption = readBody ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead;
             var response = await this.httpClient.SendAsync(message, completionOption, requestInfo.CancellationToken).ConfigureAwait(false);
 
-            await this.CheckResponseAndThrowIfConsideredFailure(requestInfo, message, response).ConfigureAwait(false);
+            await this.EnsureSuccessulResponseIfNecessary(requestInfo, message, response).ConfigureAwait(false);
 
             return response;
         }
 
         /// <summary>
-        /// Take the HttpResponseMessage we received from then endpoint and check for a valid result.
-        /// In case the result is not expected and does not indicate success, the default behavior is
-        /// to throw a <see cref="ApiException"/>
+        /// Take the <see cref="HttpResponseMessage"/> we received from then endpoint, check whether it was successful, and throw if not.
         /// </summary>
-        /// <param name="requestInfo">IRequestInfo that was used to construct the original RequestMessage.</param>
-        /// <param name="message">The HttpRequestMessage that was send to the endpoint.</param>
-        /// <param name="response">The HttpResponseMessage we received and want to check for validity.</param>
-        /// <exception cref="ApiException">In case the response is considered to indicate an unexpected failure</exception>
-        protected virtual async Task CheckResponseAndThrowIfConsideredFailure(IRequestInfo requestInfo,
-            HttpRequestMessage message, HttpResponseMessage response)
+        /// <param name="requestInfo">IRequestInfo that was used to construct the original HttpRequestMessage</param>
+        /// <param name="request">HttpRequestMessage that was sent to the endpoint</param>
+        /// <param name="response">HttpResponseMessage which received from the endpoint</param>
+        protected virtual async Task EnsureSuccessulResponseIfNecessary(IRequestInfo requestInfo, HttpRequestMessage request, HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
             {
                 var deserializer = new ApiExceptionContentDeserializer(this, response, requestInfo);
-                throw await ApiException.CreateAsync(message, response, deserializer).ConfigureAwait(false);
+                throw await ApiException.CreateAsync(request, response, deserializer).ConfigureAwait(false);
             }
         }
 
