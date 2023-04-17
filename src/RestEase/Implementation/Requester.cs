@@ -13,7 +13,7 @@ namespace RestEase.Implementation
 {
     /// <summary>
     /// INTERNAL TYPE! This type may break between minor releases. Use at your own risk!
-    /// 
+    ///
     /// Class used by generated implementations to make HTTP requests
     /// </summary>
     public class Requester : IRequester
@@ -468,13 +468,24 @@ namespace RestEase.Implementation
             var completionOption = readBody ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead;
             var response = await this.httpClient.SendAsync(message, completionOption, requestInfo.CancellationToken).ConfigureAwait(false);
 
+            await this.EnsureSuccessulResponseIfNecessary(requestInfo, message, response).ConfigureAwait(false);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Take the <see cref="HttpResponseMessage"/> we received from then endpoint, check whether it was successful, and throw if not.
+        /// </summary>
+        /// <param name="requestInfo">IRequestInfo that was used to construct the original HttpRequestMessage</param>
+        /// <param name="request">HttpRequestMessage that was sent to the endpoint</param>
+        /// <param name="response">HttpResponseMessage which received from the endpoint</param>
+        protected virtual async Task EnsureSuccessulResponseIfNecessary(IRequestInfo requestInfo, HttpRequestMessage request, HttpResponseMessage response)
+        {
             if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
             {
                 var deserializer = new ApiExceptionContentDeserializer(this, response, requestInfo);
-                throw await ApiException.CreateAsync(message, response, deserializer).ConfigureAwait(false);
+                throw await ApiException.CreateAsync(request, response, deserializer).ConfigureAwait(false);
             }
-
-            return response;
         }
 
         private static void ApplyHttpRequestMessageProperties(IRequestInfo requestInfo, HttpRequestMessage requestMessage)
