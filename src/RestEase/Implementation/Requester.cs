@@ -468,7 +468,7 @@ namespace RestEase.Implementation
             var completionOption = readBody ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead;
             var response = await this.httpClient.SendAsync(message, completionOption, requestInfo.CancellationToken).ConfigureAwait(false);
 
-            await this.EnsureSuccessulResponseIfNecessary(requestInfo, message, response).ConfigureAwait(false);
+            await this.EnsureSuccessfulResponseIfNecessary(requestInfo, message, response).ConfigureAwait(false);
 
             return response;
         }
@@ -479,7 +479,7 @@ namespace RestEase.Implementation
         /// <param name="requestInfo">IRequestInfo that was used to construct the original HttpRequestMessage</param>
         /// <param name="request">HttpRequestMessage that was sent to the endpoint</param>
         /// <param name="response">HttpResponseMessage which received from the endpoint</param>
-        protected virtual async Task EnsureSuccessulResponseIfNecessary(IRequestInfo requestInfo, HttpRequestMessage request, HttpResponseMessage response)
+        protected virtual async Task EnsureSuccessfulResponseIfNecessary(IRequestInfo requestInfo, HttpRequestMessage request, HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode && !requestInfo.AllowAnyStatusCode)
             {

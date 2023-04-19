@@ -1,8 +1,8 @@
 Changelog
 =========
 
-v1.6.3
-------
+v1.6.3 and v1.6.4
+-----------------
 
  - Provide an extension point to customise the ApiException thrown for unsuccessful requests (#257)
 
