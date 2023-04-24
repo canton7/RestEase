@@ -80,6 +80,43 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             Task FooAsync<TCollection>([QueryMap] IDictionary<string, TCollection> map) where TCollection : IEnumerable<string>;
         }
 
+        public interface IHasIEnumerableKeyValuePairsQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync([QueryMap] IEnumerable<KeyValuePair<string, string>> map);
+        }
+
+        public interface IHasIEnumerableGenericKeyValuePairsQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync<TKey, TValue>([QueryMap] IEnumerable<KeyValuePair<TKey, TValue>> map)
+                where TKey : class
+                where TValue : IList<string>;
+        }
+
+        public interface IHasGenericIEnumerableKeyValuePairsQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync<TEnumerable>([QueryMap] TEnumerable map) where TEnumerable : IEnumerable<KeyValuePair<string, string>>;
+        }
+
+        public interface IHasGenericIEnumerableGenericKeyValuePairsQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync<TEnumerable, TKey, TValue>([QueryMap] TEnumerable map)
+                where TEnumerable : IEnumerable<KeyValuePair<TKey, TValue>>
+                where TValue : IList<string>;
+        }
+
+        public interface IHasGenericIEnumerableGenericKeyGenericListValueQueryMap
+        {
+            [Get("foo")]
+            Task FooAsync<TEnumerable, TKey, TValue, TItem>([QueryMap] TEnumerable map)
+                where TEnumerable : IEnumerable<KeyValuePair<TKey, TValue>>
+                where TValue : IList<TItem>
+                where TItem : class;
+        }
+
         public QueryMapTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -184,9 +221,9 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ThrowsIfInvalidQueryMapType()
         {
             this.VerifyDiagnostics<IHasInvalidQueryMap>(
-                // (4,27): Error REST013: [QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)
+                // (4,27): Error REST013: [QueryMap] parameter is not of the type IEnumerable<KeyValuePair<TKey, TValue>> (or its descendents)
                 // [QueryMap] string map
-                Diagnostic(DiagnosticCode.QueryMapParameterIsNotADictionary, "[QueryMap] string map").WithLocation(4, 27)
+                Diagnostic(DiagnosticCode.QueryMapParameterIsNotKeyValuePairs, "[QueryMap] string map").WithLocation(4, 27)
             );
         }
 
@@ -311,6 +348,88 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             param.SerializeToString(formatProvider.Object);
 
             formatProvider.Verify(x => x.GetFormat(typeof(NumberFormatInfo)));
+        }
+
+        [Fact]
+        public void HandlesIEnumerableKeyValuePairs()
+        {
+            var pair = new KeyValuePair<string, string>("k1", "v1");
+            var queryMap = new[]{ pair }.AsEnumerable();
+            var requestInfo = this.Request<IHasIEnumerableKeyValuePairsQueryMap>(x => x.FooAsync(queryMap));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Single(queryParam0);
+            Assert.Equal(pair.Key, queryParam0[0].Key);
+            Assert.Equal(pair.Value, queryParam0[0].Value);
+        }
+
+        [Fact]
+        public void HandlesIEnumerableGenericKeyValuePairs()
+        {
+            var pair = new KeyValuePair<string, List<string>>("k1", new List<string>{ "v1" });
+            var queryMap = new[]{ pair }.AsEnumerable();
+            var requestInfo = this.Request<IHasIEnumerableGenericKeyValuePairsQueryMap>(x => x.FooAsync(queryMap));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Single(queryParam0);
+            Assert.Equal(pair.Key, queryParam0[0].Key);
+            Assert.Equal(pair.Value[0], queryParam0[0].Value);
+        }
+
+        [Fact]
+        public void HandlesGenericIEnumerableKeyValuePairs()
+        {
+            var pair = new KeyValuePair<string, string>("k1", "v1");
+            var queryMap = new[]{ pair }.AsEnumerable();
+            var requestInfo = this.Request<IHasGenericIEnumerableKeyValuePairsQueryMap>(x => x.FooAsync(queryMap));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Single(queryParam0);
+            Assert.Equal(pair.Key, queryParam0[0].Key);
+            Assert.Equal(pair.Value, queryParam0[0].Value);
+        }
+
+        [Fact]
+        public void HandlesGenericIEnumerableGenericKeyValuePairs()
+        {
+            var pair = new KeyValuePair<string, List<string>>("k1", new List<string>{ "v1" });
+            var queryMap = new[]{ pair }.AsEnumerable();
+            var requestInfo = this.Request<IHasGenericIEnumerableGenericKeyValuePairsQueryMap>(x =>
+                x.FooAsync<IEnumerable<KeyValuePair<string, List<string>>>, string, List<string>>(queryMap));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Single(queryParam0);
+            Assert.Equal(pair.Key, queryParam0[0].Key);
+            Assert.Equal(pair.Value[0], queryParam0[0].Value);
+        }
+
+        [Fact]
+        public void HandlesGenericIEnumerableGenericKeyGenericListValuePairs()
+        {
+            var pair = new KeyValuePair<string, List<string>>("k1", new List<string>{ "v1" });
+            var queryMap = new[]{ pair }.AsEnumerable();
+            var requestInfo = this.Request<IHasGenericIEnumerableGenericKeyGenericListValueQueryMap>(x =>
+                x.FooAsync<IEnumerable<KeyValuePair<string, List<string>>>, string, List<string>, string>(queryMap));
+
+            var queryParams = requestInfo.QueryParams.ToList();
+
+            Assert.Single(queryParams);
+            var queryParam0 = queryParams[0].SerializeToString(null).ToList();
+            Assert.Single(queryParam0);
+            Assert.Equal(pair.Key, queryParam0[0].Key);
+            Assert.Equal(pair.Value[0], queryParam0[0].Value);
         }
     }
 }

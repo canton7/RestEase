@@ -101,8 +101,8 @@ namespace RestEase.SourceGenerator.Implementation
         private INamedTypeSymbol? ienumerableT;
         public INamedTypeSymbol? IEnumerableT => this.ienumerableT ??= this.LookupKnownSystem("System.Collections.Generic.IEnumerable`1");
 
-        private INamedTypeSymbol? idictionaryKV;
-        public INamedTypeSymbol? IDictionaryKV => this.idictionaryKV ??= this.LookupKnownSystem("System.Collections.Generic.IDictionary`2");
+        private INamedTypeSymbol? keyValuePairKV;
+        public INamedTypeSymbol? KeyValuePairKV => this.keyValuePairKV ??= this.LookupKnownSystem("System.Collections.Generic.KeyValuePair`2");
 
         private INamedTypeSymbol? httpMethod;
         public INamedTypeSymbol? HttpMethod => this.httpMethod ??= this.LookupKnownSystem("System.Net.Http.HttpMethod");

@@ -21,7 +21,7 @@ namespace RestEase.Implementation
         HeaderMustNotHaveColonInName = 10,
         PropertyMustBeReadWrite = 11,
         HeaderPropertyWithValueMustBeNullable = 12,
-        QueryMapParameterIsNotADictionary = 13,
+        QueryMapParameterIsNotKeyValuePairs = 13,
         AllowAnyStatusCodeAttributeNotAllowedOnParentInterface = 14,
         EventsNotAllowed = 15,
         PropertyMustBeReadOnly = 16,

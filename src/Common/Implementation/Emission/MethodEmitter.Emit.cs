@@ -397,7 +397,7 @@ namespace RestEase.Implementation.Emission
 
         private static MethodInfo? MakeQueryMapMethodInfo(Type queryMapType)
         {
-            var nullableDictionaryTypes = DictionaryTypesOfType(queryMapType);
+            var nullableDictionaryTypes = EnumerableKeyValueTypesOfType(queryMapType);
             if (nullableDictionaryTypes == null)
                 return null;
 
@@ -420,14 +420,18 @@ namespace RestEase.Implementation.Emission
             }
         }
 
-        private static KeyValuePair<Type, Type>? DictionaryTypesOfType(Type input)
+        private static KeyValuePair<Type, Type>? EnumerableKeyValueTypesOfType(Type input)
         {
             foreach (var baseType in EnumerableExtensions.Concat(input, input.GetTypeInfo().GetInterfaces()))
             {
-                if (baseType.GetTypeInfo().IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                if (baseType.GetTypeInfo().IsGenericType && baseType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 {
-                    var genericArguments = baseType.GetTypeInfo().GetGenericArguments();
-                    return new KeyValuePair<Type, Type>(genericArguments[0], genericArguments[1]);
+                    var enumeratedType = baseType.GetTypeInfo().GetGenericArguments()[0].GetTypeInfo();
+                    if (enumeratedType.IsGenericType && enumeratedType.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+                    {
+                        var genericArguments = enumeratedType.GetGenericArguments();
+                        return new KeyValuePair<Type, Type>(genericArguments[0], genericArguments[1]);
+                    }
                 }
             }
 

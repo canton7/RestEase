@@ -335,7 +335,7 @@ namespace RestEase.Implementation.Emission
 
         private string? GetQueryMapMethodName(ITypeSymbol queryMapType)
         {
-            var nullableDictionaryTypes = this.DictionaryTypesOfType(queryMapType);
+            var nullableDictionaryTypes = this.EnumerableKeyValueTypesOfType(queryMapType);
             if (nullableDictionaryTypes == null)
                 return null;
 
@@ -356,18 +356,21 @@ namespace RestEase.Implementation.Emission
             }
         }
 
-        private KeyValuePair<ITypeSymbol, ITypeSymbol>? DictionaryTypesOfType(ITypeSymbol input)
+        private KeyValuePair<ITypeSymbol, ITypeSymbol>? EnumerableKeyValueTypesOfType(ITypeSymbol input)
         {
             KeyValuePair<ITypeSymbol, ITypeSymbol>? result = null;
             if (input is INamedTypeSymbol value)
             {
                 foreach (var baseType in value.AllInterfaces.Prepend(value))
                 {
-                    if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IDictionaryKV))
+                    if (baseType.IsGenericType && SymbolEqualityComparer.Default.Equals(baseType.ConstructedFrom, this.wellKnownSymbols.IEnumerableT))
                     {
-                        result = new KeyValuePair<ITypeSymbol, ITypeSymbol>(
-                            baseType.TypeArguments[0], baseType.TypeArguments[1]);
-                        break;
+                        var enumeratedType = baseType.TypeArguments[0];
+                        result = this.KeyValueTypesOfType(enumeratedType);
+                        if (result != null)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -376,7 +379,33 @@ namespace RestEase.Implementation.Emission
                 // Are any of its constraints suitable dictionaries
                 foreach (var constraint in typeParameter.ConstraintTypes)
                 {
-                    result = this.DictionaryTypesOfType(constraint);
+                    result = this.EnumerableKeyValueTypesOfType(constraint);
+                    if (result != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private KeyValuePair<ITypeSymbol, ITypeSymbol>? KeyValueTypesOfType(ITypeSymbol input)
+        {
+            KeyValuePair<ITypeSymbol, ITypeSymbol>? result = null;
+            if (input is INamedTypeSymbol namedType)
+            {
+                if (namedType.IsGenericType && SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, this.wellKnownSymbols.KeyValuePairKV))
+                {
+                    result = new KeyValuePair<ITypeSymbol, ITypeSymbol>(namedType.TypeArguments[0], namedType.TypeArguments[1]);
+                }
+            }
+            else if (input is ITypeParameterSymbol typeParameter)
+            {
+                // Are any of its constraints suitable KeyValuePair
+                foreach (var constraint in typeParameter.ConstraintTypes)
+                {
+                    result = this.KeyValueTypesOfType(constraint);
                     if (result != null)
                     {
                         break;

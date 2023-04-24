@@ -357,7 +357,7 @@ public interface ISomeApi
 
 Sometimes you have a load of query parameters, or they're generated dynamically, etc. In this case, you may want to supply a dictionary of query parameters, rather than specifying a load of method parameters.
 
-To facilitate this, you may decorate one or more method parameters with `[QueryMap]`. The parameter type must be an `IDictionary<TKey, TValue>`.
+To facilitate this, you may decorate one or more method parameters with `[QueryMap]`. The parameter type must be an `IEnumerable<KeyValuePair<TKey, TValue>>`(`IDictionary<,>` already inherited).
 
 Query maps are handled the same way as other query parameters: serialization, handling of enumerables, null values, etc, behave the same. You can control whether values are serialized using a custom serializer or `ToString()` using e.g. `[QueryMap(QuerySerializationMethod.Serialized)]`.
 
@@ -367,9 +367,9 @@ For example:
 public interface ISomeApi
 {
     [Get("search")]
-    // I've used IDictionary<string, string[]> here, but you can use whatever type parameters you like,
-    // or any type which implements IDictionary<TKey, TValue>
-    Task<SearchResult> SearchBlogPostsAsync([QueryMap] IDictionary<string, string[]> filters);
+    // I've used Dictionary<string, string[]> here, but you can use whatever type parameters you like,
+    // or any type which implements IEnumerable<KeyValuePair<TKey, TValue>>
+    Task<SearchResult> SearchBlogPostsAsync([QueryMap] Dictionary<string, string[]> filters);
 }
 
 var api = RestClient.For<ISomeApi>("https://api.example.com");

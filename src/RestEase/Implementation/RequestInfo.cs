@@ -184,7 +184,7 @@ namespace RestEase.Implementation
         /// <typeparam name="TValue">Type of value in the query map</typeparam>
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="queryMap">Query map to add</param>
-        public void AddQueryMap<TKey, TValue>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap)
+        public void AddQueryMap<TKey, TValue>(QuerySerializationMethod serializationMethod, IEnumerable<KeyValuePair<TKey, TValue>> queryMap)
         {
             if (queryMap == null)
                 return;
@@ -220,7 +220,8 @@ namespace RestEase.Implementation
         /// <typeparam name="TElement">Type of element in the value</typeparam>
         /// <param name="serializationMethod">Method to use to serialize the value</param>
         /// <param name="queryMap">Query map to add</param>
-        public void AddQueryCollectionMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IDictionary<TKey, TValue> queryMap) where TValue : IEnumerable<TElement>
+        public void AddQueryCollectionMap<TKey, TValue, TElement>(QuerySerializationMethod serializationMethod, IEnumerable<KeyValuePair<TKey, TValue>> queryMap)
+            where TValue : IEnumerable<TElement>
         {
             if (queryMap == null)
                 return;
