@@ -1,9 +1,9 @@
-﻿using Moq;
-using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Moq;
+using RestEase.Implementation;
 using Xunit;
 using Xunit.Abstractions;
 

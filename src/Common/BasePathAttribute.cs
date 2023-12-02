@@ -14,7 +14,7 @@ namespace RestEase
         public string BasePath { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BasePathAttribute"/> class with the given base path
+        /// Initializes a new instance of the <see cref="BasePathAttribute"/> class with the given base path
         /// </summary>
         /// <param name="basePath">Base path to use</param>
         public BasePathAttribute(string basePath)

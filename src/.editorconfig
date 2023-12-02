@@ -93,7 +93,7 @@ csharp_style_unused_value_assignment_preference = discard_variable:silent
 csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 
-# Miscellanious preferences
+# Miscellaneous preferences
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_using_directive_placement = outside_namespace:warning
@@ -122,7 +122,7 @@ csharp_new_line_between_query_expression_clauses = true
 csharp_indent_case_contents = true
 csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
-csharp_indent_block_contents = true 
+csharp_indent_block_contents = true
 csharp_indent_braces = false
 csharp_indent_case_contents_when_block = false
 
@@ -236,4 +236,4 @@ dotnet_naming_rule.type_parameters_must_begin_with_t.severity = warning
 
 dotnet_diagnostic.CA1816.severity = none
 dotnet_diagnostic.IDE0079.severity = none # Seems to be mis-firing all the time
-dotnet_diagnostic.IDE0057.severity = none # Can't use Range, as targetting things that don't define it
+dotnet_diagnostic.IDE0057.severity = none # Can't use Range, as targeting things that don't define it

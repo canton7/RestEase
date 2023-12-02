@@ -14,7 +14,7 @@
         public IRequestInfo RequestInfo { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="ResponseDeserializerInfo"/> structure
+        /// Initializes a new instance of the <see cref="ResponseDeserializerInfo"/> structure
         /// </summary>
         /// <param name="requestInfo">Information about the request</param>
         public ResponseDeserializerInfo(IRequestInfo requestInfo)

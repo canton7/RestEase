@@ -21,7 +21,7 @@ namespace RestEase.Implementation
         public object? ObjectValue { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BodyParameterInfo{T}"/> class
+        /// Initializes a new instance of the <see cref="BodyParameterInfo{T}"/> class
         /// </summary>
         /// <param name="serializationMethod">Method to use the serialize the body</param>
         /// <param name="objectValue">Body to serialize, as an object</param>
@@ -55,7 +55,7 @@ namespace RestEase.Implementation
         public T Value { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BodyParameterInfo{T}"/> class
+        /// Initializes a new instance of the <see cref="BodyParameterInfo{T}"/> class
         /// </summary>
         /// <param name="serializationMethod">Method to use the serialize the body</param>
         /// <param name="value">Body to serialize</param>

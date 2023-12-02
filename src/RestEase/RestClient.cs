@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using RestEase.Implementation;
-using RestEase.Platform;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Collections.Generic;
+using Newtonsoft.Json;
+using RestEase.Implementation;
+using RestEase.Platform;
 
 namespace RestEase
 {
@@ -88,7 +88,7 @@ namespace RestEase
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// Gets or sets the builder to use to construct encoded query strings from various parmaeters
+        /// Gets or sets the builder to use to construct encoded query strings from various parameters
         /// </summary>
         /// <remarks>
         /// Defaults to null, in which case the default building logic is used
@@ -104,14 +104,14 @@ namespace RestEase
         public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// Initializes a new instance of the <see cref="RestClient"/> class, without a Base Address.
         /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
         /// or should only use absolute paths.
         /// </summary>
         public RestClient() : this((string?)null) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
+        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -134,7 +134,7 @@ namespace RestEase
         public static T For<T>(string? baseUrl = null) => new RestClient(baseUrl).For<T>();
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
+        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -157,7 +157,7 @@ namespace RestEase
         public static T For<T>(Uri? baseUrl) => new RestClient(baseUrl).For<T>();
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// Initializes a new instance of the <see cref="RestClient"/> class, without a Base Address.
         /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
         /// or should only use absolute paths.
         /// </summary>
@@ -174,7 +174,7 @@ namespace RestEase
         public static T For<T>(RequestModifier requestModifier) => new RestClient(requestModifier).For<T>();
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -202,7 +202,7 @@ namespace RestEase
             new RestClient(baseUrl, requestModifier).For<T>();
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -230,7 +230,7 @@ namespace RestEase
             new RestClient(baseUrl, requestModifier).For<T>();
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class with the given <see cref="HttpMessageHandler"/>,
+        /// Initializes a new instance of the <see cref="RestClient"/> class with the given <see cref="HttpMessageHandler"/>,
         /// without a Base Address. The interface should have an absolute <see cref="BaseAddressAttribute"/> or
         /// <see cref="BasePathAttribute"/>, or should only use absolute paths.
         /// </summary>
@@ -261,7 +261,7 @@ namespace RestEase
         public static T For<T>(HttpMessageHandler messageHandler) => new RestClient(messageHandler).For<T>();
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// Initializes a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -296,7 +296,7 @@ namespace RestEase
         public static T For<T>(string? baseUrl, HttpMessageHandler messageHandler) =>
             new RestClient(baseUrl, messageHandler).For<T>();
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// Initializes a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -333,7 +333,7 @@ namespace RestEase
 
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RestClient"/> class, using the given HttpClient
+        /// Initializes a new instance of the <see cref="RestClient"/> class, using the given HttpClient
         /// </summary>
         /// <param name="httpClient">HttpClient to use</param>
         public RestClient(HttpClient httpClient)
@@ -376,7 +376,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// Create a client using the given IRequester. This gives you the greatest ability to customize functionality
         /// </summary>
         /// <param name="type">Interface representing the API</param>
         /// <param name="requester">IRequester to use</param>
@@ -436,7 +436,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// Create a client using the given IRequester. This gives you the greatest ability to customize functionality
         /// </summary>
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="requester">IRequester to use</param>
@@ -494,7 +494,7 @@ namespace RestEase
         /// <param name="baseUrl">Base URL</param>
         /// <param name="requestModifier">Delegate called on every request</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestBodySerializer">Serializer to use when serializing request bodiess, when appropriate</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
         public static T For<T>(string baseUrl, RequestModifier requestModifier, ResponseDeserializer? responseDeserializer = null, RequestBodySerializer? requestBodySerializer = null)

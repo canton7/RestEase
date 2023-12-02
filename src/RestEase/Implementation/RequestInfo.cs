@@ -125,7 +125,7 @@ namespace RestEase.Implementation
         public MethodInfo MethodInfo { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RequestInfo"/> class
+        /// Initializes a new instance of the <see cref="RequestInfo"/> class
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
@@ -134,7 +134,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RequestInfo"/> class
+        /// Initializes a new instance of the <see cref="RequestInfo"/> class
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
@@ -237,7 +237,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Add a raw query parameter, which provides a string which is inserted verbatim into the query string
         /// </summary>
-        /// <typeparam name="T">Type of the raw query parmaeter</typeparam>
+        /// <typeparam name="T">Type of the raw query parameter</typeparam>
         /// <param name="value">Raw query parameter</param>
         public void AddRawQueryParameter<T>(T value)
         {

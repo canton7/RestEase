@@ -186,7 +186,7 @@ namespace RestEase.Implementation
             yield return interfaceTypeInfo;
             foreach (var parent in this.interfaceTypeInfo.GetInterfaces())
             {
-               yield return parent.GetTypeInfo();
+                yield return parent.GetTypeInfo();
             }
         }
 

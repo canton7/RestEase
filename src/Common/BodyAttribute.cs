@@ -14,7 +14,7 @@ namespace RestEase
         public BodySerializationMethod SerializationMethod { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BodyAttribute"/> class
+        /// Initializes a new instance of the <see cref="BodyAttribute"/> class
         /// </summary>
         public BodyAttribute()
             : this(BodySerializationMethod.Default)
@@ -22,7 +22,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BodyAttribute"/> class, using the given body serialization method
+        /// Initializes a new instance of the <see cref="BodyAttribute"/> class, using the given body serialization method
         /// </summary>
         /// <param name="serializationMethod">Serialization method to use when serializing the body object</param>
         public BodyAttribute(BodySerializationMethod serializationMethod)

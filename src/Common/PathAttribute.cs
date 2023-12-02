@@ -38,7 +38,7 @@ namespace RestEase
         public bool UrlEncode { get; set; } = true;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PathAttribute"/> class
+        /// Initializes a new instance of the <see cref="PathAttribute"/> class
         /// </summary>
         public PathAttribute()
             : this(PathSerializationMethod.Default)
@@ -56,7 +56,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PathAttribute"/> class, with the given name
+        /// Initializes a new instance of the <see cref="PathAttribute"/> class, with the given name
         /// </summary>
         /// <param name="name">Placeholder in the path to replace</param>
         public PathAttribute(string name)
@@ -65,7 +65,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PathAttribute"/> class, with the given name and serialization method
+        /// Initializes a new instance of the <see cref="PathAttribute"/> class, with the given name and serialization method
         /// </summary>
         /// <param name="name">Placeholder in the path to replace</param>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>

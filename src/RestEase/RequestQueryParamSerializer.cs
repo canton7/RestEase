@@ -5,7 +5,7 @@ namespace RestEase
 {
 #pragma warning disable CS0618 // Type or member is obsolete
     /// <summary>
-    /// Helper which knows how to serialize query parmaeters
+    /// Helper which knows how to serialize query parameters
     /// </summary>
     public abstract class RequestQueryParamSerializer : IRequestQueryParamSerializer
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -19,9 +19,9 @@ namespace RestEase
         /// </remarks>
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <param name="name">Name of the query parameter</param>
-        /// <param name="values">Values of the query parmaeter</param>
+        /// <param name="values">Values of the query parameter</param>
         /// <param name="info">Extra info which may be useful to the serializer</param>
-        /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
+        /// <returns>A collection of name -> value pairs to use as query parameters</returns>
         public virtual IEnumerable<KeyValuePair<string, string?>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
         {
             throw new NotImplementedException($"You must override and implement SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info) in {this.GetType().Name}");
@@ -38,7 +38,7 @@ namespace RestEase
         /// <param name="name">Name of the query parameter</param>
         /// <param name="value">Value of the query parameter</param>
         /// <param name="info">Extra info which may be useful to the serializer</param>
-        /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
+        /// <returns>A collection of name -> value pairs to use as query parameters</returns>
         public virtual IEnumerable<KeyValuePair<string, string?>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
         {
             throw new NotImplementedException($"You must override and implement SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info) in {this.GetType().Name}");

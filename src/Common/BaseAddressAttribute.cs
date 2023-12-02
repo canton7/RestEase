@@ -14,7 +14,7 @@ namespace RestEase
         public string BaseAddress { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BaseAddressAttribute"/> class with the given base address
+        /// Initializes a new instance of the <see cref="BaseAddressAttribute"/> class with the given base address
         /// </summary>
         /// <param name="baseAddress">Base path to use</param>
         public BaseAddressAttribute(string baseAddress)

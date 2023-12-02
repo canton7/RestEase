@@ -24,7 +24,7 @@ namespace RestEase
         public PathSerializationMethod Path { get; set; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SerializationMethodsAttribute"/> class
+        /// Initializes a new instance of the <see cref="SerializationMethodsAttribute"/> class
         /// </summary>
         public SerializationMethodsAttribute()
         {

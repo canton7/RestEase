@@ -54,7 +54,7 @@ namespace RestEase.Implementation
         public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
+        /// Initializes a new instance of the <see cref="Requester"/> class, using the given HttpClient
         /// </summary>
         /// <param name="httpClient">HttpClient to use to make requests</param>
         public Requester(HttpClient httpClient)
@@ -67,7 +67,7 @@ namespace RestEase.Implementation
         /// placeholders substituted for their desired values.
         /// </summary>
         /// <remarks>
-        /// Note that this method assumes that valdation has occurred. That is, there won't by any
+        /// Note that this method assumes that validation has occurred. That is, there won't by any
         /// placeholders with no value, or values without a placeholder.
         /// </remarks>
         /// <param name="path">Path to substitute placeholders in</param>
@@ -162,7 +162,7 @@ namespace RestEase.Implementation
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
         /// <param name="rawQueryParameters">The raw query parameters, if any</param>
         /// <param name="queryParams">The query parameters which need serializing (or an empty collection)</param>
-        /// <param name="queryProperties">The query parameters from properties which need serialializing (or an empty collection)</param>
+        /// <param name="queryProperties">The query parameters from properties which need serializing (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <returns>Query params combined into a query string</returns>
         protected virtual string BuildQueryParam(
@@ -348,7 +348,7 @@ namespace RestEase.Implementation
 
         /// <summary>
         /// Given an IRequestInfo containing a number of class/method/param headers, and a HttpRequestMessage,
-        /// add the headers to the message, taing priority and overriding into account
+        /// add the headers to the message, taking priority and overriding into account
         /// </summary>
         /// <param name="requestInfo">IRequestInfo to get the headers from</param>
         /// <param name="requestMessage">HttpRequestMessage to add the headers to</param>

@@ -123,7 +123,7 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor requesterPropertyMustHaveZeroAttributes = CreateDescriptor(
             DiagnosticCode.RequesterPropertyMustHaveZeroAttributes,
             "IRequester properties must not have any attributes",
-            "IRequester property must not have any attribtues");
+            "IRequester property must not have any attributes");
         public void ReportRequesterPropertyMustHaveZeroAttributes(PropertyModel propertyModel, List<AttributeModel> attributes)
         {
             this.AddDiagnostic(
@@ -276,7 +276,7 @@ namespace RestEase.Implementation.Emission
 
         private static readonly DiagnosticDescriptor parameterMustNotBeByRef = CreateDescriptor(
             DiagnosticCode.ParameterMustNotBeByRef,
-            "Method parameters must not not be ref, in or out",
+            "Method parameters must not be ref, in or out",
             "Method parameter '{0}' must not be ref, in or out");
         public void ReportParameterMustNotBeByRef(MethodModel _, ParameterModel parameter)
         {
@@ -317,7 +317,7 @@ namespace RestEase.Implementation.Emission
         private static readonly DiagnosticDescriptor queryMapParameterIsNotADictionary = CreateDescriptor(
             DiagnosticCode.QueryMapParameterIsNotADictionary,
             "QueryMap parameters must be dictionaries",
-            "[QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendents)");
+            "[QueryMap] parameter is not of the type IDictionary or IDictionary<TKey, TValue> (or their descendants)");
         public void ReportQueryMapParameterIsNotADictionary(MethodModel _, ParameterModel parameter)
         {
             this.AddDiagnostic(queryMapParameterIsNotADictionary, SymbolLocations(parameter.ParameterSymbol));
@@ -400,7 +400,7 @@ namespace RestEase.Implementation.Emission
 
         private static readonly DiagnosticDescriptor couldNotFindSystemType = CreateDescriptor(
             DiagnosticCode.CouldNotFindSystemType,
-            "Unable to find System type type",
+            "Unable to find System type",
             "Unable to find System type '{0}'. Make sure you are referencing the appropriate assembly");
         public void ReportCouldNotFindSystemType(string metadataName)
         {
@@ -419,8 +419,8 @@ namespace RestEase.Implementation.Emission
 
         private static readonly DiagnosticDescriptor attributeConstructorNotRecognised = CreateDescriptor(
             DiagnosticCode.AttributeConstructorNotRecognised,
-            "Attribute constructor not recognised",
-            "Constructor for attribute type '{0}' not recongised. This attribute will be ignored. Make sure you're referencing an up-to-date version of RestEase",
+            "Attribute constructor not recognized",
+            "Constructor for attribute type '{0}' not recognized. This attribute will be ignored. Make sure you're referencing an up-to-date version of RestEase",
             DiagnosticSeverity.Warning);
         public void ReportAttributeConstructorNotRecognised(AttributeData attributeData, ISymbol declaringSymbol)
         {
@@ -432,8 +432,8 @@ namespace RestEase.Implementation.Emission
 
         private static readonly DiagnosticDescriptor attributePropertyNotRecognised = CreateDescriptor(
             DiagnosticCode.AttributePropertyNotRecognised,
-            "Attribute property not recognised",
-            "Property '{0} for attribute type '{1}' not recongised. This property will be ignored. Make sure you're referencing an up-to-date version of RestEase",
+            "Attribute property not recognized",
+            "Property '{0} for attribute type '{1}' not recognized. This property will be ignored. Make sure you're referencing an up-to-date version of RestEase",
             DiagnosticSeverity.Warning);
         public void ReportAttributePropertyNotRecognised(AttributeData attributeData, KeyValuePair<string, TypedConstant> namedArgument, ISymbol declaringSymbol)
         {

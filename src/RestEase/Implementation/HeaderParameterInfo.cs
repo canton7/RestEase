@@ -32,7 +32,7 @@ namespace RestEase.Implementation
         private readonly string? format;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="HeaderParameterInfo{T}"/> class
+        /// Initializes a new instance of the <see cref="HeaderParameterInfo{T}"/> class
         /// </summary>
         /// <param name="name">Name of the header</param>
         /// <param name="value">Value of the header</param>

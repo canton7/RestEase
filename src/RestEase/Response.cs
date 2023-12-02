@@ -39,11 +39,11 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="Response{T}"/> class
+        /// Initializes a new instance of the <see cref="Response{T}"/> class
         /// </summary>
         /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage received</param>
-        /// <param name="contentDeserializer">Func which will deserialize the content into a T</param>
+        /// <param name="contentDeserializer"><see cref="Func{T}"/> which will deserialize the content into a T</param>
         public Response(string? content, HttpResponseMessage response, Func<T> contentDeserializer)
         {
             this.StringContent = content;

@@ -37,7 +37,7 @@ namespace RestEase
     public sealed class RequestAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod.
+        /// Initializes a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod.
         /// </summary>
         /// <remarks>
         /// Use this if there isn't a <see cref="RequestAttribute"/> subclass for the HTTP method you want to use
@@ -49,7 +49,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod and relative path.
+        /// Initializes a new instance of the <see cref="RequestAttribute"/> class, with the given HttpMethod and relative path.
         /// </summary>
         /// <remarks>
         /// Use this if there isn't a <see cref="RequestAttribute"/> subclass for the HTTP method you want to use
@@ -69,12 +69,12 @@ namespace RestEase
     public sealed class DeleteAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="DeleteAttribute"/> class
+        /// Initializes a new instance of the <see cref="DeleteAttribute"/> class
         /// </summary>
         public DeleteAttribute() : base(HttpMethod.Delete) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="DeleteAttribute"/> class, with the given relative path
+        /// Initializes a new instance of the <see cref="DeleteAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public DeleteAttribute(string path) : base(HttpMethod.Delete, path) { }
@@ -87,12 +87,12 @@ namespace RestEase
     public sealed class GetAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="GetAttribute"/> class
+        /// Initializes a new instance of the <see cref="GetAttribute"/> class
         /// </summary>
         public GetAttribute() : base(HttpMethod.Get) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="GetAttribute"/> class, with the given relative path
+        /// Initializes a new instance of the <see cref="GetAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public GetAttribute(string path) : base(HttpMethod.Get, path) { }
@@ -105,12 +105,12 @@ namespace RestEase
     public sealed class HeadAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="HeadAttribute"/> class
+        /// Initializes a new instance of the <see cref="HeadAttribute"/> class
         /// </summary>
         public HeadAttribute() : base(HttpMethod.Head) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="HeadAttribute"/> class, with the given relative path
+        /// Initializes a new instance of the <see cref="HeadAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public HeadAttribute(string path) : base(HttpMethod.Head, path) { }
@@ -123,12 +123,12 @@ namespace RestEase
     public sealed class OptionsAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="OptionsAttribute"/> class
+        /// Initializes a new instance of the <see cref="OptionsAttribute"/> class
         /// </summary>
         public OptionsAttribute() : base(HttpMethod.Options) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="OptionsAttribute"/> class, with the given relative path
+        /// Initializes a new instance of the <see cref="OptionsAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public OptionsAttribute(string path) : base(HttpMethod.Options, path) { }
@@ -141,12 +141,12 @@ namespace RestEase
     public sealed class PostAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="PostAttribute"/> class
+        /// Initializes a new instance of the <see cref="PostAttribute"/> class
         /// </summary>
         public PostAttribute() : base(HttpMethod.Post) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PostAttribute"/> class, with the given relative path
+        /// Initializes a new instance of the <see cref="PostAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public PostAttribute(string path) : base(HttpMethod.Post, path) { }
@@ -159,12 +159,12 @@ namespace RestEase
     public sealed class PutAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="PutAttribute"/> class
+        /// Initializes a new instance of the <see cref="PutAttribute"/> class
         /// </summary>
         public PutAttribute() : base(HttpMethod.Put) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PutAttribute"/> class, with the given relativ epath
+        /// Initializes a new instance of the <see cref="PutAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public PutAttribute(string path) : base(HttpMethod.Put, path) { }
@@ -177,12 +177,12 @@ namespace RestEase
     public sealed class TraceAttribute : RequestAttributeBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="TraceAttribute"/> class
+        /// Initializes a new instance of the <see cref="TraceAttribute"/> class
         /// </summary>
         public TraceAttribute() : base(HttpMethod.Trace) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="TraceAttribute"/> class, with the given relative path
+        /// Initializes a new instance of the <see cref="TraceAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public TraceAttribute(string path) : base(HttpMethod.Trace, path) { }
@@ -200,12 +200,12 @@ namespace RestEase
         public static HttpMethod PatchMethod { get; } = new HttpMethod("PATCH");
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PatchAttribute"/> class
+        /// Initializes a new instance of the <see cref="PatchAttribute"/> class
         /// </summary>
         public PatchAttribute() : base(PatchMethod) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PatchAttribute"/> class, with the given relativ epath
+        /// Initializes a new instance of the <see cref="PatchAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public PatchAttribute(string path) : base(PatchMethod, path) { }

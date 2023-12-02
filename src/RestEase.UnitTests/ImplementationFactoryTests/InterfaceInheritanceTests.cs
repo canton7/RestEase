@@ -175,7 +175,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void DoesNotAllowAllowAnyStatusCodeOnChildInterfaces()
         {
             this.VerifyDiagnostics<IParentWithAllowAnyStatusCode>(
-                // (-4,10): Error REST014: Parent interface (of tyoe 'IParentWithAllowAnyStatusCode') may not have an [AllowAnyStatusCode] attribute
+                // (-4,10): Error REST014: Parent interface (of type 'IParentWithAllowAnyStatusCode') may not have an [AllowAnyStatusCode] attribute
                 // AllowAnyStatusCode
                 Diagnostic(DiagnosticCode.AllowAnyStatusCodeAttributeNotAllowedOnParentInterface, "AllowAnyStatusCode").WithLocation(-4, 10)
             );

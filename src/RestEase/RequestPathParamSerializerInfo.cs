@@ -27,7 +27,7 @@ namespace RestEase
         public IFormatProvider? FormatProvider { get; }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RequestPathParamSerializerInfo"/> structure
+        /// Initializes a new instance of the <see cref="RequestPathParamSerializerInfo"/> structure
         /// </summary>
         /// <param name="requestInfo">Information about the request</param>
         /// <param name="format">Format string specified using <see cref="PathAttribute.Format"/></param>
