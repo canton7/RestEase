@@ -54,7 +54,7 @@ namespace RestEase
         public bool HasContent => !string.IsNullOrWhiteSpace(this.Content);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>
+        /// Initialises a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>
         /// </summary>
         /// <param name="request">Request which triggered the exception</param>
         /// <param name="response"><see cref="HttpResponseMessage"/> provided by the <see cref="HttpClient"/></param>
@@ -65,7 +65,7 @@ namespace RestEase
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>,
+        /// Initialises a new instance of the <see cref="ApiException"/> class with the given <see cref="HttpResponseMessage"/>,
         /// which can deserialize the responses
         /// </summary>
         /// <param name="request">Request which triggered the exception</param>
@@ -91,7 +91,7 @@ namespace RestEase
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiException"/> class with the given components
+        /// Initialises a new instance of the <see cref="ApiException"/> class with the given components
         /// </summary>
         /// <param name="requestMethod"><see cref="HttpMethod"/> used to make the request which failed</param>
         /// <param name="requestUri"><see cref="Uri"/> to which the request which failed was made</param>
@@ -111,7 +111,7 @@ namespace RestEase
             : this(requestMethod, requestUri, statusCode, reasonPhrase, headers, contentHeaders, contentString, null) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApiException"/> class with the given components,
+        /// Initialises a new instance of the <see cref="ApiException"/> class with the given components,
         /// which can deserialize the responses
         /// </summary>
         /// <param name="requestMethod"><see cref="HttpMethod"/> used to make the request which failed</param>

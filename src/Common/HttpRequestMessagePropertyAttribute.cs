@@ -14,13 +14,13 @@ namespace RestEase
         public string? Key { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class
+        /// Initialises a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class
         /// </summary>
         public HttpRequestMessagePropertyAttribute()
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class, with the given key
+        /// Initialises a new instance of the <see cref="HttpRequestMessagePropertyAttribute"/> class, with the given key
         /// </summary>
         /// <param name="key">key</param>
         public HttpRequestMessagePropertyAttribute(string key)

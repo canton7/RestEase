@@ -28,7 +28,7 @@ namespace RestEase.Implementation
         private readonly T value;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RawQueryParameterInfo{T}"/> class
+        /// Initialises a new instance of the <see cref="RawQueryParameterInfo{T}"/> class
         /// </summary>
         /// <param name="value">Value which provides the raw query parameter</param>
         public RawQueryParameterInfo(T value)

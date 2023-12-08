@@ -39,7 +39,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Response{T}"/> class
+        /// Initialises a new instance of the <see cref="Response{T}"/> class
         /// </summary>
         /// <param name="content">String content read from the response</param>
         /// <param name="response">HttpResponseMessage received</param>

@@ -15,7 +15,7 @@ namespace RestEase.Implementation
         public DiagnosticCode Code { get; } = DiagnosticCode.None;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImplementationCreationException"/> class
+        /// Initialises a new instance of the <see cref="ImplementationCreationException"/> class
         /// </summary>
         /// <param name="code">Code of this error</param>
         /// <param name="message">Message to use</param>
@@ -26,7 +26,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImplementationCreationException"/> class
+        /// Initialises a new instance of the <see cref="ImplementationCreationException"/> class
         /// </summary>
         /// <param name="message">Message to use</param>
         public ImplementationCreationException(string message)
@@ -34,7 +34,7 @@ namespace RestEase.Implementation
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImplementationCreationException"/> class
+        /// Initialises a new instance of the <see cref="ImplementationCreationException"/> class
         /// </summary>
         /// <param name="message">Message to use</param>
         /// <param name="innerException">InnerException to use</param>

@@ -46,7 +46,7 @@ namespace RestEase.Implementation
         private readonly string? format;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryParameterInfo{T}"/> class
+        /// Initialises a new instance of the <see cref="QueryParameterInfo{T}"/> class
         /// </summary>
         /// <param name="serializationMethod">Method to use the serialize the query value</param>
         /// <param name="name">Name of the name/value pair</param>
@@ -102,7 +102,7 @@ namespace RestEase.Implementation
         private readonly string? format;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryCollectionParameterInfo{T}"/> class
+        /// Initialises a new instance of the <see cref="QueryCollectionParameterInfo{T}"/> class
         /// </summary>
         /// <param name="serializationMethod">Method to use the serialize the query values</param>
         /// <param name="name">Name of the name/values pair</param>

@@ -104,14 +104,14 @@ namespace RestEase
         public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
         /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
         /// or should only use absolute paths.
         /// </summary>
         public RestClient() : this((string?)null) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -134,7 +134,7 @@ namespace RestEase
         public static T For<T>(string? baseUrl = null) => new RestClient(baseUrl).For<T>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -157,7 +157,7 @@ namespace RestEase
         public static T For<T>(Uri? baseUrl) => new RestClient(baseUrl).For<T>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, without a Base Address.
+        /// Initialises a new instance of the <see cref="RestClient"/> class, without a Base Address.
         /// The interface should have an absolute <see cref="BaseAddressAttribute"/> or <see cref="BasePathAttribute"/>,
         /// or should only use absolute paths.
         /// </summary>
@@ -174,7 +174,7 @@ namespace RestEase
         public static T For<T>(RequestModifier requestModifier) => new RestClient(requestModifier).For<T>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -202,7 +202,7 @@ namespace RestEase
             new RestClient(baseUrl, requestModifier).For<T>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
+        /// Initialises a new instance of the <see cref="RestClient"/> class, with the given Base URL and request modifier
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -230,7 +230,7 @@ namespace RestEase
             new RestClient(baseUrl, requestModifier).For<T>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class with the given <see cref="HttpMessageHandler"/>,
+        /// Initialises a new instance of the <see cref="RestClient"/> class with the given <see cref="HttpMessageHandler"/>,
         /// without a Base Address. The interface should have an absolute <see cref="BaseAddressAttribute"/> or
         /// <see cref="BasePathAttribute"/>, or should only use absolute paths.
         /// </summary>
@@ -261,7 +261,7 @@ namespace RestEase
         public static T For<T>(HttpMessageHandler messageHandler) => new RestClient(messageHandler).For<T>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// Initialises a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -296,7 +296,7 @@ namespace RestEase
         public static T For<T>(string? baseUrl, HttpMessageHandler messageHandler) =>
             new RestClient(baseUrl, messageHandler).For<T>();
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
+        /// Initialises a new instance of the <see cref="RestClient"/> class with the given Base URL and <see cref="HttpMessageHandler"/>
         /// </summary>
         /// <param name="baseUrl">
         /// Base address to use for requests (may be <c>null</c> if your interface has an absolute
@@ -333,7 +333,7 @@ namespace RestEase
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestClient"/> class, using the given HttpClient
+        /// Initialises a new instance of the <see cref="RestClient"/> class, using the given HttpClient
         /// </summary>
         /// <param name="httpClient">HttpClient to use</param>
         public RestClient(HttpClient httpClient)

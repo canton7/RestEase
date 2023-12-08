@@ -54,7 +54,7 @@ namespace RestEase.Implementation
         public IFormatProvider? FormatProvider { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Requester"/> class, using the given HttpClient
+        /// Initialises a new instance of the <see cref="Requester"/> class, using the given HttpClient
         /// </summary>
         /// <param name="httpClient">HttpClient to use to make requests</param>
         public Requester(HttpClient httpClient)

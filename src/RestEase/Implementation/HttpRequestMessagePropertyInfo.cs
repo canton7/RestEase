@@ -18,7 +18,7 @@
         public object Value { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpRequestMessagePropertyInfo"/> Structure
+        /// Initialises a new instance of the <see cref="HttpRequestMessagePropertyInfo"/> Structure
         /// </summary>
         /// <param name="key">Key of the key/value pair</param>
         /// <param name="value">Value of the key/value pair</param>

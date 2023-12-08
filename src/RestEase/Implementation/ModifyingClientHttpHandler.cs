@@ -15,7 +15,7 @@ namespace RestEase.Implementation
         private readonly RequestModifier requestModifier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ModifyingClientHttpHandler"/> class,
+        /// Initialises a new instance of the <see cref="ModifyingClientHttpHandler"/> class,
         /// using the given delegate to modify requests
         /// </summary>
         /// <param name="requestModifier">Delegate to use to modify requests</param>

@@ -14,7 +14,7 @@ namespace RestEase
         public QuerySerializationMethod SerializationMethod { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryMapAttribute"/> class
+        /// Initialises a new instance of the <see cref="QueryMapAttribute"/> class
         /// </summary>
         public QueryMapAttribute()
             : this(QuerySerializationMethod.Default)
@@ -22,7 +22,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryMapAttribute"/> with the given serialization method
+        /// Initialises a new instance of the <see cref="QueryMapAttribute"/> with the given serialization method
         /// </summary>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public QueryMapAttribute(QuerySerializationMethod serializationMethod)

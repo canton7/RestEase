@@ -32,7 +32,7 @@ namespace RestEase
         public string? Format { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HeaderAttribute"/> class
+        /// Initialises a new instance of the <see cref="HeaderAttribute"/> class
         /// </summary>#
         /// 
         /// <param name="name">Name of the header</param>
@@ -43,7 +43,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HeaderAttribute"/> class
+        /// Initialises a new instance of the <see cref="HeaderAttribute"/> class
         /// </summary>
         /// <param name="name">Name of the header</param>
         /// <param name="value">Value of the header</param>

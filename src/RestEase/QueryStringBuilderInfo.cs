@@ -46,7 +46,7 @@ namespace RestEase
         public IFormatProvider? FormatProvider { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryStringBuilderInfo"/> class
+        /// Initialises a new instance of the <see cref="QueryStringBuilderInfo"/> class
         /// </summary>
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
         /// <param name="rawQueryParameters">The raw query parameters, if any</param>

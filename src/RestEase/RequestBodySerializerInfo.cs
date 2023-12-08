@@ -22,7 +22,7 @@ namespace RestEase
         public IFormatProvider? FormatProvider { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequestBodySerializerInfo"/> structure
+        /// Initialises a new instance of the <see cref="RequestBodySerializerInfo"/> structure
         /// </summary>
         /// <param name="requestInfo">Information about the request</param>
         /// <param name="formatProvider">Format provider to use</param>

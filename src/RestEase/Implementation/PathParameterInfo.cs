@@ -50,7 +50,7 @@ namespace RestEase.Implementation
         private readonly string? format;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PathParameterInfo{T}"/> Structure
+        /// Initialises a new instance of the <see cref="PathParameterInfo{T}"/> Structure
         /// </summary>
         /// <param name="name">Name of the name/value pair</param>
         /// <param name="value">Value of the name/value pair</param>

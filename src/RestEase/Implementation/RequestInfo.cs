@@ -125,7 +125,7 @@ namespace RestEase.Implementation
         public MethodInfo MethodInfo { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequestInfo"/> class
+        /// Initialises a new instance of the <see cref="RequestInfo"/> class
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
@@ -134,7 +134,7 @@ namespace RestEase.Implementation
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequestInfo"/> class
+        /// Initialises a new instance of the <see cref="RequestInfo"/> class
         /// </summary>
         /// <param name="method">HttpMethod to use when making the request</param>
         /// <param name="path">Relative path to request</param>
