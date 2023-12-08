@@ -162,9 +162,9 @@ Your interface methods may return one of the following types:
 
  - `Task`: This method does not return any data, but the task will complete when the request has completed
  - `Task<T>` (where `T` is not one of the types listed below): This method will deserialize the response into an object of type `T`, using Json.NET (or a custom deserializer, see [Controlling Serialization and Deserialization below](#controlling-serialization-and-deserialization)).
- - `Task<string>`: This method returns the raw response, as a string (although this can be customised, [see here]((#deserializing-responses-responsedeserializer))).
- - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpresponsemessage) resulting from the request. It does not do any deserialiation. You must dispose this object after use.
- - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialied response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers. You must dispose this object after use.
+ - `Task<string>`: This method returns the raw response, as a string (although this can be customized, [see here]((#deserializing-responses-responsedeserializer))).
+ - `Task<HttpResponseMessage>`: This method returns the raw [`HttpResponseMessage`](https://docs.microsoft.com/en-gb/dotnet/api/system.net.http.httpresponsemessage) resulting from the request. It does not do any deserialization. You must dispose this object after use.
+ - `Task<Response<T>>`: This method returns a `Response<T>`. A `Response<T>` contains both the deserialized response (of type `T`), but also the `HttpResponseMessage`. Use this when you want to have both the deserialized response, and access to things like the response headers. You must dispose this object after use.
  - `Task<Stream>`: This method returns a Stream containing the response. Use this to e.g. download a file and stream it to disk. You must dispose this object after use.
 
 Non-async methods are not supported (use `.Wait()` or `.Result` as appropriate if you do want to make your request synchronous).
@@ -852,7 +852,7 @@ else
 Cancelling Requests
 -------------------
 
-If you want to be able to cancel a request, pass a `CancellationToken` as one of the method paramters.
+If you want to be able to cancel a request, pass a `CancellationToken` as one of the method parameters.
 
 ```csharp
 public interface ISomeApi
@@ -888,7 +888,7 @@ public interface IGitHubApi
 
 ### Variable Interface Headers
 
-If you want to have a header that applies to every single request, and whose value is variable, then use a variable interface header. These are specifed using properties, using a `[Header("Name")]` attribute on that property.
+If you want to have a header that applies to every single request, and whose value is variable, then use a variable interface header. These are specified using properties, using a `[Header("Name")]` attribute on that property.
 
 For example:
 
