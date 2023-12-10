@@ -1877,7 +1877,7 @@ Yes. It is safe to create implementations of interfaces from multiple threads at
 
 ### I want to upload a file
 
-Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits of not). There are a couple of ways of doing this, depending on your needs:
+Let's assume you want to upload a file (from a stream), setting its name and content-type manually (skip these bits if not). There are a couple of ways of doing this, depending on your needs:
 
 ```csharp
 public interface ISomeApi
