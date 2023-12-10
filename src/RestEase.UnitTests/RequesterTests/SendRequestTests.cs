@@ -1,11 +1,11 @@
-﻿using Moq;
-using RestEase;
-using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using RestEase;
+using RestEase.Implementation;
 using Xunit;
 
 namespace RestEase.UnitTests.RequesterTests

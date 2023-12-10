@@ -1,8 +1,8 @@
-﻿using Moq;
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -123,7 +123,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         {
             var response = new HttpResponseMessage();
             var requestInfo = this.RequestWithResponseMessage<INoArgumentsReturnsHttpResponseMessage>(x => x.FooAsync(), response);
-            
+
             Assert.Equal(CancellationToken.None, requestInfo.CancellationToken);
             Assert.Equal(HttpMethod.Get, requestInfo.Method);
             Assert.Empty(requestInfo.QueryParams);

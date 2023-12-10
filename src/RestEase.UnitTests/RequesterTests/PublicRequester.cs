@@ -1,8 +1,8 @@
-﻿using RestEase;
-using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using RestEase;
+using RestEase.Implementation;
 
 namespace RestEase.UnitTests.RequesterTests
 {

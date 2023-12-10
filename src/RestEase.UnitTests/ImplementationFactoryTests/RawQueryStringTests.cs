@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
-using System.Linq;
 using Xunit.Abstractions;
 
 namespace RestEase.UnitTests.ImplementationFactoryTests

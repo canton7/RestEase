@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using RestEase.Implementation;
-using RestEase.Platform;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Collections.Generic;
+using Newtonsoft.Json;
+using RestEase.Implementation;
+using RestEase.Platform;
 
 namespace RestEase
 {

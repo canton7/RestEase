@@ -1,5 +1,5 @@
-﻿using RestEase.Implementation;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using RestEase.Implementation;
 using Xunit;
 using Xunit.Abstractions;
 

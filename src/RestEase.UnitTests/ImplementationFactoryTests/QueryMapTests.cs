@@ -1,10 +1,10 @@
-﻿using Moq;
-using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Moq;
+using RestEase.Implementation;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -114,7 +114,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
             };
 
             var requestInfo = this.Request<IHasArrayQueryMap>(x => x.FooAsync(queryMap));
-            
+
             var queryParams = requestInfo.QueryParams.ToList();
 
             var queryParam0 = queryParams[0].SerializeToString(null).ToArray();
@@ -167,7 +167,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         [Fact]
         public void RecordsSerializedSerializationMethod()
         {
-            var requestInfo = this.Request< IHasSerializedSerializationMethod >(x => x.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } }));
+            var requestInfo = this.Request<IHasSerializedSerializationMethod>(x => x.FooAsync(new Dictionary<string, string>() { { "foo", "bar" } }));
 
             Assert.Equal(QuerySerializationMethod.Serialized, requestInfo.QueryParams.First().SerializationMethod);
         }

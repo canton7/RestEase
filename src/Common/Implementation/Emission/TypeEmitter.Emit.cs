@@ -160,7 +160,7 @@ namespace RestEase.Implementation.Emission
         public void EmitRequesterProperty(PropertyModel propertyModel)
         {
             MethodAttributes attributes = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
-            
+
             var propertyBuilder = this.typeBuilder.DefineProperty(propertyModel.PropertyInfo.Name, PropertyAttributes.None, propertyModel.PropertyInfo.PropertyType, null);
             var getter = this.typeBuilder.DefineMethod(propertyModel.PropertyInfo.GetMethod!.Name, attributes, propertyModel.PropertyInfo.PropertyType, ArrayUtil.Empty<Type>());
             var getterIlGenerator = getter.GetILGenerator();
@@ -178,7 +178,7 @@ namespace RestEase.Implementation.Emission
                 methodModel.Parameters.Select(x => x.ParameterInfo.ParameterType).ToArray());
             this.typeBuilder.DefineMethodOverride(methodBuilder, methodModel.MethodInfo);
             var ilGenerator = methodBuilder.GetILGenerator();
-            
+
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldfld, this.requesterField);
             ilGenerator.Emit(OpCodes.Callvirt, MethodInfos.IDisposable_Dispose);
@@ -186,7 +186,7 @@ namespace RestEase.Implementation.Emission
         }
 
         public MethodEmitter EmitMethod(MethodModel methodModel)
-        { 
+        {
             var methodEmitter = new MethodEmitter(this.typeBuilder, methodModel, this.numMethods, this.requesterField, this.classHeadersField);
             this.numMethods++;
             return methodEmitter;

@@ -1,7 +1,7 @@
-﻿using RestEase.Implementation;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using RestEase.Implementation;
 using Xunit;
 using Xunit.Abstractions;
 

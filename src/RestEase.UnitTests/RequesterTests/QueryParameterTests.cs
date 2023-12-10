@@ -1,11 +1,11 @@
-﻿using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Net.Http;
-using Xunit;
-using RestEase;
 using Moq;
+using RestEase;
+using RestEase.Implementation;
+using Xunit;
 
 namespace RestEase.UnitTests.RequesterTests
 {

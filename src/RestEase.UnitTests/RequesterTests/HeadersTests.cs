@@ -1,8 +1,8 @@
-﻿using RestEase;
-using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using RestEase;
+using RestEase.Implementation;
 using Xunit;
 
 namespace RestEase.UnitTests.RequesterTests
