@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <PackageValidationBaselineVersion>1.5.5</PackageValidationBaselineVersion>
-	  
+
     <VersionPrefix>0.0.0</VersionPrefix>
     <PackageOutputPath>../../NuGet</PackageOutputPath>
     <PackageId>RestEase</PackageId>
@@ -23,7 +23,7 @@
     <Authors>Antony Male</Authors>
     <Description>
 Easy-to-use typesafe REST API client library, which is simple and customisable.
-    
+
 Write a C# interface which describes your API, and RestEase generates an implementation you can call into.
 
 Source Generators are here! Reference the RestEase.SourceGenerator NuGet package.
@@ -49,7 +49,7 @@ Source Generators are here! Reference the RestEase.SourceGenerator NuGet package
     <PackageReference Include="System.Reflection.Emit" Version="4.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
@@ -67,9 +67,7 @@ Source Generators are here! Reference the RestEase.SourceGenerator NuGet package
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>RestEase.UnitTests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="RestEase.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>

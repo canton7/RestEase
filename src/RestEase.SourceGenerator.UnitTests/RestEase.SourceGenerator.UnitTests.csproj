@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Version>0.0.0</Version>
     <TargetFramework>net6.0</TargetFramework>
-    <AssemblyName>RestEase.SourceGenerator.UnitTests</AssemblyName>
     <RootNamespace>RestEase.UnitTests</RootNamespace>
     <LangVersion>10.0</LangVersion>
     <Nullable>annotations</Nullable>
