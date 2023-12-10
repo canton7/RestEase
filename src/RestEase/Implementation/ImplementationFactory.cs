@@ -34,7 +34,7 @@ namespace RestEase.Implementation
 
             // We have to be careful here. The common case is going to be fetching an existing creator. However in the case
             // that one doesn't yet exist, we can't try and create two of the same type at the same time.
-            // We have a lock around creating all types, as that's simpler and probably won't be noticable in practice.
+            // We have a lock around creating all types, as that's simpler and probably won't be noticeable in practice.
 
             if (TypeCreatorRegistry<T>.Creator == null)
             {

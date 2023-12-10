@@ -59,7 +59,7 @@ namespace System.Diagnostics.CodeAnalysis
 #endif
         sealed class MaybeNullWhenAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with the specified return value condition.</summary>
+        /// <summary>Initialises the attribute with the specified return value condition.</summary>
         /// <param name="returnValue">
         /// The return value condition. If the method returns this value, the associated parameter may be null.
         /// </param>
@@ -78,7 +78,7 @@ namespace System.Diagnostics.CodeAnalysis
 #endif
         sealed class NotNullWhenAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with the specified return value condition.</summary>
+        /// <summary>Initialises the attribute with the specified return value condition.</summary>
         /// <param name="returnValue">
         /// The return value condition. If the method returns this value, the associated parameter will not be null.
         /// </param>
@@ -97,7 +97,7 @@ namespace System.Diagnostics.CodeAnalysis
 #endif
         sealed class NotNullIfNotNullAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with the associated parameter name.</summary>
+        /// <summary>Initialises the attribute with the associated parameter name.</summary>
         /// <param name="parameterName">
         /// The associated parameter name.  The output will be non-null if the argument to the parameter specified is non-null.
         /// </param>
@@ -126,7 +126,7 @@ namespace System.Diagnostics.CodeAnalysis
 #endif
         sealed class DoesNotReturnIfAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with the specified parameter value.</summary>
+        /// <summary>Initialises the attribute with the specified parameter value.</summary>
         /// <param name="parameterValue">
         /// The condition parameter value. Code after the method will be considered unreachable by diagnostics if the argument to
         /// the associated parameter matches this value.
@@ -150,13 +150,13 @@ namespace System.Diagnostics.CodeAnalysis
 #endif
         sealed class MemberNotNullAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with a field or property member.</summary>
+        /// <summary>Initialises the attribute with a field or property member.</summary>
         /// <param name="member">
         /// The field or property member that is promised to be not-null.
         /// </param>
         public MemberNotNullAttribute(string member) => Members = new[] { member };
 
-        /// <summary>Initializes the attribute with the list of field and property members.</summary>
+        /// <summary>Initialises the attribute with the list of field and property members.</summary>
         /// <param name="members">
         /// The list of field and property members that are promised to be not-null.
         /// </param>
@@ -175,7 +175,7 @@ namespace System.Diagnostics.CodeAnalysis
 #endif
         sealed class MemberNotNullWhenAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with the specified return value condition and a field or property member.</summary>
+        /// <summary>Initialises the attribute with the specified return value condition and a field or property member.</summary>
         /// <param name="returnValue">
         /// The return value condition. If the method returns this value, the associated parameter will not be null.
         /// </param>
@@ -188,7 +188,7 @@ namespace System.Diagnostics.CodeAnalysis
             Members = new[] { member };
         }
 
-        /// <summary>Initializes the attribute with the specified return value condition and list of field and property members.</summary>
+        /// <summary>Initialises the attribute with the specified return value condition and list of field and property members.</summary>
         /// <param name="returnValue">
         /// The return value condition. If the method returns this value, the associated parameter will not be null.
         /// </param>

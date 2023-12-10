@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace RestEase
 {
@@ -23,7 +23,7 @@ namespace RestEase
         /// <param name="name">Name of the query parameter</param>
         /// <param name="value">Value of the query parameter</param>
         /// <param name="info">Extra information which may be useful</param>
-        /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
+        /// <returns>A collection of name -> value pairs to use as query parameters</returns>
         public override IEnumerable<KeyValuePair<string, string?>> SerializeQueryParam<T>(string name, T value, RequestQueryParamSerializerInfo info)
         {
             if (value == null)
@@ -41,9 +41,9 @@ namespace RestEase
         /// </remarks>
         /// <typeparam name="T">Type of the value to serialize</typeparam>
         /// <param name="name">Name of the query parameter</param>
-        /// <param name="values">Values of the query parmaeter</param>
+        /// <param name="values">Values of the query parameter</param>
         /// <param name="info">Extra information which may be useful</param>
-        /// <returns>A colletion of name -> value pairs to use as query parameters</returns>
+        /// <returns>A collection of name -> value pairs to use as query parameters</returns>
         public override IEnumerable<KeyValuePair<string, string?>> SerializeQueryCollectionParam<T>(string name, IEnumerable<T> values, RequestQueryParamSerializerInfo info)
         {
             if (values == null)

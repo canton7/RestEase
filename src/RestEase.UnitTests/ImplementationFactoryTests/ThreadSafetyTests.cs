@@ -1,6 +1,6 @@
-﻿using Moq;
+﻿using System.Threading.Tasks;
+using Moq;
 using RestEase.Implementation;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace RestEase.UnitTests.ImplementationFactoryTests

@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Net.Http;
+﻿using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace RestEase
 {

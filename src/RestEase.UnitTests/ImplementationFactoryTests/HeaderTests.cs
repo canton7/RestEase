@@ -1,12 +1,12 @@
-﻿using Moq;
-using RestEase.Implementation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Moq;
+using RestEase.Implementation;
 using Xunit;
 using Xunit.Abstractions;
 

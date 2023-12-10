@@ -206,7 +206,7 @@ namespace RestEase
         {
             if (this.contentDeserializer == null)
                 throw new InvalidOperationException("ApiException must have been instantiated with a non-null IApiExceptionContentDeserializer");
-            
+
             return this.contentDeserializer.Deserialize<T>(this.Content);
         }
     }

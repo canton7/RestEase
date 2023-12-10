@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using RestEase.Implementation;
-using RestEase.Platform;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Collections.Generic;
+using Newtonsoft.Json;
+using RestEase.Implementation;
+using RestEase.Platform;
 
 namespace RestEase
 {
@@ -88,7 +88,7 @@ namespace RestEase
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// Gets or sets the builder to use to construct encoded query strings from various parmaeters
+        /// Gets or sets the builder to use to construct encoded query strings from various parameters
         /// </summary>
         /// <remarks>
         /// Defaults to null, in which case the default building logic is used
@@ -376,7 +376,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// Create a client using the given IRequester. This gives you the greatest ability to customize functionality
         /// </summary>
         /// <param name="type">Interface representing the API</param>
         /// <param name="requester">IRequester to use</param>
@@ -436,7 +436,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Create a client using the given IRequester. This gives you the greatest ability to customise functionality
+        /// Create a client using the given IRequester. This gives you the greatest ability to customize functionality
         /// </summary>
         /// <typeparam name="T">Interface representing the API</typeparam>
         /// <param name="requester">IRequester to use</param>
@@ -494,7 +494,7 @@ namespace RestEase
         /// <param name="baseUrl">Base URL</param>
         /// <param name="requestModifier">Delegate called on every request</param>
         /// <param name="responseDeserializer">Deserializer to use when deserializing responses</param>
-        /// <param name="requestBodySerializer">Serializer to use when serializing request bodiess, when appropriate</param>
+        /// <param name="requestBodySerializer">Serializer to use when serializing request bodies, when appropriate</param>
         /// <returns>An implementation of that interface which you can use to invoke the API</returns>
         [Obsolete("Use 'new RestClient(baseUrl, requestModifier) { ResponseDeserializer = responseDeserializer, RequestBodySerializer = requestBodySerializer }.For<T>()' instead")]
         public static T For<T>(string baseUrl, RequestModifier requestModifier, ResponseDeserializer? responseDeserializer = null, RequestBodySerializer? requestBodySerializer = null)

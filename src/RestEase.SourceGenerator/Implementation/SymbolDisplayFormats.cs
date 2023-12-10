@@ -20,7 +20,7 @@ namespace RestEase.SourceGenerator.Implementation
         public static SymbolDisplayFormat TypeNameWithConstraints { get; }
 
         /// <summary>
-        /// The fully-qualified name name of a class, including type parameters and constraints, suitably escaped.
+        /// The fully-qualified name of a class, including type parameters and constraints, suitably escaped.
         /// E.g. "global::My.Namespace.Foo&lt;T&gt; where T : global::System.Collections.Generic.IEnumerable&lt;T&gt;"
         /// </summary>
         public static SymbolDisplayFormat QualifiedTypeNameWithTypeConstraints { get; }

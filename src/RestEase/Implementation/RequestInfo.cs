@@ -237,7 +237,7 @@ namespace RestEase.Implementation
         /// <summary>
         /// Add a raw query parameter, which provides a string which is inserted verbatim into the query string
         /// </summary>
-        /// <typeparam name="T">Type of the raw query parmaeter</typeparam>
+        /// <typeparam name="T">Type of the raw query parameter</typeparam>
         /// <param name="value">Raw query parameter</param>
         public void AddRawQueryParameter<T>(T value)
         {

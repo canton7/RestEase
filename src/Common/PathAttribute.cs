@@ -46,7 +46,7 @@ namespace RestEase
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PathAttribute"/> class, with the given serialization method
+        /// Initialises a new instance of the <see cref="PathAttribute"/> class, with the given serialization method
         /// </summary>
         /// <param name="serializationMethod">Serialization method to use to serialize the value</param>
         public PathAttribute(PathSerializationMethod serializationMethod)

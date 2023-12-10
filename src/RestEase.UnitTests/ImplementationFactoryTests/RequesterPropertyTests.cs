@@ -91,7 +91,7 @@ namespace RestEase.UnitTests.ImplementationFactoryTests
         public void ThrowsIfHasAttributes()
         {
             this.VerifyDiagnostics<IHasRequesterPropertyWithAttribute>(
-                // (3,14): Error REST021: IRequester property must not have any attribtues
+                // (3,14): Error REST021: IRequester property must not have any attributes
                 // Header("Foo")
                 Diagnostic(DiagnosticCode.RequesterPropertyMustHaveZeroAttributes, @"Header(""Foo"")")
                     .WithLocation(3, 14).WithLocation(4, 14)

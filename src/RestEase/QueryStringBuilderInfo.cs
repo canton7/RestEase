@@ -51,7 +51,7 @@ namespace RestEase
         /// <param name="initialQueryString">Initial query string, present from the URI the user specified in the Get/etc parameter</param>
         /// <param name="rawQueryParameters">The raw query parameters, if any</param>
         /// <param name="queryParams">The query parameters (or an empty collection)</param>
-        /// <param name="queryProperties">The query propeorties (or an empty collection)</param>
+        /// <param name="queryProperties">The query properties (or an empty collection)</param>
         /// <param name="requestInfo">RequestInfo representing the request</param>
         /// <param name="formatProvider">Format provider to use to format things</param>
         public QueryStringBuilderInfo(

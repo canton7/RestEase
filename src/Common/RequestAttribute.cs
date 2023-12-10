@@ -164,7 +164,7 @@ namespace RestEase
         public PutAttribute() : base(HttpMethod.Put) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PutAttribute"/> class, with the given relativ epath
+        /// Initialises a new instance of the <see cref="PutAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public PutAttribute(string path) : base(HttpMethod.Put, path) { }
@@ -205,7 +205,7 @@ namespace RestEase
         public PatchAttribute() : base(PatchMethod) { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PatchAttribute"/> class, with the given relativ epath
+        /// Initialises a new instance of the <see cref="PatchAttribute"/> class, with the given relative path
         /// </summary>
         /// <param name="path">Relative path to use</param>
         public PatchAttribute(string path) : base(PatchMethod, path) { }

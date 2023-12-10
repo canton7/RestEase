@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using RestEase.HttpClientFactory;
 using Moq;
-using System.Net.Http;
 using Moq.Protected;
-using System.Threading;
+using RestEase.HttpClientFactory;
+using Xunit;
 
 namespace RestEase.UnitTests.HttpClientFactoryTests
 {

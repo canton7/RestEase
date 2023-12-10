@@ -33,7 +33,7 @@ namespace RestEase.SourceGenerator.Implementation
             Add(this.wellKnownSymbols.RequestAttribute, this.ParseRequestAttribute);
             Add(this.wellKnownSymbols.DeleteAttribute, (x, s, d) => this.ParseRequestAttributeSubclass(x, s, d, () => new DeleteAttribute(), s => new DeleteAttribute(s)));
             Add(this.wellKnownSymbols.GetAttribute, (x, s, d) => this.ParseRequestAttributeSubclass(x, s, d, () => new GetAttribute(), s => new GetAttribute(s)));
-            Add(this.wellKnownSymbols.HeadAttribute, (x, s ,d) => this.ParseRequestAttributeSubclass(x, s, d, () => new HeadAttribute(), s => new HeadAttribute(s)));
+            Add(this.wellKnownSymbols.HeadAttribute, (x, s, d) => this.ParseRequestAttributeSubclass(x, s, d, () => new HeadAttribute(), s => new HeadAttribute(s)));
             Add(this.wellKnownSymbols.OptionsAttribute, (x, s, d) => this.ParseRequestAttributeSubclass(x, s, d, () => new OptionsAttribute(), s => new OptionsAttribute(s)));
             Add(this.wellKnownSymbols.PostAttribute, (x, s, d) => this.ParseRequestAttributeSubclass(x, s, d, () => new PostAttribute(), s => new PostAttribute(s)));
             Add(this.wellKnownSymbols.PutAttribute, (x, s, d) => this.ParseRequestAttributeSubclass(x, s, d, () => new PutAttribute(), s => new PutAttribute(s)));
